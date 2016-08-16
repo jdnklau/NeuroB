@@ -1,0 +1,38 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+project.version = '1.0.0-SNAPSHOT'
+project.group = 'de.hhu.stups'
+project.archivesBaseName = "jsdl"
+
+project.sourceCompatibility = '1.7'
+project.targetCompatibility = '1.7'
+
+
+repositories {
+	mavenCentral()
+        maven {
+		name "sonatype snapshots"
+		url "https://oss.sonatype.org/content/repositories/snapshots"
+	}
+	maven {
+		name "sonatype releases"
+		url "https://oss.sonatype.org/content/repositories/releases"
+	}
+}
+ 
+def parser_version = '2.5.1'
+
+dependencies {
+	
+	compile 'commons-cli:commons-cli:1.2'
+	compile (group: 'de.hhu.stups', name: 'prologlib', version: parser_version)
+	compile (group: 'de.hhu.stups', name: 'parserbase', version: parser_version)
+	compile (group: 'de.hhu.stups', name: 'bparser', version: parser_version)
+	compile (group: 'de.hhu.stups', name: 'ltlparser', version: parser_version)
+
+
+	testCompile (group: 'junit', name: 'junit', version: '4.12')
+}
+
