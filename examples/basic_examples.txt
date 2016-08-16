@@ -1,0 +1,5 @@
+#PREDICATE x=5
+#PREDICATE x>y & y>x
+#PREDICATE ! x . ( x : NAT => # y . (y : NAT & y>x) )
+#PREDICATE y > 5 & y < 9 & y = 2*x
+#PREDICATE y > 5 & y < 9 & # n . (n > 1 & y = n*x)

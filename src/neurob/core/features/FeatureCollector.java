@@ -26,14 +26,6 @@ public class FeatureCollector extends DepthFirstAdapter {
 	 * Following: the methods to extract the feature values from AST
 	 */
 	
-	@Override
-	public void caseStart(Start node){
-		super.caseStart(node);
-		// starting new analysis, so make sure to create new feature data
-		fd = new FeatureData();
-		
-	}
-	
 	// Predicates
 	@Override
 	public void caseAForallPredicate(final AForallPredicate node) {
