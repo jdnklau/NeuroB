@@ -55,7 +55,6 @@ public class IdentifierRelationHandler {
 		
 		@Override
 		public boolean equals(Object obj){
-			System.out.println("hey");
 			if(obj instanceof AdjacencyNode){
 				return id.equals(((AdjacencyNode) obj).getId());
 			}
