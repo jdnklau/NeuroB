@@ -21,7 +21,7 @@ public class Main {
 	public static void main(String[] args) {
 		BParser p = new BParser();
 		Start ast;
-		//FeatureCollector fc = new FeatureCollector();
+		FeatureCollector fc = new FeatureCollector();
 		
 		// get test predicates
 		String testFileUri = "examples/basic_examples.txt";
@@ -41,7 +41,6 @@ public class Main {
 				ast = p.parse(pred, false);
 				
 				// get features
-				FeatureCollector fc = new FeatureCollector();
 				ast.apply(fc);
 				
 				

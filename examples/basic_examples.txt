@@ -3,3 +3,4 @@
 #PREDICATE ! x . ( x : NAT => # y . (y : NAT & y>x) )
 #PREDICATE y > 5 & y < 9 & y = 2*x
 #PREDICATE y > 5 & y < 9 & # n . (n > 1 & y = n*x)
+#PREDICATE ! n . (n > 2 => # l . (l : NAT & # m . (m : NAT & l < m & m < n & N = l + 2)))

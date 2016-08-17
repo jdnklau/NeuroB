@@ -22,6 +22,13 @@ public class FeatureCollector extends DepthFirstAdapter {
 		return fd;
 	}
 	
+	@Override
+	public void caseStart(Start node){
+		// Just set feature counters to zero, so we can use the same collector over and over again for different predicates
+		fd = new FeatureData();
+		super.caseStart(node);
+	}
+	
 	/*
 	 * Following: the methods to extract the feature values from AST
 	 */
