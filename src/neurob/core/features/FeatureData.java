@@ -1,6 +1,6 @@
 package neurob.core.features;
 
-
+import neurob.core.features.helpers.IdentifierRelationHandler;
 
 /**
  * This class is for data points in the feature space.
@@ -12,6 +12,9 @@ package neurob.core.features;
  *
  */
 public class FeatureData {
+	// Helpers
+	private IdentifierRelationHandler ids;
+	// Features
 	private int fFormulaLength; // Length of formula (count of operators)
 	private int fExistsQuantifiersCount; // number of existential quantifiers
 	private int fForAllQuantifiersCount; // number of universal quantifiers
@@ -19,8 +22,11 @@ public class FeatureData {
 	private int fCompOperatorsCount; // number of comparison operators
 	private int fConjunctionsCount; // number of conjunctions
 	private int fDisjunctionsCount; // number of disjunctions
+	private int fUniqueIdentifiersCount; // number of unique identifiers used
 
 	public FeatureData() {
+		ids = new IdentifierRelationHandler();
+		
 		// set initial values
 		fFormulaLength = 0;
 		// Quantifiers
@@ -31,6 +37,8 @@ public class FeatureData {
 		fCompOperatorsCount = 0;
 		fConjunctionsCount = 0;
 		fDisjunctionsCount = 0;
+		// identifiers
+		fUniqueIdentifiersCount = 0;
 		
 	}
 	
@@ -42,7 +50,8 @@ public class FeatureData {
 				+ "Universal Quantifiers: "+fForAllQuantifiersCount+ "\n"
 				+ "Existential Quantifiers: "+fExistsQuantifiersCount+"\n"
 				+ "Conjunctions: "+fConjunctionsCount+"\n"
-				+ "Disjunctions: "+fDisjunctionsCount+"\n";
+				+ "Disjunctions: "+fDisjunctionsCount+"\n"
+				+ "Unique Identifiers: "+getUniqueIdentifiersCount()+"\n";
 		return s;
 	}
 	
@@ -67,5 +76,8 @@ public class FeatureData {
 	
 	public int getDisjunctionsCount(){ return fDisjunctionsCount; }
 	public void incDisjunctionsCount(){ fDisjunctionsCount++; }
+	
+	public int getUniqueIdentifiersCount(){ return ids.getUniqueIdentifierCount(); }
+	public void addIdentifier(String id){ ids.addIdentifier(id);}
 
 }

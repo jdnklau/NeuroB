@@ -40,6 +40,7 @@ public class FeatureCollector extends DepthFirstAdapter {
 	 * - Arithmetic Operators
 	 * - Comparison Operators
 	 * - Logical Operators
+	 * - Identifiers
 	 */
 	
 	// Quantifiers
@@ -121,5 +122,12 @@ public class FeatureCollector extends DepthFirstAdapter {
 		node.getRight().apply(this);
 	}
 	
+	// identifiers
+	@Override
+	public void caseAIdentifierExpression(final AIdentifierExpression node){
+		for(TIdentifierLiteral id : node.getIdentifier()){
+			fd.addIdentifier(id.getText());
+		}
+	}
 
 }
