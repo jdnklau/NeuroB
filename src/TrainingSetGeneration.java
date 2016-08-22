@@ -1,30 +1,19 @@
-import java.io.File;
-import java.io.IOException;
 
-import de.be4.classicalb.core.parser.BParser;
-import de.be4.classicalb.core.parser.exceptions.BException;
-import de.be4.classicalb.core.parser.node.Start;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import neurob.training.TrainingSetGenerator;
 
 public class TrainingSetGeneration {
 
 	public static void main(String[] args) {
-		BParser bpars = new BParser();
-		String examplePath = "prob_examples/public_examples/B/";
 		
-		File mch = new File(examplePath+"EventB/Lift.mch");
+		TrainingSetGenerator tsg = new TrainingSetGenerator();
 		
-		try {
-			Start ast = bpars.parseFile(mch, false);
-			
-			System.out.println(ast);
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (BException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Path sourceDir = Paths.get("prob_examples/public_examples/B/");
+		Path targetDir = Paths.get("prob_examples/training_data/B/");
+		
+		tsg.generateTrainingSet(sourceDir, targetDir);
 	}
 
 }
