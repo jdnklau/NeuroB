@@ -23,7 +23,7 @@ public class TrainingSetGenerator {
 	 */
 	public TrainingSetGenerator(TrainingDataCollector trainingDataCollector) {
 		tdc = trainingDataCollector;
-		limit = 35000;
+		limit = 5000;
 		fileCounter = 0;
 	}
 	
@@ -56,11 +56,16 @@ public class TrainingSetGenerator {
 	            	
 	            	/*
 	            	 * TODO:
-	            	 * Find better training data. The ProB examples contain a subdirectory called ParserPushBackOverflow, 
+	            	 * Find better training data. The ProB examples contain a subdirectory called Tickets/ParserPushBackOverflow/, 
 	            	 * in which code samples can be found the parser fails to parse, causing everything to just blow up, 
 	            	 * as I can not catch the thrown exception properly (although I should..)
+	            	 * 
+	            	 * For now I simply skip ParserPushBackOverflow/ 
+	            	 * 
+	            	 * Same with PerformanceTests/
 	            	 */
-	            	if(subdir.toString().equals("ParserPushBackOverflow")) return;
+	            	if(subdir.toString().equals("ParserPushBackOverflow")
+	            			|| subdir.toString().equals("PerformanceTests")) continue;
 	            	
 	            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir));
 	            }
