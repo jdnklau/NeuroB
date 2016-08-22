@@ -1,0 +1,4 @@
+# ignore everything here, except this file
+# it should just be a copy of the prob_examples repository anyway
+*
+!.gitignore
