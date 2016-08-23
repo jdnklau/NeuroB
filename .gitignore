@@ -1,6 +1,6 @@
-### Project specific
+### ProB specific
 prob_log.txt
-
+*.log
 
 ### Gradle specific
 .gradle
