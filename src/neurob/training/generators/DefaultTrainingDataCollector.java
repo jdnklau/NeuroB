@@ -26,7 +26,6 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		
 		// get features
 		try {
-			System.out.println("Parsing "+source); // TODO: delete this line
 			Start ast = bparse.parseFile(source.toFile(), false);
 			ast.apply(fc);
 			

@@ -44,6 +44,20 @@ public class FeatureData {
 	
 	@Override
 	public String toString(){
+		return fArithmOperatorsCount+","
+				+fCompOperatorsCount+","
+				+fForAllQuantifiersCount+","
+				+fExistsQuantifiersCount+","
+				+fConjunctionsCount+","
+				+fDisjunctionsCount+","
+				+getUniqueIdentifiersCount();
+	}
+	
+	/**
+	 * Returns a String, that lists a detailed overview of the single features and their values.
+	 * @return
+	 */
+	public String getFeatureOverviewText(){
 		String s = "Formula Length: ? (NYI)\n"
 				+ "Arithmetic Operators: "+fArithmOperatorsCount+ "\n"
 				+ "Comparison Operators: "+fCompOperatorsCount+ "\n"
