@@ -31,10 +31,10 @@ public class TrainingSetGenerator {
 	 * 
 	 * The given source directory will be searched recursively with respect to sub-directories.
 	 * 
-	 * The target directory will mirror the original file hierarchy to simplify the mapping from *.mch to *.nbdat.
+	 * The target directory will mirror the original file hierarchy to simplify the mapping from *.mch to *.nbtrain.
 	 * 
 	 * @param sourceDirectory Directory from which the machine files are read
-	 * @param targetDirectory Directory in which the *.train.nbdat files will be put 
+	 * @param targetDirectory Directory in which the *.nbtrain files will be put 
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory){
 		
@@ -70,7 +70,7 @@ public class TrainingSetGenerator {
 	            	String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
 	            	
 	            	if(ext.equals("mch")){
-	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbdat");
+	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 	            		
 	            		try{
 	            			tdc.collectTrainingData(entry, dataFilePath);
