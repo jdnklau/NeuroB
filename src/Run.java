@@ -12,7 +12,7 @@ import neurob.NeuroB;
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public class Main {
+public class Run {
 
 	public static void main(String[] args) {
 		NeuroB nb = new NeuroB();
