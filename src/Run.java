@@ -16,7 +16,7 @@ import neurob.core.features.FeatureData;
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public class Main {
+public class Run {
 
 	public static void main(String[] args) {
 		BParser p = new BParser();
