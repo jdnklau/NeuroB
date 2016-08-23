@@ -23,8 +23,6 @@ public class TrainingSetGenerator {
 	 */
 	public TrainingSetGenerator(TrainingDataCollector trainingDataCollector) {
 		tdc = trainingDataCollector;
-		limit = 5000;
-		fileCounter = 0;
 	}
 	
 	/**
@@ -33,7 +31,7 @@ public class TrainingSetGenerator {
 	 * 
 	 * The given source directory will be searched recursively with respect to sub-directories.
 	 * 
-	 * The target directory will mirror the original file hierarchy to simplify the mapping from *.mch to *.train.nbdat.
+	 * The target directory will mirror the original file hierarchy to simplify the mapping from *.mch to *.nbdat.
 	 * 
 	 * @param sourceDirectory Directory from which the machine files are read
 	 * @param targetDirectory Directory in which the *.train.nbdat files will be put 
@@ -45,14 +43,10 @@ public class TrainingSetGenerator {
 			Files.createDirectories(targetDirectory);
 			
 	        for (Path entry : stream) {
-	        	if(fileCounter >= limit){
-	        		System.out.println("Reached limit of "+limit+" files.");	
-	        		return;
-	        	}
 
 	        	// check if directory or not; recursion if so, else get features from file if .mch
 	            if (Files.isDirectory(entry)) {
-	            	Path subdir = entry.getFileName(); // get /subdir from /sourceDirctory/subdir
+	            	Path subdir = entry.getFileName(); // get directory name
 	            	
 	            	/*
 	            	 * TODO:
@@ -70,14 +64,13 @@ public class TrainingSetGenerator {
 	            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir));
 	            }
 	            else if(Files.isRegularFile(entry)){
-	            	fileCounter++;
 	            	
 	            	// check file extension
 	            	String fileName = entry.getFileName().toString();
 	            	String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
 	            	
 	            	if(ext.equals("mch")){
-	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".train.nbdat");
+	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbdat");
 	            		
 	            		try{
 	            			tdc.collectTrainingData(entry, dataFilePath);
