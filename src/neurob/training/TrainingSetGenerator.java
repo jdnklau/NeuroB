@@ -61,7 +61,7 @@ public class TrainingSetGenerator {
 	            	 */
 	            	if(subdir.toString().equals("ParserPushBackOverflow")
 	            			|| subdir.toString().equals("PerformanceTests")
-	            			|| subdir.toString().equals("RefinementChecking1")) continue;
+	            			|| subdir.toString().equals("RefinementChecking")) continue;
 	            	
 	            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir));
 	            }
