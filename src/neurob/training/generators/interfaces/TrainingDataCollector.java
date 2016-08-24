@@ -6,6 +6,8 @@ package neurob.training.generators.interfaces;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import de.be4.classicalb.core.parser.exceptions.BException;
+
 /**
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
@@ -19,7 +21,8 @@ public interface TrainingDataCollector {
 	 * @param source
 	 * @param target
 	 * @throws IOException
+	 * @throws BException 
 	 */
-	void collectTrainingData(Path source, Path target) throws IOException;
+	void collectTrainingData(Path source, Path target) throws IOException, BException;
 	
 }

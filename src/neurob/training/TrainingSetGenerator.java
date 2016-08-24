@@ -7,6 +7,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import de.be4.classicalb.core.parser.exceptions.BException;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
 /**
@@ -95,8 +96,14 @@ public class TrainingSetGenerator {
 	            	if(ext.equals("mch")){
 	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 	            		
-	            		System.out.println("Generating: "+entry+" > "+dataFilePath); // TODO: delete this line or change to logs
-	            		tdc.collectTrainingData(entry, dataFilePath);
+	            		log("Generating: "+entry+" > "+dataFilePath);
+	            		try {
+							tdc.collectTrainingData(entry, dataFilePath);
+						} catch (BException e) {
+							log("Could not parse "+entry+": "+e.getMessage());
+						} catch (IOException e) {
+							log("Could not access file: "+e.getMessage());
+						}
 	            		
 	            	}
 	            	
@@ -105,9 +112,19 @@ public class TrainingSetGenerator {
 	        }
 	    }
 		catch (IOException e){
-			e.printStackTrace();
+			log("Could not access directory "+sourceDirectory+": "+e.getMessage());
 		}
 		
+	}
+	
+	/**
+	 * used to add strings to the log file (NFI).
+	 * 
+	 * For now only uses System.out.println
+	 * @param s
+	 */
+	private void log(String s){
+		System.out.println(s);
 	}
 	
 	

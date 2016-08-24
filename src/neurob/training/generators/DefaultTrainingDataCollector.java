@@ -32,35 +32,30 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	}
 
 	@Override
-	public void collectTrainingData(Path source, Path target) throws IOException {
+	public void collectTrainingData(Path source, Path target) throws IOException, BException {
+		// access source file
+		Start ast = bparser.parseFile(source.toFile(), false);
 		
-		try {
-			// access source file
-			Start ast = bparser.parseFile(source.toFile(), false);
-			
-			ast.apply(fc);
-			
-//			StateSpace ss = api.b_load(ast);
-//			AbstractElement mainComp = ss.getMainComponent();
+		ast.apply(fc);
+		
+//		StateSpace ss = api.b_load(ast);
+//		AbstractElement mainComp = ss.getMainComponent();
+//		
+//		
+//		// assume invariants are constraint problems
+//		// get them and try to solve them
+//		PredicateCollector predc = new PredicateCollector(mainComp);
+//		for(String s : predc.getInvariants()){
+//			Start inv = BParser.parse("#PREDICATE "+s);
+//			inv.apply(fc);
 //			
+			BufferedWriter out = Files.newBufferedWriter(target);
+			out.write(fc.getFeatureData().toString());
+			out.close();
+//		}
 //			
-//			// assume invariants are constraint problems
-//			// get them and try to solve them
-//			PredicateCollector predc = new PredicateCollector(mainComp);
-//			for(String s : predc.getInvariants()){
-//				Start inv = BParser.parse("#PREDICATE "+s);
-//				inv.apply(fc);
-//				
-				BufferedWriter out = Files.newBufferedWriter(target);
-				out.write(fc.getFeatureData().toString());
-				out.close();
-//			}
-//			
-//			ss.kill();
-			
-		} catch (BException e) {
-			System.out.println("Could not parse "+source+": "+e.getMessage());
-		}
+//		ss.kill();
+		
 		
 	}
 
