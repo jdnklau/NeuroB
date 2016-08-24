@@ -22,16 +22,12 @@ repositories {
 	}
 }
 
-def parser_version = '2.5.1'
+def parser_version = '2.6.2'
 
 dependencies {
 
 	compile 'commons-cli:commons-cli:1.2'
 	compile (group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '2.0.3-SNAPSHOT')
-	compile (group: 'de.hhu.stups', name: 'prologlib', version: parser_version)
-	compile (group: 'de.hhu.stups', name: 'parserbase', version: parser_version)
-	compile (group: 'de.hhu.stups', name: 'bparser', version: parser_version)
-	compile (group: 'de.hhu.stups', name: 'ltlparser', version: parser_version)
 
 
 	testCompile (group: 'junit', name: 'junit', version: '4.12')
