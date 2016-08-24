@@ -36,25 +36,31 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		// access source file
 		Start ast = bparser.parseFile(source.toFile(), false);
 		
-		ast.apply(fc);
+//		ast.apply(fc);
+//		BufferedWriter out = Files.newBufferedWriter(target);
+//		out.write(fc.getFeatureData().toString());
+//		out.close();
 		
-//		StateSpace ss = api.b_load(ast);
-//		AbstractElement mainComp = ss.getMainComponent();
-//		
-//		
-//		// assume invariants are constraint problems
-//		// get them and try to solve them
-//		PredicateCollector predc = new PredicateCollector(mainComp);
-//		for(String s : predc.getInvariants()){
-//			Start inv = BParser.parse("#PREDICATE "+s);
-//			inv.apply(fc);
-//			
-			BufferedWriter out = Files.newBufferedWriter(target);
-			out.write(fc.getFeatureData().toString());
-			out.close();
-//		}
-//			
-//		ss.kill();
+		StateSpace ss = api.b_load(source.toString());
+		AbstractElement mainComp = ss.getMainComponent();
+		
+		// open target file
+		BufferedWriter out = Files.newBufferedWriter(target);
+		
+		// assume invariants are constraint problems
+		// get them and try to solve them
+		PredicateCollector predc = new PredicateCollector(mainComp);
+		for(String s : predc.getInvariants()){
+			Start inv = BParser.parse("#PREDICATE "+s);
+			inv.apply(fc);
+			
+			out.write(fc.getFeatureData().toString()+":"+s+"\n");
+			out.flush();
+			
+		}
+		
+		out.close();
+		ss.kill();
 		
 		
 	}

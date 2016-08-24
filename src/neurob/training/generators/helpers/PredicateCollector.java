@@ -26,19 +26,19 @@ public class PredicateCollector {
 	private void collectPredicates(AbstractElement comp){
 		// add invariants
 		for(Invariant x : comp.getChildrenOfType(Invariant.class)){
-			invariants.add(x.toString());
+			invariants.add(x.getFormula().getCode());
 		}
 		// for each event collect guards
 		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 			ArrayList<String> event = new ArrayList<String>();
 			for(Guard g : x.getChildrenOfType(Guard.class)){
-				event.add(g.toString());
+				event.add(g.getFormula().getCode());
 			}
 			guards.add(event);
 		}
 		// axioms
 		for(Axiom x : comp.getChildrenOfType(Axiom.class)){
-			axioms.add(x.toString());
+			axioms.add(x.getFormula().getCode());
 		}
 			
 	}
