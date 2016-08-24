@@ -57,9 +57,11 @@ public class TrainingSetGenerator {
 	            	 * For now I simply skip ParserPushBackOverflow/ 
 	            	 * 
 	            	 * Same with PerformanceTests/
+	            	 * and RefinementChecking/
 	            	 */
 	            	if(subdir.toString().equals("ParserPushBackOverflow")
-	            			|| subdir.toString().equals("PerformanceTests")) continue;
+	            			|| subdir.toString().equals("PerformanceTests")
+	            			|| subdir.toString().equals("RefinementChecking1")) continue;
 	            	
 	            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir));
 	            }
