@@ -1,5 +1,6 @@
 package neurob.training;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -9,7 +10,21 @@ import java.nio.file.Path;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
 /**
- * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
+ * Class to generate the training data for the neural net.
+ * 
+ * <p>
+ * The constructor takes to parameters:
+ * 		<ul>
+ * 			<li>An object implementing {@link TrainingDataCollector}, to get desired features, and</li>
+ * 			<li>An object implementing {@link TrainingOutputCollector}, to get corresponding output data, the neural net should be trained on.</li>
+ * 		</ul>
+ * </p>
+ * <p>
+ * Use {@link TrainingSetGenerator#generateTrainingSet(Path, Path) generateTrainingSet} to generate the test data from a given source directory,
+ * that contains .mch files. They will be translated into .nbtrain files, containing the collected data.
+ * </p>
+ * 
+ * @author Jannik Dunkelau
  *
  */
 public class TrainingSetGenerator {
@@ -24,6 +39,12 @@ public class TrainingSetGenerator {
 	public TrainingSetGenerator(TrainingDataCollector trainingDataCollector) {
 		tdc = trainingDataCollector;
 	}
+	
+	/**
+	 * 
+	 * @return Number of .mch files seen.
+	 */
+	public int getFileCounter(){ return fileCounter; }
 	
 	/**
 	 * Generates the training data by iterating over all *.mch files in the given source directory 
@@ -74,13 +95,8 @@ public class TrainingSetGenerator {
 	            	if(ext.equals("mch")){
 	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 	            		
-	            		try{
-	            			tdc.collectTrainingData(entry, dataFilePath);
-	            			System.out.println("Generated: "+dataFilePath); // TODO: delete
-	            		}
-	            		catch (IOException e) {
-	            			System.out.println("Could not create "+dataFilePath+": "+e.getMessage());
-	            		}
+	            		System.out.println("Generating: "+entry+" > "+dataFilePath); // TODO: delete this line or change to logs
+	            		tdc.collectTrainingData(entry, dataFilePath);
 	            		
 	            	}
 	            	
@@ -91,8 +107,8 @@ public class TrainingSetGenerator {
 		catch (IOException e){
 			e.printStackTrace();
 		}
-	}
 		
-	public int getFileCounter(){ return fileCounter; }
-
+	}
+	
+	
 }

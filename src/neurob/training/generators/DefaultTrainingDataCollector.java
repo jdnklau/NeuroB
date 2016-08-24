@@ -5,36 +5,58 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.google.inject.Inject;
+
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
+import de.prob.Main;
+import de.prob.model.representation.AbstractElement;
+import de.prob.scripting.Api;
+import de.prob.statespace.StateSpace;
 import neurob.core.features.FeatureCollector;
-import neurob.core.features.FeatureData;
+import neurob.training.generators.helpers.PredicateCollector;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
 public class DefaultTrainingDataCollector implements TrainingDataCollector {
-	BParser bparse;
-	FeatureCollector fc;
+	private FeatureCollector fc;
+	private Api api;
+	private BParser bparser;
 
+	@Inject
 	public DefaultTrainingDataCollector() {
-		bparse = new BParser();
 		fc = new FeatureCollector();
+		bparser = new BParser();
+		
+		api = Main.getInjector().getInstance(Api.class);
 	}
 
 	@Override
 	public void collectTrainingData(Path source, Path target) throws IOException {
 		
-		// get features
 		try {
-			Start ast = bparse.parseFile(source.toFile(), false);
+			// access source file
+			Start ast = bparser.parseFile(source.toFile(), false);
+			
 			ast.apply(fc);
 			
-			FeatureData fd = fc.getFeatureData();
-			
-			BufferedWriter out = Files.newBufferedWriter(target);
-			out.write(fd.toString());
-			out.close();
-			
+//			StateSpace ss = api.b_load(ast);
+//			AbstractElement mainComp = ss.getMainComponent();
+//			
+//			
+//			// assume invariants are constraint problems
+//			// get them and try to solve them
+//			PredicateCollector predc = new PredicateCollector(mainComp);
+//			for(String s : predc.getInvariants()){
+//				Start inv = BParser.parse("#PREDICATE "+s);
+//				inv.apply(fc);
+//				
+				BufferedWriter out = Files.newBufferedWriter(target);
+				out.write(fc.getFeatureData().toString());
+				out.close();
+//			}
+//			
+//			ss.kill();
 			
 		} catch (BException e) {
 			System.out.println("Could not parse "+source+": "+e.getMessage());
