@@ -18,6 +18,11 @@ public class TrainingSetGeneration {
 		
 		tsg.generateTrainingSet(sourceDir, targetDir);
 		
+//		Path sourceDir = Paths.get("prob_examples/public_examples/B/Tickets/Hansen23_WhilePerformance/WhileSlow_CartProduct.mch");
+//		Path targetDir = Paths.get("prob_examples/training_data/public_examples/B/Tickets/Hansen23_WhilePerformance/WhileSlow_CartProduct.nbtrain");
+//		
+//		tsg.generateTrainingDataFile(sourceDir, targetDir);
+		
 		System.out.println("... finished generation of training set.");
 		System.out.println("Visited "+tsg.getFileCounter()+" files.");
 	}

@@ -34,7 +34,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	@Override
 	public void collectTrainingData(Path source, Path target) throws IOException, BException {
 		// access source file
-		Start ast = bparser.parseFile(source.toFile(), false);
+//		Start ast = bparser.parseFile(source.toFile(), false);
 		
 //		ast.apply(fc);
 //		BufferedWriter out = Files.newBufferedWriter(target);

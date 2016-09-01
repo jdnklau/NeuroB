@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import de.be4.classicalb.core.parser.exceptions.BException;
+import de.prob.exception.ProBError;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
 /**
@@ -96,14 +97,7 @@ public class TrainingSetGenerator {
 	            	if(ext.equals("mch")){
 	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 	            		
-	            		log("Generating: "+entry+" > "+dataFilePath);
-	            		try {
-							tdc.collectTrainingData(entry, dataFilePath);
-						} catch (BException e) {
-							log("Could not parse "+entry+": "+e.getMessage());
-						} catch (IOException e) {
-							log("Could not access file: "+e.getMessage());
-						}
+	            		generateTrainingDataFile(entry, dataFilePath);
 	            		
 	            	}
 	            	
@@ -115,6 +109,26 @@ public class TrainingSetGenerator {
 			log("Could not access directory "+sourceDirectory+": "+e.getMessage());
 		}
 		
+	}
+	
+	/**
+	 * Generates a file containing feature data found in the source file,
+	 * and writes them to the target file.
+	 * @param source
+	 * @param target
+	 */
+	public void generateTrainingDataFile(Path source, Path target){
+		log("Generating: "+source+" > "+target);
+		try {
+			tdc.collectTrainingData(source, target);
+		} catch (BException e) {
+			log("Could not parse "+source+": "+e.getMessage());
+		} catch (ProBError e) {
+			log("ProBError on "+source+": "+e.getMessage());
+		} catch (IOException e) {
+			log("Could not access file: "+e.getMessage());
+		}
+		log("\tDone: "+target);
 	}
 	
 	/**
