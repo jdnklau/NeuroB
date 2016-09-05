@@ -16,6 +16,7 @@ import de.prob.Main;
 import de.prob.animator.command.CbcSolveCommand;
 import de.prob.animator.domainobjects.EvalResult;
 import de.prob.animator.domainobjects.EventB;
+import de.prob.exception.ProBError;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
@@ -60,43 +61,46 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		// assume invariants are constraint problems
 		// get them and try to solve them
 		PredicateCollector predc = new PredicateCollector(mainComp);
-		for(String s : predc.getInvariants()){
-			// write feature vector to stream
-			Start inv = BParser.parse("#PREDICATE "+s);
-			inv.apply(fc);
-			out.write(fc.getFeatureData().toString()); // feature vector
-			out.flush();
-			
-			// delimiter for target vector
-			out.write(":");
-			
+		for(String s : predc.getInvariants()){			
 			// set up command to send to ProB
 			EventB f = new EventB(s);
 			CbcSolveCommand cmd;
 			String res = ""; // for target vector
 			
-			// try different solvers
-			// - default
-			cmd = new CbcSolveCommand(f);
-			ss.execute(cmd);
-			res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-			// - KodKod
-			res += ","; // separate from previous result
-			cmd = new CbcSolveCommand(f);
-			sskod.execute(cmd);
-			res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-			// - SMT
-			res += ","; // separate from previous result
-			cmd = new CbcSolveCommand(f);
-			sssmt.execute(cmd);
-			res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-			
-			// write target vector
-			out.write(res);
-			
-			// end line
-			out.write("\n");
-			out.flush();
+			try{
+				// try different solvers
+				// - default
+				cmd = new CbcSolveCommand(f);
+				ss.execute(cmd);
+				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+				// - KodKod
+				res += ","; // separate from previous result
+				cmd = new CbcSolveCommand(f);
+				sskod.execute(cmd);
+				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+				// - SMT
+				res += ","; // separate from previous result
+				cmd = new CbcSolveCommand(f);
+				sssmt.execute(cmd);
+				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+				
+	
+				// write feature vector to stream
+				Start inv = BParser.parse("#PREDICATE "+s);
+				inv.apply(fc);
+				out.write(fc.getFeatureData().toString()); // feature vector
+				// delimiter for target vector
+				out.write(":");
+				// write target vector
+				out.write(res);
+				
+				// end line
+				out.write("\n");
+				out.flush();
+			} catch(ProBError e) {
+				// catch block is intended to catch invariants where ProB encounters problems with
+				System.out.println("\tAt "+s+"\n\t\t"+e.getMessage());
+			}
 			
 			
 		}

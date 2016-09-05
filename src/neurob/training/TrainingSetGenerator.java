@@ -121,14 +121,14 @@ public class TrainingSetGenerator {
 		log("Generating: "+source+" > "+target);
 		try {
 			tdc.collectTrainingData(source, target);
+			log("\tDone: "+target);
 		} catch (BException e) {
-			log("Could not parse "+source+": "+e.getMessage());
+			log("\tCould not parse "+source+": "+e.getMessage());
 		} catch (ProBError e) {
-			log("ProBError on "+source+": "+e.getMessage());
+			log("\tProBError on "+source+": "+e.getMessage());
 		} catch (IOException e) {
-			log("Could not access file: "+e.getMessage());
+			log("\tCould not access file: "+e.getMessage());
 		}
-		log("\tDone: "+target);
 	}
 	
 	/**
