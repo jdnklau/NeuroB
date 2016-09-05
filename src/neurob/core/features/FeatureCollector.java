@@ -41,6 +41,9 @@ public class FeatureCollector extends DepthFirstAdapter {
 	 * - Comparison Operators
 	 * - Logical Operators
 	 * - Identifiers
+	 * - Sets
+	 * - Functions
+	 * - Relations
 	 */
 	
 	// Quantifiers
@@ -129,5 +132,144 @@ public class FeatureCollector extends DepthFirstAdapter {
 			fd.addIdentifier(id.getText());
 		}
 	}
+	
+	// Sets
+	@Override
+	public void caseAMemberPredicate(final AMemberPredicate node){
+		fd.incSetMemberCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseANotMemberPredicate(final ANotMemberPredicate node){
+		fd.incSetMemberCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseASubsetPredicate(final ASubsetPredicate node){
+		fd.incSetMemberCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseANotSubsetPredicate(final ANotSubsetPredicate node){
+		fd.incSetMemberCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseASubsetStrictPredicate(final ASubsetStrictPredicate node){
+		fd.incSetMemberCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseANotSubsetStrictPredicate(final ANotSubsetStrictPredicate node){
+		fd.incSetMemberCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
 
+	@Override
+	public void caseAUnionExpression(final AUnionExpression node){
+		fd.incSetOperatorsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseAIntersectionExpression(final AIntersectionExpression node){
+		fd.incSetOperatorsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseASetSubtractionExpression(final ASetSubtractionExpression node){
+		fd.incSetOperatorsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	
+	// Functions
+	@Override
+	public void caseAPartialFunctionExpression(final APartialFunctionExpression node){
+		fd.incFunctionsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseATotalFunctionExpression(final ATotalFunctionExpression node){
+		fd.incFunctionsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseAPartialInjectionExpression(final APartialInjectionExpression node){
+		fd.incFunctionsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseATotalInjectionExpression(final ATotalInjectionExpression node){
+		fd.incFunctionsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseAPartialSurjectionExpression(final APartialSurjectionExpression node){
+		fd.incFunctionsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseATotalSurjectionExpression(final ATotalSurjectionExpression node){
+		fd.incFunctionsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+
+	@Override
+	public void caseAPartialBijectionExpression(final APartialBijectionExpression node){
+		fd.incFunctionsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseATotalBijectionExpression(final ATotalBijectionExpression node){
+		fd.incFunctionsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	
+	// Relations
+	@Override
+	public void caseADomainRestrictionExpression(final ADomainRestrictionExpression node){
+		fd.incRelationOperatorsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseADomainSubtractionExpression(final ADomainSubtractionExpression node){
+		fd.incRelationOperatorsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseARangeRestrictionExpression(final ARangeRestrictionExpression node){
+		fd.incRelationOperatorsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseARangeSubtractionExpression(final ARangeSubtractionExpression node){
+		fd.incRelationOperatorsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseAOverwriteExpression(final AOverwriteExpression node){
+		fd.incRelationOperatorsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
 }
