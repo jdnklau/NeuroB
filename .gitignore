@@ -4,6 +4,7 @@ src/MWEModelTranslationError.java
 
 ### ProB specific
 prob_log.txt
+probkodkod.log*
 *.log
 
 ### Gradle specific
