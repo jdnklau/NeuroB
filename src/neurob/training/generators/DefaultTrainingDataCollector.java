@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.google.inject.Inject;
 
@@ -11,6 +13,9 @@ import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
 import de.prob.Main;
+import de.prob.animator.command.CbcSolveCommand;
+import de.prob.animator.domainobjects.EvalResult;
+import de.prob.animator.domainobjects.EventB;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
@@ -21,28 +26,33 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
 public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	private FeatureCollector fc;
 	private Api api;
-	private BParser bparser;
+	private HashMap<String, String> useKodKod;
+	private HashMap<String, String> useSMT;
 
 	@Inject
 	public DefaultTrainingDataCollector() {
 		fc = new FeatureCollector();
-		bparser = new BParser();
 		
 		api = Main.getInjector().getInstance(Api.class);
+		
+		// set up solvers		
+		useKodKod = new HashMap<String,String>();
+		useKodKod.put("KODKOD", "true");
+		
+		useSMT = new HashMap<String,String>();
+		useSMT.put("SMT", "true");
+		
 	}
 
 	@Override
 	public void collectTrainingData(Path source, Path target) throws IOException, BException {
 		// access source file
-//		Start ast = bparser.parseFile(source.toFile(), false);
-		
-//		ast.apply(fc);
-//		BufferedWriter out = Files.newBufferedWriter(target);
-//		out.write(fc.getFeatureData().toString());
-//		out.close();
-		
 		StateSpace ss = api.b_load(source.toString());
 		AbstractElement mainComp = ss.getMainComponent();
+		
+		// load source file to different solvers
+		StateSpace sskod = api.b_load(source.toString(), useKodKod);
+		StateSpace sssmt = api.b_load(source.toString(), useSMT);
 		
 		// open target file
 		BufferedWriter out = Files.newBufferedWriter(target);
@@ -51,16 +61,50 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		// get them and try to solve them
 		PredicateCollector predc = new PredicateCollector(mainComp);
 		for(String s : predc.getInvariants()){
+			// write feature vector to stream
 			Start inv = BParser.parse("#PREDICATE "+s);
 			inv.apply(fc);
-			
-			out.write(fc.getFeatureData().toString()+":"+s+"\n");
+			out.write(fc.getFeatureData().toString()); // feature vector
 			out.flush();
+			
+			// delimiter for target vector
+			out.write(":");
+			
+			// set up command to send to ProB
+			EventB f = new EventB(s);
+			CbcSolveCommand cmd;
+			String res = ""; // for target vector
+			
+			// try different solvers
+			// - default
+			cmd = new CbcSolveCommand(f);
+			ss.execute(cmd);
+			res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+			// - KodKod
+			res += ","; // separate from previous result
+			cmd = new CbcSolveCommand(f);
+			sskod.execute(cmd);
+			res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+			// - SMT
+			res += ","; // separate from previous result
+			cmd = new CbcSolveCommand(f);
+			sssmt.execute(cmd);
+			res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+			
+			// write target vector
+			out.write(res);
+			
+			// end line
+			out.write("\n");
+			out.flush();
+			
 			
 		}
 		
 		out.close();
 		ss.kill();
+		sskod.kill();
+		sssmt.kill();
 		
 		
 	}
