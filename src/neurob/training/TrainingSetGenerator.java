@@ -58,8 +58,20 @@ public class TrainingSetGenerator {
 	 * 
 	 * @param sourceDirectory Directory from which the machine files are read
 	 * @param targetDirectory Directory in which the *.nbtrain files will be put 
+	 * 
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory){
+		generateTrainingSet(sourceDirectory, targetDirectory, true); // call with default recursion=true
+	}
+	
+	/**
+	 * Same as {@link TrainingSetGenerator#generateTrainingDataFile(Path, Path)}, but with the option to turn off the 
+	 * recursion step.
+	 * @param sourceDirectory
+	 * @param targetDirectory
+	 * @param recursion If false, the subdirectories are not searched
+	 */
+	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, boolean recursion){
 		
 		// iterate over directory recursively
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceDirectory)) {
@@ -68,7 +80,7 @@ public class TrainingSetGenerator {
 	        for (Path entry : stream) {
 
 	        	// check if directory or not; recursion if so, else get features from file if .mch
-	            if (Files.isDirectory(entry)) {
+	            if (Files.isDirectory(entry) && recursion) {
 	            	Path subdir = entry.getFileName(); // get directory name
 	            	
 	            	/*
@@ -86,7 +98,7 @@ public class TrainingSetGenerator {
 	            			|| subdir.toString().equals("PerformanceTests")
 	            			|| subdir.toString().equals("RefinementChecking")) continue;
 	            	
-	            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir));
+	            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir), recursion);
 	            }
 	            else if(Files.isRegularFile(entry)){
 	            	
