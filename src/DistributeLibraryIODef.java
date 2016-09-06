@@ -29,7 +29,7 @@ public class DistributeLibraryIODef {
 	            	
 	            	Path newLibraryIOPath = entry.resolve("LibraryIO.def");
 	            	try{
-	            		Files.copy(libraryIOpath, newLibraryIOPath, StandardCopyOption.REPLACE_EXISTING);
+	            		Files.copy(libraryIOpath, newLibraryIOPath);
 	            		System.out.println("Created: "+newLibraryIOPath);
 	            	} catch (IOException e){
 	            		System.out.println("COULD NOT CREATE "+newLibraryIOPath+": "+e.getMessage());
