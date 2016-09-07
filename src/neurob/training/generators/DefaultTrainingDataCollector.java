@@ -47,13 +47,34 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 
 	@Override
 	public void collectTrainingData(Path source, Path target) throws IOException, BException {
+		// StateSpaces
+		StateSpace ss, sskod, sssmt;
+		
 		// access source file
-		StateSpace ss = api.b_load(source.toString());
+		try{
+			ss = api.b_load(source.toString());
+		} catch(Exception e) {
+			System.out.println("\tCould not load machine:" + e.getMessage());
+			return;
+		}
 		AbstractElement mainComp = ss.getMainComponent();
 		
 		// load source file to different solvers
-		StateSpace sskod = api.b_load(source.toString(), useKodKod);
-		StateSpace sssmt = api.b_load(source.toString(), useSMT);
+		try{
+			sskod = api.b_load(source.toString(), useKodKod);
+		} catch(Exception e) {
+			ss.kill();
+			System.out.println("\tCould not load machine with KodKod:" + e.getMessage());
+			return;
+		}
+		try{
+			sssmt = api.b_load(source.toString(), useSMT);
+		} catch(Exception e) {
+			ss.kill();
+			sskod.kill();
+			System.out.println("\tCould not load machine with SMT:" + e.getMessage());
+			return;
+		}
 		
 		// open target file
 		BufferedWriter out = Files.newBufferedWriter(target);
@@ -61,7 +82,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		// assume invariants are constraint problems
 		// get them and try to solve them
 		PredicateCollector predc = new PredicateCollector(mainComp);
-		for(String s : predc.getInvariants()){			
+		for(String s : predc.getInvariants()){		
 			// set up command to send to ProB
 			EventB f = new EventB(s);
 			CbcSolveCommand cmd;
@@ -97,7 +118,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 				// end line
 				out.write("\n");
 				out.flush();
-			} catch(ProBError e) {
+			} catch(Exception e) {
 				// catch block is intended to catch invariants where ProB encounters problems with
 				System.out.println("\tAt "+s+"\n\t\t"+e.getMessage());
 			}
