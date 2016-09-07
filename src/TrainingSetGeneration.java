@@ -25,7 +25,7 @@ public class TrainingSetGeneration {
 			Path dirlist = Paths.get("prob_examples/directories.txt");
 			for( String line : Files.readAllLines(dirlist)){
 					Path src = Paths.get("prob_examples/reduced_examples/"+line);
-					Path tar = Paths.get("prob_examples/training_data/public_examples");
+					Path tar = Paths.get("prob_examples/training_data/public_examples/"+line);
 					
 					tsg.generateTrainingSet(src, tar, false);
 					
