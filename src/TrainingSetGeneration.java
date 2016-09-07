@@ -22,13 +22,17 @@ public class TrainingSetGeneration {
 //		tsg.generateTrainingSet(sourceDir, targetDir);
 		
 		try {
-			for( String line : Files.readAllLines(Paths.get("prob_examples/directories.txt"))){
+			Path dirlist = Paths.get("prob_examples/directories.txt");
+			for( String line : Files.readAllLines(dirlist)){
 					Path src = Paths.get("prob_examples/reduced_examples/"+line);
 					Path tar = Paths.get("prob_examples/training_data/public_examples");
 					
 					tsg.generateTrainingSet(src, tar, false);
 					
-					// TODO: delete line from file
+					// Mark directory as seen/delete line from file
+					String content = new String(Files.readAllBytes(dirlist));
+					content = content.substring(line.length()+1); // cut this line and the \n
+					Files.write(dirlist, content.getBytes());
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
