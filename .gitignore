@@ -1,5 +1,10 @@
+### Project specific
+# minimal working examples to check for bugs
+src/MWEModelTranslationError.java
+
 ### ProB specific
 prob_log.txt
+probkodkod.log*
 *.log
 
 ### Gradle specific

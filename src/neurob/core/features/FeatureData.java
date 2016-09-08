@@ -23,6 +23,10 @@ public class FeatureData {
 	private int fConjunctionsCount; // number of conjunctions
 	private int fDisjunctionsCount; // number of disjunctions
 	private int fUniqueIdentifiersCount; // number of unique identifiers used
+	private int fSetOperatorsCount; // number of set operators
+	private int fSetMemberCount; // number of memberships to sets
+	private int fFunctionsCount; // number of functions
+	private int fRelationOperatorsCount;
 
 	public FeatureData() {
 		ids = new IdentifierRelationHandler();
@@ -39,11 +43,35 @@ public class FeatureData {
 		fDisjunctionsCount = 0;
 		// identifiers
 		fUniqueIdentifiersCount = 0;
+		// Sets
+		fSetOperatorsCount = 0;
+		fSetMemberCount = 0;
+		// functions
+		fFunctionsCount = 0;
+		fRelationOperatorsCount = 0;
 		
 	}
 	
 	@Override
 	public String toString(){
+		return fArithmOperatorsCount+","
+				+fCompOperatorsCount+","
+				+fForAllQuantifiersCount+","
+				+fExistsQuantifiersCount+","
+				+fConjunctionsCount+","
+				+fDisjunctionsCount+","
+				+fSetOperatorsCount+","
+				+fSetMemberCount+","
+				+fFunctionsCount+","
+				+fRelationOperatorsCount+","
+				+getUniqueIdentifiersCount();
+	}
+	
+	/**
+	 * Returns a String, that lists a detailed overview of the single features and their values.
+	 * @return
+	 */
+	public String getFeatureOverviewText(){
 		String s = "Formula Length: ? (NYI)\n"
 				+ "Arithmetic Operators: "+fArithmOperatorsCount+ "\n"
 				+ "Comparison Operators: "+fCompOperatorsCount+ "\n"
@@ -76,6 +104,18 @@ public class FeatureData {
 	
 	public int getDisjunctionsCount(){ return fDisjunctionsCount; }
 	public void incDisjunctionsCount(){ fDisjunctionsCount++; }
+	
+	public int getSetOperatorsCount(){ return fSetOperatorsCount; }
+	public void incSetOperatorsCount(){ fSetOperatorsCount++; }
+	
+	public int getSetMemberCount(){ return fSetMemberCount; }
+	public void incSetMemberCount(){ fSetMemberCount++; }
+	
+	public int getFunctionsCount(){ return fFunctionsCount; }
+	public void incFunctionsCount(){ fFunctionsCount++; }
+	
+	public int getRelationOperatorsCount(){ return fRelationOperatorsCount; }
+	public void incRelationOperatorsCount(){ fRelationOperatorsCount++; }
 	
 	public int getUniqueIdentifiersCount(){ return ids.getUniqueIdentifierCount(); }
 	public void addIdentifier(String id){ ids.addIdentifier(id);}

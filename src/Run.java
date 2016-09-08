@@ -6,11 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import de.be4.classicalb.core.parser.BParser;
-import de.be4.classicalb.core.parser.exceptions.BException;
-import de.be4.classicalb.core.parser.node.Start;
-import neurob.core.features.FeatureCollector;
-import neurob.core.features.FeatureData;
+import neurob.NeuroB;
 
 /**
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
@@ -19,9 +15,7 @@ import neurob.core.features.FeatureData;
 public class Run {
 
 	public static void main(String[] args) {
-		BParser p = new BParser();
-		Start ast;
-		FeatureCollector fc = new FeatureCollector();
+		NeuroB nb = new NeuroB();
 		
 		// get test predicates
 		String testFileUri = "examples/basic_examples.txt";
@@ -35,22 +29,7 @@ public class Run {
 		
 		// get features of test predicates
 		for(String pred : preds){
-			try {
-				// get AST from predicate
-				System.out.println(pred);
-				ast = p.parse(pred, false);
-				
-				// get features
-				ast.apply(fc);
-				
-				
-				// print results
-				System.out.println(fc.getFeatureData());
-				
-			} catch (BException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			nb.processPredicate(pred);
 		}
 		
 
