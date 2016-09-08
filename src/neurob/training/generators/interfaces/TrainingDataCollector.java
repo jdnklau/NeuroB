@@ -5,6 +5,7 @@ package neurob.training.generators.interfaces;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.logging.Logger;
 
 import de.be4.classicalb.core.parser.exceptions.BException;
 
@@ -24,5 +25,12 @@ public interface TrainingDataCollector {
 	 * @throws BException 
 	 */
 	void collectTrainingData(Path source, Path target) throws IOException, BException;
+	
+	/**
+	 * Sets a Logger
+	 * May be that no logger is supported; then does nothing
+	 * @param l The Logger to be used
+	 */
+	default void setLogger(Logger l) {}
 	
 }

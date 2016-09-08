@@ -1,14 +1,17 @@
 package neurob.training;
 
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.exception.ProBError;
+import neurob.logging.NeuroBLogFormatter;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
 /**
@@ -33,6 +36,7 @@ public class TrainingSetGenerator {
 	private TrainingDataCollector tdc; // used collector of training data
 	private int limit; // only this much files are generated (or looked into in th first place)
 	private int fileCounter; // number of files generated
+	private static final Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 	
 	/**
 	 * 
@@ -40,6 +44,25 @@ public class TrainingSetGenerator {
 	 */
 	public TrainingSetGenerator(TrainingDataCollector trainingDataCollector) {
 		tdc = trainingDataCollector;
+		
+		//** setting up logger
+		logger.setUseParentHandlers(false);
+		logger.setLevel(Level.FINE);
+		// log to console
+		ConsoleHandler ch = new ConsoleHandler();
+		ch.setFormatter(new NeuroBLogFormatter());
+		logger.addHandler(ch);
+		// log to logfile
+		try {
+			FileHandler fh = new FileHandler("NeuroB-TrainingSetGenerator-%u.log");
+			fh.setFormatter(new NeuroBLogFormatter());
+			logger.addHandler(fh);
+		} catch (SecurityException | IOException e) {
+			System.err.println("Could not greate file logger");
+		}
+		
+		// set Logger of tdc
+		tdc.setLogger(logger);
 	}
 	
 	/**
@@ -118,7 +141,7 @@ public class TrainingSetGenerator {
 	        }
 	    }
 		catch (IOException e){
-			log("Could not access directory "+sourceDirectory+": "+e.getMessage());
+			logger.severe("Could not access directory "+sourceDirectory+": "+e.getMessage());
 		}
 		
 	}
@@ -130,27 +153,17 @@ public class TrainingSetGenerator {
 	 * @param target
 	 */
 	public void generateTrainingDataFile(Path source, Path target){
-		log("Generating: "+source+" > "+target);
+		logger.info("Generating: "+source+" > "+target);
 		try {
 			tdc.collectTrainingData(source, target);
-			log("\tDone: "+target);
+			logger.fine("\tDone: "+target);
 		} catch (BException e) {
-			log("\tCould not parse "+source+": "+e.getMessage());
+			logger.warning("\tCould not parse "+source+": "+e.getMessage());
 		} catch (ProBError e) {
-			log("\tProBError on "+source+": "+e.getMessage());
+			logger.warning("\tProBError on "+source+": "+e.getMessage());
 		} catch (IOException e) {
-			log("\tCould not access file: "+e.getMessage());
+			logger.warning("\tCould not access file: "+e.getMessage());
 		}
-	}
-	
-	/**
-	 * used to add strings to the log file (NFI).
-	 * 
-	 * For now only uses System.out.println
-	 * @param s
-	 */
-	private void log(String s){
-		System.out.println(s);
 	}
 	
 	

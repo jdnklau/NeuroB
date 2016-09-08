@@ -4,8 +4,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import com.google.inject.Inject;
 
@@ -14,13 +14,12 @@ import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
 import de.prob.Main;
 import de.prob.animator.command.CbcSolveCommand;
-import de.prob.animator.domainobjects.EvalResult;
 import de.prob.animator.domainobjects.EventB;
-import de.prob.exception.ProBError;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
 import neurob.core.features.FeatureCollector;
+import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.helpers.PredicateCollector;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
@@ -29,6 +28,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	private Api api;
 	private HashMap<String, String> useKodKod;
 	private HashMap<String, String> useSMT;
+	private Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 
 	@Inject
 	public DefaultTrainingDataCollector() {
@@ -44,6 +44,15 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		useSMT.put("SMT", "true");
 		
 	}
+	
+	/**
+	 * Set the logger to a different one
+	 * @param l
+	 */
+	@Override
+	public void setLogger(Logger l){
+		logger = l;
+	}
 
 	@Override
 	public void collectTrainingData(Path source, Path target) throws IOException, BException {
@@ -54,7 +63,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		try{
 			ss = api.b_load(source.toString());
 		} catch(Exception e) {
-			System.out.println("\tCould not load machine:" + e.getMessage());
+			logger.severe("\tCould not load machine:" + e.getMessage());
 			return;
 		}
 		AbstractElement mainComp = ss.getMainComponent();
@@ -64,7 +73,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			sskod = api.b_load(source.toString(), useKodKod);
 		} catch(Exception e) {
 			ss.kill();
-			System.out.println("\tCould not load machine with KodKod:" + e.getMessage());
+			logger.severe("\tCould not load machine with KodKod:" + e.getMessage());
 			return;
 		}
 		try{
@@ -72,7 +81,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		} catch(Exception e) {
 			ss.kill();
 			sskod.kill();
-			System.out.println("\tCould not load machine with SMT:" + e.getMessage());
+			logger.severe("\tCould not load machine with SMT:" + e.getMessage());
 			return;
 		}
 		
@@ -120,7 +129,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 				out.flush();
 			} catch(Exception e) {
 				// catch block is intended to catch invariants where ProB encounters problems with
-				System.out.println("\tAt "+s+"\n\t\t"+e.getMessage());
+				logger.warning("\tAt "+s+"\n\t\t"+e.getMessage());
 			}
 			
 			
