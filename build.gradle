@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 
-project.version = '0.3.0'
+project.version = '0.3.1'
 project.group = 'de.hhu.stups'
 project.archivesBaseName = "NeuroB"
 
@@ -22,13 +22,10 @@ repositories {
 	}
 }
 
-def parser_version = '2.6.2'
-
 dependencies {
 
 	compile 'commons-cli:commons-cli:1.2'
 	compile (group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '2.0.3-SNAPSHOT')
-
 
 	testCompile (group: 'junit', name: 'junit', version: '4.12')
 }
@@ -51,7 +48,13 @@ task TrainingSetGenerationJar(type: Jar) {
         	'Implementation-Version': version,
         	'Main-Class': 'TrainingSetGeneration'
     }
-    baseName = project.name + '-TrainingSetGenerator'
+    baseName = project.name + '-TrainingSetGeneration'
 	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 	with jar
 }
+
+task buildJars {
+	dependsOn TrainingSetGenerationJar
+}
+
+
