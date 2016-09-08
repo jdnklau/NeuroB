@@ -1,14 +1,17 @@
+# Enter project version here:
+VER = 0.3.2
+
 gradle :
 	./gradlew build
 
 build : clean
-	echo "***** Build .jar files"
+	# ***** Build .jar files
 	./gradlew buildJars
 	
 clean :
-	echo "***** Clean gradle"
+	# ***** Clean gradle
 	./gradlew clean
 
 # how to run stuff
 trainingset : 
-	java -jar build/libs/NeuroB-TrainingSetGeneration-0.3.1.jar
+	java -jar build/libs/NeuroB-TrainingSetGeneration-$(VER).jar
