@@ -87,13 +87,15 @@ public class TrainingSetAnalyser {
 		}
     }
 	
-	public void getStatistics(){
+	public String getStatistics(){
 		int relevantFiles = fileCount-emptyFilesCount;
-		System.out.println("Files found: "+fileCount);
-		System.out.println("Of these were "+emptyFilesCount+" seemingly empty");
-		System.out.println("=> "+relevantFiles+" relevant files");
-		System.out.println("In the relevent filese were "+dataCount+" data vectors");
-		System.out.println("and of these serve "+uninteresstingDataCount+" vectors no informational gain");
+		StringBuilder b = new StringBuilder(1000);
+		b.append("Files found: "+fileCount).append('\n');
+		b.append("Of these were "+emptyFilesCount+" seemingly empty").append('\n');
+		b.append("=> "+relevantFiles+" relevant files").append('\n');
+		b.append("In the relevent filese were "+dataCount+" data vectors").append('\n');
+		b.append("and of these serve "+uninteresstingDataCount+" vectors no informational gain").append('\n');
+		return b.toString();
 	}
 
 }

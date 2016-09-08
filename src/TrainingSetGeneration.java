@@ -43,6 +43,7 @@ public class TrainingSetGeneration {
 //		tsg.generateTrainingDataFile(sourceDir, targetDir);
 		
 		tsg.logStatistics();
+		tsg.logTrainingSetAnalysis(targetDir);
 	}
 
 }

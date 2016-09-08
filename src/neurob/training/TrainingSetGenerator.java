@@ -69,10 +69,22 @@ public class TrainingSetGenerator {
 		fileProblemsCounter = 0;
 	}
 	
+	/**
+	 * Adds an overview of the seen files to the log
+	 */
 	public void logStatistics(){
 		logger.info("**********");
+		logger.info("Summary:");
 		logger.info("Seen:\t"+fileCounter+" .mch-files");
 		logger.info("\t"+fileProblemsCounter+" caused problems and could not be properly processed");
+	}
+	
+	public void logTrainingSetAnalysis(Path dir){
+		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
+		tsa.analyseTrainingSet(dir);
+		logger.info("**********");
+		logger.info("Training Data Analysis:");
+		logger.info(tsa.getStatistics());
 	}
 	
 	/**
