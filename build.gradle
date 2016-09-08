@@ -45,6 +45,10 @@ sourceSets {
 	}
 }
 
+task wrapper(type:Wrapper) {
+	gradleVersion = '2.5'
+}
+
 task TrainingSetGenerationJar(type: Jar) {
 	manifest {
         attributes 'Implementation-Title': 'Training Set Generation',
