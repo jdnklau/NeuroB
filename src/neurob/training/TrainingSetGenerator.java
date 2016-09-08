@@ -35,7 +35,8 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
 public class TrainingSetGenerator {
 	private TrainingDataCollector tdc; // used collector of training data
 	private int limit; // only this much files are generated (or looked into in th first place)
-	private int fileCounter; // number of files generated
+	private int fileCounter; // number of files seen
+	private int fileProblemsCounter; // number of files which caused problems
 	private static final Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 	
 	/**
@@ -63,6 +64,15 @@ public class TrainingSetGenerator {
 		
 		// set Logger of tdc
 		tdc.setLogger(logger);
+		
+		fileCounter = 0;
+		fileProblemsCounter = 0;
+	}
+	
+	public void logStatistics(){
+		logger.info("**********");
+		logger.info("Seen:\t"+fileCounter+" .mch-files");
+		logger.info("\t"+fileProblemsCounter+" caused problems and could not be properly processed");
 	}
 	
 	/**
@@ -130,6 +140,7 @@ public class TrainingSetGenerator {
 	            	String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
 	            	
 	            	if(ext.equals("mch")){
+	            		fileCounter++;
 	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 	            		
 	            		generateTrainingDataFile(entry, dataFilePath);
@@ -157,6 +168,7 @@ public class TrainingSetGenerator {
 		try {
 			tdc.collectTrainingData(source, target);
 			logger.fine("\tDone: "+target);
+			return;
 		} catch (BException e) {
 			logger.warning("\tCould not parse "+source+": "+e.getMessage());
 		} catch (ProBError e) {
@@ -164,6 +176,7 @@ public class TrainingSetGenerator {
 		} catch (IOException e) {
 			logger.warning("\tCould not access file: "+e.getMessage());
 		}
+		fileProblemsCounter++;
 	}
 	
 	
