@@ -1,5 +1,5 @@
 # Enter project version here:
-VER = 0.4.2
+VER = 0.4.2-neuro
 
 gradle :
 	./gradlew -q build

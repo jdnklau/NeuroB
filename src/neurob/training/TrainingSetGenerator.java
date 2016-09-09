@@ -1,5 +1,6 @@
 package neurob.training;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -191,6 +192,41 @@ public class TrainingSetGenerator {
 			logger.warning("\tCould not access file: "+e.getMessage());
 		}
 		fileProblemsCounter++;
+	}
+	
+	public void generateCSVFromNBTrainData(Path sourceDirectory, Path target){
+		try (Stream<Path> stream = Files.walk(sourceDirectory)){
+			// Create CSV file
+			BufferedWriter csv = Files.newBufferedWriter(target);
+			
+			stream.forEach(f -> {
+				// check if .nbtrain file
+				if(Files.isRegularFile(f)){
+					String fileName = f.getFileName().toString();
+					String ext = fileName.substring(fileName.lastIndexOf('.'));
+					if(ext.equals("nbtrain")){
+						// nbtrain file found!
+						// read line wise
+						try (Stream<String> lines = Files.lines(f)){
+							lines.forEach(l -> {
+								try {
+									csv.write(l.replace(':', ','));// replace : with , to get csv format
+								} catch (Exception e) {
+									logger.warning("Could not add a data vector from "+f+": "+e.getMessage());
+								} 
+							});
+							csv.flush();
+						} catch(IOException e) {
+							logger.severe("Could not add data from "+f+": "+e.getMessage());
+						}
+					}
+					
+				}
+			});
+			
+		} catch (IOException e) {
+			logger.severe("Failed to setup CSV correctly:" +e.getMessage());
+		}
 	}
 	
 	
