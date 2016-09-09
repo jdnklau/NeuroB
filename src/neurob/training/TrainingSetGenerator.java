@@ -199,6 +199,16 @@ public class TrainingSetGenerator {
 			// Create CSV file
 			BufferedWriter csv = Files.newBufferedWriter(target);
 			
+			// set header
+			for(int i=0; i<tdc.getNumberOfFeatures(); i++){
+				csv.write("Feature"+i+",");
+			}
+			for(int i=0; i< tdc.getNumberOfLabels(); i++){
+				csv.write("Label"+i+",");
+			}
+			csv.newLine();
+			csv.flush();
+			
 			stream.forEach(f -> {
 				// check if .nbtrain file
 				if(Files.isRegularFile(f)){
@@ -210,7 +220,7 @@ public class TrainingSetGenerator {
 						try (Stream<String> lines = Files.lines(f)){
 							lines.forEach(l -> {
 								try {
-									csv.write(l.replace(':', ','));// replace : with , to get csv format
+									csv.write(l.replace(':', ',')+"\n");// replace : with , to get csv format
 								} catch (Exception e) {
 									logger.warning("Could not add a data vector from "+f+": "+e.getMessage());
 								} 
