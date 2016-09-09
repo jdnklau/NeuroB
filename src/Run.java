@@ -15,7 +15,7 @@ import neurob.NeuroB;
 public class Run {
 
 	public static void main(String[] args) {
-		NeuroB nb = new NeuroB();
+		NeuroB nb = new NeuroB(null);
 		
 		// get test predicates
 		String testFileUri = "examples/basic_examples.txt";
