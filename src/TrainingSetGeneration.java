@@ -44,6 +44,7 @@ public class TrainingSetGeneration {
 		
 		tsg.logStatistics();
 		tsg.logTrainingSetAnalysis(targetDir);
+		
 	}
 
 }
