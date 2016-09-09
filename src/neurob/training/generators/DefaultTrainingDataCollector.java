@@ -19,6 +19,7 @@ import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
 import neurob.core.features.FeatureCollector;
+import neurob.core.features.FeatureData;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.helpers.PredicateCollector;
 import neurob.training.generators.interfaces.TrainingDataCollector;
@@ -44,6 +45,11 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		useSMT.put("SMT", "true");
 		
 	}
+	
+	@Override
+	public int getNumberOfFeatures() {return FeatureData.featureCount;};
+	@Override
+	public int getNumberOfLabels() {return 3;};
 	
 	/**
 	 * Set the logger to a different one

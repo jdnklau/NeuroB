@@ -12,6 +12,8 @@ import neurob.core.features.helpers.IdentifierRelationHandler;
  *
  */
 public class FeatureData {
+	// Dimensions
+	public static final int featureCount = 12;
 	// Helpers
 	private IdentifierRelationHandler ids;
 	// Features

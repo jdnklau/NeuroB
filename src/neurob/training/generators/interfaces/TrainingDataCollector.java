@@ -33,4 +33,18 @@ public interface TrainingDataCollector {
 	 */
 	default void setLogger(Logger l) {}
 	
+	/**
+	 * Returns the number of features selected
+	 * @return
+	 * @see {@link #getNumberOfLabels()}
+	 */
+	int getNumberOfFeatures();
+	
+	/**
+	 * Returns the number of labels a single training vector has 
+	 * @return
+	 * @see {@link #getNumberOfFeatures()}
+	 */
+	int getNumberOfLabels();
+	
 }
