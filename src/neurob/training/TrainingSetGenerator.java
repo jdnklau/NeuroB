@@ -8,6 +8,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.exception.ProBError;
@@ -119,49 +120,50 @@ public class TrainingSetGenerator {
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, boolean recursion){
 		
 		// iterate over directory recursively
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceDirectory)) {
+		try (Stream<Path> stream = Files.list(sourceDirectory)) {
 			Files.createDirectories(targetDirectory);
 			
-	        for (Path entry : stream) {
-
-	        	// check if directory or not; recursion if so, else get features from file if .mch
-	            if (Files.isDirectory(entry) && recursion) {
-	            	Path subdir = entry.getFileName(); // get directory name
-	            	
-	            	/*
-	            	 * TODO:
-	            	 * Find better training data. The ProB examples contain a subdirectory called Tickets/ParserPushBackOverflow/, 
-	            	 * in which code samples can be found the parser fails to parse, causing everything to just blow up, 
-	            	 * as I can not catch the thrown exception properly (although I should..)
-	            	 * 
-	            	 * For now I simply skip ParserPushBackOverflow/ 
-	            	 * 
-	            	 * Same with PerformanceTests/
-	            	 * and RefinementChecking/
-	            	 */
-	            	if(subdir.toString().equals("ParserPushBackOverflow")
-	            			|| subdir.toString().equals("PerformanceTests")
-	            			|| subdir.toString().equals("RefinementChecking")) continue;
-	            	
-	            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir), recursion);
-	            }
-	            else if(Files.isRegularFile(entry)){
-	            	
-	            	// check file extension
-	            	String fileName = entry.getFileName().toString();
-	            	String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-	            	
-	            	if(ext.equals("mch")){
-	            		fileCounter++;
-	            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
-	            		
-	            		generateTrainingDataFile(entry, dataFilePath);
-	            		
-	            	}
-	            	
-	            }
-	            
-	        }
+			stream
+				.parallel() // parallel computation
+				.forEach(entry -> {
+					// check if directory or not; recursion if so, else get features from file if .mch
+		            if (Files.isDirectory(entry) && recursion) {
+		            	Path subdir = entry.getFileName(); // get directory name
+		            	
+		            	/*
+		            	 * TODO:
+		            	 * Find better training data. The ProB examples contain a subdirectory called Tickets/ParserPushBackOverflow/, 
+		            	 * in which code samples can be found the parser fails to parse, causing everything to just blow up, 
+		            	 * as I can not catch the thrown exception properly (although I should..)
+		            	 * 
+		            	 * For now I simply skip ParserPushBackOverflow/ 
+		            	 * 
+		            	 * Same with PerformanceTests/
+		            	 * and RefinementChecking/
+		            	 */
+		            	if(subdir.toString().equals("ParserPushBackOverflow")
+		            			|| subdir.toString().equals("PerformanceTests")
+		            			|| subdir.toString().equals("RefinementChecking")) return;
+		            	
+		            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir), recursion);
+		            }
+		            else if(Files.isRegularFile(entry)){
+		            	
+		            	// check file extension
+		            	String fileName = entry.getFileName().toString();
+		            	String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
+		            	
+		            	if(ext.equals("mch")){
+		            		fileCounter++;
+		            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
+		            		
+		            		generateTrainingDataFile(entry, dataFilePath);
+		            		
+		            	}
+		            	
+		            }
+					
+				});
 	    }
 		catch (IOException e){
 			logger.severe("Could not access directory "+sourceDirectory+": "+e.getMessage());
