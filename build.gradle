@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 
-project.version = '0.4.0'
+project.version = '0.4.1'
 project.group = 'de.hhu.stups'
 project.archivesBaseName = "NeuroB"
 
@@ -53,8 +53,20 @@ task TrainingSetGenerationJar(type: Jar) {
 	with jar
 }
 
+task DistributeLibraryIODefJar(type: Jar) {
+	manifest {
+        attributes 'Implementation-Title': 'Distribute the LibraryIO.def',
+        	'Implementation-Version': version,
+        	'Main-Class': 'DistributeLibraryIODef'
+    }
+    baseName = project.name + '-DistributeLibraryIODef'
+	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+	with jar
+}
+
 task buildJars {
 	dependsOn TrainingSetGenerationJar
+	dependsOn DistributeLibraryIODefJar
 }
 
 

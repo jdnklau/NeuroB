@@ -32,7 +32,7 @@ public class DistributeLibraryIODef {
 	            		Files.copy(libraryIOpath, newLibraryIOPath);
 	            		System.out.println("Created: "+newLibraryIOPath);
 	            	} catch (IOException e){
-	            		System.out.println("COULD NOT CREATE "+newLibraryIOPath+": "+e.getMessage());
+	            		System.out.println("NOT created (maybe already existing) "+newLibraryIOPath+": "+e.getMessage());
 	            	}
 	            	
 	            	distribute(entry); //  distribute the file recusively
