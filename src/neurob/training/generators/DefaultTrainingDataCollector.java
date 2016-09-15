@@ -47,9 +47,9 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	}
 	
 	@Override
-	public int getNumberOfFeatures() {return FeatureData.featureCount;};
+	public int getNumberOfFeatures() {return FeatureData.featureCount;}
 	@Override
-	public int getNumberOfLabels() {return 3;};
+	public int getNumberOfLabels() {return 3;}
 	
 	/**
 	 * Set the logger to a different one
