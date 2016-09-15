@@ -7,7 +7,6 @@ import java.util.Random;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
-import org.datavec.api.util.ClassPathResource;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.SplitTestAndTrain;
@@ -15,50 +14,19 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
-import de.be4.classicalb.core.parser.BParser;
-import de.be4.classicalb.core.parser.exceptions.BException;
-import de.be4.classicalb.core.parser.node.Start;
-import neurob.core.features.FeatureCollector;
-import neurob.core.features.FeatureData;
 import neurob.core.nets.interfaces.NeuroBNet;
+import neurob.training.TrainingSetGenerator;
 
 public class NeuroB {
-	private BParser bparser;
-	private FeatureCollector featureCollector;
-	private FeatureData fd;
 	private NeuroBNet nbn;
 	// RNG
 	private long seed = 12345;
 	private Random rnd = new Random(seed);
 
 	public NeuroB(NeuroBNet neuroBNet) {
-		// set up parser
-		bparser = new BParser();
-		// set up feature handling
-		featureCollector = new FeatureCollector();
-		fd = new FeatureData();
 		// link neural net
 		nbn = neuroBNet;
 		
-	}
-	
-	public void processPredicate(String pred){
-		try {
-			// get AST from predicate
-			System.out.println(pred);
-			Start ast = bparser.parse(pred, false);
-			
-			// get features
-			ast.apply(featureCollector);
-			fd = featureCollector.getFeatureData();
-			
-			// print results
-			System.out.println(fd);
-			
-		} catch (BException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -95,6 +63,41 @@ public class NeuroB {
             nbn.fit(trainingData);
             // TODO: validate with training data, maybe?
         });
+	}
+	
+	/**
+	 * <p>Generates the training data by iterating over all *.mch files in the given source directory 
+	 * and generates corresponding *.nbtrain files in the target directory.
+	 * </p>
+	 * <p>The given source directory will be searched recursively with respect to sub-directories.
+	 * </p>
+	 * <p>In the target directory a subdirectory will be created, named after the neural net class used.
+	 * Inside the subdirectory the hierarchy of the source will be mirrored, but with corresponding .nbtrain
+	 * files instead of the machines. This way a direct mapping between the machines and their generated features is possible.
+	 * <br>
+	 * Also in this directory, a File <i>data.csv</i> will be created, in which all the genrated training data vectors are listed linewise,
+	 * for simpler loading into the DataSet format of DeepLearning4J. 
+	 * </p>
+	 * 
+	 * 
+	 * @param sourceDirectory Directory from which the machine files are read
+	 * @param targetDirectory Directory in which the *.nbtrain files will be put 
+	 * 
+	 */
+	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory) {
+		// set up generator
+		TrainingSetGenerator tsg = new TrainingSetGenerator(nbn.getTrainingDataCollector());
+		// set up training data directory
+		Path fullTargetDirectory = targetDirectory.resolve(tsg.getClass().toString());
+		
+		// generate data
+		tsg.generateTrainingSet(sourceDirectory, fullTargetDirectory);
+		// enhance logs
+		tsg.logStatistics();
+		tsg.logTrainingSetAnalysis(fullTargetDirectory);
+		
+		// generate csv
+		tsg.generateCSVFromNBTrainData(fullTargetDirectory, fullTargetDirectory.resolve("data.csv"));
 	}
 
 }

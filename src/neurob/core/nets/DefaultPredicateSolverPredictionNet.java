@@ -15,6 +15,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.generators.DefaultTrainingDataCollector;
+import neurob.training.generators.interfaces.TrainingDataCollector;
 
 public class DefaultPredicateSolverPredictionNet implements NeuroBNet {
 	// Network related
@@ -87,6 +88,11 @@ public class DefaultPredicateSolverPredictionNet implements NeuroBNet {
         model = new MultiLayerNetwork(conf);
         
 		return this;
+	}
+
+	@Override
+	public TrainingDataCollector getTrainingDataCollector() {
+		return tdc;
 	}
 
 }

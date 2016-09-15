@@ -2,6 +2,8 @@ package neurob.core.nets.interfaces;
 
 import org.nd4j.linalg.dataset.DataSet;
 
+import neurob.training.generators.interfaces.TrainingDataCollector;
+
 /**
  * Wrapper interface for DeepLearning4J nets.
  * <p> Implement your very own neural net classes with this interface, to use with {@link neurob.NeuroB NeuroB}.
@@ -25,6 +27,13 @@ public interface NeuroBNet {
 	 * @return
 	 */
 	int getNumberOfOutputs();
+	
+	/**
+	 * Returns an instance of the {@link neurob.training.generators.interfaces.TrainingDataCollector TrainingDataCollector}
+	 * used by the net, for data generation.
+	 * @return
+	 */
+	TrainingDataCollector getTrainingDataCollector();
 	
 	/**
 	 * Set the seed to be used for the neural net
