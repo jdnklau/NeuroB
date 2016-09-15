@@ -2,6 +2,7 @@ package neurob;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Random;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
@@ -26,6 +27,9 @@ public class NeuroB {
 	private FeatureCollector featureCollector;
 	private FeatureData fd;
 	private NeuroBNet nbn;
+	// RNG
+	private long seed = 12345;
+	private Random rnd = new Random(seed);
 
 	public NeuroB(NeuroBNet neuroBNet) {
 		// set up parser
@@ -66,7 +70,7 @@ public class NeuroB {
 	public void train(Path sourceCSV) throws IOException, InterruptedException{
 		// set up training data
 		RecordReader recordReader = new CSVRecordReader(1,","); // skip first line (header line)s
-		recordReader.initialize(new FileSplit(sourceCSV.toFile()));
+		recordReader.initialize(new FileSplit(sourceCSV.toFile(), rnd));
 		
 		DataSetIterator iterator = new RecordReaderDataSetIterator(
 				recordReader,
@@ -77,7 +81,7 @@ public class NeuroB {
 		// get data set
         iterator.forEachRemaining(batch -> {
         	// split set
-        	batch.shuffle();
+        	batch.shuffle(seed);
         	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.65);  //Use 65% of data for training
         	DataSet trainingData = testAndTrain.getTrain();
         	DataSet testData = testAndTrain.getTest();
