@@ -1,6 +1,7 @@
 package neurob;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
 
@@ -16,6 +17,7 @@ import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetGenerator;
+import neurob.training.generators.interfaces.TrainingDataCollector;
 
 public class NeuroB {
 	private NeuroBNet nbn;
@@ -86,9 +88,10 @@ public class NeuroB {
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory) {
 		// set up generator
-		TrainingSetGenerator tsg = new TrainingSetGenerator(nbn.getTrainingDataCollector());
+		TrainingDataCollector tdc = nbn.getTrainingDataCollector();
+		TrainingSetGenerator tsg = new TrainingSetGenerator(tdc);
 		// set up training data directory
-		Path fullTargetDirectory = targetDirectory.resolve(tsg.getClass().toString());
+		Path fullTargetDirectory = targetDirectory.resolve(tdc.getClass().toString());
 		
 		// generate data
 		tsg.generateTrainingSet(sourceDirectory, fullTargetDirectory);
