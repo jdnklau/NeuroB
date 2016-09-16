@@ -2,6 +2,9 @@
 # minimal working examples to check for bugs
 src/MWEModelTranslationError.java
 
+# training data directory
+training_data/
+
 ### ProB specific
 prob_log.txt
 probkodkod.log*
