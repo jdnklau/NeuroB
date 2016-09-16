@@ -1,5 +1,5 @@
 # Enter project version here:
-VER = 0.4.3-trainingset
+VER = 0.4.4
 
 gradlebuild :
 	./gradlew -q build
