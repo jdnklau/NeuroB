@@ -1,7 +1,7 @@
 # Enter project version here:
 VER = 0.4.3
 
-gradle :
+gradlebuild :
 	./gradlew -q build
 
 build : clean
