@@ -27,7 +27,9 @@ dependencies {
 	compile 'commons-cli:commons-cli:1.2'
 	compile (group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '2.0.3-SNAPSHOT')
 
-	testCompile (group: 'junit', name: 'junit', version: '4.12')
+	compile (group: 'org.deeplearning4j', name: 'deeplearning4j-core', version: '0.5.0')
+	compile (group: 'org.nd4j', name: 'nd4j-native-platform', version: '0.5.0')
+	compile 'org.datavec:datavec-api:0.5.0'
 }
 
 sourceSets {
@@ -39,7 +41,7 @@ sourceSets {
 }
 
 task wrapper(type:Wrapper) {
-	gradleVersion = '2.5'
+	gradleVersion = '3.0'
 }
 
 task TrainingSetGenerationJar(type: Jar) {
