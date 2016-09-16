@@ -124,7 +124,7 @@ public class TrainingSetGenerator {
 			Files.createDirectories(targetDirectory);
 			
 			stream
-				.parallel() // parallel computation
+//				.parallel() // parallel computation
 				.forEach(entry -> {
 					// check if directory or not; recursion if so, else get features from file if .mch
 		            if (Files.isDirectory(entry) && recursion) {
