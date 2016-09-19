@@ -4,16 +4,32 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import neurob.NeuroB;
+import neurob.core.nets.DefaultPredicateSolverPredictionNet;
+import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.DefaultTrainingDataCollector;
 
 public class NeuroBCli {
 	private static final Path libraryIOpath = Paths.get("prob_examples/LibraryIO.def");
+	private static NeuroB nb;
 
 	public static void main(String[] args) {
+		// set up net to use
+		nb = new NeuroB(
+				new DefaultPredicateSolverPredictionNet()
+				.setSeed(0L)
+				.build()
+			);
+		
+		// default start
+		if(args.length < 1){
+			NeuroBCli.trainingSetGeneration();
+		}
+		
 		// check command
-		if(args[0].equals("help")){
+		else if(args[0].equals("help")){
 			// TODO: write a help text
 			System.out.println("TODO: write a help text");
 		}
@@ -97,38 +113,10 @@ public class NeuroBCli {
 	}
 	
 	private static void trainingSetGeneration(){
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
-		
 		Path sourceDir = Paths.get("prob_examples/public_examples/B/");
-		Path targetDir = Paths.get("training_data/manual_call/public_examples/B/");
+		Path targetDir = Paths.get("training_data/");
 		
-		tsg.generateTrainingSet(sourceDir, targetDir);
-		
-//		try {
-//			Path dirlist = Paths.get("prob_examples/directories.txt");
-//			for( String line : Files.readAllLines(dirlist)){
-//					Path src = Paths.get("prob_examples/reduced_examples/"+line);
-//					Path tar = Paths.get("prob_examples/training_data/public_examples/"+line);
-//					
-//					tsg.generateTrainingSet(src, tar, false);
-//					
-//					// Mark directory as seen/delete line from file
-//					String content = new String(Files.readAllBytes(dirlist));
-//					content = content.substring(line.length()+1); // cut this line and the \n
-//					Files.write(dirlist, content.getBytes());
-//			}
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-//		Path sourceDir = Paths.get("prob_examples/public_examples/B/Tickets/Hansen23_WhilePerformance/WhileSlow_CartProduct.mch");
-//		Path targetDir = Paths.get("prob_examples/training_data/public_examples/B/Tickets/Hansen23_WhilePerformance/WhileSlow_CartProduct.nbtrain");
-//		
-//		tsg.generateTrainingDataFile(sourceDir, targetDir);
-		
-		tsg.logStatistics();
-		tsg.logTrainingSetAnalysis(targetDir);
+		nb.generateTrainingSet(sourceDir, targetDir);
 	}
 	
 	private static void analyseTrainingSet(Path dir){
