@@ -23,5 +23,5 @@ trainingset : distributedlibraryfile
 
 distributedlibraryfile :
 	@echo "***** Ensuring existence of LibraryIO.def in respective directories"
-	java -jar build/libs/NeuroB-cli-$(VER).jar libraryIODef training_data/
+	java -jar build/libs/NeuroB-cli-$(VER).jar libraryIODef
 	@echo "*****/ Libraries made"
