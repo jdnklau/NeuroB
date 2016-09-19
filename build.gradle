@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 
-project.version = '0.4.3-neuro'
+project.version = '0.4.5-neuro'
 project.group = 'de.hhu.stups'
 project.archivesBaseName = "NeuroB"
 
@@ -47,33 +47,20 @@ sourceSets {
 	}
 }
 
-task TrainingSetGenerationJar(type: Jar) {
+task NeuroBCliJar(type: Jar) {
 	manifest {
         attributes 'Implementation-Title': 'Training Set Generation',
         	'Implementation-Version': version,
-        	'Main-Class': 'TrainingSetGeneration'
+        	'Main-Class': 'NeuroBCli'
     }
     baseName = project.name
-    appendix = 'TrainingSetGeneration'
-	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-	with jar
-}
-
-task DistributeLibraryIODefJar(type: Jar) {
-	manifest {
-        attributes 'Implementation-Title': 'Distribute the LibraryIO.def',
-        	'Implementation-Version': version,
-        	'Main-Class': 'DistributeLibraryIODef'
-    }
-    baseName = project.name
-    appendix = 'DistributeLibraryIODef'
+    appendix = 'cli'
 	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 	with jar
 }
 
 task buildJars {
-	dependsOn TrainingSetGenerationJar
-	dependsOn DistributeLibraryIODefJar
+	dependsOn NeuroBCliJar
 }
 
 

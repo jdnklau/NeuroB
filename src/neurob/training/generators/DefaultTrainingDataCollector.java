@@ -62,90 +62,114 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 
 	@Override
 	public void collectTrainingData(Path source, Path target) throws IOException, BException {
-		// StateSpaces
-		StateSpace ss, sskod, sssmt;
+		// StateSpace and main component
+		StateSpace ss;
+		AbstractElement mainComp;
+		// For the formula and ProB command to use
+		String formula; // the conjunction of invariants
+		EventB f; // formula as EventB formula
+		CbcSolveCommand cmd;
+		String res = ""; // for target vector
+		// For logs
+		String solver;
 		
-		// access source file
+		// Access source file and use different solvers
+		solver = "ProB";
 		try{
+			logger.fine("\tLoading machine with "+solver+"...");
 			ss = api.b_load(source.toString());
+			mainComp = ss.getMainComponent();	// extract main component
+			
+			// generate ProB command: assume conjunct of invariants is a constrained problem
+			PredicateCollector predc = new PredicateCollector(mainComp);
+			formula = String.join(" & ", predc.getInvariants());
+			f = new EventB(formula);
+			
+			// check with: ProB
+			logger.info("\tSolving with "+solver+"...");
+			cmd = new CbcSolveCommand(f);
+			try {
+				ss.execute(cmd);
+				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+			} catch(Exception e) {
+				// catch block is intended to catch invariants where ProB encounters problems with
+				logger.warning("\tAt "+formula+":\t"+e.getMessage());
+				res += "0";
+			}
+			// kill state space
+			ss.kill();
 		} catch(Exception e) {
 			logger.severe("\tCould not load machine:" + e.getMessage());
 			return;
 		}
-		AbstractElement mainComp = ss.getMainComponent();
 		
-		// load source file to different solvers
+		// - KodKod
+		solver = "KodKod";
+		res +=","; // set delimiter to concatenate new label data
 		try{
-			sskod = api.b_load(source.toString(), useKodKod);
-		} catch(Exception e) {
+			logger.fine("\tLoading machine with "+solver+"...");
+			ss = api.b_load(source.toString(), useKodKod);
+			
+			// check
+			logger.info("\tSolving with "+solver+"...");
+			cmd = new CbcSolveCommand(f);
+			try {
+				ss.execute(cmd);
+				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+			} catch(Exception e) {
+				// catch block is intended to catch invariants where ProB encounters problems with
+				logger.warning("\tAt "+formula+":\t"+e.getMessage());
+				res += "0";
+			}
+			// kill state space
 			ss.kill();
-			logger.severe("\tCould not load machine with KodKod:" + e.getMessage());
+		} catch(Exception e) {
+			logger.severe("\tCould not load machine with "+solver+":" + e.getMessage());
 			return;
 		}
+		
+		// - SMT
+		solver = "SMT";
+		res +=","; // set delimiter to concatenate new label data
 		try{
-			sssmt = api.b_load(source.toString(), useSMT);
-		} catch(Exception e) {
+			logger.fine("\tLoading machine with "+solver+"...");
+			ss = api.b_load(source.toString(), useSMT);
+			
+			// check
+			logger.info("\tSolving with "+solver+"...");
+			cmd = new CbcSolveCommand(f);
+			try {
+				ss.execute(cmd);
+				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+			} catch(Exception e) {
+				// catch block is intended to catch invariants where ProB encounters problems with
+				logger.warning("\tAt "+formula+":\t"+e.getMessage());
+				res += "0";
+			}
+			// kill state space
 			ss.kill();
-			sskod.kill();
-			logger.severe("\tCould not load machine with SMT:" + e.getMessage());
+		} catch(Exception e) {
+			logger.severe("\tCould not load machine with "+solver+":" + e.getMessage());
 			return;
 		}
 		
 		// open target file
 		BufferedWriter out = Files.newBufferedWriter(target);
+		// write feature vector to stream
+		logger.info("\tWriting training data...");
+		Start inv = BParser.parse("#PREDICATE "+formula);
+		inv.apply(fc);
+		out.write(fc.getFeatureData().toString()); // feature vector
+		// delimiter for target vector
+		out.write(":");
+		// write target vector
+		out.write(res);
 		
-		// assume invariants are constraint problems
-		// get them and try to solve them
-		PredicateCollector predc = new PredicateCollector(mainComp);
-		for(String s : predc.getInvariants()){		
-			// set up command to send to ProB
-			EventB f = new EventB(s);
-			CbcSolveCommand cmd;
-			String res = ""; // for target vector
-			
-			try{
-				// try different solvers
-				// - default
-				cmd = new CbcSolveCommand(f);
-				ss.execute(cmd);
-				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-				// - KodKod
-				res += ","; // separate from previous result
-				cmd = new CbcSolveCommand(f);
-				sskod.execute(cmd);
-				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-				// - SMT
-				res += ","; // separate from previous result
-				cmd = new CbcSolveCommand(f);
-				sssmt.execute(cmd);
-				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-				
-	
-				// write feature vector to stream
-				Start inv = BParser.parse("#PREDICATE "+s);
-				inv.apply(fc);
-				out.write(fc.getFeatureData().toString()); // feature vector
-				// delimiter for target vector
-				out.write(":");
-				// write target vector
-				out.write(res);
-				
-				// end line
-				out.write("\n");
-				out.flush();
-			} catch(Exception e) {
-				// catch block is intended to catch invariants where ProB encounters problems with
-				logger.warning("\tAt "+s+"\n\t\t"+e.getMessage());
-			}
-			
-			
-		}
+		// end line
+		out.write("\n");
+		out.flush();
 		
-		out.close();
-		ss.kill();
-		sskod.kill();
-		sssmt.kill();
-		
+		out.close();		
 		
 	}
 

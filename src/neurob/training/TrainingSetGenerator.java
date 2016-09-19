@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -57,7 +60,11 @@ public class TrainingSetGenerator {
 		logger.addHandler(ch);
 		// log to logfile
 		try {
-			FileHandler fh = new FileHandler("NeuroB-TrainingSetGenerator-%u.log");
+			DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
+			FileHandler fh = new FileHandler(
+					"NeuroB-TrainingSetGenerator-"
+					+dateFormat.format(new Date())
+					+"-%u.log");
 			fh.setFormatter(new NeuroBLogFormatter());
 			logger.addHandler(fh);
 		} catch (SecurityException | IOException e) {
@@ -125,7 +132,7 @@ public class TrainingSetGenerator {
 			Files.createDirectories(targetDirectory);
 			
 			stream
-				.parallel() // parallel computation
+//				.parallel() // parallel computation
 				.forEach(entry -> {
 					// check if directory or not; recursion if so, else get features from file if .mch
 		            if (Files.isDirectory(entry) && recursion) {
