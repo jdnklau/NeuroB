@@ -74,7 +74,7 @@ public class NeuroBCli {
 					+ "trainingset -csv [-tar <directory>]\n"
 					+ "\tGenerate csv file from nbtrain files in <directory>\n"
 					
-					+ "libraryIODef -tar <directory>\n"
+					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
 					
 					+ "\nNotes:\n"
@@ -110,7 +110,7 @@ public class NeuroBCli {
 		}
 		// distribute library file
 		else if(cmd.equals("libraryIODef")){
-			distribute(tar);
+			distribute(dir);
 		}
 	}
 	
