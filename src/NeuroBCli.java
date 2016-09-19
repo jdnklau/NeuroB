@@ -35,6 +35,10 @@ public class NeuroBCli {
 				if(args[1].equals("-analyse")){
 					NeuroBCli.analyseTrainingSet(Paths.get(args[2]));
 				}
+				// generate csv from nbtrain files
+				else if(args[1].equals("-csv")){
+					NeuroBCli.trainingCSVGeneration(Paths.get(args[2]));
+				}
 			}
 			else {
 				NeuroBCli.trainingSetGeneration();
@@ -50,6 +54,8 @@ public class NeuroBCli {
 				NeuroBCli.singleTrainingDataGeneration(Paths.get(args[1]));
 			}
 		}
+		
+		
 
 	}
 	
@@ -129,6 +135,14 @@ public class NeuroBCli {
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		tsa.analyseTrainingSet(dir);
 		System.out.println(tsa.getStatistics());
+	}
+	
+	private static void trainingCSVGeneration(Path dir){
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
+		
+		Path target = Paths.get("training_data/manual_call/data.csv");
+		
+		tsg.generateCSVFromNBTrainData(dir, target);
 	}
 
 }
