@@ -83,18 +83,29 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			// generate ProB command: assume conjunct of invariants is a constrained problem
 			PredicateCollector predc = new PredicateCollector(mainComp);
 			formula = String.join(" & ", predc.getInvariants());
-			f = new EventB(formula);
 			
-			// check with: ProB
-			logger.info("\tSolving with "+solver+"...");
-			cmd = new CbcSolveCommand(f);
-			try {
-				ss.execute(cmd);
-				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-			} catch(Exception e) {
-				// catch block is intended to catch invariants where ProB encounters problems with
-				logger.warning("\tAt "+formula+":\t"+e.getMessage());
-				res += "0";
+			// check if invariants are non-empty
+			if(!formula.isEmpty()){
+				f = new EventB(formula);
+				// check with: ProB
+				logger.info("\tSolving with "+solver+"...");
+				cmd = new CbcSolveCommand(f);
+				try {
+					ss.execute(cmd);
+					res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
+				} catch(Exception e) {
+					// catch block is intended to catch invariants where ProB encounters problems with
+					logger.warning("\tAt "+formula+":\t"+e.getMessage());
+					res += "0";
+				}
+			}
+			else {
+				logger.info("\tNo invariants found.");
+
+				// kill state space
+				ss.kill();
+				
+				return;
 			}
 			// kill state space
 			ss.kill();
