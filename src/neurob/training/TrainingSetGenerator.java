@@ -6,15 +6,18 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import de.be4.classicalb.core.parser.exceptions.BException;
@@ -118,65 +121,71 @@ public class TrainingSetGenerator {
 	 * 
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory){
-		generateTrainingSet(sourceDirectory, targetDirectory, true); // call with default recursion=true
+		generateTrainingSet(sourceDirectory, targetDirectory, null, true); // call with default recursion=true
 	}
 	
 	/**
-	 * Same as {@link TrainingSetGenerator#generateTrainingDataFile(Path, Path)}, but with the option to turn off the 
-	 * recursion step.
+	 * Same as {@link #generateTrainingSet(Path, Path)}, but with the option to turn of the search in sub-directories.
 	 * @param sourceDirectory
 	 * @param targetDirectory
-	 * @param recursion If false, the subdirectories are not searched
+	 * @param recursion
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, boolean recursion){
+		generateTrainingSet(sourceDirectory, targetDirectory, null, recursion);
+	}
+	
+	/**
+	 * Same as {@link #generateTrainingSet(Path, Path)}, but with the option to specify an exclude file.
+	 * @param sourceDirectory
+	 * @param targetDirectory
+	 * @param excludeFile
+	 */
+	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile){
+		generateTrainingSet(sourceDirectory, targetDirectory, excludeFile, true);
+	}
+	
+	/**
+	 * Same as {@link TrainingSetGenerator#generateTrainingDataFile(Path, Path)}, but with the option to specify an exclude file and
+	 * to turn off the recursion step.
+	 * @param sourceDirectory
+	 * @param targetDirectory
+	 * @param excludeFile
+	 * @param recursion If false, the subdirectories are not searched
+	 */
+	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile, boolean recursion){
+		// prepare exclude data
+		ArrayList<Path> excludes = new ArrayList<Path>();
+		if(excludeFile != null){
+			Path excludeFileDirectory = excludeFile.getParent();
+			try(Stream<String> exc = Files.lines(excludeFile)){
+				excludes.addAll((ArrayList<Path>) exc.map(s -> excludeFileDirectory.resolve(s)).collect(Collectors.toList()));
+			} catch (IOException e) {
+				logger.severe("Could not access exclude file: "+e.getMessage());
+			}
+		}
+		
+		excludes.forEach(System.out::println);
 		
 		// iterate over directory
 		int depth = (recursion) ? Integer.MAX_VALUE : 1;
 		try (Stream<Path> stream = Files.walk(sourceDirectory, depth)) {
 			Files.createDirectories(targetDirectory);
 			
+			
 			stream
 //				.parallel() // parallel computation
+				.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
 				.forEach(entry -> {
-					System.out.println(entry);
-//					// check if directory or not; recursion if so, else get features from file if .mch
-//		            if (Files.isDirectory(entry) && recursion) {
-//		            	Path subdir = entry.getFileName(); // get directory name
-//		            	
-//		            	/*
-//		            	 * TODO:
-//		            	 * Find better training data. The ProB examples contain a subdirectory called Tickets/ParserPushBackOverflow/, 
-//		            	 * in which code samples can be found the parser fails to parse, causing everything to just blow up, 
-//		            	 * as I can not catch the thrown exception properly (although I should..)
-//		            	 * 
-//		            	 * For now I simply skip ParserPushBackOverflow/ 
-//		            	 * 
-//		            	 * Same with PerformanceTests/
-//		            	 * and RefinementChecking/
-//		            	 */
-//		            	if(subdir.toString().equals("ParserPushBackOverflow")
-//		            			|| subdir.toString().equals("PerformanceTests")
-//		            			|| subdir.toString().equals("RefinementChecking")) return;
-//		            	
-//		            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir), recursion);
-//		            }
-//		            else if(Files.isRegularFile(entry)){
 	            	if(Files.isRegularFile(entry)){
-		            	
 		            	// check file extension
 		            	String fileName = entry.getFileName().toString();
 		            	String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-		            	
 		            	if(ext.equals("mch")){
 		            		fileCounter++;
 		            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
-		            		
 		            		generateTrainingDataFile(entry, dataFilePath);
-		            		
 		            	}
-		            	
 		            }
-					
 				});
 	    }
 		catch (IOException e){
@@ -254,39 +263,35 @@ public class TrainingSetGenerator {
 	}
 	
 	/**
-	 * <p>Excludes a given path in the source directoy.
+	 * <p>Excludes a given path in the source directory.
 	 * </p>
-	 * <p>This puts the <code>exclude</code> into the 
-	 * <i>excludes.list</i> file in the source directory. <code>exclude</code> can hereby point to either an directory or a specific file.
-	 * </p>
-	 * <p>Note: <code>exclude</code> must be a subpath of <code>sourceDirectory</code>
+	 * <p>This puts the <code>exclude</code> into the <code>excludeFile</code>. 
+	 * <code>exclude</code> can hereby point to either an directory or a specific file,
+	 * but should be relative to the directory containing the <code>excludeFile</code>.
 	 * <br>
-	 * Say the file <i>source/subdirectory/exclude_me.mch</i> is to be excluded, but <i>source/</i> is the data directory to 
-	 * generate train files from. Then <code>sourceDirectory</code> should point to <i>source/</i> and 
-	 * <code>exclude</code> to <i>subdirectory/exclude_me.mch</i>.
+	 * To be more precise, if the <code>excludeFile</code> is in <i>path/to/foo.excludes</code>
+	 * and the file to exclude is <i>path/to/excluded/file/bar.mch</i>, 
+	 * then <code>exclude</code> should point to <i>excluded/file/bar.mch</i>.
 	 * </p>
 	 * 
-	 * @param sourceDirectory
-	 * @param exclude Path to the file or subdirectory to exclude, relative to <code>sourceDirectory</code>
+	 * @param excludeFile The exclude file to write to
+	 * @param exclude Path to the file or subdirectory to exclude
 	 */
-	public void exclude(Path sourceDirectory, Path exclude) {
-		Path resolvedExcludePath = sourceDirectory.resolve(exclude);
-		
+	public void exclude(Path excludeFile, Path exclude) {		
 		// check if already excluded
-		Path exlist = sourceDirectory.resolve("excludes.list");
 		boolean newExclude = true;
-		if(Files.exists(exlist)){
-			try(Stream<String> stream = Files.lines(exlist)){
+		if(Files.exists(excludeFile)){
+			try(Stream<String> stream = Files.lines(excludeFile)){
 				newExclude = stream.noneMatch(s -> s.equals(exclude.toString()));
 			} catch (IOException e1) {
-				System.err.println("Could not access excludes.list: "+e1.getMessage());
+				System.err.println("Could not access exclude file: "+e1.getMessage());
 			}
 		}
 		
 		// add it to the excludes.list file
 		if(newExclude){
 			try {
-				Files.write(exlist, (exclude.toString()+"\n").getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+				Files.write(excludeFile, (exclude.toString()+"\n").getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 			} catch (IOException e) {
 				System.err.println("Could not append the exclude properly: "+e.getMessage());
 			}

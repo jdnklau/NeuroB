@@ -19,6 +19,7 @@ public class NeuroBCli {
 	private static Path dir;
 	private static Path tar;
 	private static HashMap<String, ArrayList<String>> ops;
+	private static Path excludefile;
 
 	public static void main(String[] args) {
 		// set up options hash map
@@ -62,8 +63,8 @@ public class NeuroBCli {
 			String help =
 					  "Call with the following arguments, where -net <net> indicates the neural net to be used (see below):\n"
 					
-					+ "trainingset [-dir <directory>] [-net <net>]\n"
-					+ "\tGenerate training data from the mch files found in <directory>\n"
+					+ "trainingset [-dir <directory>] [-net <net>] [-excludefile <excludefile]\n"
+					+ "\tGenerate training data from the mch files found in <directory>, but ignore those listed in <excludefile>\n"
 					
 					+ "trainingset [-dir <directory>] -file <filename> [-net <net>]\n"
 					+ "\tGenerate training data from a specific file. <filename> has to be given relative to <directory>, which contains <file>\n"
@@ -77,16 +78,15 @@ public class NeuroBCli {
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
 
-					+ "exclude -dir <directory> -exdir <subdirectory>\n"
-					+ "\tSets <directory>/<subdirectory> onto the exlude list in <diectory>/excludes.list\n"
+					+ "exclude [-excludefile <excludefile>] -source <toexcludes>\n"
+					+ "\tSets <toexclude> (either path to directory or file) onto the specified <excludefile>, if not already present\n"
+					+ "\t<toexcludes> can be a list of multiple paths to files or directories, separated by a blank space\n"
 					
-					+ "exclude -dir <directory> -file <filename>\n"
-					+ "\tSets the file <directory>/<filename> onto the exlude list in <diectory>/excludes.list\n"
-					
-					+ "\nNotes:\n"
+					+ "\nDefault values:\n"
 					+ "- if -dir <directory> is not set, it defaults to prob_examples/public_examples/B/\n"
 					+ "- if -tar <directory> is not set, it defaults to training_data/manual_call/\n"
 					+ "- if -net <net> is not set, it defaults to 'default' net\n"
+					+ "- if -excludefile <excludefile> is not set, it defaults to prob_examples/default.excludes"
 					
 					+ "\nNets:\n"
 					+ "The implemented nets you can access via the cli are\n"
@@ -122,14 +122,9 @@ public class NeuroBCli {
 		}
 		// handle excludes
 		else if(cmd.equals("exclude")){
-			if(ops.containsKey("file")){
-				Path file = Paths.get(ops.get("file").get(0));
-				exclude(dir, file);
+			for(String s : ops.get("source")){
+				exclude(excludefile, Paths.get(s));
 			}
-			else if(ops.containsKey("exdir")){
-				Path exdir = Paths.get(ops.get("exdir").get(0));
-				exclude(dir, exdir);
-			} 
 		}
 	}
 
@@ -160,6 +155,16 @@ public class NeuroBCli {
 			// default
 			tar = Paths.get("training_data/manual_call/");
 		}
+		
+		// exclude file
+		if(ops.containsKey("excludefile")){
+			excludefile = Paths.get(ops.get("excludefile").get(0));
+		}
+		else {
+			// default
+			excludefile = Paths.get("prob_examples/default.excludes");
+		}
+		
 	}
 
 	private static void distribute(Path directory){
@@ -202,7 +207,7 @@ public class NeuroBCli {
 	private static void trainingSetGeneration(Path sourceDir){
 		Path targetDir = Paths.get("training_data/");
 		
-		nb.generateTrainingSet(sourceDir, targetDir);
+		nb.generateTrainingSet(sourceDir, targetDir, excludefile);
 	}
 	
 	private static void analyseTrainingSet(Path dir){
@@ -219,9 +224,9 @@ public class NeuroBCli {
 		tsg.generateCSVFromNBTrainData(dir, target);
 	}
 	
-	private static void exclude(Path dir, Path excl) {
+	private static void exclude(Path excludefile, Path excl) {
 		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
-		tsg.exclude(dir, excl);
+		tsg.exclude(excludefile, excl);
 		
 	}
 
