@@ -158,13 +158,14 @@ public class TrainingSetGenerator {
 		if(excludeFile != null){
 			Path excludeFileDirectory = excludeFile.getParent();
 			try(Stream<String> exc = Files.lines(excludeFile)){
-				excludes.addAll((ArrayList<Path>) exc.map(s -> excludeFileDirectory.resolve(s)).collect(Collectors.toList()));
+				excludes.addAll(
+						(ArrayList<Path>) exc
+							.filter(s -> !s.isEmpty())
+							.map(s -> excludeFileDirectory.resolve(s)).collect(Collectors.toList()));
 			} catch (IOException e) {
 				logger.severe("Could not access exclude file: "+e.getMessage());
 			}
 		}
-		
-		excludes.forEach(System.out::println);
 		
 		// iterate over directory
 		int depth = (recursion) ? Integer.MAX_VALUE : 1;
