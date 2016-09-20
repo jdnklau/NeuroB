@@ -164,8 +164,6 @@ public class TrainingSetGenerator {
 			}
 		}
 		
-		excludes.forEach(System.out::println);
-		
 		// iterate over directory
 		int depth = (recursion) ? Integer.MAX_VALUE : 1;
 		try (Stream<Path> stream = Files.walk(sourceDirectory, depth)) {
