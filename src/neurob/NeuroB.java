@@ -123,13 +123,15 @@ public class NeuroB {
 	 * Also in this directory, a File <i>data.csv</i> will be created, in which all the genrated training data vectors are listed linewise,
 	 * for simpler loading into the DataSet format of DeepLearning4J. 
 	 * </p>
-	 * 
+	 * <p>The exclude file contains paths, relative to its directory, to files and directories to exclude in the training set
+	 * generation step. If none shall be used, <code>null</code> can be used as value. 
 	 * 
 	 * @param sourceDirectory Directory from which the machine files are read
 	 * @param targetDirectory Directory in which the *.nbtrain files will be put 
+	 * @param excludeFile {@code null} or path to excludes file
 	 * 
 	 */
-	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory) {
+	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile) {
 		// set up generator
 		TrainingDataCollector tdc = nbn.getTrainingDataCollector();
 		TrainingSetGenerator tsg = new TrainingSetGenerator(tdc);
@@ -137,7 +139,7 @@ public class NeuroB {
 		Path fullTargetDirectory = targetDirectory.resolve(tdc.getClass().getSimpleName());
 		
 		// generate data
-		tsg.generateTrainingSet(sourceDirectory, fullTargetDirectory);
+		tsg.generateTrainingSet(sourceDirectory, fullTargetDirectory, excludeFile);
 		// enhance logs
 		tsg.logStatistics();
 		tsg.logTrainingSetAnalysis(fullTargetDirectory);
