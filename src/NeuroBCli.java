@@ -65,8 +65,8 @@ public class NeuroBCli {
 					+ "trainingset [-dir <directory>] [-net <net>]\n"
 					+ "\tGenerate training data from the mch files found in <directory>\n"
 					
-					+ "trainingset [-dir <directory>] -file <file> [-net <net>]\n"
-					+ "\tGenerate training data from a specific file. <file> has to be given relative to <directory>, which contains <file>\n"
+					+ "trainingset [-dir <directory>] -file <filename> [-net <net>]\n"
+					+ "\tGenerate training data from a specific file. <filename> has to be given relative to <directory>, which contains <file>\n"
 					
 					+ "trainingset -analyse [-tar <directory>] [-net <net>]\n"
 					+ "\tAnalyse the generated training data in <directory>\n"
@@ -76,6 +76,12 @@ public class NeuroBCli {
 					
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
+
+					+ "exclude -dir <directory> -exdir <subdirectory>\n"
+					+ "\tSets <directory>/<subdirectory> onto the exlude list in <diectory>/excludes.list\n"
+					
+					+ "exclude -dir <directory> -file <filename>\n"
+					+ "\tSets the file <directory>/<filename> onto the exlude list in <diectory>/excludes.list\n"
 					
 					+ "\nNotes:\n"
 					+ "- if -dir <directory> is not set, it defaults to prob_examples/public_examples/B/\n"
@@ -114,8 +120,19 @@ public class NeuroBCli {
 		else if(cmd.equals("libraryIODef")){
 			distribute(dir);
 		}
+		// handle excludes
+		else if(cmd.equals("exclude")){
+			if(ops.containsKey("file")){
+				Path file = Paths.get(ops.get("file").get(0));
+				exclude(dir, file);
+			}
+			else if(ops.containsKey("exdir")){
+				Path exdir = Paths.get(ops.get("exdir").get(0));
+				exclude(dir, exdir);
+			} 
+		}
 	}
-	
+
 	private static void parseCommandLineOptions(HashMap<String, ArrayList<String>> ops) {
 		// the net to use
 		String net = "default";
@@ -200,6 +217,12 @@ public class NeuroBCli {
 		Path target = Paths.get("training_data/manual_call/data.csv");
 		
 		tsg.generateCSVFromNBTrainData(dir, target);
+	}
+	
+	private static void exclude(Path dir, Path excl) {
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
+		tsg.exclude(dir, excl);
+		
 	}
 
 }

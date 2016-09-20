@@ -3,10 +3,13 @@ package neurob.training;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -246,6 +249,47 @@ public class TrainingSetGenerator {
 			logger.severe("Failed to setup CSV correctly:" +e.getMessage());
 		}
 	}
+	
+	/**
+	 * <p>Excludes a given path in the source directoy.
+	 * </p>
+	 * <p>This puts the <code>exclude</code> into the 
+	 * <i>excludes.list</i> file in the source directory. <code>exclude</code> can hereby point to either an directory or a specific file.
+	 * </p>
+	 * <p>Note: <code>exclude</code> must be a subpath of <code>sourceDirectory</code>
+	 * <br>
+	 * Say the file <i>source/subdirectory/exclude_me.mch</i> is to be excluded, but <i>source/</i> is the data directory to 
+	 * generate train files from. Then <code>sourceDirectory</code> should point to <i>source/</i> and 
+	 * <code>exclude</code> to <i>subdirectory/exclude_me.mch</i>.
+	 * </p>
+	 * 
+	 * @param sourceDirectory
+	 * @param exclude Path to the file or subdirectory to exclude, relative to <code>sourceDirectory</code>
+	 */
+	public void exclude(Path sourceDirectory, Path exclude) {
+		Path resolvedExcludePath = sourceDirectory.resolve(exclude);
+		
+		// check if already excluded
+		Path exlist = sourceDirectory.resolve("excludes.list");
+		boolean newExclude = true;
+		if(Files.exists(exlist)){
+			try(Stream<String> stream = Files.lines(exlist)){
+				newExclude = stream.noneMatch(s -> s.equals(exclude.toString()));
+			} catch (IOException e1) {
+				System.err.println("Could not access excludes.list: "+e1.getMessage());
+			}
+		}
+		
+		// add it to the excludes.list file
+		if(newExclude){
+			try {
+				Files.write(exlist, (exclude.toString()+"\n").getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+			} catch (IOException e) {
+				System.err.println("Could not append the exclude properly: "+e.getMessage());
+			}
+		}
+	}
+	
 	
 	
 }
