@@ -130,35 +130,38 @@ public class TrainingSetGenerator {
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, boolean recursion){
 		
-		// iterate over directory recursively
-		try (Stream<Path> stream = Files.list(sourceDirectory)) {
+		// iterate over directory
+		int depth = (recursion) ? Integer.MAX_VALUE : 1;
+		try (Stream<Path> stream = Files.walk(sourceDirectory, depth)) {
 			Files.createDirectories(targetDirectory);
 			
 			stream
 //				.parallel() // parallel computation
 				.forEach(entry -> {
-					// check if directory or not; recursion if so, else get features from file if .mch
-		            if (Files.isDirectory(entry) && recursion) {
-		            	Path subdir = entry.getFileName(); // get directory name
-		            	
-		            	/*
-		            	 * TODO:
-		            	 * Find better training data. The ProB examples contain a subdirectory called Tickets/ParserPushBackOverflow/, 
-		            	 * in which code samples can be found the parser fails to parse, causing everything to just blow up, 
-		            	 * as I can not catch the thrown exception properly (although I should..)
-		            	 * 
-		            	 * For now I simply skip ParserPushBackOverflow/ 
-		            	 * 
-		            	 * Same with PerformanceTests/
-		            	 * and RefinementChecking/
-		            	 */
-		            	if(subdir.toString().equals("ParserPushBackOverflow")
-		            			|| subdir.toString().equals("PerformanceTests")
-		            			|| subdir.toString().equals("RefinementChecking")) return;
-		            	
-		            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir), recursion);
-		            }
-		            else if(Files.isRegularFile(entry)){
+					System.out.println(entry);
+//					// check if directory or not; recursion if so, else get features from file if .mch
+//		            if (Files.isDirectory(entry) && recursion) {
+//		            	Path subdir = entry.getFileName(); // get directory name
+//		            	
+//		            	/*
+//		            	 * TODO:
+//		            	 * Find better training data. The ProB examples contain a subdirectory called Tickets/ParserPushBackOverflow/, 
+//		            	 * in which code samples can be found the parser fails to parse, causing everything to just blow up, 
+//		            	 * as I can not catch the thrown exception properly (although I should..)
+//		            	 * 
+//		            	 * For now I simply skip ParserPushBackOverflow/ 
+//		            	 * 
+//		            	 * Same with PerformanceTests/
+//		            	 * and RefinementChecking/
+//		            	 */
+//		            	if(subdir.toString().equals("ParserPushBackOverflow")
+//		            			|| subdir.toString().equals("PerformanceTests")
+//		            			|| subdir.toString().equals("RefinementChecking")) return;
+//		            	
+//		            	generateTrainingSet(sourceDirectory.resolve(subdir), targetDirectory.resolve(subdir), recursion);
+//		            }
+//		            else if(Files.isRegularFile(entry)){
+	            	if(Files.isRegularFile(entry)){
 		            	
 		            	// check file extension
 		            	String fileName = entry.getFileName().toString();
