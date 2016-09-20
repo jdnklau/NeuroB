@@ -87,6 +87,7 @@ public class NeuroBCli {
 					+ "- if -tar <directory> is not set, it defaults to training_data/manual_call/\n"
 					+ "- if -net <net> is not set, it defaults to 'default' net\n"
 					+ "- if -excludefile <excludefile> is not set, it defaults to prob_examples/default.excludes"
+					+ "\t* if -excludefile none is set, no exclusions are made"
 					
 					+ "\nNets:\n"
 					+ "The implemented nets you can access via the cli are\n"
@@ -158,7 +159,12 @@ public class NeuroBCli {
 		
 		// exclude file
 		if(ops.containsKey("excludefile")){
-			excludefile = Paths.get(ops.get("excludefile").get(0));
+			if(ops.get("excludefile").get(0).equals("none")){
+				excludefile = null;
+			}
+			else {
+				excludefile = Paths.get(ops.get("excludefile").get(0));
+			}
 		}
 		else {
 			// default
