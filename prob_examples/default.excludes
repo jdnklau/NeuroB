@@ -1,4 +1,4 @@
 public_examples/B/Tickets/ParserPushBackOverflow
-public_examples/B/Tickets/PerformanceTests
-public_examples/B/Tickets/RefinementChecking
+public_examples/B/PerformanceTests
+public_examples/B/RefinementChecking
 
