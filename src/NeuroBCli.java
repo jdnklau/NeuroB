@@ -86,6 +86,8 @@ public class NeuroBCli {
 					+ "The implemented nets you can access via the cli are\n"
 					+ "\tdefault - The default implementation"
 					;
+			
+			System.out.println(help);
 							  
 		}
 		// Generate training data
@@ -135,7 +137,7 @@ public class NeuroBCli {
 		}
 		
 		if(ops.containsKey("tar")){
-			tar = Paths.get("tar");
+			tar = Paths.get(ops.get("tar").get(0));
 		}
 		else {
 			// default
