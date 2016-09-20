@@ -15,10 +15,53 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
+import neurob.core.nets.DefaultPredicateSolverPredictionNet;
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
+/**
+ * <p>Main class of NeuroB to use</p>
+ * <p>Internally this class wraps a neural network of user's choice and provides additional functionallity
+ * like training, trainingset generation, and more.
+ * </p>
+ * <p>On creating a new instance, the constructor expects an object implementing the 
+ * {@link neurob.core.nets.interfaces.NeuroBNet NeuroBNet} interface. Every utility this interface provides should be accessible by this class too.
+ * <br>
+ * See the  following usage example to set up a new neural net with NeuroB:
+ * <pre>
+ * {@code 
+ * // Setting up the neural net
+ * NeuroBNet nbn = new DefaultPredicateSolverPredictionNet()
+ *                 .setSeed(12345L) // Choose as seed (optional)
+ *                 .build(); // Build the net internally (does not happen automatically
+ *                 
+ * // Wrap the net with NeuroB
+ * NeuroB n = new NeuroB(nbn); // Done! 
+ * }
+ * </pre></p>
+ * <p> Next step would be to train the neural net:
+ * <pre>
+ * {@code
+ * // Generate the training data
+ * // (optional; if the training data already exists this step can be skipped)
+ * Path sourceDirectory = Paths.get("path/to/source/data/");
+ * Path targetDirectory = Paths.get("path/to/target/directory/");
+ * n.generateTrainingSet(sourceDirectory, targetDirectory);
+ * // (This will take a while)
+ * 
+ * // After the generation, a data csv file should be created; use it to train your data
+ * Path trainingCSV = Paths.get("path/to/target/data.csv");
+ * n.train(trainingCSV); // Done! (Also could take a while)
+ * }
+ * </pre>
+ * See {@link #generateTrainingSet(Path, Path) generateTrainingSet} for more information on the generation step.</p>
+ * 
+ * @author Jannik Dunkelau
+ * @see neurob.core.nets.interfaces
+ * @see #generateTrainingSet(Path, Path)
+ *
+ */
 public class NeuroB {
 	private NeuroBNet nbn;
 	// RNG
