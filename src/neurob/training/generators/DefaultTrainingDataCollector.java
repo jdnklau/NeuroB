@@ -14,6 +14,9 @@ import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
 import de.prob.Main;
 import de.prob.animator.command.CbcSolveCommand;
+import de.prob.animator.domainobjects.AbstractEvalResult;
+import de.prob.animator.domainobjects.ComputationNotCompletedResult;
+import de.prob.animator.domainobjects.EvalResult;
 import de.prob.animator.domainobjects.EventB;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
@@ -90,14 +93,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 				// check with: ProB
 				logger.info("\tSolving with "+solver+"...");
 				cmd = new CbcSolveCommand(f);
-				try {
-					ss.execute(cmd);
-					res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-				} catch(Exception e) {
-					// catch block is intended to catch invariants where ProB encounters problems with
-					logger.warning("\tAt "+formula+":\t"+e.getMessage());
-					res += "0";
-				}
+				res += evaluateCommandExecution(ss, cmd, formula);
 			}
 			else {
 				logger.info("\tNo invariants found.");
@@ -124,14 +120,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			// check
 			logger.info("\tSolving with "+solver+"...");
 			cmd = new CbcSolveCommand(f);
-			try {
-				ss.execute(cmd);
-				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-			} catch(Exception e) {
-				// catch block is intended to catch invariants where ProB encounters problems with
-				logger.warning("\tAt "+formula+":\t"+e.getMessage());
-				res += "0";
-			}
+			res += evaluateCommandExecution(ss, cmd, formula);
 			// kill state space
 			ss.kill();
 		} catch(Exception e) {
@@ -149,14 +138,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			// check
 			logger.info("\tSolving with "+solver+"...");
 			cmd = new CbcSolveCommand(f);
-			try {
-				ss.execute(cmd);
-				res += (cmd.getValue().toString().substring(0,4).equals("TRUE")) ? 1 : 0; // TRUE => 1; FALSE => 0
-			} catch(Exception e) {
-				// catch block is intended to catch invariants where ProB encounters problems with
-				logger.warning("\tAt "+formula+":\t"+e.getMessage());
-				res += "0";
-			}
+			res += evaluateCommandExecution(ss, cmd, formula);
 			// kill state space
 			ss.kill();
 		} catch(Exception e) {
@@ -182,6 +164,41 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		
 		out.close();		
 		
+	}
+	
+	private String evaluateCommandExecution(StateSpace ss, CbcSolveCommand cmd, String formula){
+		String res = "0";
+		try {
+			ss.execute(cmd);
+			
+			// get value for result
+			AbstractEvalResult cmdres = cmd.getValue();
+			if(cmdres instanceof EvalResult){
+				// could solve or disprove it
+				String val = ((EvalResult) cmdres).getValue();
+				if(val.equals("TRUE")){
+					res = "1"; // solved
+				}
+				else if(val.equals("FALSE")){
+					res = "-1"; // unsolvable
+				}
+				else {
+					// This should logically not happen
+					res = "0";
+				}
+			} else if(cmdres instanceof ComputationNotCompletedResult){
+				// Could not solve nor disprove the predicate in question
+				res = "0";
+			} else {
+				// durr?
+				res = "0";
+			}
+		} catch(Exception e) {
+			// catch block is intended to catch invariants where ProB encounters problems with
+			logger.warning("\tAt "+formula+":\t"+e.getMessage());
+			res = "0";
+		}
+		return res;
 	}
 
 
