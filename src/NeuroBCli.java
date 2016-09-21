@@ -203,10 +203,8 @@ public class NeuroBCli {
 	private static void singleTrainingDataGeneration(Path source){
 		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
 		
-		Path targetDir = Paths.get("training_data/manual_call/public_examples/B/");
-		
 		String fileName = source.getFileName().toString();
-		Path target = source.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
+		Path target = source.getParent().resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 		tsg.generateTrainingDataFile(source, target);
 	}
 	
