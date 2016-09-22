@@ -14,6 +14,7 @@ import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
 import de.prob.Main;
 import de.prob.animator.command.CbcSolveCommand;
+import de.prob.animator.command.SetPreferenceCommand;
 import de.prob.animator.domainobjects.AbstractEvalResult;
 import de.prob.animator.domainobjects.ComputationNotCompletedResult;
 import de.prob.animator.domainobjects.EvalResult;
@@ -73,78 +74,56 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		EventB f; // formula as EventB formula
 		CbcSolveCommand cmd;
 		String res = ""; // for target vector
-		// For logs
-		String solver;
 		
-		// Access source file and use different solvers
-		solver = "ProB";
+		// Access source file
 		try{
-			logger.fine("\tLoading machine with "+solver+"...");
+			logger.fine("\tLoading machine...");
 			ss = api.b_load(source.toString());
 			mainComp = ss.getMainComponent();	// extract main component
-			
-			// generate ProB command: assume conjunct of invariants is a constrained problem
-			PredicateCollector predc = new PredicateCollector(mainComp);
-			formula = String.join(" & ", predc.getInvariants());
-			
-			// check if invariants are non-empty
-			if(!formula.isEmpty()){
-				f = new EventB(formula);
-				// check with: ProB
-				logger.info("\tSolving with "+solver+"...");
-				cmd = new CbcSolveCommand(f);
-				res += evaluateCommandExecution(ss, cmd, formula);
-			}
-			else {
-				logger.info("\tNo invariants found.");
-
-				// kill state space
-				ss.kill();
-				
+		}catch(Exception e) {
+				logger.severe("\tCould not load machine:" + e.getMessage());
 				return;
-			}
+		}
+		
+		// Get invariants
+		PredicateCollector predc = new PredicateCollector(mainComp);
+		formula = String.join(" & ", predc.getInvariants());
+		
+		// No invariants
+		if(formula.isEmpty()){
+			logger.info("\tNo invariants found.");
 			// kill state space
 			ss.kill();
-		} catch(Exception e) {
-			logger.severe("\tCould not load machine:" + e.getMessage());
 			return;
 		}
 		
-		// - KodKod
-		solver = "KodKod";
-		res +=","; // set delimiter to concatenate new label data
-		try{
-			logger.fine("\tLoading machine with "+solver+"...");
-			ss = api.b_load(source.toString(), useKodKod);
-			
-			// check
-			logger.info("\tSolving with "+solver+"...");
-			cmd = new CbcSolveCommand(f);
-			res += evaluateCommandExecution(ss, cmd, formula);
-			// kill state space
-			ss.kill();
-		} catch(Exception e) {
-			logger.severe("\tCould not load machine with "+solver+":" + e.getMessage());
-			return;
-		}
+		// generate ProB command: assume conjunct of invariants is a constrained problem
+		f = new EventB(formula);
 		
-		// - SMT
-		solver = "SMT";
-		res +=","; // set delimiter to concatenate new label data
-		try{
-			logger.fine("\tLoading machine with "+solver+"...");
-			ss = api.b_load(source.toString(), useSMT);
-			
-			// check
-			logger.info("\tSolving with "+solver+"...");
-			cmd = new CbcSolveCommand(f);
-			res += evaluateCommandExecution(ss, cmd, formula);
-			// kill state space
-			ss.kill();
-		} catch(Exception e) {
-			logger.severe("\tCould not load machine with "+solver+":" + e.getMessage());
-			return;
-		}
+		// solve with different solvers:
+		// ProB
+		logger.info("\tSolving with ProB...");
+		cmd = new CbcSolveCommand(f);
+		res += evaluateCommandExecution(ss, cmd, formula);
+		
+		// KodKod
+		res += ","; // Delimiter
+		logger.info("\tSolving with KodKod...");
+		cmd = new CbcSolveCommand(f);
+		ss.execute(new SetPreferenceCommand("KODKOD", "true")); // turn KodKod on
+		res += evaluateCommandExecution(ss, cmd, formula);
+		ss.execute(new SetPreferenceCommand("KODKOD", "false")); // and turn it off again
+		
+		// SMT
+		res += ","; // Delimiter
+		logger.info("\tSolving with SMT...");
+		cmd = new CbcSolveCommand(f);
+		ss.execute(new SetPreferenceCommand("SMT", "true")); // turn SMT on
+		res += evaluateCommandExecution(ss, cmd, formula);
+		ss.execute(new SetPreferenceCommand("SMT", "false")); // and turn it off again
+		
+		// close StateSpace
+		ss.kill();
 		
 		// open target file
 		BufferedWriter out = Files.newBufferedWriter(target);

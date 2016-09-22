@@ -204,7 +204,7 @@ public class NeuroBCli {
 		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
 		
 		String fileName = source.getFileName().toString();
-		Path target = source.getParent().resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
+		Path target = Paths.get("training_data/single_file_generation/").resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 		tsg.generateTrainingDataFile(source, target);
 	}
 	
