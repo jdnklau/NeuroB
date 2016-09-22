@@ -17,7 +17,6 @@ public class NeuroBCli {
 	private static final Path libraryIOpath = Paths.get("prob_examples/LibraryIO.def");
 	private static NeuroB nb;
 	private static Path dir;
-	private static Path tar;
 	private static HashMap<String, ArrayList<String>> ops;
 	private static Path excludefile;
 
@@ -63,28 +62,26 @@ public class NeuroBCli {
 			String help =
 					  "Call with the following arguments, where -net <net> indicates the neural net to be used (see below):\n"
 					
-					+ "trainingset [-dir <directory>] [-net <net>] [-excludefile <excludefile]\n"
+					+ "trainingset -dir <directory> [-net <net>] [-excludefile <excludefile]\n"
 					+ "\tGenerate training data from the mch files found in <directory>, but ignore those listed in <excludefile>\n"
 					
-					+ "trainingset [-dir <directory>] -file <filename> [-net <net>]\n"
-					+ "\tGenerate training data from a specific file. <filename> has to be given relative to <directory>, which contains <file>\n"
+					+ "trainingset -file <filename> [-net <net>]\n"
+					+ "\tGenerate training data from a specific file. \n"
 					
-					+ "trainingset -analyse [-tar <directory>] [-net <net>]\n"
+					+ "trainingset -analyse -dir <directory>\n"
 					+ "\tAnalyse the generated training data in <directory>\n"
 
-					+ "trainingset -csv [-tar <directory>]\n"
+					+ "trainingset -csv -dir <directory>\n"
 					+ "\tGenerate csv file from nbtrain files in <directory>\n"
 					
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
 
 					+ "exclude [-excludefile <excludefile>] -source <toexcludes>\n"
-					+ "\tSets <toexclude> (either path to directory or file) onto the specified <excludefile>, if not already present\n"
+					+ "\tSets <toexclude> (path to either directory or file) onto the specified <excludefile>, if not already present\n"
 					+ "\t<toexcludes> can be a list of multiple paths to files or directories, separated by a blank space\n"
 					
 					+ "\nDefault values:\n"
-					+ "- if -dir <directory> is not set, it defaults to prob_examples/public_examples/B/\n"
-					+ "- if -tar <directory> is not set, it defaults to training_data/manual_call/\n"
 					+ "- if -net <net> is not set, it defaults to 'default' net\n"
 					+ "- if -excludefile <excludefile> is not set, it defaults to prob_examples/default.excludes"
 					+ "\t* if -excludefile none is set, no exclusions are made"
@@ -99,33 +96,50 @@ public class NeuroBCli {
 		}
 		// Generate training data
 		else if(cmd.equals("trainingset")){
-			// analyse training set
-			if(ops.containsKey("analyse")){
-				analyseTrainingSet(tar);
-			}
-			// generate csv
-			else if(ops.containsKey("csv")){
-				trainingCSVGeneration(tar);
-			}
 			// generate single nbtrain file
-			else if(ops.containsKey("file")){
-				Path sourcefile = dir.resolve(ops.get("file").get(0));
+			if(ops.containsKey("file")){
+				Path sourcefile = Paths.get(ops.get("file").get(0));
 				singleTrainingDataGeneration(sourcefile);
 			}
-			// generate training set
+			else if(ops.containsKey("dir")){
+				// analyse training set
+				if(ops.containsKey("analyse")){
+					analyseTrainingSet(dir);
+				}
+				// generate csv
+				else if(ops.containsKey("csv")){
+					trainingCSVGeneration(dir);
+				}
+				else {
+				// generate training set
+					trainingSetGeneration(dir);
+				}
+			}
+			// nope
 			else {
-				trainingSetGeneration(dir);
-			}			
+				System.out.println("trainingset: missing at least -dir parameter");
+			}
 		}
 		// distribute library file
 		else if(cmd.equals("libraryIODef")){
-			distribute(dir);
+			if(ops.containsKey("dir")){
+				distribute(dir);
+			}
+			// nope
+			else {
+				System.out.println("libraryIODef: missing -dir parameter");
+			}
 		}
 		// handle excludes
 		else if(cmd.equals("exclude")){
 			for(String s : ops.get("source")){
 				exclude(excludefile, Paths.get(s));
 			}
+		}
+		// unknown command
+		else {
+			System.out.println("Unknown command: "+cmd);
+			System.out.println("Use help to show a list of available commands");
 		}
 	}
 
@@ -137,24 +151,13 @@ public class NeuroBCli {
 		}
 		// setting up the net
 		NeuroBNet nbn = new DefaultPredicateSolverPredictionNet();
-		// future nets to come here
+		// ... [future nets to come here]
+		// wrap it in NeuroB
 		nb = new NeuroB(nbn.setSeed(0L).build());
 		
-		// load directory
+		// directory path
 		if(ops.containsKey("dir")){
 			dir = Paths.get(ops.get("dir").get(0));
-		}
-		else {
-			// default
-			dir = Paths.get("prob_examples/public_examples/B/");
-		}
-		
-		if(ops.containsKey("tar")){
-			tar = Paths.get(ops.get("tar").get(0));
-		}
-		else {
-			// default
-			tar = Paths.get("training_data/manual_call/");
 		}
 		
 		// exclude file
@@ -186,7 +189,14 @@ public class NeuroBCli {
 	            		Files.copy(libraryIOpath, newLibraryIOPath);
 	            		System.out.println("Created: "+newLibraryIOPath);
 	            	} catch (IOException e){
-	            		System.out.println("NOT created (maybe already existing) "+newLibraryIOPath+": "+e.getMessage());
+//	            		System.out.println("Already present: "+newLibraryIOPath+": "+e.getMessage());
+	            		/*
+	            		 * NOTE:
+	            		 * This catch does nothing, to prevent the permanent printing of the message you can see
+	            		 * there which is commented out.
+	            		 * The makefile tries for now to ensure this method is called before starting to generate a training set.
+	            		 * This is a little bit annoying, hence the catch block doing nothing.
+	            		 */
 	            	}
 	            	
 	            	distribute(entry); //  distribute the file recusively
