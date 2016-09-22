@@ -83,7 +83,7 @@ public class NeuroBCli {
 					
 					+ "\nDefault values:\n"
 					+ "- if -net <net> is not set, it defaults to 'default' net\n"
-					+ "- if -excludefile <excludefile> is not set, it defaults to prob_examples/default.excludes"
+					+ "- if -excludefile <excludefile> is not set, it defaults to default.excludes"
 					+ "\t* if -excludefile none is set, no exclusions are made"
 					
 					+ "\nNets:\n"
@@ -171,7 +171,7 @@ public class NeuroBCli {
 		}
 		else {
 			// default
-			excludefile = Paths.get("prob_examples/default.excludes");
+			excludefile = Paths.get("default.excludes");
 		}
 		
 	}

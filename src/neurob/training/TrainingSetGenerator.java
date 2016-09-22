@@ -156,12 +156,12 @@ public class TrainingSetGenerator {
 		// prepare exclude data
 		ArrayList<Path> excludes = new ArrayList<Path>();
 		if(excludeFile != null){
-			Path excludeFileDirectory = excludeFile.getParent();
+//			Path excludeFileDirectory = excludeFile.getParent();
 			try(Stream<String> exc = Files.lines(excludeFile)){
 				excludes.addAll(
 						(ArrayList<Path>) exc
 							.filter(s -> !s.isEmpty())
-							.map(s -> excludeFileDirectory.resolve(s)).collect(Collectors.toList()));
+							.map(s -> Paths.get(s)).collect(Collectors.toList()));
 			} catch (IOException e) {
 				logger.severe("Could not access exclude file: "+e.getMessage());
 			}
@@ -267,16 +267,11 @@ public class TrainingSetGenerator {
 	 * <p>Excludes a given path in the source directory.
 	 * </p>
 	 * <p>This puts the <code>exclude</code> into the <code>excludeFile</code>. 
-	 * <code>exclude</code> can hereby point to either an directory or a specific file,
-	 * but should be relative to the directory containing the <code>excludeFile</code>.
-	 * <br>
-	 * To be more precise, if the <code>excludeFile</code> is in <i>path/to/foo.excludes</code>
-	 * and the file to exclude is <i>path/to/excluded/file/bar.mch</i>, 
-	 * then <code>exclude</code> should point to <i>excluded/file/bar.mch</i>.
+	 * <code>exclude</code> can hereby point to either an directory or a specific file.
 	 * </p>
 	 * 
 	 * @param excludeFile The exclude file to write to
-	 * @param exclude Path to the file or subdirectory to exclude
+	 * @param exclude Path to the file or directory to exclude
 	 */
 	public void exclude(Path excludeFile, Path exclude) {		
 		// check if already excluded
