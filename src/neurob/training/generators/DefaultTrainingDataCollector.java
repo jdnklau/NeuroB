@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.logging.Logger;
 
 import com.google.inject.Inject;
@@ -31,8 +30,6 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
 public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	private FeatureCollector fc;
 	private Api api;
-	private HashMap<String, String> useKodKod;
-	private HashMap<String, String> useSMT;
 	private Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 
 	@Inject
@@ -40,13 +37,6 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		fc = new FeatureCollector();
 		
 		api = Main.getInjector().getInstance(Api.class);
-		
-		// set up solvers		
-		useKodKod = new HashMap<String,String>();
-		useKodKod.put("KODKOD", "true");
-		
-		useSMT = new HashMap<String,String>();
-		useSMT.put("SMT", "true");
 		
 	}
 	
