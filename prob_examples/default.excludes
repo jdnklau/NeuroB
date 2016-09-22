@@ -2,3 +2,4 @@ public_examples/B/Tickets/ParserPushBackOverflow
 public_examples/B/PerformanceTests
 public_examples/B/RefinementChecking
 
+public_examples/B/Tickets/LargeMachTypeErr/sequenceur_values.mch
