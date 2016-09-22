@@ -68,11 +68,17 @@ public class NeuroB {
 	// RNG
 	private long seed = 12345;
 	private Random rnd = new Random(seed);
+	// Training
+	private int numEpochs = 15;
 
 	public NeuroB(NeuroBNet neuroBNet) {
 		// link neural net
 		nbn = neuroBNet;
 		
+	}
+	
+	public void setEpochs(int epochs){
+		numEpochs = epochs;
 	}
 	
 	/**
@@ -106,7 +112,10 @@ public class NeuroB {
             normalizer.transform(trainingData);     //Apply normalization to the training data
             normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
             
-            nbn.fit(trainingData);
+            for(int i=0; i<numEpochs; i++){
+            	nbn.fit(trainingData);
+            }
+            
             // TODO: validate with training data, maybe?
         });
 	}
