@@ -238,7 +238,7 @@ public class TrainingSetGenerator {
 					String fileName = f.getFileName().toString();
 					String ext = fileName.substring(fileName.lastIndexOf('.'));
 					if(ext.equals(".nbtrain")){
-						logger.info("Found "+f);
+//						logger.info("Found "+f);
 						// nbtrain file found!
 						// read line wise
 						try (Stream<String> lines = Files.lines(f)){
