@@ -1,5 +1,5 @@
 # Enter project version here:
-VER = 0.6.3-trainingcollectorchange
+VER = 0.6.4
 
 gradlebuild :
 	./gradlew -q build
