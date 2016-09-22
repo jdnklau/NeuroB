@@ -77,15 +77,15 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		
 		// Access source file
 		try{
-			logger.fine("\tLoading machine...");
+			logger.info("\tLoading machine...");
 			ss = api.b_load(source.toString());
-			mainComp = ss.getMainComponent();	// extract main component
 		}catch(Exception e) {
-				logger.severe("\tCould not load machine:" + e.getMessage());
-				return;
+			logger.severe("\tCould not load machine:" + e.getMessage());
+			return;
 		}
 		
 		// Get invariants
+		mainComp = ss.getMainComponent();	// extract main component
 		PredicateCollector predc = new PredicateCollector(mainComp);
 		formula = String.join(" & ", predc.getInvariants());
 		
