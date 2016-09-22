@@ -1,5 +1,8 @@
 package neurob.core.nets.interfaces;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import org.nd4j.linalg.dataset.DataSet;
 
 import neurob.training.generators.interfaces.TrainingDataCollector;
@@ -53,4 +56,19 @@ public interface NeuroBNet {
 	 * @param trainingData
 	 */
 	void fit(DataSet trainingData);
+	
+	/**
+	 * Loads a neural net from the specified file
+	 * @param file
+	 * @return this
+	 * @throws IOException 
+	 */
+	NeuroBNet loadFromFile(Path file) throws IOException;
+	
+	/**
+	 * Saves the neural net in the specified file
+	 * @param file
+	 * @throws IOException 
+	 */
+	void safeToFile(Path file) throws IOException;
 }

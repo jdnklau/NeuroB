@@ -3,6 +3,7 @@ package neurob;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
 
 import org.datavec.api.records.reader.RecordReader;
@@ -108,6 +109,18 @@ public class NeuroB {
             nbn.fit(trainingData);
             // TODO: validate with training data, maybe?
         });
+	}
+	
+	/**
+	 * <p>Safes the neural net used into a file</p>
+	 * <p>The file's location will be <i>nnets/<name of NeuroBNet class used>/{@code name}</i>. 
+	 * The convention is to use <i>.nnet</i> as file extension.</p>
+	 * @param name
+	 * @throws IOException 
+	 */
+	public void safeToFile(String name) throws IOException{
+		Path nnetfile = Paths.get("nnets/"+nbn.getClass().getSimpleName()+"/"+name);
+		nbn.safeToFile(nnetfile);
 	}
 	
 	/**
