@@ -1,5 +1,7 @@
 package neurob.core.nets;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Random;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -10,6 +12,7 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
@@ -93,6 +96,20 @@ public class DefaultPredicateSolverPredictionNet implements NeuroBNet {
 	@Override
 	public TrainingDataCollector getTrainingDataCollector() {
 		return tdc;
+	}
+
+	@Override
+	public NeuroBNet loadFromFile(Path file) throws IOException {
+		model = ModelSerializer.restoreMultiLayerNetwork(file.toFile());
+		seed = model.getDefaultConfiguration().getSeed();
+		
+		return this;
+	}
+
+	@Override
+	public void safeToFile(Path file) throws IOException {
+		ModelSerializer.writeModel(model, file.toFile(), true);
+		
 	}
 
 }

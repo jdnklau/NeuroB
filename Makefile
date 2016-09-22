@@ -1,5 +1,5 @@
 # Enter project version here:
-VER = 0.6.4
+VER = 0.7.0
 
 gradlebuild :
 	./gradlew -q build
