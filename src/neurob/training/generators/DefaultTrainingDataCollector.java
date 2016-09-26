@@ -107,7 +107,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		
 		// SMT
 		res += ","; // Delimiter
-		logger.info("\tSolving with SMT...");
+		logger.info("\tSolving with ProB/Z3...");
 		cmd = new CbcSolveCommand(f);
 		ss.execute(new SetPreferenceCommand("SMT_SUPPORTED_INTERPRETER", "true")); // turn SMT on
 		res += evaluateCommandExecution(ss, cmd, formula);
