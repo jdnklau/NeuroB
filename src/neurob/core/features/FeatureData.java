@@ -1,5 +1,9 @@
 package neurob.core.features;
 
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
+import de.be4.classicalb.core.parser.node.TIdentifierLiteral;
 import neurob.core.features.helpers.IdentifierRelationHandler;
 
 /**
@@ -13,7 +17,7 @@ import neurob.core.features.helpers.IdentifierRelationHandler;
  */
 public class FeatureData {
 	// Dimensions
-	public static final int featureCount = 12;
+	public static final int featureCount = 15;
 	// Helpers
 	private IdentifierRelationHandler ids;
 	// Features
@@ -25,6 +29,9 @@ public class FeatureData {
 	private int fConjunctionsCount; // number of conjunctions
 	private int fDisjunctionsCount; // number of disjunctions
 	private int fUniqueIdentifiersCount; // number of unique identifiers used
+	private int fFiniteSizedDomainIdentifiersCount; // identifiers with finite domain
+	private int fInfiniteSizedDomainIdentifiersCount; // identifiers with infinite domain
+	private int fUnknownSizedDomainIdentifiersCount; // identifiers with unknown sized domain
 	private int fSetOperatorsCount; // number of set operators
 	private int fSetMemberCount; // number of memberships to sets
 	private int fFunctionsCount; // number of functions
@@ -45,6 +52,9 @@ public class FeatureData {
 		fDisjunctionsCount = 0;
 		// identifiers
 		fUniqueIdentifiersCount = 0;
+		fFiniteSizedDomainIdentifiersCount = 0;
+		fInfiniteSizedDomainIdentifiersCount = 0;
+		fUnknownSizedDomainIdentifiersCount = 0;
 		// Sets
 		fSetOperatorsCount = 0;
 		fSetMemberCount = 0;
@@ -56,18 +66,27 @@ public class FeatureData {
 	
 	@Override
 	public String toString(){
-		return fFormulaLength+","
-				+fArithmOperatorsCount+","
-				+fCompOperatorsCount+","
-				+fForAllQuantifiersCount+","
-				+fExistsQuantifiersCount+","
-				+fConjunctionsCount+","
-				+fDisjunctionsCount+","
-				+fSetOperatorsCount+","
-				+fSetMemberCount+","
-				+fFunctionsCount+","
-				+fRelationOperatorsCount+","
-				+getUniqueIdentifiersCount();
+		ArrayList<Integer> features = new ArrayList<Integer>();
+		
+		features.add(fFormulaLength);
+		features.add(fArithmOperatorsCount);
+		features.add(fCompOperatorsCount);
+		features.add(fForAllQuantifiersCount);
+		features.add(fExistsQuantifiersCount);
+		features.add(fConjunctionsCount);
+		features.add(fDisjunctionsCount);
+		features.add(fSetOperatorsCount);
+		features.add(fSetMemberCount);
+		features.add(fFunctionsCount);
+		features.add(fRelationOperatorsCount);
+		features.add(getUniqueIdentifiersCount());
+		features.add(ids.getFiniteDomainIdentifiersCount());
+		features.add(ids.getInfiniteDomainIdentifiersCount());
+		features.add(ids.getUnknownDomainSizeIdentifiersCount());
+		
+		return features.stream()
+				.map(i -> i.toString())
+				.collect(Collectors.joining(","));
 	}
 	
 	/**
@@ -122,5 +141,21 @@ public class FeatureData {
 	
 	public int getUniqueIdentifiersCount(){ return ids.getUniqueIdentifierCount(); }
 	public void addIdentifier(String id){ ids.addIdentifier(id);}
+
+	public void setIdentifierDomain(String id, boolean hasLowerBound, boolean hasUpperBound) {
+		ids.addBoundariesToIdentifier(id, hasLowerBound, hasUpperBound);
+	}
+	public void setUpperBoundRelationToIdentifier(String id){
+		ids.addBoundariesToIdentifier(id, false, true);
+	}
+	public void setUpperBoundRelationToIdentifier(String id, String restrictingID){
+		// TODO
+	}
+	public void setLowerBoundRelationToIdentifier(String id){
+		ids.addBoundariesToIdentifier(id, true, false);
+	}
+	public void setLowerBoundRelationToIdentifier(String id, String restrictingID){
+		// TODO
+	}
 
 }

@@ -1,5 +1,7 @@
 package neurob.core.features;
 
+import java.util.LinkedList;
+
 import de.be4.classicalb.core.parser.analysis.DepthFirstAdapter;
 import de.be4.classicalb.core.parser.node.*;
 
@@ -42,6 +44,7 @@ public class FeatureCollector extends DepthFirstAdapter {
 	 * - Logical Operators
 	 * - Identifiers
 	 * - Sets
+	 * - Named Sets
 	 * - Functions
 	 * - Relations
 	 */
@@ -101,14 +104,92 @@ public class FeatureCollector extends DepthFirstAdapter {
 	@Override
 	public void caseAGreaterPredicate(final AGreaterPredicate node){
 		fd.incCompOperatorsCount();
-		node.getLeft().apply(this);
-		node.getRight().apply(this);
+		handleGreaterComparison(node.getLeft(), node.getRight());
+	}
+	@Override
+	public void caseAGreaterEqualPredicate(AGreaterEqualPredicate node) {
+		fd.incCompOperatorsCount();
+		handleGreaterComparison(node.getLeft(), node.getRight());
 	}
 	@Override
 	public void caseALessPredicate(final ALessPredicate node){
 		fd.incCompOperatorsCount();
-		node.getLeft().apply(this);
-		node.getRight().apply(this);
+		handleLesserComparison(node.getLeft(), node.getRight());
+	}
+	@Override
+	public void caseALessEqualPredicate(final ALessEqualPredicate node){
+		fd.incCompOperatorsCount();
+		handleLesserComparison(node.getLeft(), node.getRight());
+	}
+	/**
+	 * Sets boundaries accordingly to identifiers
+	 * @param left
+	 * @param right
+	 */
+	private void handleGreaterComparison(PExpression left, PExpression right){
+		if(left instanceof AIdentifierExpression){
+			LinkedList<TIdentifierLiteral> ids = ((AIdentifierExpression) left).getIdentifier();
+			
+			// integer literals
+			if(right instanceof AIntegerExpression){
+				// Upper bounds found
+				ids.forEach(rawid -> {
+					String id = rawid.toString();
+					fd.setUpperBoundRelationToIdentifier(id);
+				});
+			}
+			// TODO Check other identifiers
+		} else if(right instanceof AIdentifierExpression){
+			LinkedList<TIdentifierLiteral> ids = ((AIdentifierExpression) right).getIdentifier();
+			
+			// integer literals
+			if(left instanceof AIntegerExpression){
+				// Upper bounds found
+				ids.forEach(rawid -> {
+					String id = rawid.toString();
+					fd.setUpperBoundRelationToIdentifier(id);
+				});
+			}
+			// TODO Check other identifiers
+		}
+		
+		left.apply(this);
+		right.apply(this);
+	}
+	/**
+	 * Sets boundaries accordingly to identifiers
+	 * @param left
+	 * @param right
+	 */
+	private void handleLesserComparison(PExpression left, PExpression right){
+		if(left instanceof AIdentifierExpression){
+			LinkedList<TIdentifierLiteral> ids = ((AIdentifierExpression) left).getIdentifier();
+			
+			// integer literals
+			if(right instanceof AIntegerExpression){
+				// Upper bounds found
+				ids.forEach(rawid -> {
+					String id = rawid.toString();
+					fd.setLowerBoundRelationToIdentifier(id);
+				});
+			}
+			// TODO Check other identifiers
+		} else if(right instanceof AIdentifierExpression){
+			LinkedList<TIdentifierLiteral> ids = ((AIdentifierExpression) right).getIdentifier();
+			
+			// integer literals
+			if(left instanceof AIntegerExpression){
+				// Upper bounds found
+				ids.forEach(rawid -> {
+					String id = rawid.toString();
+					fd.setLowerBoundRelationToIdentifier(id);
+				});
+			}
+			// TODO Check other identifiers
+		}
+		
+		left.apply(this);
+		right.apply(this);
 	}
 	
 	// logical operators
@@ -125,7 +206,7 @@ public class FeatureCollector extends DepthFirstAdapter {
 		node.getRight().apply(this);
 	}
 	
-	// identifiers
+	// Identifiers
 	@Override
 	public void caseAIdentifierExpression(final AIdentifierExpression node){
 		for(TIdentifierLiteral id : node.getIdentifier()){
@@ -137,8 +218,30 @@ public class FeatureCollector extends DepthFirstAdapter {
 	@Override
 	public void caseAMemberPredicate(final AMemberPredicate node){
 		fd.incSetMemberCount();
-		node.getLeft().apply(this);
-		node.getRight().apply(this);
+		
+		// check for domain values
+		PExpression left = node.getLeft();
+		PExpression right = node.getRight();
+		if(left instanceof AIdentifierExpression){
+			((AIdentifierExpression) left).getIdentifier()
+				.forEach(rawid -> {
+					String id = rawid.toString();
+					System.out.println(id);
+					if(right instanceof AIntegerSetExpression){
+						// Integer
+						fd.setIdentifierDomain(id,false,false);
+					} else if(right instanceof ANatSetExpression || right instanceof ANat1SetExpression){
+						// Naturals
+						fd.setIdentifierDomain(id, true, false);
+					} else if(right instanceof ABoolSetExpression){
+						// Booleans
+						fd.setIdentifierDomain(id, true, true);
+					}
+				});
+		}
+		
+		left.apply(this);
+		right.apply(this);
 	}
 	@Override
 	public void caseANotMemberPredicate(final ANotMemberPredicate node){
@@ -189,6 +292,9 @@ public class FeatureCollector extends DepthFirstAdapter {
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
+	
+	// Named Sets
+	//---
 	
 	// Functions
 	@Override
