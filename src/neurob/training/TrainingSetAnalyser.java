@@ -20,7 +20,29 @@ public class TrainingSetAnalyser {
 	private int emptyFilesCount;
 	private int dataCount; // counts the lines in the found files, being the feature and target data
 	private int uninteresstingDataCount; // data lines having all target values as the same 
-	private static final Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
+	private static final Logger logger = Logger.getLogger(TrainingSetAnalyser.class.getName());
+	
+	static {
+		//** setting up logger
+		logger.setUseParentHandlers(false);
+		logger.setLevel(Level.FINE);
+		// log to console
+		ConsoleHandler ch = new ConsoleHandler();
+		ch.setFormatter(new NeuroBLogFormatter());
+		logger.addHandler(ch);
+		// log to logfile
+//		try {
+//			DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
+//			FileHandler fh = new FileHandler(
+//					"neurob_logs/NeuroB-TrainingSetAnalyser-"
+//					+dateFormat.format(new Date())
+//					+"-%u.log");
+//			fh.setFormatter(new NeuroBLogFormatter());
+//			logger.addHandler(fh);
+//		} catch (SecurityException | IOException e) {
+//			System.err.println("Could not greate file logger");
+//		}
+	}
 	
 	public TrainingSetAnalyser(){
 		fileCount = 0;
@@ -119,14 +141,17 @@ public class TrainingSetAnalyser {
 		b.append("and of these serve "+uninteresstingDataCount+" vectors no informational gain").append('\n');
 		return b.toString();
 	}
-
-	public void logStatistics() {
+	
+	public void logStatistics(){
+		logStatistics(logger);
+	}
+	public void logStatistics(Logger l) {
 		int relevantFiles = fileCount-emptyFilesCount;
-		logger.info("Files found: "+fileCount);
-		logger.info("Of these were "+emptyFilesCount+" seemingly empty");
-		logger.info("=> "+relevantFiles+" relevant files");
-		logger.info("In the relevent filese were "+dataCount+" data vectors");
-		logger.info("and of these serve "+uninteresstingDataCount+" vectors no informational gain");
+		l.info("Files found: "+fileCount);
+		l.info("Of these were "+emptyFilesCount+" seemingly empty");
+		l.info("=> "+relevantFiles+" relevant files");
+		l.info("In the relevent filese were "+dataCount+" data vectors");
+		l.info("and of these serve "+uninteresstingDataCount+" vectors no informational gain");
 	}
 
 }

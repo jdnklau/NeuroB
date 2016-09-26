@@ -228,7 +228,7 @@ public class NeuroBCli {
 	private static void analyseTrainingSet(Path dir, boolean logFiles){
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		tsa.analyseTrainingSet(dir, logFiles);
-		System.out.println(tsa.getStatistics());
+		tsa.logStatistics();
 	}
 	
 	private static void trainingCSVGeneration(Path dir){
