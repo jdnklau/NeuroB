@@ -178,14 +178,16 @@ public class TrainingSetGenerator {
 				.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
 				.forEach(entry -> {
 	            	if(Files.isRegularFile(entry)){
-		            	// check file extension
-		            	String fileName = entry.getFileName().toString();
-		            	String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-		            	if(ext.equals("mch")){
-		            		fileCounter++;
-		            		Path dataFilePath = targetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
-		            		generateTrainingDataFile(entry, dataFilePath);
-		            	}
+	            		// get ful target directory
+	            		Path fullTargetDirectory = targetDirectory.resolve(sourceDirectory);
+						// check file extension
+						String fileName = entry.getFileName().toString();
+						String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
+						if(ext.equals("mch")){
+							fileCounter++;
+							Path dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
+							generateTrainingDataFile(entry, dataFilePath);
+						}
 		            }
 				});
 	    }
@@ -203,6 +205,15 @@ public class TrainingSetGenerator {
 	 */
 	public void generateTrainingDataFile(Path source, Path target){
 		logger.info("Generating: "+source+" > "+target);
+		Path targetDirectory = target.getParent();
+		// ensure existance of target directory
+		try {
+			Files.createDirectories(targetDirectory);
+		} catch (IOException e) {
+			logger.severe("\tCould not create or access directory "+targetDirectory+": "+e.getMessage());
+			return;
+		}
+		// create file
 		try {
 			tdc.collectTrainingData(source, target);
 			logger.fine("\tDone: "+target);
