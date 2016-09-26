@@ -1,5 +1,5 @@
 # Enter project version here:
-VER = 0.8.4
+VER = 0.8.4-datacollectorchanges
 
 gradlebuild :
 	./gradlew -q build

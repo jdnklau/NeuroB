@@ -108,9 +108,9 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		res += ","; // Delimiter
 		logger.info("\tSolving with SMT...");
 		cmd = new CbcSolveCommand(f);
-		ss.execute(new SetPreferenceCommand("SMT", "true")); // turn SMT on
+		ss.execute(new SetPreferenceCommand("SMT_SUPPORTED_INTERPRETER", "true")); // turn SMT on
 		res += evaluateCommandExecution(ss, cmd, formula);
-		ss.execute(new SetPreferenceCommand("SMT", "false")); // and turn it off again
+		ss.execute(new SetPreferenceCommand("SMT_SUPPORTED_INTERPRETER", "false")); // and turn it off again
 		
 		// close StateSpace
 		ss.kill();
