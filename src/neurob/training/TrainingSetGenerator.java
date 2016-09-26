@@ -62,7 +62,7 @@ public class TrainingSetGenerator {
 		try {
 			DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
 			FileHandler fh = new FileHandler(
-					"NeuroB-TrainingSetGenerator-"
+					"neurob_logs/NeuroB-TrainingSetGenerator-"
 					+dateFormat.format(new Date())
 					+"-%u.log");
 			fh.setFormatter(new NeuroBLogFormatter());
