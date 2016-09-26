@@ -50,13 +50,7 @@ public class TrainingSetGenerator {
 	private int fileProblemsCounter; // number of files which caused problems
 	private static final Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 	
-	/**
-	 * 
-	 * @param trainingDataCollector Instance of the training collection to be used
-	 */
-	public TrainingSetGenerator(TrainingDataCollector trainingDataCollector) {
-		tdc = trainingDataCollector;
-		
+	static {
 		//** setting up logger
 		logger.setUseParentHandlers(false);
 		logger.setLevel(Level.FINE);
@@ -76,6 +70,14 @@ public class TrainingSetGenerator {
 		} catch (SecurityException | IOException e) {
 			System.err.println("Could not greate file logger");
 		}
+	}
+	
+	/**
+	 * 
+	 * @param trainingDataCollector Instance of the training collection to be used
+	 */
+	public TrainingSetGenerator(TrainingDataCollector trainingDataCollector) {
+		tdc = trainingDataCollector;
 		
 		// set Logger of tdc
 		tdc.setLogger(logger);
