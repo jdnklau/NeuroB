@@ -56,7 +56,8 @@ public class FeatureData {
 	
 	@Override
 	public String toString(){
-		return fArithmOperatorsCount+","
+		return fFormulaLength+","
+				+fArithmOperatorsCount+","
 				+fCompOperatorsCount+","
 				+fForAllQuantifiersCount+","
 				+fExistsQuantifiersCount+","
