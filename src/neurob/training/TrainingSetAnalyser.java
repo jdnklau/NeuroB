@@ -4,8 +4,16 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+
+import neurob.logging.NeuroBLogFormatter;
 
 public class TrainingSetAnalyser {
 	private int fileCount;
@@ -27,6 +35,9 @@ public class TrainingSetAnalyser {
 	 * @param sourceDirectory
 	 */
 	public void analyseTrainingSet(Path sourceDirectory){
+		analyseTrainingSet(sourceDirectory, false);
+	}
+	public void analyseTrainingSet(Path sourceDirectory, boolean logRelevantFiles){
 		
 		// iterate over directory recursively
 		try (Stream<Path> stream = Files.list(sourceDirectory)) {
@@ -69,6 +80,10 @@ public class TrainingSetAnalyser {
 		            				// did not find different labels
 		            				if (!differentTargets) {
 		            					uninteresstingDataCount++; // => no informational gain by this data
+		            				} else if(logRelevantFiles) {
+		            					// Found interesting data
+		            					logger.info(entry.toString());
+		            					logger.info("\t"+line);
 		            				}
 		            				
 		            			});

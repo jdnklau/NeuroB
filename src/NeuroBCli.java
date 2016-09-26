@@ -68,8 +68,9 @@ public class NeuroBCli {
 					+ "trainingset -file <filename> [-net <net>]\n"
 					+ "\tGenerate training data from a specific file. \n"
 					
-					+ "trainingset -analyse -dir <directory>\n"
+					+ "trainingset -analyse -dir <directory> [--log-relevant-files]\n"
 					+ "\tAnalyse the generated training data in <directory>\n"
+					+ "\tIf --log-relevant-files is used, files of interest have their names logged into a special log file\n"
 
 					+ "trainingset -csv -dir <directory>\n"
 					+ "\tGenerate csv file from nbtrain files in <directory>\n"
@@ -104,7 +105,7 @@ public class NeuroBCli {
 			else if(ops.containsKey("dir")){
 				// analyse training set
 				if(ops.containsKey("analyse")){
-					analyseTrainingSet(dir);
+					analyseTrainingSet(dir, ops.containsKey("-log-relevant-files"));
 				}
 				// generate csv
 				else if(ops.containsKey("csv")){
@@ -224,9 +225,9 @@ public class NeuroBCli {
 		nb.generateTrainingSet(sourceDir, targetDir, excludefile);
 	}
 	
-	private static void analyseTrainingSet(Path dir){
+	private static void analyseTrainingSet(Path dir, boolean logFiles){
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
-		tsa.analyseTrainingSet(dir);
+		tsa.analyseTrainingSet(dir, logFiles);
 		System.out.println(tsa.getStatistics());
 	}
 	
