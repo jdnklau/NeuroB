@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class TrainingSetAnalyser {
@@ -11,6 +12,7 @@ public class TrainingSetAnalyser {
 	private int emptyFilesCount;
 	private int dataCount; // counts the lines in the found files, being the feature and target data
 	private int uninteresstingDataCount; // data lines having all target values as the same 
+	private static final Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 	
 	public TrainingSetAnalyser(){
 		fileCount = 0;
@@ -87,7 +89,11 @@ public class TrainingSetAnalyser {
 			System.out.println("Could not access directory "+sourceDirectory+": "+e.getMessage());
 		}
     }
-	
+	/**
+	 * 
+	 * @deprecated Use {@link #logStatistics()} instead to get the string properly logged
+	 */
+	@Deprecated
 	public String getStatistics(){
 		int relevantFiles = fileCount-emptyFilesCount;
 		StringBuilder b = new StringBuilder(1000);
@@ -97,6 +103,15 @@ public class TrainingSetAnalyser {
 		b.append("In the relevent filese were "+dataCount+" data vectors").append('\n');
 		b.append("and of these serve "+uninteresstingDataCount+" vectors no informational gain").append('\n');
 		return b.toString();
+	}
+
+	public void logStatistics() {
+		int relevantFiles = fileCount-emptyFilesCount;
+		logger.info("Files found: "+fileCount);
+		logger.info("Of these were "+emptyFilesCount+" seemingly empty");
+		logger.info("=> "+relevantFiles+" relevant files");
+		logger.info("In the relevent filese were "+dataCount+" data vectors");
+		logger.info("and of these serve "+uninteresstingDataCount+" vectors no informational gain");
 	}
 
 }

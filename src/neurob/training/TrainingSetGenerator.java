@@ -99,7 +99,7 @@ public class TrainingSetGenerator {
 		tsa.analyseTrainingSet(dir);
 		logger.info("**********");
 		logger.info("Training Data Analysis:");
-		logger.info(tsa.getStatistics());
+		tsa.logStatistics();
 	}
 	
 	/**
