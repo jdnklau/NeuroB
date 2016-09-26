@@ -15,6 +15,7 @@ import de.prob.Main;
 import de.prob.animator.command.CbcSolveCommand;
 import de.prob.animator.command.SetPreferenceCommand;
 import de.prob.animator.domainobjects.AbstractEvalResult;
+import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.ComputationNotCompletedResult;
 import de.prob.animator.domainobjects.EvalResult;
 import de.prob.animator.domainobjects.EventB;
@@ -61,7 +62,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		AbstractElement mainComp;
 		// For the formula and ProB command to use
 		String formula; // the conjunction of invariants
-		EventB f; // formula as EventB formula
+		ClassicalB f; // formula as EventB formula
 		CbcSolveCommand cmd;
 		String res = ""; // for target vector
 		
@@ -88,7 +89,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		}
 		
 		// generate ProB command: assume conjunct of invariants is a constrained problem
-		f = new EventB(formula);
+		f = new ClassicalB(formula);
 		
 		// solve with different solvers:
 		// ProB
