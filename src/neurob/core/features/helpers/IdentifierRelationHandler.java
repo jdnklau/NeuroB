@@ -21,11 +21,12 @@ public class IdentifierRelationHandler {
 	 */
 	public AdjacencyNode addIdentifier(String id){
 		AdjacencyNode n;
-		if(!adjacencyList.containsKey(id)){
-			n = new AdjacencyNode(id);
-			adjacencyList.put(id, n);
+		String tid = id.trim();
+		if(!adjacencyList.containsKey(tid)){
+			n = new AdjacencyNode(tid);
+			adjacencyList.put(tid, n);
 		} else {
-			n = adjacencyList.get(id);
+			n = adjacencyList.get(tid);
 		}
 		return n;
 	}
@@ -35,11 +36,8 @@ public class IdentifierRelationHandler {
 	}
 	
 	public void addBoundariesToIdentifier(String id, boolean hasLowerBound, boolean hasUpperBound){
-		// ensure existance
-		addIdentifier(id);
-		
 		// get ID
-		AdjacencyNode n = adjacencyList.get(id);
+		AdjacencyNode n = accessNode(id);
 		n.addBoundaries(hasLowerBound,hasUpperBound);
 	}
 	
@@ -82,8 +80,8 @@ public class IdentifierRelationHandler {
 		
 		for(String id : adjacencyList.keySet()){
 			AdjacencyNode n = adjacencyList.get(id);
-			if(n.hasBoundariesSet){
-				if(n.hasLowerBound && n.hasUpperBound){
+			if(n.hasBoundariesSet()){
+				if(n.hasLowerBound() && n.hasUpperBound()){
 					++i;
 				}
 			}
@@ -97,7 +95,7 @@ public class IdentifierRelationHandler {
 		
 		for(String id : adjacencyList.keySet()){
 			AdjacencyNode n = adjacencyList.get(id);
-			if(!n.hasBoundariesSet){
+			if(!n.hasBoundariesSet()){
 				++i;
 			}
 		}

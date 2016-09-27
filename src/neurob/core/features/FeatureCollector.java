@@ -226,11 +226,16 @@ public class FeatureCollector extends DepthFirstAdapter {
 			((AIdentifierExpression) left).getIdentifier()
 				.forEach(rawid -> {
 					String id = rawid.toString();
-					System.out.println(id);
 					if(right instanceof AIntegerSetExpression){
 						// Integer
 						fd.setIdentifierDomain(id,false,false);
+					} else if(right instanceof AIntSetExpression){
+						// Restricted Integers
+						fd.setIdentifierDomain(id, true, true);
 					} else if(right instanceof ANatSetExpression || right instanceof ANat1SetExpression){
+						// Restricted naturals
+						fd.setIdentifierDomain(id, true, true);
+					} else if(right instanceof ANaturalSetExpression || right instanceof ANatural1SetExpression){
 						// Naturals
 						fd.setIdentifierDomain(id, true, false);
 					} else if(right instanceof ABoolSetExpression){
