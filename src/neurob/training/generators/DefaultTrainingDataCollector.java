@@ -58,7 +58,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	@Override
 	public void collectTrainingData(Path source, Path target) throws IOException, BException {
 		// StateSpace and main component
-		StateSpace ss;
+		StateSpace ss = null;
 		AbstractElement mainComp;
 		// For the formula and ProB command to use
 		String formula; // the conjunction of invariants
@@ -72,6 +72,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			ss = api.b_load(source.toString());
 		}catch(Exception e) {
 			logger.severe("\tCould not load machine:" + e.getMessage());
+			ensureStateSpaceKill(ss);
 			return;
 		}
 		
@@ -89,7 +90,13 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		}
 		
 		// generate ProB command: assume conjunct of invariants is a constrained problem
-		f = new ClassicalB(formula);
+		try {
+			f = new ClassicalB(formula);
+		} catch (Exception e) {
+			ss.kill();
+			logger.severe("\tCould not create command from formula "+formula+": "+e.getMessage());
+			return;
+		}
 		
 		// solve with different solvers:
 		// ProB
@@ -169,6 +176,14 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			res = "0";
 		}
 		return res;
+		
+	}
+	
+	private void ensureStateSpaceKill(StateSpace s){
+		if(s == null){
+			return;
+		}
+		s.kill();
 	}
 
 
