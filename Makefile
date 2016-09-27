@@ -5,19 +5,27 @@ all :
 	@echo "***** Building gradle files"
 	@./gradlew build
 	@echo "*****/ Built"
+
+install :
 	@echo "***** Create NeuroB binary"
 	@./gradlew installDist
 	@echo "*****/ Created binary"
 
-jar : clean
+jar :
 	@echo "***** Build .jar file"
 	@./gradlew CliFatJar
 	@echo "*****/ Done building jar"
-	
+
 clean :
 	@echo "***** Clean gradle"
 	@./gradlew -q clean
 	@echo "*****/ Cleaned"
+
+dev :
+	@echo "***** Setting up eclipse project"
+	@./gradlew cleanEclipse
+	@./gradlew eclipse
+	@echo "*****/ Eclipse project set up"
 
 # how to run stuff
 trainingset : distributedlibraryfile
