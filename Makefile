@@ -1,7 +1,7 @@
 # Shortcut to run the Cli of NeuroB
 RUNCLI = ./build/install/NeuroB/bin/NeuroB
 
-gradlebuild :
+all :
 	@echo "***** Building gradle files"
 	@./gradlew build
 	@echo "*****/ Built"
