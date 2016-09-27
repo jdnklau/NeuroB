@@ -174,6 +174,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			} catch(Exception e) {
 				// catch block is intended to catch invariants where ProB encounters problems with
 				logger.warning("\tAt "+formula+":\t"+e.getMessage());
+				ss.sendInterrupt();
 				res = "0";
 			}
 			return res;
