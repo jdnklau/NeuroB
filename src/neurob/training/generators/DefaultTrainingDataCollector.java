@@ -4,6 +4,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import com.google.inject.Inject;
@@ -144,36 +151,45 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	}
 	
 	private String evaluateCommandExecution(StateSpace ss, CbcSolveCommand cmd, String formula){
-		String res = "0";
-		try {
-			ss.execute(cmd);
-			
-			// get value for result
-			AbstractEvalResult cmdres = cmd.getValue();
-			if(cmdres instanceof EvalResult){
-				// could solve or disprove it
-				String val = ((EvalResult) cmdres).getValue();
-				if(val.equals("TRUE")){
-					res = "1"; // solved
-				}
-				else if(val.equals("FALSE")){
-					res = "-1"; // unsolvable
-				}
-				else {
-					// This should logically not happen
+	
+		// Set up thread for timeout check
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<String> futureRes = executor.submit(() -> {
+			String res = "0";
+			try {
+				ss.execute(cmd);
+				
+				// get value for result
+				AbstractEvalResult cmdres = cmd.getValue();
+				if(cmdres instanceof EvalResult){
+					// could solve or disprove it
+					res = "1";
+				} else if(cmdres instanceof ComputationNotCompletedResult){
+					// Could not solve nor disprove the predicate in question
 					res = "0";
+				} else {
+					// durr?
+					throw new Exception("Unexpected output recieved from command execution.");
 				}
-			} else if(cmdres instanceof ComputationNotCompletedResult){
-				// Could not solve nor disprove the predicate in question
-				res = "0";
-			} else {
-				// durr?
+			} catch(Exception e) {
+				// catch block is intended to catch invariants where ProB encounters problems with
+				logger.warning("\tAt "+formula+":\t"+e.getMessage());
 				res = "0";
 			}
-		} catch(Exception e) {
-			// catch block is intended to catch invariants where ProB encounters problems with
-			logger.warning("\tAt "+formula+":\t"+e.getMessage());
-			res = "0";
+			return res;
+		});
+		
+		// actually check for timeout
+		String res = "0";
+		try {
+			res = futureRes.get(20L, TimeUnit.SECONDS);
+		} catch (TimeoutException e) {
+			// Timeout
+			logger.warning("\tTimeouted after 20 seconds.");
+		} catch (InterruptedException e) {
+			logger.warning("\tExecution interrupted: "+e.getMessage());
+		} catch (ExecutionException e) {
+			logger.warning("\tExecution interrupted: "+e.getMessage());
 		}
 		return res;
 		
