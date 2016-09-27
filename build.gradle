@@ -41,6 +41,12 @@ task wrapper(type:Wrapper) {
 	gradleVersion = '3.0'
 }
 
+run {
+	if (project.hasProperty("appArgs")){
+		args Eval.me(appArgs)
+	}
+}
+
 sourceSets {
 	main {
 		java {
