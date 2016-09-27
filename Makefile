@@ -1,13 +1,18 @@
-# Enter project version here:
-VER = 0.9.0
+# Shortcut to run the Cli of NeuroB
+RUNCLI = ./build/install/NeuroB/bin/NeuroB
 
 gradlebuild :
-	./gradlew -q build
+	@echo "***** Building gradle files"
+	@./gradlew build
+	@echo "*****/ Built"
+	@echo "***** Create NeuroB binary"
+	@./gradlew installDist
+	@echo "*****/ Created binary"
 
-jars : clean
-	@echo "***** Build .jar files"
-	@./gradlew -q buildJars
-	@echo "*****/ Done building jars"
+jar : clean
+	@echo "***** Build .jar file"
+	@./gradlew CliFatJar
+	@echo "*****/ Done building jar"
 	
 clean :
 	@echo "***** Clean gradle"
@@ -18,10 +23,10 @@ clean :
 trainingset : distributedlibraryfile
 	@echo "***** Beginning generation of training set"
 	@echo "This will take a while. Maybe just come back tomorrow"
-	java -jar build/libs/NeuroB-cli-$(VER).jar trainingset -dir prob_examples/public_examples/B/
+	@$(RUNCLI) trainingset -dir prob_examples/public_examples/B/
 	@echo "*****/ Training set generated"
 
 distributedlibraryfile :
 	@echo "***** Ensuring existence of LibraryIO.def in respective directories"
-	java -jar build/libs/NeuroB-cli-$(VER).jar libraryIODef -dir prob_examples/public_examples/B/
+	@$(RUNCLI) libraryIODef -dir prob_examples/public_examples/B/
 	@echo "*****/ Libraries made"
