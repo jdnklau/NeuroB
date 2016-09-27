@@ -1,1 +1,3 @@
 *.log
+# also ignore the lck files used when the logger is still active
+*.log.lck
