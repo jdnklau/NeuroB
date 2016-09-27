@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven'
 apply plugin: 'application'
 
-project.version = '0.10.1'
+project.version = '0.10.2'
 project.group = 'de.hhu.stups'
 project.archivesBaseName = "NeuroB"
 
@@ -28,7 +28,7 @@ dependencies {
 
 	compile 'commons-cli:commons-cli:1.2'
 	compile (group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '2.0.3-SNAPSHOT')
-	
+
 	compile 'org.deeplearning4j:deeplearning4j-core:0.6.0'
 	compile 'org.nd4j:nd4j-native-platform:0.6.0'
 }
@@ -66,5 +66,3 @@ task CliFatJar(type: Jar) {
 	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 	with jar
 }
-
-
