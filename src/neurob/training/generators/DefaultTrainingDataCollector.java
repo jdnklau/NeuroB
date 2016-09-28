@@ -202,6 +202,8 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		} catch (ExecutionException e) {
 			logger.warning("\tExecution interrupted: "+e.getMessage());
 		}
+		
+		executor.shutdown();
 		return res;
 		
 	}
