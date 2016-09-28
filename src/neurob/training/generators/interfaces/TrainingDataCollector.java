@@ -24,7 +24,7 @@ public interface TrainingDataCollector {
 	 * @throws IOException
 	 * @throws BException 
 	 */
-	void collectTrainingData(Path source, Path target) throws IOException, BException;
+	void collectTrainingData(Path source, Path target) throws IOException, BException, IllegalStateException;
 	
 	/**
 	 * Sets a Logger

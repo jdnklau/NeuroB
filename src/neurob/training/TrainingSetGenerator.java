@@ -226,6 +226,8 @@ public class TrainingSetGenerator {
 			logger.warning("\tProBError on "+source+": "+e.getMessage());
 		} catch (IOException e) {
 			logger.warning("\tCould not access file: "+e.getMessage());
+		} catch (IllegalStateException e) {
+			logger.severe("\tReached illegal state while processing: "+e.getMessage());
 		}
 		fileProblemsCounter++;
 	}

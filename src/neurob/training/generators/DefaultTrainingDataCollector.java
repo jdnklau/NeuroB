@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,7 +24,6 @@ import de.prob.animator.domainobjects.AbstractEvalResult;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.ComputationNotCompletedResult;
 import de.prob.animator.domainobjects.EvalResult;
-import de.prob.animator.domainobjects.EventB;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
@@ -63,7 +61,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	}
 
 	@Override
-	public void collectTrainingData(Path source, Path target) throws IOException, BException {
+	public void collectTrainingData(Path source, Path target) throws IOException, BException, IllegalStateException {
 		// StateSpace and main component
 		StateSpace ss = null;
 		AbstractElement mainComp;
@@ -115,17 +113,13 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		res += ","; // Delimiter
 		logger.info("\tSolving with KodKod...");
 		cmd = new CbcSolveCommand(f);
-		ss.execute(new SetPreferenceCommand("KODKOD", "true")); // turn KodKod on
-		res += evaluateCommandExecution(ss, cmd, formula);
-		ss.execute(new SetPreferenceCommand("KODKOD", "false")); // and turn it off again
+		res += evaluateCommandWithSolver(ss, "KODKOD", cmd, formula);
 		
 		// SMT
 		res += ","; // Delimiter
 		logger.info("\tSolving with ProB/Z3...");
 		cmd = new CbcSolveCommand(f);
-		ss.execute(new SetPreferenceCommand("SMT_SUPPORTED_INTERPRETER", "true")); // turn SMT on
-		res += evaluateCommandExecution(ss, cmd, formula);
-		ss.execute(new SetPreferenceCommand("SMT_SUPPORTED_INTERPRETER", "false")); // and turn it off again
+		res += evaluateCommandWithSolver(ss, "SMT_SUPPORTED_INTERPRETER", cmd, formula);
 		
 		// close StateSpace
 		ss.kill();
@@ -148,6 +142,22 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		
 		out.close();		
 		
+	}
+	
+	private String evaluateCommandWithSolver(StateSpace ss, String solverpref, CbcSolveCommand cmd, String formula) 
+			throws IllegalStateException{
+		String res ;
+		
+		try {
+			ss.execute(new SetPreferenceCommand(solverpref, "true")); // turn SMT on
+			res = evaluateCommandExecution(ss, cmd, formula);
+			ss.execute(new SetPreferenceCommand(solverpref, "false")); // and turn it off again
+		} catch(Exception e){
+			ensureStateSpaceKill(ss);
+			throw new IllegalStateException("Could not correctly set solver to use.", e);
+		}
+		
+		return res;
 	}
 	
 	private String evaluateCommandExecution(StateSpace ss, CbcSolveCommand cmd, String formula){
