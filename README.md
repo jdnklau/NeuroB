@@ -13,7 +13,7 @@ In the following stands the assumption, that this is the active directory.
 $ make
 $ make install
 ```
-After this, `build/install/NeuroB/bin/NeuroB` should be accessible:
+After this, `./build/install/NeuroB/bin/NeuroB` should be accessible:
 ```
 # List arguments to pass to the NeuroBCli
 $ ./build/install/NeuroB/bin/NeuroB help
@@ -23,7 +23,7 @@ $ ./build/install/NeuroB/bin/NeuroB.bat help
 ```
 
 ## Generating the training set
-Although this repository provides everything needed to go for it, it is advisable to clone the prob_examples repository into `/NeuroB_dir/prob_examples/`.
+Although this repository provides everything needed to go for it, it is advisable to clone the prob_examples repository into `./examples/prob_examples/`.
 As a neural net needs to be trained, the public prob examples serve as raw data to generate the training set. To generate it, simply type the following command (the execution takes some hours):
 ```
 $ make trainingset
