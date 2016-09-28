@@ -1,5 +1,5 @@
-prob_examples/public_examples/B/Tickets/ParserPushBackOverflow
-prob_examples/public_examples/B/PerformanceTests
-prob_examples/public_examples/B/RefinementChecking
-prob_examples/public_examples/B/Tickets/LargeMachTypeErr/sequenceur_values.mch
-prob_examples/public_examples/B/Mathematical/Argumentation/ExampleVeryLarge_Kodkod.mch
+examples/prob_examples/public_examples/B/Tickets/ParserPushBackOverflow
+examples/prob_examples/public_examples/B/PerformanceTests
+examples/prob_examples/public_examples/B/RefinementChecking
+examples/prob_examples/public_examples/B/Tickets/LargeMachTypeErr/sequenceur_values.mch
+examples/prob_examples/public_examples/B/Mathematical/Argumentation/ExampleVeryLarge_Kodkod.mch
