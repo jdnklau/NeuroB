@@ -31,6 +31,8 @@ dependencies {
 
 	compile 'org.deeplearning4j:deeplearning4j-core:0.6.0'
 	compile 'org.nd4j:nd4j-native-platform:0.6.0'
+	
+	testCompile 'junit:junit:4.12'
 }
 
 configurations {
