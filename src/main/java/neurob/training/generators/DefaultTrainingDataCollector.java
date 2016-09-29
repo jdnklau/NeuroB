@@ -108,6 +108,12 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		// guards
 		for(ArrayList<String> guards : predc.getGuards()){
 			String guard = String.join(" & ", guards);
+			
+			// only continue if the guards are nonempty
+			if(guard.isEmpty()){
+				continue;
+			}
+			
 			String negGuard = "not("+guard+")";
 
 			String propsAndGuard = String.join(" & ", properties, guard);
@@ -134,7 +140,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		logger.info("\tGenerated "+formulas.size()+" formulas to solve.");
 		
 		// generate data per formula
-		ArrayList<String> results = new ArrayList();
+		ArrayList<String> results = new ArrayList<String>();
 		int count = formulas.size();
 		int curr = 1;
 		for( String formula : formulas) {
@@ -146,9 +152,8 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			try {
 				f = new ClassicalB(formula);
 			} catch (Exception e) {
-				ss.kill();
 				logger.severe("\tCould not create command from formula "+formula+": "+e.getMessage());
-				return;
+				continue;
 			}
 			
 			// solve with different solvers:
