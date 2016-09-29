@@ -2,6 +2,7 @@ package neurob.training.generators.helpers;
 
 import java.util.ArrayList;
 
+import de.prob.model.classicalb.Property;
 import de.prob.model.representation.AbstractElement;
 import de.prob.model.representation.Axiom;
 import de.prob.model.representation.BEvent;
@@ -13,17 +14,24 @@ public class PredicateCollector {
 	private ArrayList<String> preds;
 	private ArrayList<ArrayList<String>> guards;
 	private ArrayList<String> axioms;
+	private ArrayList<String> properties;
 
 	public PredicateCollector(AbstractElement comp) {
 		preds = new ArrayList<String>();
 		invariants = new ArrayList<String>();
 		guards = new ArrayList<ArrayList<String>>();
 		axioms = new ArrayList<String>();
+		properties = new ArrayList<String>();
 		
 		collectPredicates(comp);
 	}
 	
 	private void collectPredicates(AbstractElement comp){
+		// properties
+		for(Property x : comp.getChildrenOfType(Property.class)){
+			properties.add(x.getFormula().getCode());
+		}
+		
 		// add invariants
 		for(Invariant x : comp.getChildrenOfType(Invariant.class)){
 			invariants.add(x.getFormula().getCode());
@@ -45,5 +53,6 @@ public class PredicateCollector {
 
 	public ArrayList<ArrayList<String>> getGuards(){ return guards; }
 	public ArrayList<String> getInvariants(){ return invariants; }
+	public ArrayList<String> getProperties(){ return properties; }
 
 }
