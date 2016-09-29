@@ -3,6 +3,10 @@
 *
 !.gitignore
 
+# The csv examples can be shared
+!csv
+!csv/*
+
 # It may be handy to share the .excludes files, so we keep it
 !*.excludes
 
