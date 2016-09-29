@@ -123,7 +123,7 @@ public class TrainingSetAnalyser {
 
 				});
 		} catch (IOException e) {
-			System.out.println("Could not access directory "+sourceDirectory+": "+e.getMessage());
+			logger.severe("Could not access directory "+sourceDirectory+": "+e.getMessage());
 		}
     }
 	/**
