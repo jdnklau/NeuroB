@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,7 +44,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		fc = new FeatureCollector();
 		
 		api = Main.getInjector().getInstance(Api.class);
-		
+
 	}
 	
 	@Override
@@ -66,10 +67,9 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		StateSpace ss = null;
 		AbstractElement mainComp;
 		// For the formula and ProB command to use
-		String formula; // the conjunction of invariants
+		ArrayList<String> formulas = new ArrayList<String>();
 		ClassicalB f; // formula as EventB formula
 		CbcSolveCommand cmd;
-		String res = ""; // for target vector
 		
 		// Access source file
 		try{
@@ -81,46 +81,101 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			return;
 		}
 		
-		// Get invariants
+		// Get different formulas
 		mainComp = ss.getMainComponent();	// extract main component
 		PredicateCollector predc = new PredicateCollector(mainComp);
-		formula = String.join(" & ", predc.getInvariants());
+		String properties = String.join(" & ", predc.getProperties());
+		String invariants = String.join(" & ", predc.getInvariants());
 		
-		// No invariants
-		if(formula.isEmpty()){
-			logger.info("\tNo invariants found.");
-			// kill state space
-			ss.kill();
-			return;
+		// check for empty formulas
+		if(properties.isEmpty()){
+			logger.info("\tNo properties found. Using TRUE=TRUE.");
+			properties = "TRUE = TRUE";
+		}
+		if(invariants.isEmpty()){
+			logger.info("\tNo invariants found. Using TRUE=TRUE.");
+			invariants = "TRUE = TRUE";
 		}
 		
-		// generate ProB command: assume conjunct of invariants is a constrained problem
-		try {
-			f = new ClassicalB(formula);
-		} catch (Exception e) {
-			ss.kill();
-			logger.severe("\tCould not create command from formula "+formula+": "+e.getMessage());
-			return;
+		String negInvariants = "not("+invariants+")";
+		String propsAndInvs = String.join(" & ", properties, invariants);
+		String propsAndNegInvs = String.join(" & ", properties, negInvariants); // properties and negated invariants
+		
+		// Add formulas
+		formulas.add(invariants); // invariants
+		formulas.add(propsAndInvs); // properties & invariants
+		
+		// guards
+		for(ArrayList<String> guards : predc.getGuards()){
+			String guard = String.join(" & ", guards);
+			String negGuard = "not("+guard+")";
+
+			String propsAndGuard = String.join(" & ", properties, guard);
+			String propsAndNegGuard = String.join(" & ", properties, negGuard);
+			
+			formulas.add(propsAndInvs + " & " + guard); // events active w/o violating invariants
+			formulas.add(propsAndInvs + " => " + guard); // events usable with unviolated invariants
+
+			formulas.add(propsAndNegInvs + " & " + guard); // events active despite invariant violation
+			formulas.add(propsAndNegInvs + " => " + guard); // events usable despite invariant violation
+			
+			formulas.add(propsAndInvs + " & " + negGuard); // events not active w/o violating invariants
+			formulas.add(propsAndInvs + " => " + negGuard); // events not usable with unviolated invariants
+
+			formulas.add(propsAndNegInvs + " & " + negGuard); // events not active despite invariant violation
+			formulas.add(propsAndNegInvs + " => " + negGuard); // events not usable despite invariant violation
+
+			formulas.add(propsAndGuard + " => "+ invariants); // events only usable w/o invariant violation
+			formulas.add(propsAndGuard + " => "+ negInvariants); // events only usable with invariant violation
+			
+			formulas.add(propsAndNegGuard + " => "+ invariants); // events never usable w/o invariant violation
+			formulas.add(propsAndNegGuard + " => "+ negInvariants); // events never usable with invariant violation
 		}
+		logger.info("\tGenerated "+formulas.size()+" formulas to solve.");
 		
-		// solve with different solvers:
-		// ProB
-		logger.info("\tSolving with ProB...");
-		cmd = new CbcSolveCommand(f);
-		res += evaluateCommandExecution(ss, cmd, formula);
-		
-		// KodKod
-		res += ","; // Delimiter
-		logger.info("\tSolving with KodKod...");
-		cmd = new CbcSolveCommand(f);
-		res += evaluateCommandWithSolver(ss, "KODKOD", cmd, formula);
-		
-		// SMT
-		res += ","; // Delimiter
-		logger.info("\tSolving with ProB/Z3...");
-		cmd = new CbcSolveCommand(f);
-		res += evaluateCommandWithSolver(ss, "SMT_SUPPORTED_INTERPRETER", cmd, formula);
-		
+		// generate data per formula
+		ArrayList<String> results = new ArrayList();
+		int count = formulas.size();
+		int curr = 1;
+		for( String formula : formulas) {
+			logger.info("\tSolving formula "+(curr++)+"/"+count+"...");
+			
+			String res = ""; // for target vector
+			
+			// generate ProB command: assume conjunct of invariants is a constrained problem
+			try {
+				f = new ClassicalB(formula);
+			} catch (Exception e) {
+				ss.kill();
+				logger.severe("\tCould not create command from formula "+formula+": "+e.getMessage());
+				return;
+			}
+			
+			// solve with different solvers:
+			// ProB
+			logger.info("\tSolving with ProB...");
+			cmd = new CbcSolveCommand(f);
+			res += evaluateCommandExecution(ss, cmd, formula);
+			
+			// KodKod
+			res += ","; // Delimiter
+			logger.info("\tSolving with KodKod...");
+			cmd = new CbcSolveCommand(f);
+			res += evaluateCommandWithSolver(ss, "KODKOD", cmd, formula);
+			
+			// SMT
+			res += ","; // Delimiter
+			logger.info("\tSolving with ProB/Z3...");
+			cmd = new CbcSolveCommand(f);
+			res += evaluateCommandWithSolver(ss, "SMT_SUPPORTED_INTERPRETER", cmd, formula);
+			
+			Start inv = BParser.parse("#PREDICATE "+formula);
+			inv.apply(fc); // Feature collector should reset itself at each apply call
+			
+			// add result
+			results.add(fc.getFeatureData().toString()+":"+res); // features:labels vector
+			
+		}
 		// close StateSpace
 		ss.kill();
 		
@@ -128,18 +183,11 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		BufferedWriter out = Files.newBufferedWriter(target);
 		// write feature vector to stream
 		logger.info("\tWriting training data...");
-		Start inv = BParser.parse("#PREDICATE "+formula);
-		inv.apply(fc);
-		out.write(fc.getFeatureData().toString()); // feature vector
-		// delimiter for target vector
-		out.write(":");
-		// write target vector
-		out.write(res);
-		
-		// end line
-		out.write("\n");
-		out.flush();
-		
+		for(String res : results){
+			out.write(res);
+			out.newLine();
+			out.flush();
+		}
 		out.close();		
 		
 	}
