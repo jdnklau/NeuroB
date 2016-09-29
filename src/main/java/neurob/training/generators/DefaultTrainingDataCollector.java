@@ -174,8 +174,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			cmd = new CbcSolveCommand(f);
 			res += evaluateCommandWithSolver(ss, "SMT_SUPPORTED_INTERPRETER", cmd, formula);
 			
-			Start inv = BParser.parse("#PREDICATE "+formula);
-			inv.apply(fc); // Feature collector should reset itself at each apply call
+			f.getAst().apply(fc); // Feature collector should reset itself at each apply call
 			
 			// add result
 			results.add(fc.getFeatureData().toString()+":"+res); // features:labels vector
