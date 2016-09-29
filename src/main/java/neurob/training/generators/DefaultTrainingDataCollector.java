@@ -98,8 +98,8 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		}
 		
 		String negInvariants = "not("+invariants+")";
-		String propsAndInvs = String.join(" & ", properties, invariants);
-		String propsAndNegInvs = String.join(" & ", properties, negInvariants); // properties and negated invariants
+		String propsAndInvs = "("+String.join(" & ", properties, invariants)+")";
+		String propsAndNegInvs = "("+String.join(" & ", properties, negInvariants)+")"; // properties and negated invariants
 		
 		// Add formulas
 		formulas.add(invariants); // invariants
@@ -116,8 +116,8 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			
 			String negGuard = "not("+guard+")";
 
-			String propsAndGuard = String.join(" & ", properties, guard);
-			String propsAndNegGuard = String.join(" & ", properties, negGuard);
+			String propsAndGuard = "("+String.join(" & ", properties, guard)+")";
+			String propsAndNegGuard = "("+String.join(" & ", properties, negGuard)+")";
 			
 			formulas.add(propsAndInvs + " & " + guard); // events active w/o violating invariants
 			formulas.add(propsAndInvs + " => " + guard); // events usable with unviolated invariants
