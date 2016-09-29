@@ -69,7 +69,7 @@ public class TrainingSetAnalyser {
 				.forEachOrdered(entry -> {
 		        	// check if directory or not; recursion if so
 		            if (Files.isDirectory(entry)) {
-		            	analyseTrainingSet(entry);
+		            	analyseTrainingSet(entry, logRelevantFiles);
 		            } 
 		            else if(Files.isRegularFile(entry)){
 		            	
