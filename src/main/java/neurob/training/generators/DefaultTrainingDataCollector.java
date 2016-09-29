@@ -249,10 +249,13 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 		} catch (TimeoutException e) {
 			// Timeout
 			logger.warning("\tTimeouted after 20 seconds.");
+			ss.sendInterrupt();
 		} catch (InterruptedException e) {
 			logger.warning("\tExecution interrupted: "+e.getMessage());
+			ss.sendInterrupt();
 		} catch (ExecutionException e) {
 			logger.warning("\tExecution interrupted: "+e.getMessage());
+			ss.sendInterrupt();
 		}
 		
 		executor.shutdown();
