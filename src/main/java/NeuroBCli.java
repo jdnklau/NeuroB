@@ -238,7 +238,6 @@ public class NeuroBCli {
 	
 	private static void trainingCSVGeneration(Path dir){
 		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
-		
 		Path target = Paths.get("training_data/manual_call/data.csv");
 		
 		tsg.generateCSVFromNBTrainData(dir, target);

@@ -235,6 +235,7 @@ public class TrainingSetGenerator {
 	public void generateCSVFromNBTrainData(Path sourceDirectory, Path target){
 		try (Stream<Path> stream = Files.walk(sourceDirectory)){
 			// Create CSV file
+			Files.createDirectories(target.getParent());
 			BufferedWriter csv = Files.newBufferedWriter(target);
 			
 			// set header
@@ -274,7 +275,7 @@ public class TrainingSetGenerator {
 			});
 			
 		} catch (IOException e) {
-			logger.severe("Failed to setup CSV correctly:" +e.getMessage());
+			logger.severe("Failed to setup CSV correctly: " +e.getMessage());
 		}
 	}
 	
