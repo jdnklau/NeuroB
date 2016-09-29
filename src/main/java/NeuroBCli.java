@@ -50,7 +50,7 @@ public class NeuroBCli {
 		// extract command
 		String cmd;
 		if(args.length < 1){ // no commands
-			cmd = "trainingset"; // default
+			cmd = "help"; // default
 		}
 		else {
 			cmd = args[0];
@@ -99,6 +99,7 @@ public class NeuroBCli {
 		else if(cmd.equals("trainingset")){
 			// generate single nbtrain file
 			if(ops.containsKey("file")){
+				buildNet();
 				Path sourcefile = Paths.get(ops.get("file").get(0));
 				singleTrainingDataGeneration(sourcefile);
 			}
@@ -113,6 +114,7 @@ public class NeuroBCli {
 				}
 				else {
 				// generate training set
+					buildNet();
 					trainingSetGeneration(dir);
 				}
 			}
@@ -143,8 +145,8 @@ public class NeuroBCli {
 			System.out.println("Use help to show a list of available commands");
 		}
 	}
-
-	private static void parseCommandLineOptions(HashMap<String, ArrayList<String>> ops) {
+	
+	private static void buildNet(){
 		// the net to use
 		String net = "default";
 		if(ops.containsKey("net")){
@@ -155,6 +157,9 @@ public class NeuroBCli {
 		// ... [future nets to come here]
 		// wrap it in NeuroB
 		nb = new NeuroB(nbn.setSeed(0L).build());
+	}
+
+	private static void parseCommandLineOptions(HashMap<String, ArrayList<String>> ops) {
 		
 		// directory path
 		if(ops.containsKey("dir")){
