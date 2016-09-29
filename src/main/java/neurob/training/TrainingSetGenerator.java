@@ -260,7 +260,13 @@ public class TrainingSetGenerator {
 						try (Stream<String> lines = Files.lines(f)){
 							lines.forEach(l -> {
 								try {
-									csv.write(l.replace(':', ',')+"\n");// replace : with , to get csv format
+									String[] entries = l.split(",|:");
+									if(entries.length <tdc.getNumberOfFeatures()+tdc.getNumberOfLabels()){
+										throw new Exception("Size of training vector does not match!");
+									}
+									csv.write(String.join(",", entries));
+									csv.newLine();
+//									csv.write(l.replace(':', ',')+"\n");// replace : with , to get csv format
 								} catch (Exception e) {
 									logger.warning("Could not add a data vector from "+f+": "+e.getMessage());
 								} 
