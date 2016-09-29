@@ -3,6 +3,7 @@ package neurob.core.nets.interfaces;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 
 import neurob.training.generators.interfaces.TrainingDataCollector;
@@ -71,4 +72,11 @@ public interface NeuroBNet {
 	 * @throws IOException 
 	 */
 	void safeToFile(Path file) throws IOException;
+	
+	/**
+	 * Forwards the input to the neural net and returns the calculated output
+	 * @param input
+	 * @return
+	 */
+	INDArray output(INDArray input);
 }

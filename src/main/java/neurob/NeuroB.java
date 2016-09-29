@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.Random;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.eval.Evaluation;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -99,7 +102,9 @@ public class NeuroB {
 				nbn.getNumberOfOutputs()	// number of outputs
 			);
 		// get data set
-        iterator.forEachRemaining(batch -> {
+        //iterator.forEachRemaining(batch -> {
+		while(iterator.hasNext()){
+			DataSet batch = iterator.next();
         	// split set
         	batch.shuffle(seed);
         	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.65);  //Use 65% of data for training
@@ -107,17 +112,28 @@ public class NeuroB {
         	DataSet testData = testAndTrain.getTest();
         	
         	// normalize data
-        	DataNormalization normalizer = new NormalizerStandardize();
-            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
-            normalizer.transform(trainingData);     //Apply normalization to the training data
-            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
+//        	DataNormalization normalizer = new NormalizerStandardize();
+//            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
+//            normalizer.transform(trainingData);     //Apply normalization to the training data
+//            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
             
             for(int i=0; i<numEpochs; i++){
             	nbn.fit(trainingData);
             }
             
-            // TODO: validate with training data, maybe?
-        });
+            // Evaluate results
+            Evaluation eval = new Evaluation(nbn.getNumberOfOutputs());
+            Iterator<DataSet> it = testData.iterator();
+            
+            while(it.hasNext()){
+            	DataSet next = it.next();
+            	INDArray output = nbn.output(next.getFeatureMatrix());
+            	
+            	eval.eval(next.getLabels(), output);
+            }
+            System.out.println(eval.stats());
+            
+        }
 	}
 	
 	/**

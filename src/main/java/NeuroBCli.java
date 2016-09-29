@@ -75,6 +75,9 @@ public class NeuroBCli {
 					+ "trainingset -csv -dir <directory>\n"
 					+ "\tGenerate csv file from nbtrain files in <directory>\n"
 					
+					+ "trainnet -file <file> [-net <net>]\n"
+					+ "\tTrains a neural net with the given <file> (being a csv generated with this tool)\n"
+					
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
 
@@ -121,6 +124,17 @@ public class NeuroBCli {
 			// nope
 			else {
 				System.out.println("trainingset: missing at least -dir parameter");
+			}
+		}
+		else if(cmd.equals("trainnet")){
+			buildNet();
+			if(ops.containsKey("file")){
+				Path sourcefile = Paths.get(ops.get("file").get(0));
+				trainNet(sourcefile);
+			}
+			// nope
+			else {
+				System.out.println("trainnet: missing -file parameter");
 			}
 		}
 		// distribute library file
@@ -247,6 +261,18 @@ public class NeuroBCli {
 		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
 		tsg.exclude(excludefile, excl);
 		
+	}
+	
+	private static void trainNet(Path csv){
+		try {
+			nb.train(csv);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
