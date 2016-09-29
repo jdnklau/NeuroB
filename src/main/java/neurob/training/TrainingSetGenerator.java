@@ -181,7 +181,7 @@ public class TrainingSetGenerator {
 				.forEach(entry -> {
 	            	if(Files.isRegularFile(entry)){
 	            		// get ful target directory
-	            		Path fullTargetDirectory = targetDirectory.resolve(sourceDirectory);
+	            		Path fullTargetDirectory = targetDirectory.resolve(entry.getParent());
 						// check file extension
 						String fileName = entry.getFileName().toString();
 						String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
