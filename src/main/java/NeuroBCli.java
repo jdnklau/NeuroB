@@ -15,7 +15,7 @@ import neurob.training.generators.DefaultTrainingDataCollector;
 
 public class NeuroBCli {
 	private static final Path libraryIOpath = Paths.get("prob_examples/LibraryIO.def");
-	private static NeuroB nb;
+	private static NeuroB[] nbs;
 	private static Path dir;
 	private static HashMap<String, ArrayList<String>> ops;
 	private static Path excludefile;
@@ -78,6 +78,9 @@ public class NeuroBCli {
 					+ "trainnet -file <file> [-net <net>]\n"
 					+ "\tTrains a neural net with the given <file> (being a csv generated with this tool)\n"
 					
+					+ "trainnet -file <file> -n <number> [-net <net>]\n"
+					+ "\tTrains <number> neural networks of type <net>, each with a different seed to begin with\n"
+					
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
 
@@ -127,8 +130,13 @@ public class NeuroBCli {
 			}
 		}
 		else if(cmd.equals("trainnet")){
-			buildNet();
 			if(ops.containsKey("file")){
+				if(ops.containsKey("n")){
+					int num = Integer.parseInt(ops.get("n").get(0));
+					buildNets(num);
+				} else {
+					buildNet();
+				}
 				Path sourcefile = Paths.get(ops.get("file").get(0));
 				trainNet(sourcefile);
 			}
@@ -136,6 +144,8 @@ public class NeuroBCli {
 			else {
 				System.out.println("trainnet: missing -file parameter");
 			}
+		}
+		else if(cmd.equals("trainmultiplenets")){
 		}
 		// distribute library file
 		else if(cmd.equals("libraryIODef")){
@@ -161,16 +171,23 @@ public class NeuroBCli {
 	}
 	
 	private static void buildNet(){
-		// the net to use
+		buildNets(1);
+	}
+	
+	private static void buildNets(int num){
+		// Net to use
+		NeuroBNet[] nets = new NeuroBNet[num];
+		nbs = new NeuroB[num];
+		// get net type
 		String net = "default";
 		if(ops.containsKey("net")){
 			net = ops.get("net").get(0);
 		}
-		// setting up the net
-		NeuroBNet nbn = new DefaultPredicateSolverPredictionNet();
-		// ... [future nets to come here]
-		// wrap it in NeuroB
-		nb = new NeuroB(nbn.setSeed(0L).build());
+		// set up nets
+		for(int i=0; i<num; i++){
+			nets[i] = new DefaultPredicateSolverPredictionNet();
+			nbs[i] = new NeuroB(nets[i].setSeed((long)i).build());
+		}
 	}
 
 	private static void parseCommandLineOptions(HashMap<String, ArrayList<String>> ops) {
@@ -241,7 +258,9 @@ public class NeuroBCli {
 	private static void trainingSetGeneration(Path sourceDir){
 		Path targetDir = Paths.get("training_data/");
 		
-		nb.generateTrainingSet(sourceDir, targetDir, excludefile);
+		for(NeuroB nb : nbs){
+			nb.generateTrainingSet(sourceDir, targetDir, excludefile);
+		}
 	}
 	
 	private static void analyseTrainingSet(Path dir, boolean logFiles){
@@ -264,14 +283,16 @@ public class NeuroBCli {
 	}
 	
 	private static void trainNet(Path csv){
-		try {
-			nb.train(csv);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		for(NeuroB nb : nbs){
+			try {
+				nb.train(csv);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
