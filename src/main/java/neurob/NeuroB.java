@@ -104,7 +104,7 @@ public class NeuroB {
 			);
 		// get data set
         //iterator.forEachRemaining(batch -> {
-        Evaluation eval = new Evaluation(nbn.getNumberOfOutputs());
+        Evaluation eval = new Evaluation(nbn.getLabelSize());
 		while(iterator.hasNext()){
 			DataSet batch = iterator.next();
         	// split set

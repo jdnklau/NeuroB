@@ -87,7 +87,7 @@ public class DefaultPredicateSolverPredictionNet implements NeuroBNet {
                 .layer(0, new DenseLayer.Builder()
                         .nIn(tdc.getNumberOfFeatures())
                         .nOut(1000)
-                        .activation("relu")
+                        .activation("sigmoid")
                         .weightInit(WeightInit.XAVIER)
                         .build())
                 .layer(1, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
