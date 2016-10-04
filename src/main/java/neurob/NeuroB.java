@@ -72,7 +72,7 @@ public class NeuroB {
 	private long seed = 12345;
 	private Random rnd = new Random(seed);
 	// Training
-	private int numEpochs = 15;
+	private int numEpochs = 200;
 
 	public NeuroB(NeuroBNet neuroBNet) {
 		// link neural net
@@ -109,7 +109,7 @@ public class NeuroB {
 			DataSet batch = iterator.next();
         	// split set
         	batch.shuffle(seed);
-        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.85);  //Use 85% of data for training
+        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.65);  //Use 65% of data for training
         	DataSet trainingData = testAndTrain.getTrain();
         	DataSet testData = testAndTrain.getTest();
         	
