@@ -93,21 +93,23 @@ public class NeuroB {
 	public void train(Path sourceCSV) throws IOException, InterruptedException{
 		// set up training data
 		RecordReader recordReader = new CSVRecordReader(1,","); // skip first line (header line)s
-		recordReader.initialize(new FileSplit(sourceCSV.toFile(), rnd));
+		recordReader.initialize(new FileSplit(sourceCSV.toFile()));
 		
 		DataSetIterator iterator = new RecordReaderDataSetIterator(
 				recordReader,
 				1000,						// batch size
-				nbn.getNumberOfInputs(),	// index of the label values in the csv		
-				nbn.getNumberOfOutputs()	// number of outputs
+				nbn.getNumberOfInputs(),	// starting index of the label values in the csv
+				nbn.getNumberOfInputs()+nbn.getNumberOfOutputs()-1, // final index of the label values in the csv
+				true	// number of output values
 			);
 		// get data set
         //iterator.forEachRemaining(batch -> {
+        Evaluation eval = new Evaluation(nbn.getNumberOfOutputs());
 		while(iterator.hasNext()){
 			DataSet batch = iterator.next();
         	// split set
         	batch.shuffle(seed);
-        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.65);  //Use 65% of data for training
+        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.85);  //Use 85% of data for training
         	DataSet trainingData = testAndTrain.getTrain();
         	DataSet testData = testAndTrain.getTest();
         	
@@ -122,7 +124,6 @@ public class NeuroB {
             }
             
             // Evaluate results
-            Evaluation eval = new Evaluation(nbn.getNumberOfOutputs());
             Iterator<DataSet> it = testData.iterator();
             
             while(it.hasNext()){
@@ -130,10 +131,9 @@ public class NeuroB {
             	INDArray output = nbn.output(next.getFeatureMatrix());
             	
             	eval.eval(next.getLabels(), output);
-            }
-            System.out.println(eval.stats());
-            
+            }           
         }
+		System.out.println(eval.stats());
 	}
 	
 	/**

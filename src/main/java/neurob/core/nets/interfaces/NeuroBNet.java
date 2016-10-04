@@ -33,6 +33,14 @@ public interface NeuroBNet {
 	int getNumberOfOutputs();
 	
 	/**
+	 * Returns the number of values a single label can have.
+	 * <br>
+	 * Either a positive integer, or -1 if the net uses regression
+	 * @return
+	 */
+	default int getLabelSize(){ return 2;}
+	
+	/**
 	 * Returns an instance of the {@link neurob.training.generators.interfaces.TrainingDataCollector TrainingDataCollector}
 	 * used by the net, for data generation.
 	 * @return

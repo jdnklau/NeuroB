@@ -50,6 +50,11 @@ public class DefaultPredicateSolverPredictionNet implements NeuroBNet {
 	public int getNumberOfOutputs() {
 		return tdc.getNumberOfLabels();
 	}
+	
+	@Override
+	public int getLabelSize(){
+		return 2;
+	}
 
 	@Override
 	public void fit(DataSet trainingData) {
