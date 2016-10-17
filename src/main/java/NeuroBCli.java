@@ -90,13 +90,13 @@ public class NeuroBCli {
 					+ "\t<toexcludes> can be a list of multiple paths to files or directories, separated by a blank space\n"
 					
 					+ "\nDefault values:\n"
-					+ "- if -net <net> is not set, it defaults to 'default' net\n"
+					+ "- if -net <net> is not set, it defaults to 'psp' net\n"
 					+ "- if -excludefile <excludefile> is not set, it defaults to default.excludes"
 					+ "\t* if -excludefile none is set, no exclusions are made"
 					
 					+ "\nNets:\n"
 					+ "The implemented nets you can access via the cli are\n"
-					+ "\tdefault - The default implementation"
+					+ "\tpsp - Predicate Solver Prediction"
 					;
 			
 			System.out.println(help);
@@ -180,7 +180,7 @@ public class NeuroBCli {
 		NeuroBNet[] nets = new NeuroBNet[num];
 		nbs = new NeuroB[num];
 		// get net type
-		String net = "default";
+		String net = "psp";
 		if(ops.containsKey("net")){
 			net = ops.get("net").get(0);
 		}
