@@ -272,17 +272,20 @@ public class TrainingSetGenerator {
 									if(features.length+labels.length <tdc.getNumberOfFeatures()+tdc.getNumberOfLabels()){
 										throw new Exception("Size of training vector does not match!");
 									}
+									boolean write = true;
 									if(ignoreWithSameLabeling){
 										String pivot = labels[0];
-										for(int i=1; i<labels.length; i++){
+										write = false;
+										for(int i=1; !write & i<labels.length; i++){
 											if(!labels[i].equals(pivot)){
-												return;
+												write = true;
 											}
 										}
-										
 									}
-									csv.write(String.join(",", features)+","+String.join(",", labels));
-									csv.newLine();
+									if(write){
+										csv.write(String.join(",", features)+","+String.join(",", labels));
+										csv.newLine();
+									}
 //									csv.write(l.replace(':', ',')+"\n");// replace : with , to get csv format
 								} catch (Exception e) {
 									logger.warning("Could not add a data vector from "+f+": "+e.getMessage());
