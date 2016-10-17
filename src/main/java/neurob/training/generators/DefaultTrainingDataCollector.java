@@ -31,8 +31,8 @@ import de.prob.statespace.StateSpace;
 import neurob.core.features.FeatureCollector;
 import neurob.core.features.FeatureData;
 import neurob.training.TrainingSetGenerator;
-import neurob.training.generators.helpers.PredicateCollector;
 import neurob.training.generators.interfaces.TrainingDataCollector;
+import neurob.training.generators.util.PredicateCollector;
 
 public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	private FeatureCollector fc;

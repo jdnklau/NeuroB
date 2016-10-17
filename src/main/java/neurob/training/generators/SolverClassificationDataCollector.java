@@ -29,9 +29,9 @@ import de.prob.statespace.StateSpace;
 import neurob.core.features.FeatureCollector;
 import neurob.core.features.FeatureData;
 import neurob.training.TrainingSetGenerator;
-import neurob.training.generators.helpers.FormulaGenerator;
-import neurob.training.generators.helpers.PredicateCollector;
 import neurob.training.generators.interfaces.TrainingDataCollector;
+import neurob.training.generators.util.FormulaGenerator;
+import neurob.training.generators.util.PredicateCollector;
 
 public class SolverClassificationDataCollector implements TrainingDataCollector {
 	private FeatureCollector fc;

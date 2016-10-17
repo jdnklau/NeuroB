@@ -1,4 +1,4 @@
-package neurob.training.generators.helpers;
+package neurob.training.generators.util;
 
 import java.util.ArrayList;
 
