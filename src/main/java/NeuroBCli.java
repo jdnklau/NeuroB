@@ -72,8 +72,9 @@ public class NeuroBCli {
 					+ "\tAnalyse the generated training data in <directory>\n"
 					+ "\tIf --log-relevant-files is used, files of interest have their names logged into a special log file\n"
 
-					+ "trainingset -csv -dir <directory>\n"
+					+ "trainingset -csv -dir <directory> [--ignoreEquallyLabeledEntries]\n"
 					+ "\tGenerate csv file from nbtrain files in <directory>\n"
+					+ "\tIf --ignoreEquallyLabeledEntries is set, all data vectors with multi classification, that map to each class are ignored\n"
 					
 					+ "trainnet -file <file> [-net <net>]\n"
 					+ "\tTrains a neural net with the given <file> (being a csv generated with this tool)\n"
@@ -116,7 +117,7 @@ public class NeuroBCli {
 				}
 				// generate csv
 				else if(ops.containsKey("csv")){
-					trainingCSVGeneration(dir);
+					trainingCSVGeneration(dir, ops.containsKey("-ignoreEquallyLabeledEntries"));
 				}
 				else {
 				// generate training set
@@ -269,11 +270,11 @@ public class NeuroBCli {
 		tsa.logStatistics();
 	}
 	
-	private static void trainingCSVGeneration(Path dir){
+	private static void trainingCSVGeneration(Path dir, boolean ignore){
 		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
 		Path target = Paths.get("training_data/manual_call/data.csv");
 		
-		tsg.generateCSVFromNBTrainData(dir, target);
+		tsg.generateCSVFromNBTrainData(dir, target, ignore);
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {

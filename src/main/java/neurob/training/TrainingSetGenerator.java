@@ -231,8 +231,12 @@ public class TrainingSetGenerator {
 		}
 		fileProblemsCounter++;
 	}
-	
+
 	public void generateCSVFromNBTrainData(Path sourceDirectory, Path target){
+		generateCSVFromNBTrainData(sourceDirectory, target, false);
+	}
+	
+	public void generateCSVFromNBTrainData(Path sourceDirectory, Path target, boolean ignoreWithSameLabeling){
 		try (Stream<Path> stream = Files.walk(sourceDirectory)){
 			// Create CSV file
 			Files.createDirectories(target.getParent());
@@ -260,11 +264,24 @@ public class TrainingSetGenerator {
 						try (Stream<String> lines = Files.lines(f)){
 							lines.forEach(l -> {
 								try {
-									String[] entries = l.split(",|:");
-									if(entries.length <tdc.getNumberOfFeatures()+tdc.getNumberOfLabels()){
+									String[] data = l.split(":");
+									String[] features = data[0].split(",");
+									String[] labels = data[1].split(",");
+//									String[] entries = l.split(",|:");
+//									if(entries.length <tdc.getNumberOfFeatures()+tdc.getNumberOfLabels()){
+									if(features.length+labels.length <tdc.getNumberOfFeatures()+tdc.getNumberOfLabels()){
 										throw new Exception("Size of training vector does not match!");
 									}
-									csv.write(String.join(",", entries));
+									if(ignoreWithSameLabeling){
+										String pivot = labels[0];
+										for(int i=1; i<labels.length; i++){
+											if(!labels[i].equals(pivot)){
+												return;
+											}
+										}
+										
+									}
+									csv.write(String.join(",", features)+","+String.join(",", labels));
 									csv.newLine();
 //									csv.write(l.replace(':', ',')+"\n");// replace : with , to get csv format
 								} catch (Exception e) {
