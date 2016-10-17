@@ -177,7 +177,7 @@ public class DefaultTrainingDataCollector implements TrainingDataCollector {
 			f.getAst().apply(fc); // Feature collector should reset itself at each apply call
 			
 			// add result
-			results.add(fc.getFeatureData().toString()+":"+res); // features:labels vector
+			results.add(fc.getFeatureData().toString()+":"+res+":\""+formula+"\""); // features:labeling vector:comment
 			
 		}
 		// close StateSpace
