@@ -34,6 +34,12 @@ import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 import neurob.training.generators.util.PredicateCollector;
 
+/**
+ * 
+ * @deprecated Use {@link SolverClassificationDataCollector} instead
+ * @author jannik
+ */
+@Deprecated
 public class DefaultTrainingDataCollector implements TrainingDataCollector {
 	private FeatureCollector fc;
 	private Api api;

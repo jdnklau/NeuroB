@@ -11,7 +11,7 @@ import neurob.core.nets.DefaultPredicateSolverPredictionNet;
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
-import neurob.training.generators.DefaultTrainingDataCollector;
+import neurob.training.generators.SolverClassificationDataCollector;
 
 public class NeuroBCli {
 	private static final Path libraryIOpath = Paths.get("prob_examples/LibraryIO.def");
@@ -249,7 +249,7 @@ public class NeuroBCli {
 	}
 	
 	private static void singleTrainingDataGeneration(Path source){
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new SolverClassificationDataCollector());
 		
 		String fileName = source.getFileName().toString();
 		Path target = Paths.get("training_data/single_file_generation/").resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
@@ -271,14 +271,14 @@ public class NeuroBCli {
 	}
 	
 	private static void trainingCSVGeneration(Path dir, boolean ignore){
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new SolverClassificationDataCollector());
 		Path target = Paths.get("training_data/manual_call/data.csv");
 		
 		tsg.generateCSVFromNBTrainData(dir, target, ignore);
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new DefaultTrainingDataCollector());
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new SolverClassificationDataCollector());
 		tsg.exclude(excludefile, excl);
 		
 	}
