@@ -1,4 +1,4 @@
-package neurob;
+package neurob.core;
 
 import java.io.IOException;
 import java.nio.file.Files;

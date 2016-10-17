@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import neurob.NeuroB;
+import neurob.core.NeuroB;
 import neurob.core.nets.PredicateSolverPredictionNet;
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetAnalyser;

@@ -10,7 +10,7 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
 
 /**
  * Wrapper interface for DeepLearning4J nets.
- * <p> Implement your very own neural net classes with this interface, to use with {@link neurob.NeuroB NeuroB}.
+ * <p> Implement your very own neural net classes with this interface, to use with {@link neurob.core.NeuroB NeuroB}.
  * </p>
  * <p> <b>Usage:</b>
  * <br> TODO: write usage example and stuff.
