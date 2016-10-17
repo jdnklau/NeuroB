@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import neurob.NeuroB;
-import neurob.core.nets.DefaultPredicateSolverPredictionNet;
+import neurob.core.nets.PredicateSolverPredictionNet;
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
@@ -186,7 +186,7 @@ public class NeuroBCli {
 		}
 		// set up nets
 		for(int i=0; i<num; i++){
-			nets[i] = new DefaultPredicateSolverPredictionNet();
+			nets[i] = new PredicateSolverPredictionNet();
 			nbs[i] = new NeuroB(nets[i].setSeed((long)i).build());
 		}
 	}

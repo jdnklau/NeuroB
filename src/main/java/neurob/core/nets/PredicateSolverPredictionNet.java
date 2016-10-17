@@ -21,7 +21,7 @@ import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.generators.SolverClassificationDataCollector;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
-public class DefaultPredicateSolverPredictionNet implements NeuroBNet {
+public class PredicateSolverPredictionNet implements NeuroBNet {
 	// Network related
 	private MultiLayerNetwork model;
 	private SolverClassificationDataCollector tdc;
@@ -29,7 +29,7 @@ public class DefaultPredicateSolverPredictionNet implements NeuroBNet {
 	private long seed;
 	private Random rnd;
 	
-	public DefaultPredicateSolverPredictionNet() {
+	public PredicateSolverPredictionNet() {
 		// set up RNG
 		// - get random seed, then use it
 		rnd = new Random();

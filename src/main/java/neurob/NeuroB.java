@@ -19,7 +19,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
-import neurob.core.nets.DefaultPredicateSolverPredictionNet;
+import neurob.core.nets.PredicateSolverPredictionNet;
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.interfaces.TrainingDataCollector;
