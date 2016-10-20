@@ -3,8 +3,12 @@ package neurob.core.nets.interfaces;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.datavec.api.records.reader.RecordReader;
+import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
+import org.datavec.api.split.FileSplit;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
@@ -59,6 +63,30 @@ public interface NeuroBNet {
 	 * @return
 	 */
 	NeuroBNet build();
+	
+	/**
+	 * Returns a {@link RecordReader} holding the data to train the net.
+	 * @param source Path to the source data, e.g. a csv file.
+	 * @return
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	default RecordReader getRecordReader(Path source) throws IOException, InterruptedException{
+		// set up training data
+		RecordReader recordReader = new CSVRecordReader(1,","); // skip first line (header line)s
+		recordReader.initialize(new FileSplit(source.toFile())); // default implementation assumes a CSV file
+		
+		return recordReader;
+	}
+	
+	/**
+	 * Returns a specialised {@link DataSetIterator} to use with the neural net.
+	 * <br>
+	 * @param recordReader RecordReader to be used
+	 * @return
+	 * @see {@link #getRecordReader(Path)}
+	 */
+	DataSetIterator getDataSetIterator(RecordReader recordReader);
 	
 	/**
 	 * Fit the training data into the model

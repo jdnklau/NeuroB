@@ -92,16 +92,9 @@ public class NeuroB {
 	 */
 	public void train(Path sourceCSV) throws IOException, InterruptedException{
 		// set up training data
-		RecordReader recordReader = new CSVRecordReader(1,","); // skip first line (header line)s
-		recordReader.initialize(new FileSplit(sourceCSV.toFile()));
+		RecordReader recordReader = nbn.getRecordReader(sourceCSV);
+		DataSetIterator iterator = nbn.getDataSetIterator(recordReader);
 		
-		DataSetIterator iterator = new RecordReaderDataSetIterator(
-				recordReader,
-				1000,						// batch size
-				nbn.getNumberOfInputs(),	// starting index of the label values in the csv
-				nbn.getNumberOfInputs()+nbn.getNumberOfOutputs()-1, // final index of the label values in the csv
-				true	// number of output values
-			);
 		// get data set
         //iterator.forEachRemaining(batch -> {
         Evaluation eval = new Evaluation(nbn.getLabelSize());

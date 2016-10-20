@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Random;
 
+import org.datavec.api.records.reader.RecordReader;
+import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
+import org.datavec.api.split.FileSplit;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -15,6 +19,7 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.nets.interfaces.NeuroBNet;
@@ -54,6 +59,18 @@ public class PredicateSolverPredictionNet implements NeuroBNet {
 	@Override
 	public int getLabelSize(){
 		return 2;
+	}
+	
+	@Override
+	public DataSetIterator getDataSetIterator(RecordReader recordReader){
+		DataSetIterator iterator = new RecordReaderDataSetIterator(
+				recordReader,
+				1000,						// batch size
+				getNumberOfInputs(),	// starting index of the label values in the csv
+				getNumberOfInputs()+getNumberOfOutputs()-1, // final index of the label values in the csv
+				true	// number of output values
+			);
+		return iterator;
 	}
 
 	@Override
