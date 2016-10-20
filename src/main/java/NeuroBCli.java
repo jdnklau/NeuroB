@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import neurob.core.NeuroB;
+import neurob.core.nets.KodKodPredictionNet;
 import neurob.core.nets.PredicateSolverPredictionNet;
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetAnalyser;
@@ -186,7 +187,12 @@ public class NeuroBCli {
 		}
 		// set up nets
 		for(int i=0; i<num; i++){
-			nets[i] = new PredicateSolverPredictionNet();
+			if(net.equals("kodkod")){
+				nets[i] = new KodKodPredictionNet();
+			}
+			else {
+				nets[i] = new PredicateSolverPredictionNet();
+			}
 			nbs[i] = new NeuroB(nets[i].setSeed((long)i).build());
 		}
 	}

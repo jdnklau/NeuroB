@@ -37,17 +37,40 @@ public class SolverClassificationDataCollector implements TrainingDataCollector 
 	private FeatureCollector fc;
 	private Api api;
 	private Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
+	private boolean solveProB;
+	private boolean solveKodKod;
+	private boolean solveProBZ3;
+	private int labels;
 	
 	@Inject
 	public SolverClassificationDataCollector() {
 		fc = new FeatureCollector();
 		api = Main.getInjector().getInstance(Api.class);
+		solveProB = true;
+		solveKodKod = true;
+		solveProBZ3 = true;
+		labels = 3;
+	}
+	
+	@Inject
+	public SolverClassificationDataCollector(boolean useProB, boolean useKodKod, boolean useProBZ3){
+		fc = new FeatureCollector();
+		api = Main.getInjector().getInstance(Api.class);
+		solveProB = useProB;
+		solveKodKod = useKodKod;
+		solveProBZ3 = useProBZ3;
+		labels = 0;
+		if(solveProB) ++labels;
+		if(solveKodKod) ++labels;
+		if(solveProBZ3) ++labels;
 	}
 	
 	@Override
 	public int getNumberOfFeatures() {return FeatureData.featureCount;}
 	@Override
-	public int getNumberOfLabels() {return 3;}
+	public int getNumberOfLabels() {
+		return labels;
+	}
 	
 	/**
 	 * Set the logger to a different one
@@ -89,9 +112,9 @@ public class SolverClassificationDataCollector implements TrainingDataCollector 
 		int count = formulae.size();
 		int curr = 1;
 		for( String formula : formulae) {
-			logger.info("\tSolving formula "+(curr++)+"/"+count+"...");
+			logger.info("\tAt "+(curr++)+"/"+count+"...");
 			
-			String res = ""; // for target vector
+			ArrayList<String>labels = new ArrayList<String>();
 			
 			// generate ProB command: assume conjunct of invariants is a constrained problem
 			try {
@@ -103,25 +126,29 @@ public class SolverClassificationDataCollector implements TrainingDataCollector 
 			
 			// solve with different solvers:
 			// ProB
-			logger.info("\tSolving with ProB...");
-			cmd = new CbcSolveCommand(f);
-			res += evaluateCommandExecution(ss, cmd, formula);
-			
+			if(solveProB){
+				logger.info("\tSolving with ProB...");
+				cmd = new CbcSolveCommand(f);
+				labels.add(evaluateCommandExecution(ss, cmd, formula));
+			}
+				
 			// KodKod
-			res += ","; // Delimiter
-			logger.info("\tSolving with KodKod...");
-			cmd = new CbcSolveCommand(f);
-			res += evaluateCommandWithSolver(ss, "KODKOD", cmd, formula);
-			
+			if(solveKodKod){
+				logger.info("\tSolving with KodKod...");
+				cmd = new CbcSolveCommand(f);
+				labels.add(evaluateCommandWithSolver(ss, "KODKOD", cmd, formula));
+			}
 			// SMT
-			res += ","; // Delimiter
-			logger.info("\tSolving with ProB/Z3...");
-			cmd = new CbcSolveCommand(f);
-			res += evaluateCommandWithSolver(ss, "SMT_SUPPORTED_INTERPRETER", cmd, formula);
+			if(solveProBZ3){
+				logger.info("\tSolving with ProB/Z3...");
+				cmd = new CbcSolveCommand(f);
+				labels.add(evaluateCommandWithSolver(ss, "SMT_SUPPORTED_INTERPRETER", cmd, formula));
+			}
 			
 			f.getAst().apply(fc); // Feature collector should reset itself at each apply call
 			
 			// add result
+			String res = String.join(",", labels);
 			results.add(fc.getFeatureData().toString()+":"+res+":\""+formula+"\""); // features:labeling vector:comment
 			
 		}
