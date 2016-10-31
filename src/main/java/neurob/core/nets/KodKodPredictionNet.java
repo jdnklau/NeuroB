@@ -117,7 +117,7 @@ public class KodKodPredictionNet implements NeuroBNet {
                         .build())
                 .layer(1, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
                         .nIn(1000)
-                        .nOut(tdc.getNumberOfLabels())
+                        .nOut(2)
                         .activation("softmax")
                         .weightInit(WeightInit.XAVIER)
                         .build())
