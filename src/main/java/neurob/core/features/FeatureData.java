@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import de.be4.classicalb.core.parser.node.TIdentifierLiteral;
-import neurob.core.features.helpers.IdentifierRelationHandler;
+import neurob.core.features.util.IdentifierRelationHandler;
 
 /**
  * This class is for data points in the feature space.

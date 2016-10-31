@@ -1,4 +1,4 @@
-package neurob.core.features.helpers;
+package neurob.core.features.util;
 
 import java.util.HashMap;
 import java.util.HashSet;
