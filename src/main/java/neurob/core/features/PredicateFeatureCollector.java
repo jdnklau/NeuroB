@@ -11,10 +11,16 @@ import de.be4.classicalb.core.parser.node.*;
  */
 public class PredicateFeatureCollector extends DepthFirstAdapter {
 	private PredicateFeatureData fd;
+	private boolean linked;
 	private boolean inNegation;
 
 	public PredicateFeatureCollector() {
-		fd = new PredicateFeatureData();
+		this(new PredicateFeatureData());
+	}
+	
+	public PredicateFeatureCollector(PredicateFeatureData linkedFD) {
+		fd = linkedFD;
+		linked = true;
 		inNegation = false;
 	}
 	
@@ -28,8 +34,13 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 	
 	@Override
 	public void caseStart(Start node){
-		// Just set feature counters to zero, so we can use the same collector over and over again for different predicates
-		fd = new PredicateFeatureData();
+		// If not linked to a specific feature data object, create a new one
+		if(!linked){
+			// Just set feature counters to zero, so we can use the same collector over and over again for different predicates
+			fd = new PredicateFeatureData();
+		} else {
+			linked = false; // If this is to be used again, the link is no longer valid
+		}
 		super.caseStart(node);
 	}
 	

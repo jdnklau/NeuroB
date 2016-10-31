@@ -1,8 +1,14 @@
 package neurob.core.features;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import org.datavec.api.util.ClassPathResource;
+
+import de.be4.classicalb.core.parser.BParser;
+import de.be4.classicalb.core.parser.exceptions.BException;
+import de.be4.classicalb.core.parser.node.Start;
 import de.be4.classicalb.core.parser.node.TIdentifierLiteral;
 import neurob.core.features.util.IdentifierRelationHandler;
 
@@ -39,7 +45,16 @@ public class PredicateFeatureData {
 	private int fRelationOperatorsCount;
 	private int fImplicationsCount; // count implications used (=>)
 	private int fEquivalencesCount; // count equivalences used (<=>)
-
+	
+	public PredicateFeatureData(String predicate) throws BException{
+		this(BParser.parse(BParser.FORMULA_PREFIX+" "+predicate));
+		
+	}
+	public PredicateFeatureData(Start ast){
+		this();
+		ast.apply(new PredicateFeatureCollector(this));
+	}
+	
 	public PredicateFeatureData() {
 		ids = new IdentifierRelationHandler();
 		
