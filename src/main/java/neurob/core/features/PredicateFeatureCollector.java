@@ -9,25 +9,25 @@ import de.be4.classicalb.core.parser.node.*;
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public class FeatureCollector extends DepthFirstAdapter {
-	private FeatureData fd;
+public class PredicateFeatureCollector extends DepthFirstAdapter {
+	private PredicateFeatureData fd;
 
-	public FeatureCollector() {
-		fd = new FeatureData();
+	public PredicateFeatureCollector() {
+		fd = new PredicateFeatureData();
 	}
 	
 	
 	/**
-	 * @return A {@link FeatureData} object, containing the collected data.
+	 * @return A {@link PredicateFeatureData} object, containing the collected data.
 	 */
-	public FeatureData getFeatureData() { 
+	public PredicateFeatureData getFeatureData() { 
 		return fd;
 	}
 	
 	@Override
 	public void caseStart(Start node){
 		// Just set feature counters to zero, so we can use the same collector over and over again for different predicates
-		fd = new FeatureData();
+		fd = new PredicateFeatureData();
 		super.caseStart(node);
 	}
 	

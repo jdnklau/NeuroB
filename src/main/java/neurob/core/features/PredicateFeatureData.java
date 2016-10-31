@@ -9,13 +9,13 @@ import neurob.core.features.util.IdentifierRelationHandler;
 /**
  * This class is for data points in the feature space.
  * 
- * It is intended to apply an instance of {@link FeatureCollector} on an AST and
- * use the resulting object's {@link FeatureCollector#getFeatureData() getFeatureData} method.
+ * It is intended to apply an instance of {@link PredicateFeatureCollector} on an AST and
+ * use the resulting object's {@link PredicateFeatureCollector#getFeatureData() getFeatureData} method.
  * 
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public class FeatureData {
+public class PredicateFeatureData {
 	// Dimensions
 	public static final int featureCount = 15;
 	// Helpers
@@ -37,7 +37,7 @@ public class FeatureData {
 	private int fFunctionsCount; // number of functions
 	private int fRelationOperatorsCount;
 
-	public FeatureData() {
+	public PredicateFeatureData() {
 		ids = new IdentifierRelationHandler();
 		
 		// set initial values

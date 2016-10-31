@@ -26,15 +26,15 @@ import de.prob.animator.domainobjects.EvalResult;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
-import neurob.core.features.FeatureCollector;
-import neurob.core.features.FeatureData;
+import neurob.core.features.PredicateFeatureCollector;
+import neurob.core.features.PredicateFeatureData;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
 
 public class SolverClassificationDataCollector implements TrainingDataCollector {
-	private FeatureCollector fc;
+	private PredicateFeatureCollector fc;
 	private Api api;
 	private Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 	private boolean solveProB;
@@ -44,7 +44,7 @@ public class SolverClassificationDataCollector implements TrainingDataCollector 
 	
 	@Inject
 	public SolverClassificationDataCollector() {
-		fc = new FeatureCollector();
+		fc = new PredicateFeatureCollector();
 		api = Main.getInjector().getInstance(Api.class);
 		solveProB = true;
 		solveKodKod = true;
@@ -54,7 +54,7 @@ public class SolverClassificationDataCollector implements TrainingDataCollector 
 	
 	@Inject
 	public SolverClassificationDataCollector(boolean useProB, boolean useKodKod, boolean useProBZ3){
-		fc = new FeatureCollector();
+		fc = new PredicateFeatureCollector();
 		api = Main.getInjector().getInstance(Api.class);
 		solveProB = useProB;
 		solveKodKod = useKodKod;
@@ -66,7 +66,7 @@ public class SolverClassificationDataCollector implements TrainingDataCollector 
 	}
 	
 	@Override
-	public int getNumberOfFeatures() {return FeatureData.featureCount;}
+	public int getNumberOfFeatures() {return PredicateFeatureData.featureCount;}
 	@Override
 	public int getNumberOfLabels() {
 		return labels;

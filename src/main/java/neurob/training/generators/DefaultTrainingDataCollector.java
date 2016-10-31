@@ -28,8 +28,8 @@ import de.prob.animator.domainobjects.EvalResult;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
-import neurob.core.features.FeatureCollector;
-import neurob.core.features.FeatureData;
+import neurob.core.features.PredicateFeatureCollector;
+import neurob.core.features.PredicateFeatureData;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 import neurob.training.generators.util.PredicateCollector;
@@ -41,20 +41,20 @@ import neurob.training.generators.util.PredicateCollector;
  */
 @Deprecated
 public class DefaultTrainingDataCollector implements TrainingDataCollector {
-	private FeatureCollector fc;
+	private PredicateFeatureCollector fc;
 	private Api api;
 	private Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 
 	@Inject
 	public DefaultTrainingDataCollector() {
-		fc = new FeatureCollector();
+		fc = new PredicateFeatureCollector();
 		
 		api = Main.getInjector().getInstance(Api.class);
 
 	}
 	
 	@Override
-	public int getNumberOfFeatures() {return FeatureData.featureCount;}
+	public int getNumberOfFeatures() {return PredicateFeatureData.featureCount;}
 	@Override
 	public int getNumberOfLabels() {return 3;}
 	
