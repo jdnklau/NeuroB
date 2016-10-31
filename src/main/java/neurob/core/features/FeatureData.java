@@ -92,7 +92,9 @@ public class FeatureData {
 	/**
 	 * Returns a String, that lists a detailed overview of the single features and their values.
 	 * @return
+	 * @deprecated I do not plan do keep this list up to date, so just do not use it.
 	 */
+	@Deprecated
 	public String getFeatureOverviewText(){
 		String s = "Formula Length: ? (NYI)\n"
 				+ "Arithmetic Operators: "+fArithmOperatorsCount+ "\n"
