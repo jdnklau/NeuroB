@@ -17,7 +17,7 @@ import neurob.core.features.util.IdentifierRelationHandler;
  */
 public class PredicateFeatureData {
 	// Dimensions
-	public static final int featureCount = 16;
+	public static final int featureCount = 18;
 	// Helpers
 	private IdentifierRelationHandler ids;
 	// Features
@@ -37,6 +37,8 @@ public class PredicateFeatureData {
 	private int fSetMemberCount; // number of memberships to sets
 	private int fFunctionsCount; // number of functions
 	private int fRelationOperatorsCount;
+	private int fImplicationsCount; // count implications used (=>)
+	private int fEquivalencesCount; // count equivalences used (<=>)
 
 	public PredicateFeatureData() {
 		ids = new IdentifierRelationHandler();
@@ -52,6 +54,9 @@ public class PredicateFeatureData {
 		fConjunctionsCount = 0;
 		fDisjunctionsCount = 0;
 		fNegationsCount = 0;
+		// implications
+		fImplicationsCount = 0;
+		fEquivalencesCount = 0;
 		// identifiers
 		fUniqueIdentifiersCount = 0;
 		fFiniteSizedDomainIdentifiersCount = 0;
@@ -149,6 +154,12 @@ public class PredicateFeatureData {
 	
 	public int getUniqueIdentifiersCount(){ return ids.getUniqueIdentifierCount(); }
 	public void addIdentifier(String id){ ids.addIdentifier(id);}
+
+	public int getImplicationsCount(){ return fImplicationsCount; }
+	public void incImplicationsCount(){ fImplicationsCount++;}
+	
+	public int getEquivalencesCount(){ return fEquivalencesCount; }
+	public void incEquivalencesCount(){ fEquivalencesCount++;}
 
 	public void setIdentifierDomain(String id, boolean hasLowerBound, boolean hasUpperBound) {
 		ids.addBoundariesToIdentifier(id, hasLowerBound, hasUpperBound);

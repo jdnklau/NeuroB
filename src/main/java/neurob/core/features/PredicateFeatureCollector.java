@@ -42,6 +42,7 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 	 * - Arithmetic Operators
 	 * - Comparison Operators
 	 * - Logical Operators
+	 * - Implication and equivalence
 	 * - Identifiers
 	 * - Sets
 	 * - Named Sets
@@ -209,6 +210,20 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 	public void caseANegationPredicate(final ANegationPredicate node){
 		fd.incNegationsCount();
 		node.getPredicate().apply(this);
+	}
+	
+	// Implications
+	@Override
+	public void caseAImplicationPredicate(final AImplicationPredicate node){
+		fd.incImplicationsCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
+	}
+	@Override
+	public void caseAEquivalencePredicate(final AEquivalencePredicate node){
+		fd.incEquivalencesCount();
+		node.getLeft().apply(this);
+		node.getRight().apply(this);
 	}
 	
 	// Identifiers
