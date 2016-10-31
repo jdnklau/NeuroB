@@ -17,7 +17,7 @@ import neurob.core.features.util.IdentifierRelationHandler;
  */
 public class PredicateFeatureData {
 	// Dimensions
-	public static final int featureCount = 15;
+	public static final int featureCount = 16;
 	// Helpers
 	private IdentifierRelationHandler ids;
 	// Features
@@ -28,6 +28,7 @@ public class PredicateFeatureData {
 	private int fCompOperatorsCount; // number of comparison operators
 	private int fConjunctionsCount; // number of conjunctions
 	private int fDisjunctionsCount; // number of disjunctions
+	private int fNegationsCount; // number of negations
 	private int fUniqueIdentifiersCount; // number of unique identifiers used
 	private int fFiniteSizedDomainIdentifiersCount; // identifiers with finite domain
 	private int fInfiniteSizedDomainIdentifiersCount; // identifiers with infinite domain
@@ -50,6 +51,7 @@ public class PredicateFeatureData {
 		fCompOperatorsCount = 0;
 		fConjunctionsCount = 0;
 		fDisjunctionsCount = 0;
+		fNegationsCount = 0;
 		// identifiers
 		fUniqueIdentifiersCount = 0;
 		fFiniteSizedDomainIdentifiersCount = 0;
@@ -75,6 +77,7 @@ public class PredicateFeatureData {
 		features.add(fExistsQuantifiersCount);
 		features.add(fConjunctionsCount);
 		features.add(fDisjunctionsCount);
+		features.add(fNegationsCount);
 		features.add(fSetOperatorsCount);
 		features.add(fSetMemberCount);
 		features.add(fFunctionsCount);
@@ -125,9 +128,12 @@ public class PredicateFeatureData {
 	
 	public int getConjunctionsCount(){ return fConjunctionsCount; }
 	public void incConjunctionsCount(){ fConjunctionsCount++; }
-	
+
 	public int getDisjunctionsCount(){ return fDisjunctionsCount; }
 	public void incDisjunctionsCount(){ fDisjunctionsCount++; }
+
+	public int getNegationsCount(){ return fNegationsCount; }
+	public void incNegationsCount(){ fNegationsCount++; }
 	
 	public int getSetOperatorsCount(){ return fSetOperatorsCount; }
 	public void incSetOperatorsCount(){ fSetOperatorsCount++; }

@@ -205,6 +205,11 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
+	@Override
+	public void caseANegationPredicate(final ANegationPredicate node){
+		fd.incNegationsCount();
+		node.getPredicate().apply(this);
+	}
 	
 	// Identifiers
 	@Override
@@ -251,6 +256,7 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 	@Override
 	public void caseANotMemberPredicate(final ANotMemberPredicate node){
 		fd.incSetMemberCount();
+		fd.incNegationsCount();
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
@@ -263,6 +269,7 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 	@Override
 	public void caseANotSubsetPredicate(final ANotSubsetPredicate node){
 		fd.incSetMemberCount();
+		fd.incNegationsCount();
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
@@ -275,6 +282,7 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 	@Override
 	public void caseANotSubsetStrictPredicate(final ANotSubsetStrictPredicate node){
 		fd.incSetMemberCount();
+		fd.incNegationsCount();
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
