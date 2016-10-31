@@ -11,9 +11,11 @@ import de.be4.classicalb.core.parser.node.*;
  */
 public class PredicateFeatureCollector extends DepthFirstAdapter {
 	private PredicateFeatureData fd;
+	private boolean inNegation;
 
 	public PredicateFeatureCollector() {
 		fd = new PredicateFeatureData();
+		inNegation = false;
 	}
 	
 	
@@ -211,6 +213,14 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 		fd.incNegationsCount();
 		node.getPredicate().apply(this);
 	}
+	@Override
+	public void inANegationPredicate(final ANegationPredicate node){
+		inNegation = !inNegation;
+	}
+	@Override
+	public void outANegationPredicate(ANegationPredicate node) {
+		inNegation = !inNegation;
+	}
 	
 	// Implications
 	@Override
@@ -246,7 +256,11 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 			((AIdentifierExpression) left).getIdentifier()
 				.forEach(rawid -> {
 					String id = rawid.toString();
-					if(right instanceof AIntegerSetExpression){
+					if(inNegation){
+						// In negation the domain of no identifier is restricted, as every value could be possible
+						fd.setIdentifierDomain(id, false, false);
+					}
+					else if(right instanceof AIntegerSetExpression){
 						// Integer
 						fd.setIdentifierDomain(id,false,false);
 					} else if(right instanceof AIntSetExpression){
