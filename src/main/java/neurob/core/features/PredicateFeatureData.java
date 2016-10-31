@@ -23,7 +23,7 @@ import neurob.core.features.util.IdentifierRelationHandler;
  */
 public class PredicateFeatureData {
 	// Dimensions
-	public static final int featureCount = 18;
+	public static final int featureCount = 17;
 	// Helpers
 	private IdentifierRelationHandler ids;
 	// Features
@@ -90,7 +90,7 @@ public class PredicateFeatureData {
 	public String toString(){
 		ArrayList<Integer> features = new ArrayList<Integer>();
 		
-		features.add(fFormulaLength);
+		//features.add(fFormulaLength);
 		features.add(fArithmOperatorsCount);
 		features.add(fCompOperatorsCount);
 		features.add(fForAllQuantifiersCount);
