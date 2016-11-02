@@ -13,13 +13,13 @@ import de.be4.classicalb.core.parser.node.Start;
 import neurob.core.features.PredicateFeatureCollector;
 import neurob.core.features.PredicateFeatureData;
 
-public class FeatureDataTest {
+public class PredicateFeatureDataTest {
 	private BParser p;
 	private File resource;
 	private Start ast;
 	private PredicateFeatureData fd;
 	
-	public FeatureDataTest() throws Exception{
+	public PredicateFeatureDataTest() throws Exception{
 		p = new BParser();
 		resource = new ClassPathResource("features_check.mch").getFile();
 		ast = p.parseFile(resource, false);
@@ -46,6 +46,11 @@ public class FeatureDataTest {
 		String pred = "x : NATURAL & y : INTEGER & z : NATURAL & z < 20 & a : NAT & b : NAT1 & a < 7 & c : INT";
 		PredicateFeatureData fd2 = new PredicateFeatureData(pred);
 		assertEquals("Features do not match", fd.toString(), fd2.toString());
+	}
+	
+	@Test public void predicateFeatureDataLengthTest(){
+		int featureLength = fd.toString().split(",").length;
+		assertEquals("Number of generated features does not match.", PredicateFeatureData.featureCount, featureLength);
 	}
 	
 	

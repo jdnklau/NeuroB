@@ -106,6 +106,8 @@ public class PredicateFeatureData {
 		features.add(ids.getFiniteDomainIdentifiersCount());
 		features.add(ids.getInfiniteDomainIdentifiersCount());
 		features.add(ids.getUnknownDomainSizeIdentifiersCount());
+		features.add(fImplicationsCount);
+		features.add(fEquivalencesCount);
 		
 		return features.stream()
 				.map(i -> i.toString())
