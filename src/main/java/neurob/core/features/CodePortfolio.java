@@ -5,6 +5,7 @@ import java.awt.Image;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -13,6 +14,7 @@ import javax.swing.JLabel;
 public class CodePortfolio {
 	private int size;
 	private BufferedImage image;
+	private int featureSize;
 	
 	/**
 	 * <p>Creates a CodePortfolio with the dimension of the given size squared
@@ -23,9 +25,12 @@ public class CodePortfolio {
 	 */
 	public CodePortfolio(int dimensionSize, String code) {
 		size = dimensionSize;
+		featureSize = size*size;
 		
 		setData(code);
 	}
+	
+	public int getFeatureCount(){return featureSize;}
 	
 	/**
 	 * Generates internally an image of the code, that serves as input for a neural net
@@ -52,7 +57,7 @@ public class CodePortfolio {
 		for(int y = 0; y < rootCodeLength; y++){
 			for(int x = 0; x < rootCodeLength; x++){
 				int px = code.charAt(x+y*rootCodeLength);
-				raster.setPixel(x, y, new int[]{px, px, px, px});
+				raster.setPixel(x, y, new int[]{x});
 			}
 		}
 		
@@ -66,6 +71,25 @@ public class CodePortfolio {
 		
 		image = scaled;
 		
+	}
+	
+	public String toString(){
+		// return a string representation
+		ArrayList<String> values = new ArrayList<String>();
+		
+		WritableRaster raster = image.getRaster();
+		for(int y=0; y<size; y++){
+			for(int x = 0; x<size; x++){
+				int px[] = raster.getPixel(x, y, new int[]{0});
+				values.add(String.valueOf(px[0]));
+			}
+		}
+		
+		return String.join(",", values);
+	}
+	
+	public BufferedImage getImage(){
+		return image;
 	}
 	
 	public void display(){
