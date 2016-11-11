@@ -8,8 +8,11 @@ import java.util.HashMap;
 
 import neurob.core.NeuroB;
 import neurob.core.nets.KodKodPredictionNet;
+import neurob.core.nets.KodKodPredictionWithCodePortfolioNet;
 import neurob.core.nets.PredicateSolverPredictionNet;
+import neurob.core.nets.PredicateSolverPredictionWithCodePortfolioNet;
 import neurob.core.nets.PredicateSolverSelectionNet;
+import neurob.core.nets.PredicateSolverSelectionWithCodePortfolioNet;
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
@@ -100,7 +103,10 @@ public class NeuroBCli {
 					+ "The implemented nets you can access via the cli are\n"
 					+ "\tpsp - Predicate Solver Prediction\n"
 					+ "\tpss - Predicate Solver Selection\n"
-					+ "\tkodkod - KodKod only prediction"
+					+ "\tkodkod - KodKod only prediction\n"
+					+ "\tpspcp - Predicate Solver Prediction using Code Portfolios\n"
+					+ "\tpsscp - Predicate Solver Selection using Code Portfolios\n"
+					+ "\tkodkodcp - KodKod only prediction using Code Portfolios"
 					;
 			
 			System.out.println(help);
@@ -196,7 +202,15 @@ public class NeuroBCli {
 				nets[i] = new PredicateSolverSelectionNet();
 			} else if(net.equals("psp")){
 				nets[i] = new PredicateSolverPredictionNet();
-			}else {
+				
+			} else if(net.equals("kodkodcp")){
+				nets[i] = new KodKodPredictionWithCodePortfolioNet();
+			} else if(net.equals("psscp")){
+				nets[i] = new PredicateSolverSelectionWithCodePortfolioNet();
+			} else if(net.equals("pspcp")){
+				nets[i] = new PredicateSolverPredictionWithCodePortfolioNet();
+				
+			} else {
 				nets[i] = new PredicateSolverPredictionNet();
 				System.out.println("Net "+net+" is not known; defaulting to psp.");
 			}
