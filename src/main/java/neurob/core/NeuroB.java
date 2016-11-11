@@ -167,7 +167,7 @@ public class NeuroB {
 		TrainingDataCollector tdc = nbn.getTrainingDataCollector();
 		TrainingSetGenerator tsg = new TrainingSetGenerator(tdc);
 		// set up training data directory
-		Path fullTargetDirectory = targetDirectory.resolve(tdc.getClass().getSimpleName());
+		Path fullTargetDirectory = targetDirectory.resolve(nbn.getClass().getSimpleName());
 		
 		// generate data
 		tsg.generateTrainingSet(sourceDirectory, fullTargetDirectory, excludeFile);
