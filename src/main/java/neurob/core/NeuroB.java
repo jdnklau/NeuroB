@@ -115,7 +115,7 @@ public class NeuroB {
 //	            normalizer.transform(trainingData);     //Apply normalization to the training data
 //	            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
 	            
-	        		nbn.fit(trainingData);
+	        	nbn.fit(trainingData);
 	            
 	            // Evaluate results
 	            Iterator<DataSet> it = testData.iterator();

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import neurob.core.NeuroB;
 import neurob.core.nets.KodKodPredictionNet;
 import neurob.core.nets.PredicateSolverPredictionNet;
+import neurob.core.nets.PredicateSolverSelectionNet;
 import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
@@ -97,7 +98,9 @@ public class NeuroBCli {
 					
 					+ "\nNets:\n"
 					+ "The implemented nets you can access via the cli are\n"
-					+ "\tpsp - Predicate Solver Prediction"
+					+ "\tpsp - Predicate Solver Prediction\n"
+					+ "\tpss - Predicate Solver Selection\n"
+					+ "\tkodkod - KodKod only prediction"
 					;
 			
 			System.out.println(help);
@@ -189,10 +192,15 @@ public class NeuroBCli {
 		for(int i=0; i<num; i++){
 			if(net.equals("kodkod")){
 				nets[i] = new KodKodPredictionNet();
-			}
-			else {
+			} else if(net.equals("pss")){
+				nets[i] = new PredicateSolverSelectionNet();
+			} else if(net.equals("psp")){
 				nets[i] = new PredicateSolverPredictionNet();
+			}else {
+				nets[i] = new PredicateSolverPredictionNet();
+				System.out.println("Net "+net+" is not known; defaulting to psp.");
 			}
+			
 			nbs[i] = new NeuroB(nets[i].setSeed((long)i).build());
 		}
 	}
