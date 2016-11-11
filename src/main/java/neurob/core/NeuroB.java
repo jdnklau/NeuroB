@@ -72,7 +72,7 @@ public class NeuroB {
 	private long seed = 12345;
 	private Random rnd = new Random(seed);
 	// Training
-	private int numEpochs = 200;
+	private int numEpochs = 15;
 
 	public NeuroB(NeuroBNet neuroBNet) {
 		// link neural net
@@ -97,35 +97,37 @@ public class NeuroB {
 		
 		// get data set
         //iterator.forEachRemaining(batch -> {
-        Evaluation eval = new Evaluation(nbn.getLabelSize());
-		while(iterator.hasNext()){
-			DataSet batch = iterator.next();
-        	// split set
-        	batch.shuffle(seed);
-        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.65);  //Use 65% of data for training
-        	DataSet trainingData = testAndTrain.getTrain();
-        	DataSet testData = testAndTrain.getTest();
-        	
-        	// normalize data
-//        	DataNormalization normalizer = new NormalizerStandardize();
-//            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
-//            normalizer.transform(trainingData);     //Apply normalization to the training data
-//            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
-            
-            for(int i=0; i<numEpochs; i++){
-            	nbn.fit(trainingData);
-            }
-            
-            // Evaluate results
-            Iterator<DataSet> it = testData.iterator();
-            
-            while(it.hasNext()){
-            	DataSet next = it.next();
-            	INDArray output = nbn.output(next.getFeatureMatrix());
-            	
-            	eval.eval(next.getLabels(), output);
-            }           
-        }
+		Evaluation eval = new Evaluation(nbn.getLabelSize());
+		for(int i=0; i<numEpochs; i++){
+			System.out.println("epoch "+i);
+        	iterator.reset();
+			while(iterator.hasNext()){
+				DataSet batch = iterator.next();
+	        	// split set
+	        	batch.shuffle(seed);
+	        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.65);  //Use 65% of data for training
+	        	DataSet trainingData = testAndTrain.getTrain();
+	        	DataSet testData = testAndTrain.getTest();
+	        	
+	        	// normalize data
+//	        	DataNormalization normalizer = new NormalizerStandardize();
+//	            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
+//	            normalizer.transform(trainingData);     //Apply normalization to the training data
+//	            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
+	            
+	        		nbn.fit(trainingData);
+	            
+	            // Evaluate results
+	            Iterator<DataSet> it = testData.iterator();
+	            
+	            while(it.hasNext()){
+	            	DataSet next = it.next();
+	            	INDArray output = nbn.output(next.getFeatureMatrix());
+	            	
+	            	eval.eval(next.getLabels(), output);
+	            }
+			}
+		}
 		System.out.println(eval.stats());
 	}
 	
