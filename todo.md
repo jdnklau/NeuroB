@@ -1,0 +1,17 @@
+# To Do List
+- reorganise the structure of NeuroB Nets to make them more Plug and Play
+- overhaul logging system
+  - maybe switch to logging library
+  - stop using NeuroB-Trainingsetgenerator as only name for logfiles
+    - at least use only NeuroB
+    - ideally have different names for different tasks
+- trainingset generation and analysisn of the set should inspect the labelings differently
+  - perhaps a list of how often an individual labeling was used instead of only checking if the outputs are all the same or not
+  - allow a deeper analysis
+    - e.g. list predicates with the same features but different labelings
+- Test cases for training data generation
+  - small example files should suffice
+  - think about solution to compare Code Portfolios
+- change handling in Cli of neural nets
+  - allow to give custom seed(s) for RNG
+  - training multiple nets with different seeds should create the next net after the previous one has finished training
