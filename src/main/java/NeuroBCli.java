@@ -179,6 +179,8 @@ public class NeuroBCli {
 			System.out.println("Unknown command: "+cmd);
 			System.out.println("Use help to show a list of available commands");
 		}
+		
+		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 	
 	private static void buildNet(){
