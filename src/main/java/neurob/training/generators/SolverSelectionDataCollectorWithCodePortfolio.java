@@ -39,16 +39,18 @@ public class SolverSelectionDataCollectorWithCodePortfolio implements TrainingDa
 	private Api api;
 	private Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 	private int dim;
+	private int featureSize;
 	
 	@Inject
 	public SolverSelectionDataCollectorWithCodePortfolio(int dimension) {
 		fc = new PredicateFeatureCollector();
 		api = Main.getInjector().getInstance(Api.class);
 		dim = dimension;
+		featureSize = dim*dim;
 	}
 	
 	@Override
-	public int getNumberOfFeatures() {return PredicateFeatureData.featureCount;}
+	public int getNumberOfFeatures() {return featureSize;}
 	@Override
 	public int getNumberOfLabels() {
 		return 1;

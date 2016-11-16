@@ -43,6 +43,7 @@ public class SolverClassificationDataCollectorWithCodePortfolio implements Train
 	private boolean solveProBZ3;
 	private int labels;
 	private int dim;
+	private int featureSize;
 	
 	@Inject
 	public SolverClassificationDataCollectorWithCodePortfolio(int dimension) {
@@ -53,6 +54,7 @@ public class SolverClassificationDataCollectorWithCodePortfolio implements Train
 		solveProBZ3 = true;
 		labels = 3;
 		dim = dimension;
+		featureSize = dim*dim;
 	}
 	
 	@Inject
@@ -67,10 +69,11 @@ public class SolverClassificationDataCollectorWithCodePortfolio implements Train
 		if(solveKodKod) ++labels;
 		if(solveProBZ3) ++labels;
 		dim = dimension;
+		featureSize = dim*dim;
 	}
 	
 	@Override
-	public int getNumberOfFeatures() {return PredicateFeatureData.featureCount;}
+	public int getNumberOfFeatures() {return featureSize;}
 	@Override
 	public int getNumberOfLabels() {
 		return labels;
