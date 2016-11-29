@@ -23,8 +23,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.nets.interfaces.NeuroBNet;
-import neurob.training.generators.SolverClassificationDataCollector;
-import neurob.training.generators.SolverClassificationDataCollectorWithCodePortfolio;
+import neurob.training.generators.SolverSelectionDataCollectorWithCodePortfolio;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
 /**
@@ -35,7 +34,7 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
 public class PredicateSolverSelectionWithCodePortfolioNet implements NeuroBNet {
 	// Network related
 	private MultiLayerNetwork model;
-	private SolverClassificationDataCollectorWithCodePortfolio tdc;
+	private SolverSelectionDataCollectorWithCodePortfolio tdc;
 	// RNG
 	private long seed;
 	private Random rnd;
@@ -48,7 +47,7 @@ public class PredicateSolverSelectionWithCodePortfolioNet implements NeuroBNet {
 		rnd = new Random(seed);
 		
 		// set up data collector
-		tdc = new SolverClassificationDataCollectorWithCodePortfolio(64);
+		tdc = new SolverSelectionDataCollectorWithCodePortfolio(64);
 		
 	}
 

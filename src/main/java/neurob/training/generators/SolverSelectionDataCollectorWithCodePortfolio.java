@@ -53,7 +53,7 @@ public class SolverSelectionDataCollectorWithCodePortfolio implements TrainingDa
 	public int getNumberOfFeatures() {return featureSize;}
 	@Override
 	public int getNumberOfLabels() {
-		return 1;
+		return 4;
 	}
 	
 	/**
