@@ -110,10 +110,10 @@ public class NeuroB {
 	        	DataSet testData = testAndTrain.getTest();
 	        	
 	        	// normalize data
-//	        	DataNormalization normalizer = new NormalizerStandardize();
-//	            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
-//	            normalizer.transform(trainingData);     //Apply normalization to the training data
-//	            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
+	        	DataNormalization normalizer = new NormalizerStandardize();
+	            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
+	            normalizer.transform(trainingData);     //Apply normalization to the training data
+	            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
 	            
 	        	nbn.fit(trainingData);
 	            
