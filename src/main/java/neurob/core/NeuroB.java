@@ -95,38 +95,74 @@ public class NeuroB {
 		RecordReader recordReader = nbn.getRecordReader(sourceCSV);
 		DataSetIterator iterator = nbn.getDataSetIterator(recordReader);
 		
-		// get data set
-        //iterator.forEachRemaining(batch -> {
-		Evaluation eval = new Evaluation(nbn.getLabelSize());
+		// set up normalizer
+		DataNormalization normalizer = new NormalizerStandardize();
+		while(iterator.hasNext()){
+			DataSet batch = iterator.next();
+			int holdForTraining = (int)(batch.numExamples()*0.65);
+        	// split set
+        	batch.shuffle(seed);
+        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(holdForTraining, new Random(seed));  //Use 65% of data for training
+        	DataSet trainingData = testAndTrain.getTrain();
+        	normalizer.fit(trainingData);
+		}
+		
+		// train net on training data
 		for(int i=0; i<numEpochs; i++){
 			System.out.println("epoch "+i);
         	iterator.reset();
 			while(iterator.hasNext()){
 				DataSet batch = iterator.next();
+				int holdForTraining = (int)(batch.numExamples()*0.65);
 	        	// split set
 	        	batch.shuffle(seed);
-	        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(0.65);  //Use 65% of data for training
+	        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(holdForTraining, new Random(seed));  //Use 65% of data for training
 	        	DataSet trainingData = testAndTrain.getTrain();
-	        	DataSet testData = testAndTrain.getTest();
+//	        	DataSet testData = testAndTrain.getTest();
 	        	
 	        	// normalize data
-	        	DataNormalization normalizer = new NormalizerStandardize();
-	            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
+//	        	DataNormalization normalizer = new NormalizerStandardize();
+//	            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
 	            normalizer.transform(trainingData);     //Apply normalization to the training data
-	            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
+//	            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
 	            
 	        	nbn.fit(trainingData);
 	            
-	            // Evaluate results
-	            Iterator<DataSet> it = testData.iterator();
-	            
-	            while(it.hasNext()){
-	            	DataSet next = it.next();
-	            	INDArray output = nbn.output(next.getFeatureMatrix());
-	            	
-	            	eval.eval(next.getLabels(), output);
-	            }
+//	            // Evaluate results
+//	            Iterator<DataSet> it = testData.iterator();
+//	            
+//	            while(it.hasNext()){
+//	            	DataSet next = it.next();
+//	            	INDArray output = nbn.output(next.getFeatureMatrix());
+//	            	
+//	            	eval.eval(next.getLabels(), output);
+//	            }
 			}
+		}
+		
+		// Evaluate on test set
+		Evaluation eval = new Evaluation(nbn.getLabelSize());
+		iterator.reset();
+		while(iterator.hasNext()){
+			DataSet batch = iterator.next();
+			int holdForTraining = (int)(batch.numExamples()*0.65);
+        	// split set
+        	batch.shuffle(seed);
+        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(holdForTraining, new Random(seed));  //Use 65% of data for training
+//        	DataSet trainingData = testAndTrain.getTrain();
+        	DataSet testData = testAndTrain.getTest();
+            
+            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
+        	
+            // Evaluate results
+            Iterator<DataSet> it = testData.iterator();
+            
+            while(it.hasNext()){
+            	DataSet next = it.next();
+            	INDArray output = nbn.output(next.getFeatureMatrix());
+            	
+            	eval.eval(next.getLabels(), output);
+            }
 		}
 		System.out.println(eval.stats());
 	}
