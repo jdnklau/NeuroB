@@ -1,4 +1,14 @@
 # To Do List
+- **Redo training step**
+  - training set generation should automatically split data into train and test data
+  - separate files
+  - issues with current implementation:
+    - batches are in each epoch shuffeled randomly (same seed)
+    - then they are randomly split into train and test data (**no seed**)
+    - as this happens in each epoch, the epochs run on slightly different data each
+    - test step happens after each batch in each epoch -> bad
+    - instead should run after complete training step on a clearly/cleanly separated test set
+    - results so far are questionable
 - reorganise the structure of NeuroB Nets to make them more Plug and Play
 - overhaul logging system
   - maybe switch to logging library
