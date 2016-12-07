@@ -34,6 +34,19 @@ import neurob.exceptions.NeuroBException;
 public interface Features {
 	
 	/**
+	 * Generates the features of the given predicate and returns them as a string,
+	 * without adding it to the intern feature list.
+	 * 
+	 * @param predicate
+	 * @return The generated feature string
+	 * @throws NeuroBException
+	 * @see #addData(String)
+	 * @see #getFeatureStrings()
+	 * 
+	 */
+	public String generateFeatureString(String predicate) throws NeuroBException;
+	
+	/**
 	 * Input a given string and add its features as data to this feature object.
 	 * <br>
 	 * Use {@link #getFeatureStrings()} to access the output computed.

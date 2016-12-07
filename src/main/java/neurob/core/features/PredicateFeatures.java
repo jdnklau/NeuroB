@@ -23,9 +23,9 @@ public class PredicateFeatures implements Features {
 	public void reset(){
 		features = new ArrayList<String>();
 	}
-
+	
 	@Override
-	public void addData(String predicate) throws NeuroBException {
+	public String generateFeatureString(String predicate) throws NeuroBException {
 		PredicateFeatureData pfd;
 		try {
 			pfd = new PredicateFeatureData(predicate);
@@ -33,7 +33,12 @@ public class PredicateFeatures implements Features {
 			throw new NeuroBException("Could not generate feature string from predicate: "+predicate, e);
 		}
 		
-		features.add(pfd.toString());
+		return pfd.toString();
+	}
+	
+	@Override
+	public void addData(String predicate) throws NeuroBException {
+		features.add(generateFeatureString(predicate));
 	}
 
 	@Override
