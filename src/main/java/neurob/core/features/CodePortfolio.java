@@ -11,6 +11,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+@Deprecated
 public class CodePortfolio {
 	private int size;
 	private BufferedImage image;
