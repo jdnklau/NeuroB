@@ -9,7 +9,8 @@
     - test step happens after each batch in each epoch -> bad
     - instead should run after complete training step on a clearly/cleanly separated test set
     - results so far are questionable
-- reorganise the structure of NeuroB Nets to make them more Plug and Play
+- ~~reorganise the structure of NeuroB Nets to make them more Plug and Play~~
+  - make use of the newly generated interfaces and classes
 - overhaul logging system
   - maybe switch to logging library
   - stop using NeuroB-Trainingsetgenerator as only name for logfiles
