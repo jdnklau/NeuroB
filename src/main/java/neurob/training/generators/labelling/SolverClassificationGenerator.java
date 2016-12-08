@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
+import org.datavec.api.records.reader.RecordReader;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+
 import com.google.inject.Inject;
 
 import de.be4.classicalb.core.parser.exceptions.BException;
@@ -143,6 +147,19 @@ public class SolverClassificationGenerator implements LabelGenerator {
 		ss.kill();
 		// return
 		return labelling;
+	}
+	
+	@Override
+	public DataSetIterator getDataSetIterator(RecordReader recordReader, int batchSize, int featureDimension) {
+		DataSetIterator iterator = new RecordReaderDataSetIterator(
+				recordReader,
+				batchSize,
+				featureDimension,	// starting index of the label values in the csv
+				featureDimension+getLabelDimension()-1, // final index of the label values in the csv
+				true	// needs to be true, as this only goes with regression
+			);
+		
+		return iterator;
 	}
 
 }

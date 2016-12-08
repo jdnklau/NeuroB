@@ -2,6 +2,10 @@ package neurob.training.generators.interfaces;
 
 import java.nio.file.Path;
 
+import org.datavec.api.records.reader.RecordReader;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
 
@@ -44,6 +48,23 @@ public interface LabelGenerator {
 	 * @throws NeuroBException
 	 */
 	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException;
+	
+	/**
+	 * Returns a DataSetIterator needed in training step of the neural network in use.
+	 * @param recordReader
+	 * @param batchSize
+	 * @param featureDimension Size of the feature vector, e.g. number of its entries
+	 * @return
+	 */
+	default public DataSetIterator getDataSetIterator(RecordReader recordReader, int batchSize, int featureDimension){
+		DataSetIterator iterator = new RecordReaderDataSetIterator(
+				recordReader,
+				batchSize,
+				featureDimension,	// starting index of the label values in the csv
+				getClassCount()		// Number of different classes
+			);
+		return iterator;
+	}
 	
 
 }
