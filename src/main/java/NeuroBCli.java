@@ -7,16 +7,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import neurob.core.NeuroB;
-import neurob.core.nets.KodKodPredictionNet;
-import neurob.core.nets.KodKodPredictionWithCodePortfolioNet;
-import neurob.core.nets.PredicateSolverPredictionNet;
-import neurob.core.nets.PredicateSolverPredictionWithCodePortfolioNet;
-import neurob.core.nets.PredicateSolverSelectionNet;
-import neurob.core.nets.PredicateSolverSelectionWithCodePortfolioNet;
-import neurob.core.nets.interfaces.NeuroBNet;
+import neurob.core.features.PredicateFeatures;
+import neurob.core.nets.NeuroBNet;
+import neurob.core.nets.PredefinedNet;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
-import neurob.training.generators.SolverClassificationDataCollector;
+import neurob.training.generators.labelling.SolverClassificationGenerator;
 
 public class NeuroBCli {
 	private static final Path libraryIOpath = Paths.get("prob_examples/LibraryIO.def");
@@ -199,25 +195,25 @@ public class NeuroBCli {
 		// set up nets
 		for(int i=0; i<num; i++){
 			if(net.equals("kodkod")){
-				nets[i] = new KodKodPredictionNet();
+				nets[i] = PredefinedNet.getKodKodPredictionNet(i);
 			} else if(net.equals("pss")){
-				nets[i] = new PredicateSolverSelectionNet();
+				nets[i] = PredefinedNet.getPredicateSolverSelectionNet(i);
 			} else if(net.equals("psp")){
-				nets[i] = new PredicateSolverPredictionNet();
+				nets[i] = PredefinedNet.getPredicateSolverPredictionNet(i);
 				
 			} else if(net.equals("kodkodcp")){
-				nets[i] = new KodKodPredictionWithCodePortfolioNet();
+				nets[i] = PredefinedNet.getKodKodPredictionWithCodePortfolioNet(i);
 			} else if(net.equals("psscp")){
-				nets[i] = new PredicateSolverSelectionWithCodePortfolioNet();
+				nets[i] = PredefinedNet.getPredicateSolverSelectionWithCodePortfolioNet(i);
 			} else if(net.equals("pspcp")){
-				nets[i] = new PredicateSolverPredictionWithCodePortfolioNet();
+				nets[i] = PredefinedNet.getPredicateSolverPredictionWithCodePortfolioNet(i);
 				
 			} else {
-				nets[i] = new PredicateSolverPredictionNet();
+				nets[i] = PredefinedNet.getPredicateSolverPredictionNet(i);
 				System.out.println("Net "+net+" is not known; defaulting to psp.");
 			}
 			
-			nbs[i] = new NeuroB(nets[i].setSeed((long)i).build());
+			nbs[i] = new NeuroB(nets[i]);
 		}
 	}
 
@@ -279,7 +275,7 @@ public class NeuroBCli {
 	}
 	
 	private static void singleTrainingDataGeneration(Path source){
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new SolverClassificationDataCollector());
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(true, true, true));
 		
 		String fileName = source.getFileName().toString();
 		Path target = Paths.get("training_data/single_file_generation/").resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
@@ -301,14 +297,14 @@ public class NeuroBCli {
 	}
 	
 	private static void trainingCSVGeneration(Path dir, boolean ignore){
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new SolverClassificationDataCollector());
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(true, true, true));
 		Path target = Paths.get("training_data/manual_call/data.csv");
 		
 		tsg.generateCSVFromNBTrainData(dir, target, ignore);
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new SolverClassificationDataCollector());
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(true, true, true));
 		tsg.exclude(excludefile, excl);
 		
 	}

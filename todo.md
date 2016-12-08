@@ -9,6 +9,12 @@
     - ~~test step happens after each batch in each epoch -> bad~~
     - instead should run after complete training step on a clearly/cleanly separated test set
     - results so far are questionable
+- relook into training set generation
+  - optimise
+  - take stuff out that is no longer needed
+  - make sure all exceptions are properly handled
+    - take uncecheck exceptions into account: ProB errors and stuff
+    - decide between bad predicates and bad files
 - ~~reorganise the structure of NeuroB Nets to make them more Plug and Play~~
   - make use of the newly generated interfaces and classes
     - training data collector as interface seems okay
@@ -27,7 +33,9 @@
 - Test cases for training data generation
   - small example files should suffice
   - think about solution to compare Code Portfolios
-- change handling in Cli of neural nets
-  - allow to give custom seed(s) for RNG
-  - training multiple nets with different seeds should create the next net after the previous one has finished training
+- update cli
+  - iterate about some options, like single training file generation and if this is still necessary
+  - change handling in Cli of neural nets
+    - allow to give custom seed(s) for RNG
+    - training multiple nets with different seeds should create the next net after the previous one has finished training
 - update java doc
