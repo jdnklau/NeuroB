@@ -58,6 +58,30 @@ public class PredicateFeaturesTest {
 		
 		assertEquals("Generated features do not match",expected, actual);
 	}
+
+	@Test
+	public void getFeatureArray() throws IOException, BException, NeuroBException{
+		AbstractElement mainComp;
+		StateSpace ss;
+		
+		ss = api.b_load(resource.toString());
+		
+		mainComp = ss.getMainComponent();
+		ss.kill();
+		
+		PredicateCollector pc = new PredicateCollector(mainComp);
+		List<String> invariants = pc.getInvariants();
+		
+		String pred = String.join("&", invariants);
+		
+		PredicateFeatures f = new PredicateFeatures();
+		
+		double[] actual = f.generateFeatureArray(pred);
+		double[] expected = new double[]{0.,5.,1.,1.,9.,0.,0.,0.,6.,0.,0.,6.,4.,2.,0.,1.,0.}; 
+									//   0, 5, 1, 1, 9, 0, 0, 0, 6, 0, 0, 6, 4, 2, 0, 1, 0";
+		
+		assertArrayEquals("Generated features do not match",expected, actual, 0.0001);
+	}
 	
 	/**
 	 * This test is intended to check that the feature dimension returned matches the size of the output vector
@@ -67,14 +91,18 @@ public class PredicateFeaturesTest {
 	public void featureDimensionTest() throws NeuroBException{
 		PredicateFeatures f = new PredicateFeatures();
 		
-		f.addData(testpred);
-		
-		String res = f.getFeatureStrings().get(0);
+		String res = f.generateFeatureString(testpred);
 		
 		int actual = res.split(",").length;
 		int expected = f.getfeatureDimension();
 		
-		assertEquals("Feature dimensions do not match", expected, actual);
+		assertEquals("Feature dimensions do not match for String representation", expected, actual);
+		
+		actual = f.generateFeatureArray(testpred).length;
+		assertEquals("Feature dimensions do not match for double[] representation", expected, actual);
+		
+		actual = f.generateFeatureNDArray(testpred).length();
+		assertEquals("Feature dimensions do not match for INDArray representation", expected, actual);
 	}
 
 }

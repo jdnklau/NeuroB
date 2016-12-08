@@ -3,6 +3,8 @@ package neurob.core.features;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.Features;
@@ -24,16 +26,30 @@ public class PredicateFeatures implements Features {
 		features = new ArrayList<String>();
 	}
 	
-	@Override
-	public String generateFeatureString(String predicate) throws NeuroBException {
+	private PredicateFeatureData generatePredicateFeatureData(String predicate) throws NeuroBException{
 		PredicateFeatureData pfd;
 		try {
 			pfd = new PredicateFeatureData(predicate);
 		} catch (BException e) {
 			throw new NeuroBException("Could not generate feature string from predicate: "+predicate, e);
 		}
-		
-		return pfd.toString();
+		return pfd;
+	}
+	
+	@Override
+	public INDArray generateFeatureNDArray(String predicate) throws NeuroBException {
+
+		return generatePredicateFeatureData(predicate).toNDArray();
+	}
+	
+	@Override
+	public double[] generateFeatureArray(String predicate) throws NeuroBException {
+		return generatePredicateFeatureData(predicate).toArray();
+	}
+	
+	@Override
+	public String generateFeatureString(String predicate) throws NeuroBException {
+		return generatePredicateFeatureData(predicate).toString();
 	}
 	
 	@Override

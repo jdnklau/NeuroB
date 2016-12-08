@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import org.datavec.api.util.ClassPathResource;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BException;
@@ -112,6 +114,33 @@ public class PredicateFeatureData {
 		return features.stream()
 				.map(i -> i.toString())
 				.collect(Collectors.joining(","));
+	}
+	
+	public double[] toArray(){
+		double[] features = new double[]{
+				fArithmOperatorsCount,
+				fCompOperatorsCount,
+				fForAllQuantifiersCount,
+				fExistsQuantifiersCount,
+				fConjunctionsCount,
+				fDisjunctionsCount,
+				fNegationsCount,
+				fSetOperatorsCount,
+				fSetMemberCount,
+				fFunctionsCount,
+				fRelationOperatorsCount,
+				getUniqueIdentifiersCount(),
+				ids.getFiniteDomainIdentifiersCount(),
+				ids.getInfiniteDomainIdentifiersCount(),
+				ids.getUnknownDomainSizeIdentifiersCount(),
+				fImplicationsCount,
+				fEquivalencesCount
+		};
+		return features;
+	}
+	
+	public INDArray toNDArray(){
+		return Nd4j.create(toArray());
 	}
 	
 	/**

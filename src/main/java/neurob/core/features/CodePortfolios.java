@@ -7,6 +7,9 @@ import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.exceptions.NeuroBException;
 
@@ -24,7 +27,17 @@ public class CodePortfolios implements ConvolutionFeatures {
 		pixels = dim*dim;
 		features = new ArrayList<BufferedImage>();
 	}
-
+	
+	@Override
+	public double[] generateFeatureArray(String predicate) throws NeuroBException {
+		return translateImageFeatureToArray(generateFeatureImage(predicate));
+	}
+	
+	@Override
+	public INDArray generateFeatureNDArray(String predicate) throws NeuroBException {
+		return Nd4j.create(translateImageFeatureToArray(generateFeatureImage(predicate)));
+	}
+	
 	@Override
 	public String generateFeatureString(String predicate) throws NeuroBException {
 		return translateImageFeatureToString(generateFeatureImage(predicate));
@@ -66,6 +79,21 @@ public class CodePortfolios implements ConvolutionFeatures {
 		
 		// return image
 		return scaled;
+	}
+	
+	private double[] translateImageFeatureToArray(BufferedImage image){
+		// return a double[]
+		double[] data = new double[pixels];
+		
+		WritableRaster raster = image.getRaster();
+		for(int y=0; y<dim; y++){
+			for(int x = 0; x<dim; x++){
+				int px[] = raster.getPixel(x, y, new int[]{0});
+				data[x+y*dim] = px[0];
+			}
+		}
+		
+		return data;
 	}
 	
 	private String translateImageFeatureToString(BufferedImage image){
