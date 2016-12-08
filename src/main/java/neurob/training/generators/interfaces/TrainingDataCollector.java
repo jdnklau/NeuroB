@@ -13,6 +13,7 @@ import de.be4.classicalb.core.parser.exceptions.BException;
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
+@Deprecated
 public interface TrainingDataCollector {
 	
 	/**

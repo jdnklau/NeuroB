@@ -33,6 +33,7 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
 
+@Deprecated
 public class SolverClassificationDataCollector implements TrainingDataCollector {
 	private PredicateFeatureCollector fc;
 	private Api api;
