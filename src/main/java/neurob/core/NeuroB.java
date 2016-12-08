@@ -1,16 +1,12 @@
 package neurob.core;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Random;
 
 import org.datavec.api.records.reader.RecordReader;
-import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
-import org.datavec.api.split.FileSplit;
-import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -19,14 +15,12 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
-import neurob.core.nets.PredicateSolverPredictionNet;
-import neurob.core.nets.interfaces.NeuroBNet;
+import neurob.core.nets.NeuroBNet;
 import neurob.training.TrainingSetGenerator;
-import neurob.training.generators.interfaces.TrainingDataCollector;
 
 /**
  * <p>Main class of NeuroB to use</p>
- * <p>Internally this class wraps a neural network of user's choice and provides additional functionallity
+ * <p>Internally this class wraps a neural network of user's choice and provides additional functionality
  * like training, trainingset generation, and more.
  * </p>
  * <p>On creating a new instance, the constructor expects an object implementing the 
@@ -92,8 +86,7 @@ public class NeuroB {
 	 */
 	public void train(Path sourceCSV) throws IOException, InterruptedException{
 		// set up training data
-		RecordReader recordReader = nbn.getRecordReader(sourceCSV);
-		DataSetIterator iterator = nbn.getDataSetIterator(recordReader);
+		DataSetIterator iterator = nbn.getDataSetIterator(sourceCSV, 1000);
 		
 		// set up normalizer
 		DataNormalization normalizer = new NormalizerStandardize();
@@ -141,7 +134,7 @@ public class NeuroB {
 		}
 		
 		// Evaluate on test set
-		Evaluation eval = new Evaluation(nbn.getLabelSize());
+		Evaluation eval = new Evaluation(nbn.getOutputSize());
 		iterator.reset();
 		while(iterator.hasNext()){
 			DataSet batch = iterator.next();
@@ -168,18 +161,6 @@ public class NeuroB {
 	}
 	
 	/**
-	 * <p>Safes the neural net used into a file</p>
-	 * <p>The file's location will be <i>nnets/<name of NeuroBNet class used>/{@code name}</i>. 
-	 * The convention is to use <i>.nnet</i> as file extension.</p>
-	 * @param name
-	 * @throws IOException 
-	 */
-	public void safeToFile(String name) throws IOException{
-		Path nnetfile = Paths.get("nnets/"+nbn.getClass().getSimpleName()+"/"+name);
-		nbn.safeToFile(nnetfile);
-	}
-	
-	/**
 	 * <p>Generates the training data by iterating over all *.mch files in the given source directory 
 	 * and generates corresponding *.nbtrain files in the target directory.
 	 * </p>
@@ -202,8 +183,7 @@ public class NeuroB {
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile) {
 		// set up generator
-		TrainingDataCollector tdc = nbn.getTrainingDataCollector();
-		TrainingSetGenerator tsg = new TrainingSetGenerator(tdc);
+		TrainingSetGenerator tsg = nbn.getTrainingSetGenerator();
 		// set up training data directory
 		Path fullTargetDirectory = targetDirectory.resolve(nbn.getClass().getSimpleName());
 		

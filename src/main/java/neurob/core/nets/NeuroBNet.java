@@ -1,0 +1,220 @@
+package neurob.core.nets;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Random;
+
+import org.datavec.api.records.reader.RecordReader;
+import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
+import org.datavec.api.split.FileSplit;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
+import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
+
+import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.exceptions.NeuroBException;
+import neurob.training.TrainingSetGenerator;
+import neurob.training.generators.interfaces.LabelGenerator;
+
+public class NeuroBNet {
+	// Network specifics
+	protected MultiLayerNetwork model; // Model in use
+	protected FeatureGenerator features; // Features in use
+	protected LabelGenerator labelgen; // Label generator in use of training set generation
+	
+	
+	/**
+	 * Set up your deeplearning4j {@link MultiLayerNetwork} and use it as NeuroB class
+	 * @param model The model to use
+	 * @param features The feature class to use
+	 * @param labelling The classification approach used --- necessary for training set generation
+	 */
+	public NeuroBNet(MultiLayerNetwork model, FeatureGenerator features, LabelGenerator labelling) {
+		this.model = model;
+		this.features = features;
+		this.labelgen = labelling;
+	}
+	
+	/**
+	 * Creates a neural network with given structure and a random seed.
+	 * <p>
+	 * See {@link #NeuroBNet(int[], double, FeatureGenerator, LabelGenerator, int)} for more details, as this only
+	 * generates a random seed an call that constructor instead.
+	 * @param hiddenLayers
+	 * @param learningRate
+	 * @param features
+	 * @param labelling
+	 */
+	public NeuroBNet(int[] hiddenLayers, double learningRate, FeatureGenerator features, LabelGenerator labelling) {
+		this(hiddenLayers, learningRate, features, labelling, new Random().nextInt());
+		
+	}
+	
+	/**
+	 * Creates a neural network with given structure.
+	 * <p>
+	 * {@code hiddenLayers} parameter gives structure of the neural net. For each entry in the array, a hidden layer with the entry's value of neurons will be created.
+	 * They are stacked onto each other according to the index in the array.
+	 * <br>
+	 * For example:
+	 * {1000, 500, 200} would create a neural net with three hidden layers. The first one having 1000 neurons, the second one having 500 neurons, 
+	 * and the third one having 200 neurons.
+	 * <br>
+	 * The network has to have at least one hidden layer.
+	 * @param hiddenLayers Structure to be build
+	 * @param learningRate Learning rate to be used
+	 * @param features
+	 * @param labelling
+	 * @param seed
+	 */
+	public NeuroBNet(int[] hiddenLayers, double learningRate, FeatureGenerator features, LabelGenerator labelling, int seed) {
+		
+		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
+        .seed(seed)
+        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+        .iterations(1)
+        .learningRate(learningRate)
+        .updater(Updater.NESTEROVS).momentum(0.9)
+        .regularization(true).l2(1e-4)
+        .list();
+        
+		// Set up layers
+		if(hiddenLayers.length == 0) { 
+			// no hidden layers
+			throw new IllegalArgumentException("NeuroBNet needs to have hidden layers, but an empty array was given.");
+		}
+		else {
+			// hidden layers!
+			
+			int lastOut = features.getfeatureDimension();
+			
+			for(int i=0; i<hiddenLayers.length; i++){
+				listBuilder = listBuilder.layer(i, new DenseLayer.Builder()
+						.nIn(lastOut)
+						.nOut(hiddenLayers[i])
+						.activation("relu")
+						.weightInit(WeightInit.XAVIER)
+						.build());
+				lastOut = hiddenLayers[i];
+			}
+			
+			// Output layer
+			listBuilder.layer(hiddenLayers.length, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
+					.nIn(lastOut)
+					.nOut(labelling.getLabelDimension())
+					.activation("softmax")
+					.weightInit(WeightInit.XAVIER)
+					.build())
+			.pretrain(false).backprop(true);
+		}
+        
+		
+		
+		this.model = new MultiLayerNetwork(listBuilder.build());
+		this.features = features;
+		this.labelgen = labelling;
+	}
+	
+	/**
+	 * Load an already existing {@link MultiLayerNetwork} from file and use it
+	 * @param modelFile Path to the model file
+	 * @param features
+	 * @param labelling
+	 * @throws IOException
+	 */
+	public NeuroBNet(Path modelFile, FeatureGenerator features, LabelGenerator labelling) throws IOException{
+		this.model = ModelSerializer.restoreMultiLayerNetwork(modelFile.toFile());;
+		this.features = features;
+		this.labelgen = labelling;
+	}
+	
+	/**
+	 * Insert data to train your network on
+	 * @param data
+	 */
+	public void fit(DataSet data){
+		model.fit(data);
+	}
+	
+	/**
+	 * Input predicate to the model and get prediction.
+	 * @param predicate
+	 * @return
+	 * @throws NeuroBException
+	 */
+	public INDArray output(String predicate) throws NeuroBException{
+		return model.output(features.generateFeatureNDArray(predicate));
+	}
+	
+	public INDArray output(INDArray dataArray) {
+		return model.output(dataArray);
+	}
+	
+	/**
+	 * Returns a {@link TrainingSetGenerator} instance, that can be used to generate a training set for this network.
+	 * @return
+	 */
+	public TrainingSetGenerator getTrainingSetGenerator(){
+		return new TrainingSetGenerator(features, labelgen);
+	}
+	
+	public int getInputSize(){
+		return features.getfeatureDimension();
+	}
+	
+	public int getOutputSize(){
+		return labelgen.getLabelDimension();
+	}
+	
+	/**
+	 * 
+	 * @return Number of classes the net differentiates
+	 */
+	public int getClassificationSize(){
+		return labelgen.getClassCount();
+	}
+	
+	/**
+	 * Returns an iterator for the given data set.
+	 * <p>
+	 * It is assumed that the csv file's first row consists of column headers and thus it is ignored.
+	 * @param csvFile The data set to use.
+	 * @param batchSize
+	 * @return
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	public DataSetIterator getDataSetIterator(Path csvFile, int batchSize) throws IOException, InterruptedException{
+		// set up record reader
+		RecordReader recordReader = new CSVRecordReader(1,","); // skip first line (header line)
+		recordReader.initialize(new FileSplit(csvFile.toFile()));
+		
+		return labelgen.getDataSetIterator(recordReader, batchSize, features.getfeatureDimension());
+	}
+	
+	/**
+	 * Returns a string, representing an identifying path with respect to the feature and label generation used.
+	 * <p>
+	 * This is intended to be used e.g. in the training data creation, to store different data sets more easily at
+	 * semantically fitting locations.
+	 * @return String containing Neural Net class name, label generator class name, feature generator class name, separated and followed by '/', in this order
+	 */
+	public String getDataPathName(){
+		return this.getClass().getSimpleName()
+				+"/" + labelgen.getClass().getSimpleName()
+				+"/" +features.getClass().getSimpleName()
+				+"/";
+	}
+
+}

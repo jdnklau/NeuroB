@@ -20,10 +20,23 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.inject.Inject;
+
 import de.be4.classicalb.core.parser.exceptions.BException;
+import de.prob.Main;
+import de.prob.animator.command.CbcSolveCommand;
+import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.exception.ProBError;
+import de.prob.model.representation.AbstractElement;
+import de.prob.scripting.Api;
+import de.prob.statespace.StateSpace;
+import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.exceptions.NeuroBException;
 import neurob.logging.NeuroBLogFormatter;
+import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.TrainingDataCollector;
+import neurob.training.generators.util.FormulaGenerator;
+import neurob.training.generators.util.PredicateCollector;
 
 /**
  * Class to generate the training data for the neural net.
@@ -44,10 +57,16 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
  *
  */
 public class TrainingSetGenerator {
+	// Training data handling
+	private FeatureGenerator fg; // Feature generator in use
+	private LabelGenerator lg; // Label generator in use
 	private TrainingDataCollector tdc; // used collector of training data
-	private int limit; // only this much files are generated (or looked into in th first place)
+	// FInding the api
+	protected Api api;
+	// statistics
 	private int fileCounter; // number of files seen
 	private int fileProblemsCounter; // number of files which caused problems
+	// logger
 	private static final Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
 	
 	static {
@@ -76,6 +95,7 @@ public class TrainingSetGenerator {
 	 * 
 	 * @param trainingDataCollector Instance of the training collection to be used
 	 */
+	@Deprecated
 	public TrainingSetGenerator(TrainingDataCollector trainingDataCollector) {
 		tdc = trainingDataCollector;
 		
@@ -84,6 +104,22 @@ public class TrainingSetGenerator {
 		
 		fileCounter = 0;
 		fileProblemsCounter = 0;
+	}
+	
+	/**
+	 * Set up a training set generator, using the given feature generator and label generator
+	 * @param featureGenerator
+	 * @param labelGenerator
+	 */
+	@Inject
+	public TrainingSetGenerator(FeatureGenerator featureGenerator, LabelGenerator labelGenerator){
+		fg = featureGenerator;
+		lg = labelGenerator;
+		
+		fileCounter = 0;
+		fileProblemsCounter = 0;
+		
+		api = Main.getInjector().getInstance(Api.class);
 	}
 	
 	/**
@@ -199,6 +235,62 @@ public class TrainingSetGenerator {
 		
 	}
 	
+	protected void collectTrainingData(Path sourceFile, Path targetFile) throws NeuroBException{
+		// StateSpace and main component
+		StateSpace ss = null;
+		AbstractElement mainComp;
+		// For the formula and ProB command to use
+		ArrayList<String> formulae;
+		ClassicalB f; // formula as EventB formula
+		CbcSolveCommand cmd;
+		
+		// Access source file
+		try{
+			logger.info("\tLoading machine...");
+			ss = api.b_load(sourceFile.toString());
+		}catch(Exception e) {
+			throw new NeuroBException("Could not load machine correctly.", e);
+		}
+		
+		// Get different formulas
+		mainComp = ss.getMainComponent();	// extract main component
+		PredicateCollector predc = new PredicateCollector(mainComp);
+		formulae = FormulaGenerator.extendedGuardFormulas(predc);
+		logger.info("\tGenerated "+formulae.size()+" formulas to solve.");
+		
+		// generate data per formula
+		ArrayList<String> results = new ArrayList<String>();
+		int count = formulae.size();
+		int curr = 1;
+		for( String formula : formulae) {
+			logger.info("\tAt "+(curr++)+"/"+count+"...");
+			
+			try {
+				// features:labeling vector:comment
+				results.add(fg.generateFeatureString(formula)+":"+lg.generateLabelling(formula, ss)+":\""+formula+"\"");
+			} catch (NeuroBException e) {
+				logger.warning(e.getMessage());
+			}
+		}
+		
+		// close StateSpace
+		ss.kill();
+		
+		// open target file
+		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
+			// write feature vector to stream
+			logger.info("\tWriting training data...");
+			for(String res : results){
+				out.write(res);
+				out.newLine();
+				out.flush();
+			}
+		} catch (IOException e) {
+			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
+		}
+				
+	}
+	
 	/**
 	 * Generates a file containing feature data found in the source file,
 	 * and writes them to the target file.
@@ -208,7 +300,7 @@ public class TrainingSetGenerator {
 	public void generateTrainingDataFile(Path source, Path target){
 		logger.info("Generating: "+source+" > "+target);
 		Path targetDirectory = target.getParent();
-		// ensure existance of target directory
+		// ensure existence of target directory
 		try {
 			Files.createDirectories(targetDirectory);
 		} catch (IOException e) {
@@ -217,17 +309,15 @@ public class TrainingSetGenerator {
 		}
 		// create file
 		try {
-			tdc.collectTrainingData(source, target);
+			collectTrainingData(source, target);
 			logger.fine("\tDone: "+target);
 			return;
-		} catch (BException e) {
-			logger.warning("\tCould not parse "+source+": "+e.getMessage());
 		} catch (ProBError e) {
 			logger.warning("\tProBError on "+source+": "+e.getMessage());
-		} catch (IOException e) {
-			logger.warning("\tCould not access file: "+e.getMessage());
 		} catch (IllegalStateException e) {
 			logger.severe("\tReached illegal state while processing: "+e.getMessage());
+		} catch (NeuroBException e) {
+			logger.severe("\t"+e.getMessage());
 		}
 		fileProblemsCounter++;
 	}
@@ -243,10 +333,10 @@ public class TrainingSetGenerator {
 			BufferedWriter csv = Files.newBufferedWriter(target);
 			
 			// set header
-			for(int i=0; i<tdc.getNumberOfFeatures(); i++){
+			for(int i=0; i<fg.getfeatureDimension(); i++){
 				csv.write("Feature"+i+",");
 			}
-			for(int i=0; i< tdc.getNumberOfLabels(); i++){
+			for(int i=0; i< lg.getLabelDimension(); i++){
 				csv.write("Label"+i+",");
 			}
 			csv.newLine();
@@ -267,9 +357,7 @@ public class TrainingSetGenerator {
 									String[] data = l.split(":");
 									String[] features = data[0].split(",");
 									String[] labels = data[1].split(",");
-//									String[] entries = l.split(",|:");
-//									if(entries.length <tdc.getNumberOfFeatures()+tdc.getNumberOfLabels()){
-									if(features.length+labels.length <tdc.getNumberOfFeatures()+tdc.getNumberOfLabels()){
+									if(features.length+labels.length < fg.getfeatureDimension()+lg.getLabelDimension()){
 										throw new Exception("Size of training vector does not match!");
 									}
 									boolean write = true;
