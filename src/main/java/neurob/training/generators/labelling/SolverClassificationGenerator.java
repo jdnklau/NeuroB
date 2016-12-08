@@ -3,7 +3,6 @@ package neurob.training.generators.labelling;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 import com.google.inject.Inject;
 
@@ -12,14 +11,41 @@ import de.prob.Main;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
-import neurob.core.features.PredicateFeatureCollector;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
+/**
+ * For given predicates, calculates a multi-labelling that indicates for each solver, whether the predicate is decidable with it.
+ * <p>
+ * Via constructor control what solvers shall the predicates be tested for, 
+ * then continue by inputing a predicate, to generate the labelling vector.
+ * <p>
+ * Usage example:
+ * <pre><code>
+ * // set up state space
+ * StateSpace stateSpace = ...
+ * 
+ * // What solvers should be classified for?
+ * boolean classifyProB = true;
+ * boolean classifyKodKod = true;
+ * boolean classifyProBZ3 = false;
+ * 
+ * // Create SolverClassificationGenerator instance
+ * SolverClassificationGenerator labelgen = new SolverClassificationGenerator(classifyProB, classifyKodKod, classifyProBZ3);
+ * 
+ * // Use it to solve predicates
+ * String pred = "x : NAT & x > 4";
+ * labels = labelgen(pred, stateSpace); // => "1,1"
+ *
+ *  </code></pre>
+ * @author jannik
+ * @see SolverSelectionGenerator
+ * @See {@link #SolverClassificationGenerator(boolean, boolean, boolean)}
+ *
+ */
 public class SolverClassificationGenerator implements LabelGenerator {
 	private int labelledClasses; // How many classes are differentiated
-	private PredicateFeatureCollector fc;
 	private Api api;
 	// what to classify
 	private boolean decideProB;
