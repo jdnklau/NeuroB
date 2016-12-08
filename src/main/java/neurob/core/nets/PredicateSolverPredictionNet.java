@@ -26,6 +26,7 @@ import neurob.core.nets.interfaces.NeuroBNet;
 import neurob.training.generators.SolverClassificationDataCollector;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
+@Deprecated
 public class PredicateSolverPredictionNet implements NeuroBNet {
 	// Network related
 	private MultiLayerNetwork model;

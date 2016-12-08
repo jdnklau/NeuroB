@@ -27,6 +27,7 @@ import neurob.training.generators.SolverClassificationDataCollector;
 import neurob.training.generators.SolverClassificationDataCollectorWithCodePortfolio;
 import neurob.training.generators.interfaces.TrainingDataCollector;
 
+@Deprecated
 public class PredicateSolverPredictionWithCodePortfolioNet implements NeuroBNet {
 	// Network related
 	private MultiLayerNetwork model;

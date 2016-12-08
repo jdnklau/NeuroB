@@ -36,6 +36,7 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
  * @author jannik
  *
  */
+@Deprecated
 public class KodKodPredictionWithCodePortfolioNet implements NeuroBNet {
 	// Network related
 	private MultiLayerNetwork model;
