@@ -7,10 +7,10 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.statespace.StateSpace;
-import neurob.core.features.interfaces.Features;
+import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 
-public class PredicateFeatures implements Features {
+public class PredicateFeatures implements FeatureGenerator {
 	
 	public static final int featureDimension = 17; // Dimension of feature vectors
 	private ArrayList<String> features; // The stored features

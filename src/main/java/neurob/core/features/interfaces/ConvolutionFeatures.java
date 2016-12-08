@@ -14,10 +14,10 @@ import neurob.exceptions.NeuroBException;
  * Generates the features of a given predicate. The predicate is translated into a corresponding image,
  * to be used by a convolutional neural network
  * @author jannik
- * @see Features
+ * @see FeatureGenerator
  *
  */
-public interface ConvolutionFeatures extends Features {
+public interface ConvolutionFeatures extends FeatureGenerator {
 	
 	/**
 	 * Generates the features of the given predicate and returns them as image,

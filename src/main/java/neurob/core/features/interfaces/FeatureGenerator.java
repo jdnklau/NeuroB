@@ -33,7 +33,7 @@ import neurob.exceptions.NeuroBException;
  * @author jannik
  *
  */
-public interface Features {
+public interface FeatureGenerator {
 	
 	/**
 	 * Generates the features of the given predicate and returns them as an {@link INDArray},
