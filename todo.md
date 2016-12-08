@@ -3,26 +3,31 @@
   - training set generation should automatically split data into train and test data
   - separate files
   - issues with current implementation:
-    - batches are in each epoch shuffeled randomly (same seed)
-    - then they are randomly split into train and test data (**no seed**)
-    - as this happens in each epoch, the epochs run on slightly different data each
-    - test step happens after each batch in each epoch -> bad
+    - ~~batches are in each epoch shuffled randomly (same seed)~~
+    - ~~then they are randomly split into train and test data (**no seed**)~~
+    - ~~as this happens in each epoch, the epochs run on slightly different data each~~
+    - ~~test step happens after each batch in each epoch -> bad~~
     - instead should run after complete training step on a clearly/cleanly separated test set
     - results so far are questionable
 - ~~reorganise the structure of NeuroB Nets to make them more Plug and Play~~
   - make use of the newly generated interfaces and classes
+    - training data collector as interface seems okay
+    - NeuroBNet class should return a suiting training data collector class
+    - main difference lays in whether convolutional net or not
+      - resolves to: how to save stuff
 - overhaul logging system
   - maybe switch to logging library
-  - stop using NeuroB-Trainingsetgenerator as only name for logfiles
+  - stop using NeuroB-Trainingsetgenerator as only name for log files
     - at least use only NeuroB
     - ideally have different names for different tasks
-- trainingset generation and analysisn of the set should inspect the labelings differently
-  - perhaps a list of how often an individual labeling was used instead of only checking if the outputs are all the same or not
+- training set generation and analysis of the set should inspect the labellings differently
+  - perhaps a list of how often an individual labelling was used instead of only checking if the outputs are all the same or not
   - allow a deeper analysis
-    - e.g. list predicates with the same features but different labelings
+    - e.g. list predicates with the same features but different labellings
 - Test cases for training data generation
   - small example files should suffice
   - think about solution to compare Code Portfolios
 - change handling in Cli of neural nets
   - allow to give custom seed(s) for RNG
   - training multiple nets with different seeds should create the next net after the previous one has finished training
+- update java doc
