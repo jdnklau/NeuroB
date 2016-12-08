@@ -23,6 +23,7 @@ import neurob.training.generators.interfaces.TrainingDataCollector;
  * @author jannik
  *
  */
+@Deprecated
 public interface NeuroBNet {
 	/**
 	 * Returns the number of features the neural net handles as input vector
