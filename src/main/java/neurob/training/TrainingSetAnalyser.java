@@ -1,48 +1,19 @@
 package neurob.training;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import neurob.logging.NeuroBLogFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TrainingSetAnalyser {
 	private int fileCount;
 	private int emptyFilesCount;
 	private int dataCount; // counts the lines in the found files, being the feature and target data
 	private int uninteresstingDataCount; // data lines having all target values as the same 
-	private static final Logger logger = Logger.getLogger(TrainingSetAnalyser.class.getName());
-	
-	static {
-		//** setting up logger
-		logger.setUseParentHandlers(false);
-		logger.setLevel(Level.FINE);
-		// log to console
-		ConsoleHandler ch = new ConsoleHandler();
-		ch.setFormatter(new NeuroBLogFormatter());
-		logger.addHandler(ch);
-		// log to logfile
-//		try {
-//			DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
-//			FileHandler fh = new FileHandler(
-//					"neurob_logs/NeuroB-TrainingSetAnalyser-"
-//					+dateFormat.format(new Date())
-//					+"-%u.log");
-//			fh.setFormatter(new NeuroBLogFormatter());
-//			logger.addHandler(fh);
-//		} catch (SecurityException | IOException e) {
-//			System.err.println("Could not greate file logger");
-//		}
-	}
+	private final Logger log = LoggerFactory.getLogger(TrainingSetAnalyser.class);
 	
 	public TrainingSetAnalyser(){
 		fileCount = 0;
@@ -57,7 +28,18 @@ public class TrainingSetAnalyser {
 	 * @param sourceDirectory
 	 */
 	public void analyseTrainingSet(Path sourceDirectory){
+		log.info("Analysing training data...");
 		analyseTrainingSet(sourceDirectory, false);
+		
+		int relevantFiles = fileCount-emptyFilesCount;
+		log.info("Files found: "+fileCount);
+		log.info("Of these were "+emptyFilesCount+" seemingly empty");
+		log.info("=> "+relevantFiles+" relevant files");
+		log.info("In the relevent filese were "+dataCount+" data vectors");
+		log.info("and of these serve "+uninteresstingDataCount+" vectors no informational gain");
+		
+		log.info("*****************************");
+		
 	}
 	public void analyseTrainingSet(Path sourceDirectory, boolean logRelevantFiles){
 		
@@ -104,13 +86,13 @@ public class TrainingSetAnalyser {
 		            					uninteresstingDataCount++; // => no informational gain by this data
 		            				} else if(logRelevantFiles) {
 		            					// Found interesting data
-		            					logger.info(entry.toString());
-		            					logger.info("\t"+line);
+		            					log.debug("Relevant file found: {}",entry.toString());
+		            					log.debug("\t"+line);
 		            				}
 		            				
 		            			});
 		            		} catch (IOException e){
-		            			logger.warning("Could not access "+entry+": "+e.getMessage());
+		            			log.warn("Could not access {}: {}", entry, e.getMessage());
 		            		}
 		            		
 	        				// no new data found
@@ -123,7 +105,7 @@ public class TrainingSetAnalyser {
 
 				});
 		} catch (IOException e) {
-			logger.severe("Could not access directory "+sourceDirectory+": "+e.getMessage());
+			log.error("Could not access directory {}: {}", sourceDirectory, e.getMessage());
 		}
     }
 	/**
@@ -142,16 +124,18 @@ public class TrainingSetAnalyser {
 		return b.toString();
 	}
 	
+	@Deprecated
 	public void logStatistics(){
-		logStatistics(logger);
+		logStatistics(log);
 	}
-	public void logStatistics(Logger l) {
+	@Deprecated
+	public void logStatistics(Logger log) {
 		int relevantFiles = fileCount-emptyFilesCount;
-		l.info("Files found: "+fileCount);
-		l.info("Of these were "+emptyFilesCount+" seemingly empty");
-		l.info("=> "+relevantFiles+" relevant files");
-		l.info("In the relevent filese were "+dataCount+" data vectors");
-		l.info("and of these serve "+uninteresstingDataCount+" vectors no informational gain");
+		log.info("Files found: "+fileCount);
+		log.info("Of these were "+emptyFilesCount+" seemingly empty");
+		log.info("=> "+relevantFiles+" relevant files");
+		log.info("In the relevent filese were "+dataCount+" data vectors");
+		log.info("and of these serve "+uninteresstingDataCount+" vectors no informational gain");
 	}
 
 }

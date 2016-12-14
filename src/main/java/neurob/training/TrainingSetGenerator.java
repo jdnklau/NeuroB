@@ -2,39 +2,27 @@ package neurob.training;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Inject;
 
-import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.Main;
-import de.prob.animator.command.CbcSolveCommand;
-import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.exception.ProBError;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
-import neurob.logging.NeuroBLogFormatter;
 import neurob.training.generators.interfaces.LabelGenerator;
-import neurob.training.generators.interfaces.TrainingDataCollector;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
 
@@ -60,51 +48,13 @@ public class TrainingSetGenerator {
 	// Training data handling
 	private FeatureGenerator fg; // Feature generator in use
 	private LabelGenerator lg; // Label generator in use
-	private TrainingDataCollector tdc; // used collector of training data
 	// FInding the api
 	protected Api api;
 	// statistics
 	private int fileCounter; // number of files seen
 	private int fileProblemsCounter; // number of files which caused problems
 	// logger
-	private static final Logger logger = Logger.getLogger(TrainingSetGenerator.class.getName());
-	
-	static {
-		//** setting up logger
-		logger.setUseParentHandlers(false);
-		logger.setLevel(Level.FINE);
-		// log to console
-		ConsoleHandler ch = new ConsoleHandler();
-		ch.setFormatter(new NeuroBLogFormatter());
-		logger.addHandler(ch);
-		// log to logfile
-		try {
-			DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
-			FileHandler fh = new FileHandler(
-					"neurob_logs/NeuroB-TrainingSetGenerator-"
-					+dateFormat.format(new Date())
-					+"-%u.log");
-			fh.setFormatter(new NeuroBLogFormatter());
-			logger.addHandler(fh);
-		} catch (SecurityException | IOException e) {
-			System.err.println("Could not greate file logger");
-		}
-	}
-	
-	/**
-	 * 
-	 * @param trainingDataCollector Instance of the training collection to be used
-	 */
-	@Deprecated
-	public TrainingSetGenerator(TrainingDataCollector trainingDataCollector) {
-		tdc = trainingDataCollector;
-		
-		// set Logger of tdc
-		tdc.setLogger(logger);
-		
-		fileCounter = 0;
-		fileProblemsCounter = 0;
-	}
+	private final Logger log = LoggerFactory.getLogger(TrainingSetGenerator.class);
 	
 	/**
 	 * Set up a training set generator, using the given feature generator and label generator
@@ -126,18 +76,15 @@ public class TrainingSetGenerator {
 	 * Adds an overview of the seen files to the log
 	 */
 	public void logStatistics(){
-		logger.info("******************************");
-		logger.info("Summary:");
-		logger.info("Seen:\t"+fileCounter+" .mch-files");
-		logger.info("\t"+fileProblemsCounter+" caused problems and could not be properly processed");
+		log.info("Summary of training set generation:");
+		log.info("Seen:\t{} .mch-files", fileCounter);
+		log.info("\t{} caused problems and could not be properly processed", fileProblemsCounter);
+		log.info("*****************************");
 	}
 	
 	public void logTrainingSetAnalysis(Path dir){
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		tsa.analyseTrainingSet(dir);
-		logger.info("******************************");
-		logger.info("Training Data Analysis:");
-		tsa.logStatistics(logger);
 	}
 	
 	/**
@@ -191,6 +138,7 @@ public class TrainingSetGenerator {
 	 * @param recursion If false, the subdirectories are not searched
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile, boolean recursion){
+		log.info("Generating training set from {} in {}", sourceDirectory, targetDirectory);
 		// prepare exclude data
 		ArrayList<Path> excludes = new ArrayList<Path>();
 		if(excludeFile != null){
@@ -201,7 +149,7 @@ public class TrainingSetGenerator {
 							.filter(s -> !s.isEmpty())
 							.map(s -> Paths.get(s)).collect(Collectors.toList()));
 			} catch (IOException e) {
-				logger.severe("Could not access exclude file: "+e.getMessage());
+				log.error("Could not access exclude file: {}", e.getMessage());
 			}
 		}
 		
@@ -228,9 +176,11 @@ public class TrainingSetGenerator {
 						}
 		            }
 				});
+			log.info("Finished training set generation");
+			log.info("******************************");
 	    }
 		catch (IOException e){
-			logger.severe("Could not access directory "+sourceDirectory+": "+e.getMessage());
+			log.error("Could not access directory {}: {}", sourceDirectory, e.getMessage());
 		}
 		
 	}
@@ -241,12 +191,10 @@ public class TrainingSetGenerator {
 		AbstractElement mainComp;
 		// For the formula and ProB command to use
 		ArrayList<String> formulae;
-		ClassicalB f; // formula as EventB formula
-		CbcSolveCommand cmd;
 		
 		// Access source file
 		try{
-			logger.info("\tLoading machine...");
+			log.info("\tLoading machine file {} ...", sourceFile);
 			ss = api.b_load(sourceFile.toString());
 		}catch(Exception e) {
 			throw new NeuroBException("Could not load machine correctly.", e);
@@ -256,30 +204,38 @@ public class TrainingSetGenerator {
 		mainComp = ss.getMainComponent();	// extract main component
 		PredicateCollector predc = new PredicateCollector(mainComp);
 		formulae = FormulaGenerator.extendedGuardFormulas(predc);
-		logger.info("\tGenerated "+formulae.size()+" formulas to solve.");
+		log.info("\tGenerated {} formulas to solve.", formulae.size());
 		
 		// generate data per formula
 		ArrayList<String> results = new ArrayList<String>();
 		int count = formulae.size();
 		int curr = 1;
 		for( String formula : formulae) {
-			logger.info("\tAt "+(curr++)+"/"+count+"...");
-			
+			log.info("\tAt {}/{}...", curr++, count);
 			try {
 				// features:labeling vector:comment
 				results.add(fg.generateFeatureString(formula)+":"+lg.generateLabelling(formula, ss)+":\""+formula+"\"");
 			} catch (NeuroBException e) {
-				logger.warning(e.getMessage());
+				log.warn("\t{}", e.getMessage());
+			} catch (IllegalStateException e) {
+				log.error("\tReached Illegal State: {}", e.getMessage());
 			}
 		}
 		
 		// close StateSpace
 		ss.kill();
 		
+		// No training data to write? -> return from method
+		// otherwise write to targetFile
+		if(results.isEmpty()){
+			log.info("\tNo training data created");
+			return;
+		}
+		
 		// open target file
 		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
 			// write feature vector to stream
-			logger.info("\tWriting training data...");
+			log.info("\tWriting training data...");
 			for(String res : results){
 				out.write(res);
 				out.newLine();
@@ -298,28 +254,29 @@ public class TrainingSetGenerator {
 	 * @param target
 	 */
 	public void generateTrainingDataFile(Path source, Path target){
-		logger.info("Generating: "+source+" > "+target);
+		log.info("Generating: {} > {}", source, target);
 		Path targetDirectory = target.getParent();
 		// ensure existence of target directory
 		try {
 			Files.createDirectories(targetDirectory);
 		} catch (IOException e) {
-			logger.severe("\tCould not create or access directory "+targetDirectory+": "+e.getMessage());
+			log.error("\tCould not create or access directory {}: {}", targetDirectory, e.getMessage());
 			return;
 		}
 		// create file
 		try {
 			collectTrainingData(source, target);
-			logger.fine("\tDone: "+target);
+			log.info("\tDone: {}", target);
 			return;
 		} catch (ProBError e) {
-			logger.warning("\tProBError on "+source+": "+e.getMessage());
+			log.warn("\tProBError on {}: {}", source, e.getMessage());
 		} catch (IllegalStateException e) {
-			logger.severe("\tReached illegal state while processing: "+e.getMessage());
+			log.error("\tReached illegal state while processing: {}", e.getMessage());
 		} catch (NeuroBException e) {
-			logger.severe("\t"+e.getMessage());
+			log.error("\t{}", e.getMessage());
 		}
-		fileProblemsCounter++;
+		log.info("\tStopped with errors: {}", target);
+		++fileProblemsCounter;
 	}
 
 	public void generateCSVFromNBTrainData(Path sourceDirectory, Path target){
@@ -358,7 +315,9 @@ public class TrainingSetGenerator {
 									String[] features = data[0].split(",");
 									String[] labels = data[1].split(",");
 									if(features.length+labels.length < fg.getfeatureDimension()+lg.getLabelDimension()){
-										throw new Exception("Size of training vector does not match!");
+										throw new NeuroBException("Size of training vector does not match, "
+												+ "expecting "+ fg.getfeatureDimension()+" features and " + lg.getLabelDimension()+" labels, "
+												+ "but got " +features.length + " and " + labels.length + " respectively");
 									}
 									boolean write = true;
 									if(ignoreWithSameLabeling){
@@ -375,13 +334,15 @@ public class TrainingSetGenerator {
 										csv.newLine();
 									}
 //									csv.write(l.replace(':', ',')+"\n");// replace : with , to get csv format
-								} catch (Exception e) {
-									logger.warning("Could not add a data vector from "+f+": "+e.getMessage());
-								} 
+								} catch (NeuroBException e) {
+									log.error("Could not add a data vector: {}", f, e.getMessage());
+								} catch (IOException e) {
+									log.error("Failed to write data vector to file: {}", e.getMessage());
+								}
 							});
 							csv.flush();
 						} catch(IOException e) {
-							logger.severe("Could not add data from "+f+": "+e.getMessage());
+							log.error("Could not add data from {}: {}", f, e.getMessage());
 						}
 					}
 					
@@ -389,7 +350,7 @@ public class TrainingSetGenerator {
 			});
 			
 		} catch (IOException e) {
-			logger.severe("Failed to setup CSV correctly: " +e.getMessage());
+			log.error("Failed to setup CSV correctly: {}", e.getMessage());
 		}
 	}
 	

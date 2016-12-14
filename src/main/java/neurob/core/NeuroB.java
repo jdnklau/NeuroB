@@ -14,6 +14,8 @@ import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import neurob.core.nets.NeuroBNet;
 import neurob.training.TrainingSetGenerator;
@@ -61,6 +63,8 @@ import neurob.training.TrainingSetGenerator;
  *
  */
 public class NeuroB {
+	private final Logger log = LoggerFactory.getLogger(NeuroB.class);
+	
 	private NeuroBNet nbn;
 	// RNG
 	private long seed = 12345;
@@ -85,8 +89,11 @@ public class NeuroB {
 	 * @throws IOException 
 	 */
 	public void train(Path sourceCSV) throws IOException, InterruptedException{
+		int batchSize = 1000;
+		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", sourceCSV, numEpochs, batchSize);
+		
 		// set up training data
-		DataSetIterator iterator = nbn.getDataSetIterator(sourceCSV, 1000);
+		DataSetIterator iterator = nbn.getDataSetIterator(sourceCSV, batchSize);
 		
 		// set up normalizer
 		DataNormalization normalizer = new NormalizerStandardize();
@@ -102,7 +109,7 @@ public class NeuroB {
 		
 		// train net on training data
 		for(int i=0; i<numEpochs; i++){
-			System.out.println("epoch "+i);
+			log.info("Training epoch {}", i+1);
         	iterator.reset();
 			while(iterator.hasNext()){
 				DataSet batch = iterator.next();
@@ -133,6 +140,10 @@ public class NeuroB {
 			}
 		}
 		
+		log.info("Done with training {} epochs", numEpochs);
+		log.info("******************************");
+		log.info("Evaluating the training results");
+		
 		// Evaluate on test set
 		Evaluation eval = new Evaluation(nbn.getOutputSize());
 		iterator.reset();
@@ -157,7 +168,12 @@ public class NeuroB {
             	eval.eval(next.getLabels(), output);
             }
 		}
-		System.out.println(eval.stats());
+		
+		// log evaluation results
+		log.info("\tAccuracy: {}", eval.accuracy());
+		log.info("\tPrecision: {}", eval.precision());
+		log.info("\tRecall: {}", eval.recall());
+		log.info("\tF1 score: {}", eval.f1());
 	}
 	
 	/**
