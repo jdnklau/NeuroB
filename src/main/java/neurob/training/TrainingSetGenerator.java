@@ -161,7 +161,7 @@ public class TrainingSetGenerator {
 			
 			
 			stream
-//				.parallel() // parallel computation
+				.parallel() // parallel computation
 				.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
 				.forEach(entry -> {
 	            	if(Files.isRegularFile(entry)){
