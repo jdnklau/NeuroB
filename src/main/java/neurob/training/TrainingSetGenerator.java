@@ -54,7 +54,7 @@ public class TrainingSetGenerator {
 	private int fileCounter; // number of files seen
 	private int fileProblemsCounter; // number of files which caused problems
 	// logger
-	private final Logger log = LoggerFactory.getLogger(TrainingSetGenerator.class);
+	private static final Logger log = LoggerFactory.getLogger(TrainingSetGenerator.class);
 	
 	/**
 	 * Set up a training set generator, using the given feature generator and label generator
@@ -255,6 +255,7 @@ public class TrainingSetGenerator {
 	 */
 	public void generateTrainingDataFile(Path source, Path target){
 		log.info("Generating: {} > {}", source, target);
+		
 		Path targetDirectory = target.getParent();
 		// ensure existence of target directory
 		try {

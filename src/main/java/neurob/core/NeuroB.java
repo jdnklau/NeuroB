@@ -63,7 +63,7 @@ import neurob.training.TrainingSetGenerator;
  *
  */
 public class NeuroB {
-	private final Logger log = LoggerFactory.getLogger(NeuroB.class);
+	private static final Logger log = LoggerFactory.getLogger(NeuroB.class);
 	
 	private NeuroBNet nbn;
 	// RNG

@@ -13,7 +13,7 @@ public class TrainingSetAnalyser {
 	private int emptyFilesCount;
 	private int dataCount; // counts the lines in the found files, being the feature and target data
 	private int uninteresstingDataCount; // data lines having all target values as the same 
-	private final Logger log = LoggerFactory.getLogger(TrainingSetAnalyser.class);
+	private static final Logger log = LoggerFactory.getLogger(TrainingSetAnalyser.class);
 	
 	public TrainingSetAnalyser(){
 		fileCount = 0;
