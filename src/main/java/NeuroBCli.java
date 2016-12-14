@@ -77,8 +77,9 @@ public class NeuroBCli {
 					+ "\tGenerate csv file from nbtrain files in <directory>\n"
 					+ "\tIf --ignoreEquallyLabeledEntries is set, all data vectors with multi classification, that map to each class are ignored\n"
 					
-					+ "trainnet -file <file> [-net <net>]\n"
-					+ "\tTrains a neural net with the given <file> (being a csv generated with this tool)\n"
+					+ "trainnet -train <trainingfile> -test <testfile> [-net <net>]\n"
+					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
+					+ "\tBoth files being csv files generated with this tool\n"
 					
 					+ "trainnet -file <file> -n <number> [-net <net>]\n"
 					+ "\tTrains <number> neural networks of type <net>, each with a different seed to begin with\n"
@@ -137,19 +138,25 @@ public class NeuroBCli {
 			}
 		}
 		else if(cmd.equals("trainnet")){
-			if(ops.containsKey("file")){
-				if(ops.containsKey("n")){
-					int num = Integer.parseInt(ops.get("n").get(0));
-					buildNets(num);
-				} else {
-					buildNet();
+			if(ops.containsKey("train")){
+				if(ops.containsKey("test")){
+					if(ops.containsKey("n")){
+						int num = Integer.parseInt(ops.get("n").get(0));
+						buildNets(num);
+					} else {
+						buildNet();
+					}
+					Path trainfile = Paths.get(ops.get("train").get(0));
+					Path testfile = Paths.get(ops.get("test").get(0));
+					trainNet(trainfile, testfile);
 				}
-				Path sourcefile = Paths.get(ops.get("file").get(0));
-				trainNet(sourcefile);
+				else {
+					System.out.println("trainnet: missing -test parameter");
+				}
 			}
 			// nope
 			else {
-				System.out.println("trainnet: missing -file parameter");
+				System.out.println("trainnet: missing -train parameter");
 			}
 		}
 		else if(cmd.equals("trainmultiplenets")){
@@ -293,14 +300,14 @@ public class NeuroBCli {
 	private static void analyseTrainingSet(Path dir, boolean logFiles){
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		tsa.analyseTrainingSet(dir, logFiles);
-		tsa.logStatistics();
 	}
 	
 	private static void trainingCSVGeneration(Path dir, boolean ignore){
 		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(true, true, true));
-		Path target = Paths.get("training_data/manual_call/data.csv");
+		Path train_target = Paths.get("training_data/manual_call/train_data.csv");
+		Path test_target = Paths.get("training_data/manual_call/test_data.csv");
 		
-		tsg.generateCSVFromNBTrainData(dir, target, ignore);
+		tsg.generateTrainAndTestCSVfromNBTrainData(dir, train_target, test_target, 0.65);
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {
@@ -309,10 +316,10 @@ public class NeuroBCli {
 		
 	}
 	
-	private static void trainNet(Path csv){
+	private static void trainNet(Path traincsv, Path testcsv){
 		for(NeuroB nb : nbs){
 			try {
-				nb.train(csv);
+				nb.train(traincsv, testcsv);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

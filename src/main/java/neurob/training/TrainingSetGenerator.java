@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -279,26 +280,40 @@ public class TrainingSetGenerator {
 		log.info("\tStopped with errors: {}", target);
 		++fileProblemsCounter;
 	}
-
-	public void generateCSVFromNBTrainData(Path sourceDirectory, Path target){
-		generateCSVFromNBTrainData(sourceDirectory, target, false);
-	}
 	
-	public void generateCSVFromNBTrainData(Path sourceDirectory, Path target, boolean ignoreWithSameLabeling){
+	/**
+	 * Creates two CSV files from the .nbtrain files in the given {@code sourceDirectory}.
+	 * <p>
+	 * With a probability of {@code triningRation}, the data will be put into the training file,
+	 * or in the test file otherwise.
+	 * @param sourceDirectory
+	 * @param train
+	 * @param test
+	 * @param trainingRatio Probability that data will be written into the training set
+	 */
+	public void generateTrainAndTestCSVfromNBTrainData(Path sourceDirectory, Path train, Path test, double trainingRatio){
+		Random rng = new Random(123);
+		
 		try (Stream<Path> stream = Files.walk(sourceDirectory)){
-			// Create CSV file
-			Files.createDirectories(target.getParent());
-			BufferedWriter csv = Files.newBufferedWriter(target);
+			// Create CSV files
+			Files.createDirectories(train.getParent());
+			Files.createDirectories(test.getParent());
+			BufferedWriter trainCsv = Files.newBufferedWriter(train);
+			BufferedWriter testCsv = Files.newBufferedWriter(test);
 			
-			// set header
+			// set headers
 			for(int i=0; i<fg.getfeatureDimension(); i++){
-				csv.write("Feature"+i+",");
+				trainCsv.write("Feature"+i+",");
+				testCsv.write("Feature"+i+",");
 			}
 			for(int i=0; i< lg.getLabelDimension(); i++){
-				csv.write("Label"+i+",");
+				trainCsv.write("Label"+i+",");
+				testCsv.write("Label"+i+",");
 			}
-			csv.newLine();
-			csv.flush();
+			trainCsv.newLine();
+			trainCsv.flush();
+			testCsv.newLine();
+			testCsv.flush();
 			
 			stream.forEach(f -> {
 				// check if .nbtrain file
@@ -320,28 +335,26 @@ public class TrainingSetGenerator {
 												+ "expecting "+ fg.getfeatureDimension()+" features and " + lg.getLabelDimension()+" labels, "
 												+ "but got " +features.length + " and " + labels.length + " respectively");
 									}
-									boolean write = true;
-									if(ignoreWithSameLabeling){
-										String pivot = labels[0];
-										write = false;
-										for(int i=1; !write & i<labels.length; i++){
-											if(!labels[i].equals(pivot)){
-												write = true;
-											}
-										}
+									
+									// decide file to write to
+									BufferedWriter targetCsv;
+									if(rng.nextDouble() <= trainingRatio){
+										targetCsv = trainCsv;
 									}
-									if(write){
-										csv.write(String.join(",", features)+","+String.join(",", labels));
-										csv.newLine();
+									else {
+										targetCsv = testCsv;
 									}
-//									csv.write(l.replace(':', ',')+"\n");// replace : with , to get csv format
+									// write to chosen file
+									targetCsv.write(String.join(",", features)+","+String.join(",", labels));
+									targetCsv.newLine();
 								} catch (NeuroBException e) {
 									log.error("Could not add a data vector: {}", f, e.getMessage());
 								} catch (IOException e) {
 									log.error("Failed to write data vector to file: {}", e.getMessage());
 								}
 							});
-							csv.flush();
+							trainCsv.flush();
+							testCsv.flush();
 						} catch(IOException e) {
 							log.error("Could not add data from {}: {}", f, e.getMessage());
 						}
@@ -353,6 +366,7 @@ public class TrainingSetGenerator {
 		} catch (IOException e) {
 			log.error("Failed to setup CSV correctly: {}", e.getMessage());
 		}
+		
 	}
 	
 	/**

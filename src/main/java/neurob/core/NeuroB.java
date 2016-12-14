@@ -84,27 +84,35 @@ public class NeuroB {
 	
 	/**
 	 * Trains the neural net with a CSV file.
-	 * @param sourceCSV
+	 * <p>
+	 * The test CSV is then used to evaluate the trained network.
+	 * @param trainCSV
+	 * @param testCSV
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path sourceCSV) throws IOException, InterruptedException{
+	public void train(Path trainCSV, Path testCSV) throws IOException, InterruptedException{
+		train(trainCSV);
+		test(testCSV);
+	}
+	
+	/**
+	 * Trains the neural net with a CSV file.
+	 * @param trainCSV
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	public void train(Path trainCSV) throws IOException, InterruptedException{
 		int batchSize = 1000;
-		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", sourceCSV, numEpochs, batchSize);
+		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainCSV, numEpochs, batchSize);
 		
 		// set up training data
-		DataSetIterator iterator = nbn.getDataSetIterator(sourceCSV, batchSize);
+		DataSetIterator iterator = nbn.getDataSetIterator(trainCSV, batchSize);
 		
 		// set up normalizer
-		DataNormalization normalizer = new NormalizerStandardize();
 		while(iterator.hasNext()){
 			DataSet batch = iterator.next();
-			int holdForTraining = (int)(batch.numExamples()*0.65);
-        	// split set
-        	batch.shuffle(seed);
-        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(holdForTraining, new Random(seed));  //Use 65% of data for training
-        	DataSet trainingData = testAndTrain.getTrain();
-        	normalizer.fit(trainingData);
+        	nbn.fitNormalizer(batch);
 		}
 		
 		// train net on training data
@@ -112,51 +120,28 @@ public class NeuroB {
 			log.info("Training epoch {}", i+1);
         	iterator.reset();
 			while(iterator.hasNext()){
-				DataSet batch = iterator.next();
-				int holdForTraining = (int)(batch.numExamples()*0.65);
-	        	// split set
-	        	batch.shuffle(seed);
-	        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(holdForTraining, new Random(seed));  //Use 65% of data for training
-	        	DataSet trainingData = testAndTrain.getTrain();
-//	        	DataSet testData = testAndTrain.getTest();
-	        	
-	        	// normalize data
-//	        	DataNormalization normalizer = new NormalizerStandardize();
-//	            normalizer.fit(trainingData);           //Collect the statistics (mean/stdev) from the training data. This does not modify the input data
-	            normalizer.transform(trainingData);     //Apply normalization to the training data
-//	            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
-	            
+				DataSet trainingData = iterator.next(); 
 	        	nbn.fit(trainingData);
-	            
-//	            // Evaluate results
-//	            Iterator<DataSet> it = testData.iterator();
-//	            
-//	            while(it.hasNext()){
-//	            	DataSet next = it.next();
-//	            	INDArray output = nbn.output(next.getFeatureMatrix());
-//	            	
-//	            	eval.eval(next.getLabels(), output);
-//	            }
 			}
 		}
 		
 		log.info("Done with training {} epochs", numEpochs);
 		log.info("******************************");
+	}
+	
+	public void test(Path testCSV) throws IOException, InterruptedException{
 		log.info("Evaluating the training results");
+		
+		int batchSize = 1000;
+		DataSetIterator iterator = nbn.getDataSetIterator(testCSV, batchSize);
 		
 		// Evaluate on test set
 		Evaluation eval = new Evaluation(nbn.getOutputSize());
 		iterator.reset();
 		while(iterator.hasNext()){
-			DataSet batch = iterator.next();
-			int holdForTraining = (int)(batch.numExamples()*0.65);
-        	// split set
-        	batch.shuffle(seed);
-        	SplitTestAndTrain testAndTrain = batch.splitTestAndTrain(holdForTraining, new Random(seed));  //Use 65% of data for training
-//        	DataSet trainingData = testAndTrain.getTrain();
-        	DataSet testData = testAndTrain.getTest();
+			DataSet testData = iterator.next();
             
-            normalizer.transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
+            nbn.getNormalizer().transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
         	
             // Evaluate results
             Iterator<DataSet> it = testData.iterator();
@@ -174,6 +159,7 @@ public class NeuroB {
 		log.info("\tPrecision: {}", eval.precision());
 		log.info("\tRecall: {}", eval.recall());
 		log.info("\tF1 score: {}", eval.f1());
+		log.info("******************************");
 	}
 	
 	/**
@@ -210,7 +196,7 @@ public class NeuroB {
 		tsg.logTrainingSetAnalysis(fullTargetDirectory);
 		
 		// generate csv
-		tsg.generateCSVFromNBTrainData(fullTargetDirectory, fullTargetDirectory.resolve("data.csv"));
+		tsg.generateTrainAndTestCSVfromNBTrainData(fullTargetDirectory, fullTargetDirectory.resolve("train_data.csv"), fullTargetDirectory.resolve("test_data.csv"), 0.65);
 	}
 
 }

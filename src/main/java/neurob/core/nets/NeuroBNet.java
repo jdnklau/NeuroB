@@ -19,6 +19,7 @@ import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.FeatureGenerator;
@@ -31,6 +32,9 @@ public class NeuroBNet {
 	protected MultiLayerNetwork model; // Model in use
 	protected FeatureGenerator features; // Features in use
 	protected LabelGenerator labelgen; // Label generator in use of training set generation
+	// Preprocessing
+	protected DataNormalization normalizer; // Normalizer used 
+	protected final boolean useNormalizer = true;
 	
 	
 	/**
@@ -139,10 +143,22 @@ public class NeuroBNet {
 	}
 	
 	/**
+	 * Model your normaliser on the training set
+	 * @param data
+	 */
+	public void fitNormalizer(DataSet data){
+		if(useNormalizer)
+			normalizer.fit(data);
+	}
+	
+	/**
 	 * Insert data to train your network on
 	 * @param data
 	 */
 	public void fit(DataSet data){
+		// normalize data
+		if(useNormalizer)
+			normalizer.transform(data);
 		model.fit(data);
 	}
 	
@@ -153,11 +169,15 @@ public class NeuroBNet {
 	 * @throws NeuroBException
 	 */
 	public INDArray output(String predicate) throws NeuroBException{
-		return model.output(features.generateFeatureNDArray(predicate));
+		return output(features.generateFeatureNDArray(predicate));
 	}
 	
 	public INDArray output(INDArray dataArray) {
 		return model.output(dataArray);
+	}
+	
+	public DataNormalization getNormalizer(){
+		return normalizer;
 	}
 	
 	/**
