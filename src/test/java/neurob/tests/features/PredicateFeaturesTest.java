@@ -12,10 +12,10 @@ import org.junit.Test;
 
 import com.google.inject.Inject;
 
-import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.Main;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
+import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.core.features.PredicateFeatures;
 import neurob.exceptions.NeuroBException;
@@ -35,7 +35,7 @@ public class PredicateFeaturesTest {
 	}
 
 	@Test
-	public void getFeatureStringTest() throws IOException, BException, NeuroBException{
+	public void getFeatureStringTest() throws IOException, NeuroBException, ModelTranslationError{
 		AbstractElement mainComp;
 		StateSpace ss;
 		
@@ -60,7 +60,7 @@ public class PredicateFeaturesTest {
 	}
 
 	@Test
-	public void getFeatureArray() throws IOException, BException, NeuroBException{
+	public void getFeatureArray() throws IOException, ModelTranslationError, NeuroBException{
 		AbstractElement mainComp;
 		StateSpace ss;
 		

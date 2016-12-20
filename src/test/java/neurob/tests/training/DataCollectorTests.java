@@ -15,6 +15,7 @@ import com.google.inject.Inject;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.Main;
 import de.prob.scripting.Api;
+import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.training.generators.SolverClassificationDataCollector;
 import neurob.training.generators.interfaces.TrainingDataCollector;
@@ -32,7 +33,7 @@ public class DataCollectorTests {
 	}
 	
 	@Test
-	public void extendedGuardFormulaeGeneration() throws IOException, BException{
+	public void extendedGuardFormulaeGeneration() throws IOException, ModelTranslationError{
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
 		
 		PredicateCollector pc = new PredicateCollector(ss.getMainComponent());

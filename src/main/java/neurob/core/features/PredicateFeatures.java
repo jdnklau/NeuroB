@@ -5,8 +5,7 @@ import java.util.List;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 
-import de.be4.classicalb.core.parser.exceptions.BException;
-import de.prob.statespace.StateSpace;
+import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 
@@ -30,7 +29,7 @@ public class PredicateFeatures implements FeatureGenerator {
 		PredicateFeatureData pfd;
 		try {
 			pfd = new PredicateFeatureData(predicate);
-		} catch (BException e) {
+		} catch (BCompoundException e) {
 			throw new NeuroBException("Could not generate feature string from predicate: "+predicate, e);
 		}
 		return pfd;

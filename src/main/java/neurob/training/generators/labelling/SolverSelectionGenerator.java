@@ -5,10 +5,10 @@ import java.nio.file.Path;
 
 import com.google.inject.Inject;
 
-import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.Main;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.scripting.Api;
+import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
@@ -107,8 +107,8 @@ public class SolverSelectionGenerator implements LabelGenerator {
 			ss = api.b_load(b_machine.toString());
 		} catch (IOException e) {
 			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
-		} catch (BException e) {
-			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
+		} catch (ModelTranslationError e) {
+			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
 		}
 		
 		// Use other method to calculate labelling
