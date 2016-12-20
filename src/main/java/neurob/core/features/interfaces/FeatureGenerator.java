@@ -36,6 +36,17 @@ import neurob.exceptions.NeuroBException;
 public interface FeatureGenerator {
 	
 	/**
+	 * Returns an identifying string of this generator.
+	 * <p>
+	 * This is e.g. used at training set generation, to save the training data generated with this features into a directory,7
+	 * that uniquely identifies with this string.
+	 * @return
+	 */
+	default public String getDataPathIdentifier(){
+		return this.getClass().getSimpleName();
+	}
+	
+	/**
 	 * Generates the features of the given predicate and returns them as an {@link INDArray},
 	 * without adding it to the intern feature list.
 	 * 

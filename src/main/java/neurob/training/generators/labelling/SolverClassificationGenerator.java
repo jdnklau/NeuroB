@@ -85,6 +85,19 @@ public class SolverClassificationGenerator implements LabelGenerator {
 		}
 		
 	}
+	
+	
+	@Override
+	public String getDataPathIdentifier() {
+		String res = LabelGenerator.super.getDataPathIdentifier();
+		if(decideProB)
+			res += "_ProB";
+		if(decideKodKod)
+			res += "_KodKod";
+		if(decideProBZ3)
+			res += "_Z3";
+		return res;
+	}
 
 	@Override
 	public int getClassCount() {

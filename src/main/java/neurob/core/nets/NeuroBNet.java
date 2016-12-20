@@ -231,8 +231,8 @@ public class NeuroBNet {
 	 */
 	public String getDataPathName(){
 		return this.getClass().getSimpleName()
-				+"/" + labelgen.getClass().getSimpleName()
-				+"/" +features.getClass().getSimpleName()
+				+"/" + labelgen.getDataPathIdentifier()
+				+"/" +features.getDataPathIdentifier()
 				+"/";
 	}
 

@@ -11,6 +11,16 @@ import neurob.exceptions.NeuroBException;
 
 public interface LabelGenerator {
 	
+	/**
+	 * Returns an identifying string of this generator.
+	 * <p>
+	 * This is e.g. used at training set generation, to save the training data generated with this features into a directory,7
+	 * that uniquely identifies with this string.
+	 * @return
+	 */
+	default public String getDataPathIdentifier(){
+		return this.getClass().getSimpleName();
+	}
 	
 	/**
 	 * Returns the number of different classes the label generator differentiates between.
