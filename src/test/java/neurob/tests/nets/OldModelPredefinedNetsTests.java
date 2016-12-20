@@ -18,112 +18,60 @@ public class OldModelPredefinedNetsTests {
 	Path tmpDirectory = Paths.get("src/test/resources/tmp/training_data/");
 
 	
-	@Test
-	public void KodKodPredictionTrainingTest() throws IOException, InterruptedException {
-		NeuroBNet net = PredefinedNet.getKodKodPredictionNet(0);
+	private void checkTrainingSetGeneration(NeuroBNet net)  throws IOException, InterruptedException {
 		NeuroB nb = new NeuroB(net);
-		
-		Path data = tmpDirectory.resolve(net.getDataPathName()).resolve("data.csv");
+
+		Path traindata = tmpDirectory.resolve(net.getDataPathName()).resolve("train_data.csv");
+		Path testdata = tmpDirectory.resolve(net.getDataPathName()).resolve("train_data.csv");
 		
 		// make sure data.csv does not exist
-		Files.deleteIfExists(data);
+		Files.deleteIfExists(traindata);
+		Files.deleteIfExists(testdata);
 		
 		nb.generateTrainingSet(trainingDirectory, tmpDirectory, null);
-		
-		assertTrue("Data Set not created", Files.exists(data));
+
+		assertTrue("Training Data Set not created", Files.exists(traindata));
+		assertTrue("Test Data Set not created", Files.exists(testdata));
 		
 		// delete directory
-		Files.deleteIfExists(data);
+		Files.deleteIfExists(traindata);
+		Files.deleteIfExists(testdata);
 	}
 	
 	@Test
-	public void KodKodPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
+	public void KodKodPredictionTrainingTest() throws IOException, InterruptedException {
+		NeuroBNet net = PredefinedNet.getKodKodPredictionNet(0);
+		checkTrainingSetGeneration(net);
+	}
+	
+	@Test
+	public void KodKodPredictionWithCodePortfolioTraiJaningTest() throws IOException, InterruptedException {
 		NeuroBNet net = PredefinedNet.getKodKodPredictionWithCodePortfolioNet(0);
-		NeuroB nb = new NeuroB(net);
-		
-		Path data = tmpDirectory.resolve(net.getDataPathName()).resolve("data.csv");
-		
-		// make sure data.csv does not exist
-		Files.deleteIfExists(data);
-		
-		nb.generateTrainingSet(trainingDirectory, tmpDirectory, null);
-		
-		assertTrue("Data Set not created", Files.exists(data));
-		
-		// delete directory
-		Files.deleteIfExists(data);
+		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
 	public void PredicateSolverPredictionTrainingTest() throws IOException, InterruptedException {
 		NeuroBNet net = PredefinedNet.getPredicateSolverPredictionNet(0);
-		NeuroB nb = new NeuroB(net);
-		
-		Path data = tmpDirectory.resolve(net.getDataPathName()).resolve("data.csv");
-		
-		// make sure data.csv does not exist
-		Files.deleteIfExists(data);
-		
-		nb.generateTrainingSet(trainingDirectory, tmpDirectory, null);
-		
-		assertTrue("Data Set not created", Files.exists(data));
-		
-		// delete directory
-		Files.deleteIfExists(data);
+		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
 	public void PredicateSolverPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
 		NeuroBNet net = PredefinedNet.getPredicateSolverPredictionWithCodePortfolioNet(0);
-		NeuroB nb = new NeuroB(net);
-		
-		Path data = tmpDirectory.resolve(net.getDataPathName()).resolve("data.csv");
-		
-		// make sure data.csv does not exist
-		Files.deleteIfExists(data);
-		
-		nb.generateTrainingSet(trainingDirectory, tmpDirectory, null);
-		
-		assertTrue("Data Set not created", Files.exists(data));
-		
-		// delete directory
-		Files.deleteIfExists(data);
+		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
 	public void PredicateSolverSelectionTrainingTest() throws IOException, InterruptedException {
 		NeuroBNet net = PredefinedNet.getPredicateSolverSelectionNet(0);
-		NeuroB nb = new NeuroB(net);
-		
-		Path data = tmpDirectory.resolve(net.getDataPathName()).resolve("data.csv");
-		
-		// make sure data.csv does not exist
-		Files.deleteIfExists(data);
-		
-		nb.generateTrainingSet(trainingDirectory, tmpDirectory, null);
-		
-		assertTrue("Data Set not created", Files.exists(data));
-		
-		// delete directory
-		Files.deleteIfExists(data);
+		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
 	public void PredicateSolverSelectionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
 		NeuroBNet net = PredefinedNet.getPredicateSolverSelectionWithCodePortfolioNet(0);
-		NeuroB nb = new NeuroB(net);
-		
-		Path data = tmpDirectory.resolve(net.getDataPathName()).resolve("data.csv");
-		
-		// make sure data.csv does not exist
-		Files.deleteIfExists(data);
-		
-		nb.generateTrainingSet(trainingDirectory, tmpDirectory, null);
-		
-		assertTrue("Data Set not created", Files.exists(data));
-		
-		// delete directory
-		Files.deleteIfExists(data);
+		checkTrainingSetGeneration(net);
 	}
 	
 }
