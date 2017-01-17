@@ -29,6 +29,11 @@ public class CodePortfolios implements ConvolutionFeatures {
 	}
 	
 	@Override
+	public String getDataPathIdentifier() {
+		return ConvolutionFeatures.super.getDataPathIdentifier() + dim;
+	}
+	
+	@Override
 	public double[] generateFeatureArray(String predicate) throws NeuroBException {
 		return translateImageFeatureToArray(generateFeatureImage(predicate));
 	}
