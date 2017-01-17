@@ -42,6 +42,9 @@ alltrainingsets :
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pspcp
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psscp
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkodcp
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pspcp -size 32
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psscp -size 32
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkodcp -size 32
 
 distributedlibraryfile :
 	@echo "***** Ensuring existence of LibraryIO.def in respective directories"
