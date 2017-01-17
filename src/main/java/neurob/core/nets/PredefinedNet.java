@@ -58,9 +58,9 @@ public class PredefinedNet {
 				seed);
 	}
 	
-	public static NeuroBNet getKodKodPredictionWithCodePortfolioNet(int seed){
+	public static NeuroBNet getKodKodPredictionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodePortfolios(64),
+				new CodePortfolios(size),
 				new SolverClassificationGenerator(false, true, false),
 				seed);
 	}
@@ -72,9 +72,9 @@ public class PredefinedNet {
 				seed);
 	}
 	
-	public static NeuroBNet getPredicateSolverPredictionWithCodePortfolioNet(int seed){
+	public static NeuroBNet getPredicateSolverPredictionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodePortfolios(64),
+				new CodePortfolios(size),
 				new SolverClassificationGenerator(true, true, true),
 				seed);
 	}
@@ -86,9 +86,9 @@ public class PredefinedNet {
 				seed);
 	}
 	
-	public static NeuroBNet getPredicateSolverSelectionWithCodePortfolioNet(int seed){
+	public static NeuroBNet getPredicateSolverSelectionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodePortfolios(64),
+				new CodePortfolios(size),
 				new SolverSelectionGenerator(),
 				seed);
 	}

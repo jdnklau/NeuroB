@@ -103,7 +103,10 @@ public class NeuroBCli {
 					+ "\tkodkod - KodKod only prediction\n"
 					+ "\tpspcp - Predicate Solver Prediction using Code Portfolios\n"
 					+ "\tpsscp - Predicate Solver Selection using Code Portfolios\n"
-					+ "\tkodkodcp - KodKod only prediction using Code Portfolios"
+					+ "\tkodkodcp - KodKod only prediction using Code Portfolios\n"
+					+ "\t\tNote: Code Portfolio models support usage of the -size argument.\n"
+					+ "\t\t-size S, where S is the length of the image's sides, defaulting to 64."
+					
 					;
 			
 			System.out.println(help);
@@ -199,6 +202,11 @@ public class NeuroBCli {
 		if(ops.containsKey("net")){
 			net = ops.get("net").get(0);
 		}
+		// get size for code portfolio
+		int size = 64;
+		if(ops.containsKey("size")){
+			size = Integer.parseInt(ops.get("size").get(0));
+		}
 		// set up nets
 		for(int i=0; i<num; i++){
 			if(net.equals("kodkod")){
@@ -209,11 +217,11 @@ public class NeuroBCli {
 				nets[i] = PredefinedNet.getPredicateSolverPredictionNet(i);
 				
 			} else if(net.equals("kodkodcp")){
-				nets[i] = PredefinedNet.getKodKodPredictionWithCodePortfolioNet(i);
+				nets[i] = PredefinedNet.getKodKodPredictionWithCodePortfolioNet(i, size);
 			} else if(net.equals("psscp")){
-				nets[i] = PredefinedNet.getPredicateSolverSelectionWithCodePortfolioNet(i);
+				nets[i] = PredefinedNet.getPredicateSolverSelectionWithCodePortfolioNet(i, size);
 			} else if(net.equals("pspcp")){
-				nets[i] = PredefinedNet.getPredicateSolverPredictionWithCodePortfolioNet(i);
+				nets[i] = PredefinedNet.getPredicateSolverPredictionWithCodePortfolioNet(i, size);
 				
 			} else {
 				nets[i] = PredefinedNet.getPredicateSolverPredictionNet(i);
