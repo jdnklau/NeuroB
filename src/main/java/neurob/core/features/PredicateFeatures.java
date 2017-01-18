@@ -62,7 +62,7 @@ public class PredicateFeatures implements FeatureGenerator {
 	}
 	
 	@Override
-	public int getfeatureDimension() {
+	public int getFeatureDimension() {
 		// TODO Auto-generated method stub
 		return featureDimension;
 	}

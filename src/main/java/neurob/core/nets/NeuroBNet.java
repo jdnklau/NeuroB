@@ -100,7 +100,7 @@ public class NeuroBNet {
 		else {
 			// hidden layers!
 			
-			int lastOut = features.getfeatureDimension();
+			int lastOut = features.getFeatureDimension();
 			
 			for(int i=0; i<hiddenLayers.length; i++){
 				listBuilder = listBuilder.layer(i, new DenseLayer.Builder()
@@ -189,7 +189,7 @@ public class NeuroBNet {
 	}
 	
 	public int getInputSize(){
-		return features.getfeatureDimension();
+		return features.getFeatureDimension();
 	}
 	
 	public int getOutputSize(){
@@ -219,7 +219,7 @@ public class NeuroBNet {
 		RecordReader recordReader = new CSVRecordReader(1,","); // skip first line (header line)
 		recordReader.initialize(new FileSplit(csvFile.toFile()));
 		
-		return labelgen.getDataSetIterator(recordReader, batchSize, features.getfeatureDimension());
+		return labelgen.getDataSetIterator(recordReader, batchSize, features.getFeatureDimension());
 	}
 	
 	/**

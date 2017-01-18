@@ -133,7 +133,7 @@ public class CodePortfolios implements ConvolutionFeatures {
 	}
 
 	@Override
-	public int getfeatureDimension() {
+	public int getFeatureDimension() {
 		return pixels;
 	}
 

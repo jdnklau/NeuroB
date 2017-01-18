@@ -302,7 +302,7 @@ public class TrainingSetGenerator {
 			BufferedWriter testCsv = Files.newBufferedWriter(test);
 			
 			// set headers
-			for(int i=0; i<fg.getfeatureDimension(); i++){
+			for(int i=0; i<fg.getFeatureDimension(); i++){
 				trainCsv.write("Feature"+i+",");
 				testCsv.write("Feature"+i+",");
 			}
@@ -330,9 +330,9 @@ public class TrainingSetGenerator {
 									String[] data = l.split(":");
 									String[] features = data[0].split(",");
 									String[] labels = data[1].split(",");
-									if(features.length+labels.length < fg.getfeatureDimension()+lg.getLabelDimension()){
+									if(features.length+labels.length < fg.getFeatureDimension()+lg.getLabelDimension()){
 										throw new NeuroBException("Size of training vector does not match, "
-												+ "expecting "+ fg.getfeatureDimension()+" features and " + lg.getLabelDimension()+" labels, "
+												+ "expecting "+ fg.getFeatureDimension()+" features and " + lg.getLabelDimension()+" labels, "
 												+ "but got " +features.length + " and " + labels.length + " respectively");
 									}
 									

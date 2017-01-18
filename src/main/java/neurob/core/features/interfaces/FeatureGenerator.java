@@ -119,7 +119,7 @@ public interface FeatureGenerator {
 	 * Returns the dimension of produced feature vectors
 	 * @return
 	 */
-	public int getfeatureDimension();
+	public int getFeatureDimension();
 	
 	/**
 	 * Resets the input data

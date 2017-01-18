@@ -32,7 +32,7 @@ public class PredefinedNet {
                 .regularization(true).l2(1e-4)
                 .list()
                 .layer(0, new DenseLayer.Builder()
-                        .nIn(fg.getfeatureDimension())
+                        .nIn(fg.getFeatureDimension())
                         .nOut(1000)
                         .activation("sigmoid")
                         .weightInit(WeightInit.XAVIER)
