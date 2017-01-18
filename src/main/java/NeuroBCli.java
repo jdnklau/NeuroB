@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.stream.Stream;
 
 import neurob.core.NeuroB;
 import neurob.core.features.PredicateFeatures;
@@ -20,6 +21,8 @@ public class NeuroBCli {
 	private static Path dir;
 	private static HashMap<String, ArrayList<String>> ops;
 	private static Path excludefile;
+	// Count visited directories
+	private static int seen=0, present=0, created=0;
 
 	public static void main(String[] args) {
 		// set up options hash map
@@ -256,13 +259,13 @@ public class NeuroBCli {
 	}
 
 	private static void distribute(Path directory){
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
-			
-			// Count visited directories
-			int seen=0, present=0, created=0;
-			
-	        for (Path entry : stream) {
-
+		// Reset counters
+		seen=0;
+		present=0;
+		created=0;
+		
+		try (Stream<Path> stream = Files.walk(directory)) {
+	        stream.forEach(entry -> {
 	        	// check if directory or not; recursion if so
 	            if (Files.isDirectory(entry)) {
 	            	seen++;
@@ -274,12 +277,10 @@ public class NeuroBCli {
 	            	} catch (IOException e){
 	            		present++;
 	            	}
-	            	
-	            	distribute(entry); //  distribute the file recusively
-	            	
 	            }
 	            
-	        }
+	        });
+	        
 	        System.out.println("LibraryIO.def was already present in "+present+"/"+seen+" directories.");
 	        System.out.println("LibraryIO.def was created in "+created+"/"+seen+" directories.");
 	        System.out.println("Directories without LibraryIO.def: "+ (seen-created-present));
