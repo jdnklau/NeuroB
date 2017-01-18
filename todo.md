@@ -1,20 +1,20 @@
 # To Do List
-- relook into training set generation
-  - optimise
-  - take stuff out that is no longer needed
-  - make sure all exceptions are properly handled
-    - take unchecked exceptions into account: ProB errors and stuff
-    - decide between bad predicates and bad files
-- training set generation and analysis of the set should inspect the labellings differently
-  - perhaps a list of how often an individual labelling was used instead of only checking if the outputs are all the same or not
-  - allow a deeper analysis
-    - e.g. list predicates with the same features but different labellings
+- revisit training set generation
+    - optimise
+    - take stuff out that is no longer needed
+    - make sure all exceptions are properly handled
+        - take unchecked exceptions into account: ProB errors and stuff
+        - decide between bad predicates and bad files
+- training set analysis should be deeper
+    - count how often each label was mapped
+        - maybe extrapolate the labels unused? e.g. state if SolverPrediction data never targets 1,1,0 e.g.
+    - offer fancy stuff like PCA
 - Test cases for training data generation
-  - small example files should suffice
-  - think about solution to compare Code Portfolios
+    - small example files should suffice
+    - think about solution to compare Code Portfolios
 - update cli
-  - iterate about some options, like single training file generation and if this is still necessary
-  - change handling in Cli of neural nets
-    - allow to give custom seed(s) for RNG
-    - training multiple nets with different seeds should create the next net after the previous one has finished training
+    - iterate about some options, like single training file generation and if this is still necessary
+    - change handling in Cli of neural nets
+        - allow to give custom seed(s) for RNG
+        - training multiple nets with different seeds should create the next net after the previous one has finished training
 - update java doc
