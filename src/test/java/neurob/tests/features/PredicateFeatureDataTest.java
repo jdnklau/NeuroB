@@ -43,7 +43,8 @@ public class PredicateFeatureDataTest {
 	
 	@Test
 	public void featureDataByStringConstructorTest() throws Exception{
-		String pred = "x : NATURAL & y : INTEGER & z : NATURAL & z < 20 & a : NAT & b : NAT1 & a < 7 & c : INT";
+		String pred = "x : NATURAL & y : INTEGER & z : NATURAL & z < 20 & a : NAT & b : NAT1 & a < 7 & c : INT"
+					+ " & # y . (y < x) & ! z . (z < 15 => x > 3)";
 		PredicateFeatureData fd2 = new PredicateFeatureData(pred);
 		assertEquals("Features do not match", fd.toString(), fd2.toString());
 	}
