@@ -258,24 +258,21 @@ public class NeuroBCli {
 	private static void distribute(Path directory){
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
 			
+			// Count visited directories
+			int seen=0, present=0, created=0;
+			
 	        for (Path entry : stream) {
 
 	        	// check if directory or not; recursion if so
 	            if (Files.isDirectory(entry)) {
-	            	
+	            	seen++;
 	            	Path newLibraryIOPath = entry.resolve("LibraryIO.def");
 	            	try{
 	            		Files.copy(libraryIOpath, newLibraryIOPath);
 	            		System.out.println("Created: "+newLibraryIOPath);
+	            		created++;
 	            	} catch (IOException e){
-//	            		System.out.println("Already present: "+newLibraryIOPath+": "+e.getMessage());
-	            		/*
-	            		 * NOTE:
-	            		 * This catch does nothing, to prevent the permanent printing of the message you can see
-	            		 * there which is commented out.
-	            		 * The makefile tries for now to ensure this method is called before starting to generate a training set.
-	            		 * This is a little bit annoying, hence the catch block doing nothing.
-	            		 */
+	            		present++;
 	            	}
 	            	
 	            	distribute(entry); //  distribute the file recusively
@@ -283,6 +280,9 @@ public class NeuroBCli {
 	            }
 	            
 	        }
+	        System.out.println("LibraryIO.def was already present in "+present+"/"+seen+" directories.");
+	        System.out.println("LibraryIO.def was created in "+created+"/"+seen+" directories.");
+	        System.out.println("Directories without LibraryIO.def: "+ (seen-created-present));
 	    }
 		catch (IOException e){
 			System.out.println("Could not access directory "+directory+": "+e.getMessage());
