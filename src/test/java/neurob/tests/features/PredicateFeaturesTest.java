@@ -94,7 +94,7 @@ public class PredicateFeaturesTest {
 		String res = f.generateFeatureString(testpred);
 		
 		int actual = res.split(",").length;
-		int expected = f.getfeatureDimension();
+		int expected = f.getFeatureDimension();
 		
 		assertEquals("Feature dimensions do not match for String representation", expected, actual);
 		
