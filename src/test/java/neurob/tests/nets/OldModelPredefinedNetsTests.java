@@ -45,8 +45,8 @@ public class OldModelPredefinedNetsTests {
 	}
 	
 	@Test
-	public void KodKodPredictionWithCodePortfolioTraiJaningTest() throws IOException, InterruptedException {
-		NeuroBNet net = PredefinedNet.getKodKodPredictionWithCodePortfolioNet(0);
+	public void KodKodPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
+		NeuroBNet net = PredefinedNet.getKodKodPredictionWithCodePortfolioNet(0,64);
 		checkTrainingSetGeneration(net);
 	}
 	
@@ -58,7 +58,7 @@ public class OldModelPredefinedNetsTests {
 	
 	@Test
 	public void PredicateSolverPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
-		NeuroBNet net = PredefinedNet.getPredicateSolverPredictionWithCodePortfolioNet(0);
+		NeuroBNet net = PredefinedNet.getPredicateSolverPredictionWithCodePortfolioNet(0,64);
 		checkTrainingSetGeneration(net);
 	}
 	
@@ -70,7 +70,7 @@ public class OldModelPredefinedNetsTests {
 	
 	@Test
 	public void PredicateSolverSelectionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
-		NeuroBNet net = PredefinedNet.getPredicateSolverSelectionWithCodePortfolioNet(0);
+		NeuroBNet net = PredefinedNet.getPredicateSolverSelectionWithCodePortfolioNet(0,64);
 		checkTrainingSetGeneration(net);
 	}
 	
