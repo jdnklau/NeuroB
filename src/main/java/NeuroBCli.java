@@ -101,9 +101,11 @@ public class NeuroBCli {
 					
 					+ "\nNets:\n"
 					+ "The implemented nets you can access via the cli are\n"
+					+ "\tprob - ProB only prediction (default)\n"
 					+ "\tpsp - Predicate Solver Prediction\n"
 					+ "\tpss - Predicate Solver Selection\n"
 					+ "\tkodkod - KodKod only prediction\n"
+					+ "\tprobcp - ProB only prediction using Code Portfolios\n"
 					+ "\tpspcp - Predicate Solver Prediction using Code Portfolios\n"
 					+ "\tpsscp - Predicate Solver Selection using Code Portfolios\n"
 					+ "\tkodkodcp - KodKod only prediction using Code Portfolios\n"
@@ -201,7 +203,7 @@ public class NeuroBCli {
 		NeuroBNet[] nets = new NeuroBNet[num];
 		nbs = new NeuroB[num];
 		// get net type
-		String net = "psp";
+		String net = "prob";
 		if(ops.containsKey("net")){
 			net = ops.get("net").get(0);
 		}
@@ -212,13 +214,17 @@ public class NeuroBCli {
 		}
 		// set up nets
 		for(int i=0; i<num; i++){
-			if(net.equals("kodkod")){
+			if(net.equals("prob")){
+				nets[i] = PredefinedNet.getProBPredictionNet(i);
+			} else if(net.equals("kodkod")){
 				nets[i] = PredefinedNet.getKodKodPredictionNet(i);
 			} else if(net.equals("pss")){
 				nets[i] = PredefinedNet.getPredicateSolverSelectionNet(i);
 			} else if(net.equals("psp")){
 				nets[i] = PredefinedNet.getPredicateSolverPredictionNet(i);
-				
+			
+			} else if(net.equals("probcp")){
+				nets[i] = PredefinedNet.getProBPredictionWithCodePortfolioNet(i, size);
 			} else if(net.equals("kodkodcp")){
 				nets[i] = PredefinedNet.getKodKodPredictionWithCodePortfolioNet(i, size);
 			} else if(net.equals("psscp")){

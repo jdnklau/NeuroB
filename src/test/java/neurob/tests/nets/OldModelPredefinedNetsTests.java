@@ -39,6 +39,18 @@ public class OldModelPredefinedNetsTests {
 	}
 	
 	@Test
+	public void ProBPredictionTrainingTest() throws IOException, InterruptedException {
+		NeuroBNet net = PredefinedNet.getProBPredictionNet(0);
+		checkTrainingSetGeneration(net);
+	}
+	
+	@Test
+	public void ProBPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
+		NeuroBNet net = PredefinedNet.getProBPredictionWithCodePortfolioNet(0,64);
+		checkTrainingSetGeneration(net);
+	}
+	
+	@Test
 	public void KodKodPredictionTrainingTest() throws IOException, InterruptedException {
 		NeuroBNet net = PredefinedNet.getKodKodPredictionNet(0);
 		checkTrainingSetGeneration(net);

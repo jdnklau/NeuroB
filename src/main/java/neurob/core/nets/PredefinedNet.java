@@ -50,6 +50,20 @@ public class PredefinedNet {
         
         return new NeuroBNet(model, fg, lg);
 	}
+
+	public static NeuroBNet getProBPredictionNet(int seed) {
+		return getOldModel(
+				new PredicateFeatures(),
+				new SolverClassificationGenerator(true, false, false),
+				seed);
+	}
+	
+	public static NeuroBNet getProBPredictionWithCodePortfolioNet(int seed, int size){
+		return getOldModel(
+				new CodePortfolios(size),
+				new SolverClassificationGenerator(true, false, false),
+				seed);
+	}
 	
 	public static NeuroBNet getKodKodPredictionNet(int seed){
 		return getOldModel(
