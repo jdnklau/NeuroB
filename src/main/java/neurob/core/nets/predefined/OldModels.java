@@ -1,4 +1,4 @@
-package neurob.core.nets;
+package neurob.core.nets.predefined;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
@@ -13,11 +13,12 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import neurob.core.features.CodePortfolios;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.core.nets.NeuroBNet;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
 import neurob.training.generators.labelling.SolverSelectionGenerator;
 
-public class PredefinedNet {
+public class OldModels {
 	
 	
 	private static NeuroBNet getOldModel(FeatureGenerator fg, LabelGenerator lg, int seed){

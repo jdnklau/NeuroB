@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import neurob.core.NeuroB;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.nets.NeuroBNet;
-import neurob.core.nets.PredefinedNet;
+import neurob.core.nets.predefined.OldModels;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
@@ -215,25 +215,25 @@ public class NeuroBCli {
 		// set up nets
 		for(int i=0; i<num; i++){
 			if(net.equals("prob")){
-				nets[i] = PredefinedNet.getProBPredictionNet(i);
+				nets[i] = OldModels.getProBPredictionNet(i);
 			} else if(net.equals("kodkod")){
-				nets[i] = PredefinedNet.getKodKodPredictionNet(i);
+				nets[i] = OldModels.getKodKodPredictionNet(i);
 			} else if(net.equals("pss")){
-				nets[i] = PredefinedNet.getPredicateSolverSelectionNet(i);
+				nets[i] = OldModels.getPredicateSolverSelectionNet(i);
 			} else if(net.equals("psp")){
-				nets[i] = PredefinedNet.getPredicateSolverPredictionNet(i);
+				nets[i] = OldModels.getPredicateSolverPredictionNet(i);
 			
 			} else if(net.equals("probcp")){
-				nets[i] = PredefinedNet.getProBPredictionWithCodePortfolioNet(i, size);
+				nets[i] = OldModels.getProBPredictionWithCodePortfolioNet(i, size);
 			} else if(net.equals("kodkodcp")){
-				nets[i] = PredefinedNet.getKodKodPredictionWithCodePortfolioNet(i, size);
+				nets[i] = OldModels.getKodKodPredictionWithCodePortfolioNet(i, size);
 			} else if(net.equals("psscp")){
-				nets[i] = PredefinedNet.getPredicateSolverSelectionWithCodePortfolioNet(i, size);
+				nets[i] = OldModels.getPredicateSolverSelectionWithCodePortfolioNet(i, size);
 			} else if(net.equals("pspcp")){
-				nets[i] = PredefinedNet.getPredicateSolverPredictionWithCodePortfolioNet(i, size);
+				nets[i] = OldModels.getPredicateSolverPredictionWithCodePortfolioNet(i, size);
 				
 			} else {
-				nets[i] = PredefinedNet.getPredicateSolverPredictionNet(i);
+				nets[i] = OldModels.getPredicateSolverPredictionNet(i);
 				System.out.println("Net "+net+" is not known; defaulting to psp.");
 			}
 			
