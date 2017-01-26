@@ -72,9 +72,9 @@ public class NeuroBCli {
 					+ "trainingset -file <filename> [-net <net>]\n"
 					+ "\tGenerate training data from a specific file. \n"
 					
-					+ "trainingset -analyse -dir <directory> [--log-relevant-files]\n"
+					+ "trainingset -analyse -dir <directory> [-net <net>]\n"
 					+ "\tAnalyse the generated training data in <directory>\n"
-					+ "\tIf --log-relevant-files is used, files of interest have their names logged into a special log file\n"
+					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
 
 					+ "trainingset -csv -dir <directory> [--ignoreEquallyLabeledEntries]\n"
 					+ "\tGenerate csv file from nbtrain files in <directory>\n"
@@ -125,13 +125,26 @@ public class NeuroBCli {
 				Path sourcefile = Paths.get(ops.get("file").get(0));
 				singleTrainingDataGeneration(sourcefile);
 			}
-			else if(ops.containsKey("dir")){
-				// analyse training set
-				if(ops.containsKey("analyse")){
-					analyseTrainingSet(dir, ops.containsKey("-log-relevant-files"));
+			// analyse training set
+			if(ops.containsKey("analyse")){
+				buildNet();
+				
+				if(ops.containsKey("dir")){
+					analyseTrainingSet(dir, nbs[0].getNeuroBNet().getTrainingSetGenerator());
 				}
-				// generate csv
 				else if(ops.containsKey("csv")){
+					Path csv = Paths.get(ops.get("csv").get(0));
+					analyseTrainingSetCSV(csv, nbs[0].getNeuroBNet().getTrainingSetGenerator());
+				}
+				else{
+					System.out.println("trainingset -analyse: Missing parameter, either -dir or -csv");
+				}
+				
+				
+			}
+			else if(ops.containsKey("dir")){
+				// generate csv
+				if(ops.containsKey("csv")){
 					trainingCSVGeneration(dir, ops.containsKey("-ignoreEquallyLabeledEntries"));
 				}
 				else {
@@ -312,9 +325,12 @@ public class NeuroBCli {
 		}
 	}
 	
-	private static void analyseTrainingSet(Path dir, boolean logFiles){
-		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
-		tsa.analyseTrainingSet(dir, logFiles);
+	private static void analyseTrainingSet(Path dir, TrainingSetGenerator tsg){
+		tsg.logTrainingSetAnalysis(dir);
+	}
+	
+	private static void analyseTrainingSetCSV(Path csv, TrainingSetGenerator tsg){
+		tsg.logTrainingCSVAnalysis(csv);
 	}
 	
 	private static void trainingCSVGeneration(Path dir, boolean ignore){

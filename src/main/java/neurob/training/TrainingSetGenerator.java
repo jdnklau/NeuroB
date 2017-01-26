@@ -88,6 +88,11 @@ public class TrainingSetGenerator {
 		tsa.analyseNBTrainSet(dir, lg).log();
 	}
 	
+	public void logTrainingCSVAnalysis(Path csv){
+		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
+		tsa.analyseTrainingCSV(csv, lg).log();
+	}
+	
 	/**
 	 * 
 	 * @return Number of .mch files seen.

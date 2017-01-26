@@ -82,6 +82,10 @@ public class NeuroB {
 		numEpochs = epochs;
 	}
 	
+	public NeuroBNet getNeuroBNet(){
+		return nbn;
+	}
+	
 	/**
 	 * Trains the neural net with a CSV file.
 	 * <p>

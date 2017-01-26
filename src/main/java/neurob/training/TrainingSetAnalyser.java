@@ -124,6 +124,42 @@ public class TrainingSetAnalyser {
 		}
     }
 	
+	public TrainingAnalysisData analyseTrainingCSV(Path csv, LabelGenerator labelgen){
+		int numClasses = labelgen.getClassCount();
+		if(numClasses < 1){
+			log.error("Analysis of samples for regression problems not yet supported");
+			return null;
+		}
+		
+		TrainingAnalysisData data = new TrainingAnalysisData(numClasses);
+		
+		try(Stream<String> stream = Files.lines(csv)){
+			stream
+				.skip(1) // skip first line
+				.forEachOrdered(line -> {
+					// NOTE: huge assumption, that
+					// last entry is classification
+					int trueLabel = Integer.parseInt(line.substring(line.lastIndexOf(',')+1));
+					data.countEntryForClass(trueLabel);
+				});
+		} catch (IOException e) {
+			log.error("Could not open target csv {}: {}", csv, e.getMessage());
+			return null;
+		}
+		
+		return data;
+	}
+	
+	
+	/**
+	 * Analyses the .nbtrain files in the given directory with respect to the given {@link LabelGenerator}.
+	 * <p>
+	 * The LabelGenerator is used for deciding whether the data represent classification or regression, 
+	 * and to know the number of different classes before hand.
+	 * @param sourceDirectory A directory full of nbtrain files
+	 * @param labelgen A LabelGenerator used to create the nbtrain files
+	 * @return A {@link TrainingAnalysisData} object or {@code null} in case of errors.
+	 */
 	public TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen){		
 		int numClasses = labelgen.getClassCount();
 		if(numClasses < 1){
