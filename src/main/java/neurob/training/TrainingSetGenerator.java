@@ -85,7 +85,7 @@ public class TrainingSetGenerator {
 	
 	public void logTrainingSetAnalysis(Path dir){
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
-		tsa.analyseTrainingSet(dir);
+		tsa.logTrainingAnalysis(tsa.analyseNBTrainSet(dir, lg));
 	}
 	
 	/**
