@@ -101,7 +101,7 @@ public class SolverClassificationGenerator implements LabelGenerator {
 
 	@Override
 	public int getClassCount() {
-		return labelledClasses;
+		return labelledClasses+1;
 	}
 
 	@Override
