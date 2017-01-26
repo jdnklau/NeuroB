@@ -1,13 +1,14 @@
 # To Do List
 - revisit training set generation
     - optimise
+    - allow splitting of csv files on demand, do not split as part of general training set generation
+        - instead, user shall split train, validation, and test set himself
     - take stuff out that is no longer needed
     - make sure all exceptions are properly handled
         - take unchecked exceptions into account: ProB errors and stuff
         - decide between bad predicates and bad files
 - training set analysis should be deeper
-    - count how often each label was mapped
-        - maybe extrapolate the labels unused? e.g. state if SolverPrediction data never targets 1,1,0 e.g.
+    - maybe extrapolate the labels unused? e.g. state if SolverPrediction data never targets 1,1,0 e.g.
     - offer fancy stuff like PCA
 - Test cases for training data generation
     - small example files should suffice
