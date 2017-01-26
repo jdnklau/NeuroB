@@ -27,32 +27,11 @@ public class TrainingSetAnalyser {
 	}
 	
 	public void logTrainingAnalysis(TrainingAnalysisData analysis){
-		log.info("Analysing training data...");
-		
 		if(analysis == null){
 			log.warn("No training analysis data to log");
 			return;
 		}
-
-		int fileCount = analysis.getFilesSeen();
-		int emptyFilesCount = analysis.getEmptyFilesSeen();
-		
-		int relevantFiles = fileCount-emptyFilesCount;
-		log.info("Files found: "+fileCount);
-		log.info("Of these were "+emptyFilesCount+" seemingly empty");
-		log.info("=> "+relevantFiles+" relevant files");
-		
-		// list classification mappings
-		int dataCount = 0;
-		ArrayList<Integer> trueLabelCounts = analysis.getTrueLabelCounters();
-		for(int i = 0; i < trueLabelCounts.size(); i++){
-			int classSamples = trueLabelCounts.get(i);
-			dataCount += classSamples;
-			log.info("\tClass {} is represented by {} samples", i, classSamples);
-		}
-		log.info("The relevant files contain "+dataCount+" samples in total");
-		
-		log.info("*****************************");
+		analysis.log();
 	}
 	
 	/**
@@ -197,6 +176,7 @@ public class TrainingSetAnalyser {
 			});
 		} catch (IOException e) {
 			log.error("Could not access directory {}: {}", sourceDirectory, e.getMessage());
+			return null;
 		}
 		
 		return data;
