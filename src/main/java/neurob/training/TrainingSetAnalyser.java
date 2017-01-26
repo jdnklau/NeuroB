@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import neurob.exceptions.NeuroBException;
 import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
 
@@ -119,12 +120,12 @@ public class TrainingSetAnalyser {
 		            }
 
 				});
-		} catch (IOException e) {
+		} catch (IOException e){
 			log.error("Could not access directory {}: {}", sourceDirectory, e.getMessage());
 		}
     }
 	
-	public TrainingAnalysisData analyseTrainingCSV(Path csv, LabelGenerator labelgen){
+	public TrainingAnalysisData analyseTrainingCSV(Path csv, LabelGenerator labelgen) throws IOException{
 		int numClasses = labelgen.getClassCount();
 		if(numClasses < 1){
 			log.error("Analysis of samples for regression problems not yet supported");
@@ -143,8 +144,8 @@ public class TrainingSetAnalyser {
 					data.countEntryForClass(trueLabel);
 				});
 		} catch (IOException e) {
-			log.error("Could not open target csv {}: {}", csv, e.getMessage());
-			return null;
+			// log.error("Could not open target csv {}: {}", csv, e.getMessage());
+			throw e;
 		}
 		
 		return data;
@@ -160,7 +161,7 @@ public class TrainingSetAnalyser {
 	 * @param labelgen A LabelGenerator used to create the nbtrain files
 	 * @return A {@link TrainingAnalysisData} object or {@code null} in case of errors.
 	 */
-	public TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen){		
+	public TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen) throws IOException{		
 		int numClasses = labelgen.getClassCount();
 		if(numClasses < 1){
 			log.error("Analysis of NBTrain files for regression problems not yet supported");
@@ -211,8 +212,8 @@ public class TrainingSetAnalyser {
 			
 			});
 		} catch (IOException e) {
-			log.error("Could not access directory {}: {}", sourceDirectory, e.getMessage());
-			return null;
+			//log.error("Could not access directory {}: {}", sourceDirectory, e.getMessage());
+			throw e;
 		}
 		
 		return data;

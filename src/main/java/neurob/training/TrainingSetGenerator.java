@@ -83,12 +83,12 @@ public class TrainingSetGenerator {
 		log.info("*****************************");
 	}
 	
-	public void logTrainingSetAnalysis(Path dir){
+	public void logTrainingSetAnalysis(Path dir) throws IOException{
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		tsa.analyseNBTrainSet(dir, lg).log();
 	}
 	
-	public void logTrainingCSVAnalysis(Path csv){
+	public void logTrainingCSVAnalysis(Path csv) throws IOException{
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		tsa.analyseTrainingCSV(csv, lg).log();
 	}

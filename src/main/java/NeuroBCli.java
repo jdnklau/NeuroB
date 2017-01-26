@@ -325,12 +325,22 @@ public class NeuroBCli {
 		}
 	}
 	
-	private static void analyseTrainingSet(Path dir, TrainingSetGenerator tsg){
-		tsg.logTrainingSetAnalysis(dir);
+	private static void analyseTrainingSet(Path dir, TrainingSetGenerator tsg) {
+		try {
+			tsg.logTrainingSetAnalysis(dir);
+		} catch (IOException e) {
+			System.out.println("Could not access target directory "+dir);
+			e.printStackTrace();
+		}
 	}
 	
-	private static void analyseTrainingSetCSV(Path csv, TrainingSetGenerator tsg){
-		tsg.logTrainingCSVAnalysis(csv);
+	private static void analyseTrainingSetCSV(Path csv, TrainingSetGenerator tsg) {
+		try {
+			tsg.logTrainingCSVAnalysis(csv);
+		} catch (IOException e) {
+			System.out.println("Could not access target file "+csv);
+			e.printStackTrace();
+		}
 	}
 	
 	private static void trainingCSVGeneration(Path dir, boolean ignore){
