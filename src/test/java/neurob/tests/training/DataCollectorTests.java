@@ -12,20 +12,17 @@ import org.junit.Test;
 
 import com.google.inject.Inject;
 
-import de.be4.classicalb.core.parser.exceptions.BException;
 import de.prob.Main;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
-import neurob.training.generators.SolverClassificationDataCollector;
-import neurob.training.generators.interfaces.TrainingDataCollector;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
 
 public class DataCollectorTests {
 	private Api api;
 	private final Path formulaeGenTestFile = Paths.get("src/test/resources/training/formulae_generation.mch");
-	private final Path formulaeGenNBTrain = Paths.get("src/test/resources/training/formulae_generation.nbtrain");
+//	private final Path formulaeGenNBTrain = Paths.get("src/test/resources/training/formulae_generation.nbtrain");
 	
 	@Inject
 	public DataCollectorTests() {
@@ -44,16 +41,15 @@ public class DataCollectorTests {
 		ss.kill();
 	}
 	
-	/**
-	 * Test if the collector runs properly or exits with an error
-	 * @throws IllegalStateException
-	 * @throws IOException
-	 * @throws BException
-	 */
 	@Test
-	public void solverClassification() throws IllegalStateException, IOException, BException{
-		TrainingDataCollector tdc = new SolverClassificationDataCollector();
-		tdc.collectTrainingData(formulaeGenTestFile, formulaeGenNBTrain);
-		Files.deleteIfExists(formulaeGenNBTrain);
+	public void extendedGuardFormulaeGenerationWithInfiniteDomains() throws IOException, ModelTranslationError{
+		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
+		
+		PredicateCollector pc = new PredicateCollector(ss.getMainComponent());
+		ArrayList<String> formulae = FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(pc);
+		
+		assertEquals("Not enough formulae created", 50, formulae.size());
+		
+		ss.kill();
 	}
 }

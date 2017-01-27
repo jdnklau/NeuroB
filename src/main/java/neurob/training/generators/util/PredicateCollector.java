@@ -2,12 +2,17 @@ package neurob.training.generators.util;
 
 import java.util.ArrayList;
 
+import de.be4.classicalb.core.parser.BParser;
+import de.be4.classicalb.core.parser.exceptions.BCompoundException;
+import de.be4.classicalb.core.parser.node.Start;
+import de.prob.model.classicalb.PrettyPrinter;
 import de.prob.model.classicalb.Property;
 import de.prob.model.representation.AbstractElement;
 import de.prob.model.representation.Axiom;
 import de.prob.model.representation.BEvent;
 import de.prob.model.representation.Guard;
 import de.prob.model.representation.Invariant;
+import neurob.exceptions.NeuroBException;
 
 public class PredicateCollector {
 	private ArrayList<String> invariants;
@@ -36,6 +41,7 @@ public class PredicateCollector {
 		for(Invariant x : comp.getChildrenOfType(Invariant.class)){
 			invariants.add(x.getFormula().getCode());
 		}
+		
 		// for each event collect guards
 		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 			ArrayList<String> event = new ArrayList<String>();
@@ -55,4 +61,29 @@ public class PredicateCollector {
 	public ArrayList<String> getInvariants(){ return invariants; }
 	public ArrayList<String> getProperties(){ return properties; }
 
+	/**
+	 * Modifies an ArrayList of predicates to have only Numbers of infinite domains.
+	 * This means, that types like NAT and INT are replaced by NATURAL and INTEGER in the typing predicates.
+	 * @param invariants Predicates (usually invariants) to modify
+	 * @return
+	 */
+	public static ArrayList<String> modifyDomains(ArrayList<String> invariants){
+		ArrayList<String> modifiedList = new ArrayList<String>();
+		for(String invariant : invariants){
+			Start ast;
+			try {
+				ast = BParser.parse(BParser.PREDICATE_PREFIX + invariant);
+			} catch (BCompoundException e) {
+				// do nothing but skip this
+				continue;
+			}
+			
+			ast.apply(new ClassicalBIntegerDomainReplacer());
+			PrettyPrinter pp = new PrettyPrinter();
+			ast.apply(pp);
+			
+			modifiedList.add(pp.getPrettyPrint());
+		}
+		return modifiedList;
+	}
 }

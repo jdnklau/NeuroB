@@ -42,19 +42,48 @@ public class FormulaGenerator {
 	 * @param predicateCollector An already used {@link PredicateCollector}
 	 * @return An ArrayList containing all formulae constructed from the predicate collector
 	 */
-	public static ArrayList<String> extendedGuardFormulas(PredicateCollector predicateCollector){
-		ArrayList<String> formulae = new ArrayList<String>();
-		
+	public static ArrayList<String> extendedGuardFormulas(PredicateCollector predicateCollector){		
 		String properties = String.join(" & ", predicateCollector.getProperties());
 		String invariants = String.join(" & ", predicateCollector.getInvariants());
 		
+		return generateExtendedGuardFormulae(properties, invariants, predicateCollector.getGuards());
+		
+	}
+	
+	/**
+	 * <p>Generates multiple formulas for each event found.</p>
+	 * <p>See {@link #extendedGuardFormulas(PredicateCollector)} for details. This method
+	 * differs only by calling {@link PredicateCollector#modifyDomains(ArrayList)} on all predicates beforehand.
+	 * </p>
+	 * @param predicateCollector
+	 * @return
+	 * @see #extendedGuardFormulas(PredicateCollector)
+	 * @see PredicateCollector#modifyDomains(ArrayList)
+	 */
+	public static ArrayList<String> extendedGuardFomulaeWithInfiniteDomains(PredicateCollector predicateCollector){
+		String properties = String.join(" & ", PredicateCollector.modifyDomains(predicateCollector.getProperties()));
+		String invariants = String.join(" & ", PredicateCollector.modifyDomains(predicateCollector.getInvariants()));
+		
+		ArrayList<ArrayList<String>> allGuards = predicateCollector.getGuards();
+		for(ArrayList<String> guards : allGuards){
+			guards = PredicateCollector.modifyDomains(guards);
+		}
+		
+		
+		return generateExtendedGuardFormulae(properties, invariants, allGuards);
+		
+	}
+	
+	private static ArrayList<String> generateExtendedGuardFormulae(String properties, String invariants, ArrayList<ArrayList<String>> allGuards){
+		ArrayList<String> formulae = new ArrayList<String>();
+		
 		// check for empty formulas
 		if(properties.isEmpty()){
-//			logger.info("\tNo properties found. Using TRUE=TRUE.");
+//					logger.info("\tNo properties found. Using TRUE=TRUE.");
 			properties = "TRUE = TRUE";
 		}
 		if(invariants.isEmpty()){
-//			logger.info("\tNo invariants found. Using TRUE=TRUE.");
+//					logger.info("\tNo invariants found. Using TRUE=TRUE.");
 			invariants = "TRUE = TRUE";
 		}
 		
@@ -67,7 +96,7 @@ public class FormulaGenerator {
 		formulae.add(propsAndInvs); // properties & invariants
 		
 		// guards
-		for(ArrayList<String> guards : predicateCollector.getGuards()){
+		for(ArrayList<String> guards : allGuards){
 			String guard = String.join(" & ", guards);
 			
 			// only continue if the guards are nonempty
