@@ -2,18 +2,13 @@ package neurob.core;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Random;
 
-import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.eval.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
-import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +108,7 @@ public class NeuroB {
 		// set up training data
 		DataSetIterator iterator = nbn.getDataSetIterator(trainCSV, batchSize);
 		
-		// set up normalizer
+		// set up normaliser
 		while(iterator.hasNext()){
 			DataSet batch = iterator.next();
         	nbn.fitNormalizer(batch);
@@ -205,7 +200,8 @@ public class NeuroB {
 		}
 		
 		// generate csv
-		tsg.generateTrainAndTestCSVfromNBTrainData(fullTargetDirectory, fullTargetDirectory.resolve("train_data.csv"), fullTargetDirectory.resolve("test_data.csv"), 0.65);
+		tsg.generateTrainingDataFile(fullTargetDirectory, fullTargetDirectory.resolve("data.csv"));
+//		tsg.generateTrainAndTestCSVfromNBTrainData(fullTargetDirectory, fullTargetDirectory.resolve("train_data.csv"), fullTargetDirectory.resolve("test_data.csv"), 0.65);
 	}
 
 }

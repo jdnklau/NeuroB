@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,7 +10,7 @@ import neurob.core.NeuroB;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.nets.predefined.OldModels;
-import neurob.training.TrainingSetAnalyser;
+import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
 
@@ -75,10 +74,14 @@ public class NeuroBCli {
 					+ "trainingset -analyse -dir <directory> [-net <net>]\n"
 					+ "\tAnalyse the generated training data in <directory>\n"
 					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
+					
+					+ "trainingset -analyse -file <file> [-net <net>]\n"
+					+ "\tAnalyse the generated training data in <file>\n"
+					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
 
-					+ "trainingset -csv -dir <directory> [--ignoreEquallyLabeledEntries]\n"
-					+ "\tGenerate csv file from nbtrain files in <directory>\n"
-					+ "\tIf --ignoreEquallyLabeledEntries is set, all data vectors with multi classification, that map to each class are ignored\n"
+					+ "trainingset -csvsplit -file <file> -first <first> -second <second> -ratio <ratio>\n"
+					+ "\tSplit a given CSV file into <first> and <second>, both being CSV files again\n"
+					+ "\tFor this, the given <ratio> is used, a number in the interval [0,1]\n"
 					
 					+ "trainnet -train <trainingfile> -test <testfile> [-net <net>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
@@ -119,12 +122,6 @@ public class NeuroBCli {
 		}
 		// Generate training data
 		else if(cmd.equals("trainingset")){
-			// generate single nbtrain file
-			if(ops.containsKey("file")){
-				buildNet();
-				Path sourcefile = Paths.get(ops.get("file").get(0));
-				singleTrainingDataGeneration(sourcefile);
-			}
 			// analyse training set
 			if(ops.containsKey("analyse")){
 				buildNet();
@@ -132,27 +129,41 @@ public class NeuroBCli {
 				if(ops.containsKey("dir")){
 					analyseTrainingSet(dir, nbs[0].getNeuroBNet().getTrainingSetGenerator());
 				}
-				else if(ops.containsKey("csv")){
-					Path csv = Paths.get(ops.get("csv").get(0));
+				else if(ops.containsKey("file")){
+					Path csv = Paths.get(ops.get("file").get(0));
 					analyseTrainingSetCSV(csv, nbs[0].getNeuroBNet().getTrainingSetGenerator());
 				}
 				else{
-					System.out.println("trainingset -analyse: Missing parameter, either -dir or -csv");
+					System.out.println("trainingset -analyse: Missing parameter, either -dir or -file");
 				}
 				
 				
 			}
-			else if(ops.containsKey("dir")){
-				// generate csv
-				if(ops.containsKey("csv")){
-					trainingCSVGeneration(dir, ops.containsKey("-ignoreEquallyLabeledEntries"));
+			else if(ops.containsKey("csvsplit")){
+				if(ops.containsKey("file")){
+					if(ops.containsKey("first") && ops.containsKey("second") && ops.containsKey("ratio")){
+						Path csv = Paths.get(ops.get("file").get(0));
+						Path first = Paths.get(ops.get("first").get(0));
+						Path second = Paths.get(ops.get("second").get(0));
+						double ratio = Double.parseDouble(ops.get("ratio").get(0));
+						csvsplit(csv, first, second, ratio);
+						
+					}
+					else {
+						System.out.println("trainingset -csvsplit: Missing at least one of those parameters: -first, -second, -ratio");
+					}
 				}
-				else {
-				// generate training set
+			}
+			else if(ops.containsKey("dir")){// generate training set
+				buildNet();
+				trainingSetGeneration(dir);
+			}
+			// generate single nbtrain file
+			else if(ops.containsKey("file")){
 					buildNet();
-					trainingSetGeneration(dir);
+					Path sourcefile = Paths.get(ops.get("file").get(0));
+					singleTrainingDataGeneration(sourcefile);
 				}
-			}
 			// nope
 			else {
 				System.out.println("trainingset: missing at least -dir parameter");
@@ -343,12 +354,13 @@ public class NeuroBCli {
 		}
 	}
 	
-	private static void trainingCSVGeneration(Path dir, boolean ignore){
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(true, true, true));
-		Path train_target = Paths.get("training_data/manual_call/train_data.csv");
-		Path test_target = Paths.get("training_data/manual_call/test_data.csv");
+	private static void csvsplit(Path csv, Path first, Path second, double ratio){
 		
-		tsg.generateTrainAndTestCSVfromNBTrainData(dir, train_target, test_target, 0.65);
+		try {
+			TrainingSetGenerator.splitCSV(csv, first, second, ratio, true);
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {

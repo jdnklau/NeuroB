@@ -1,12 +1,16 @@
 package neurob.training;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -372,6 +376,116 @@ public class TrainingSetGenerator {
 			log.error("Failed to setup CSV correctly: {}", e.getMessage());
 		}
 		
+	}
+	
+	/**
+	 * Split a training CSV file into two, aiming for a given ratio.
+	 * <p>
+	 * The ratio is a number r in [0,1]. For n samples in the original file, the
+	 * train file will have ~r*n, the test file ~(1-r)*n samples.
+	 * <p>
+	 * The splitting is random, so calling it multiple times on the same file yields different results.
+	 * This is intended behaviour, to use it e.g. for cross-validation.
+	 * <p>
+	 * This method calls {@link #splitCSV(Path, Path, Path, double, boolean)}, so if determinism is required,
+	 * use that method instead.
+	 * @param csv
+	 * @param train
+	 * @param test
+	 * @param ratio
+	 * @throws NeuroBException 
+	 * @see #splitCSV(Path, Path, Path, double, boolean)
+	 */
+	public static void splitCSV(Path csv, Path train, Path test, double ratio) throws NeuroBException{
+		splitCSV(csv, train, test, ratio, false);
+	}
+	
+	/**
+	 * Split a training CSV file into two, aiming for a given ratio.
+	 * <p>
+	 * The ratio is a number r in [0,1]. For n samples in the original file, the
+	 * train file will have ~r*n, the test file ~(1-r)*n samples.
+	 * <p>
+	 * The {@code deterministic} parameter influences the choice of RNG used internally. If set to true, the 
+	 * RNG will always be initialised with the same seed, resulting in deterministic behaviour.
+	 * @param csv Original CSV file, containing training set data generated
+	 * @param train Targeted file to split to, having {@code ratio*samples} from the original file
+	 * @param test Targeted file to split to, having {@code (1-ratio)*samples} from the original file
+	 * @param ratio A number in [0,1]
+	 * @param deterministic Whether to use a specific seed for RNG or not
+	 * @throws NeuroBException 
+	 */
+	public static void splitCSV(Path csv, Path train, Path test, double ratio, boolean deterministic) throws NeuroBException{
+		Random rng;
+		if(deterministic)
+			rng = new Random(123);
+		else
+			rng = new Random(); // no seed
+		
+		if(ratio < 0 || ratio > 1){
+			throw new IllegalArgumentException("Parameter ratio has to be a value in the interval [0,1].");
+		}
+		
+		// open CSV
+		// step 1: extract header
+		BufferedReader br;
+		String header;
+		try {
+			br = new BufferedReader(new FileReader(csv.toFile()));
+			header = br.readLine();
+			br.close();		
+		} catch (FileNotFoundException e) {
+			throw new NeuroBException("Could not find the source CSV: " + e.getMessage());
+		} catch (IOException e) {
+			throw new NeuroBException("Could not access the source CSV: " + e.getMessage());
+		}
+		
+		try(Stream<String> stream = Files.lines(csv)){
+			// Set up CSV files
+			Files.createDirectories(train.getParent());
+			Files.createDirectories(test.getParent());
+			BufferedWriter trainCsv = Files.newBufferedWriter(train);
+			BufferedWriter testCsv = Files.newBufferedWriter(test);
+			//headers
+			trainCsv.write(header);
+			trainCsv.newLine();
+			trainCsv.flush();
+			testCsv.write(header);
+			testCsv.newLine();
+			testCsv.flush();
+			
+			// write data
+			stream
+				.skip(1)
+				.forEachOrdered(line -> {
+					double coinflip = rng.nextDouble();
+					BufferedWriter target; // will be switching between train or test
+					
+					if(coinflip <= ratio){
+						target = trainCsv;
+					}
+					else {
+						target = testCsv;
+					}
+					
+					// simply write the line to the target
+					try {
+						target.write(line);
+						target.newLine();
+					} catch (Exception e) {
+						log.error("Could not write data to target csv: {}", e.getMessage());
+					}
+				});
+			
+			trainCsv.flush();
+			testCsv.flush();
+
+			trainCsv.close();
+			testCsv.close();
+			
+		} catch (IOException e) {
+			log.error("Could not access target files correctly: {}", e.getMessage());
+		}
 	}
 	
 	/**
