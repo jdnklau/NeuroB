@@ -35,6 +35,16 @@ trainingset : distributedlibraryfile
 	@$(RUNCLI) trainingset -dir examples/prob_examples/public_examples/B/
 	@echo "*****/ Training set generated"
 
+trainingsetsnocp64 :
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psp
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pss
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net prob
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkod
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pspcp -size 32
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psscp -size 32
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net probcp -size 32
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkodcp -size 32
+
 alltrainingsets :
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psp
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pss
