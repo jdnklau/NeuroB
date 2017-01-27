@@ -16,6 +16,7 @@ import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -106,7 +107,7 @@ public class NeuroBNet {
 				listBuilder = listBuilder.layer(i, new DenseLayer.Builder()
 						.nIn(lastOut)
 						.nOut(hiddenLayers[i])
-						.activation("relu")
+						.activation(Activation.RELU)
 						.weightInit(WeightInit.XAVIER)
 						.build());
 				lastOut = hiddenLayers[i];
@@ -116,7 +117,7 @@ public class NeuroBNet {
 			listBuilder.layer(hiddenLayers.length, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
 					.nIn(lastOut)
 					.nOut(labelling.getLabelDimension())
-					.activation("softmax")
+					.activation(Activation.SOFTMAX)
 					.weightInit(WeightInit.XAVIER)
 					.build())
 			.pretrain(false).backprop(true);

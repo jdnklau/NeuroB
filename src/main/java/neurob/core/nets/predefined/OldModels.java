@@ -8,6 +8,7 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.CodePortfolios;
@@ -35,13 +36,13 @@ public class OldModels {
                 .layer(0, new DenseLayer.Builder()
                         .nIn(fg.getFeatureDimension())
                         .nOut(1000)
-                        .activation("sigmoid")
+                        .activation(Activation.RELU)
                         .weightInit(WeightInit.XAVIER)
                         .build())
                 .layer(1, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
                         .nIn(1000)
                         .nOut(lg.getLabelDimension())
-                        .activation("softmax")
+                        .activation(Activation.SOFTMAX)
                         .weightInit(WeightInit.XAVIER)
                         .build())
                 .pretrain(false).backprop(true)
