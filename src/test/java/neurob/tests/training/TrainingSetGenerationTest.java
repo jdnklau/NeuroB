@@ -72,7 +72,7 @@ public class TrainingSetGenerationTest {
 		
 		ArrayList<Integer> trueLabels = analysis.getTrueLabelCounters();
 		assertEquals("Class 0 counter does not match", 0, trueLabels.get(0).intValue());
-		assertEquals("Class 1 counter does not match", 50, trueLabels.get(1).intValue());
+		assertEquals("Class 1 counter does not match", 100, trueLabels.get(1).intValue());
 		assertEquals("Class 2 counter does not match", 0, trueLabels.get(2).intValue());
 		assertEquals("Class 3 counter does not match", 0, trueLabels.get(3).intValue());
 		
@@ -81,7 +81,7 @@ public class TrainingSetGenerationTest {
 			samples += trueLabels.get(i);
 		}
 		
-		assertEquals("Number of samples seen in total does not match", 50, samples);
+		assertEquals("Number of samples seen in total does not match", 100, samples);
 		
 		Files.deleteIfExists(formulaeGenNBTrain);
 	}
