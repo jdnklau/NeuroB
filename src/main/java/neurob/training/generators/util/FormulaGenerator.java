@@ -42,7 +42,7 @@ public class FormulaGenerator {
 	 * @param predicateCollector An already used {@link PredicateCollector}
 	 * @return An ArrayList containing all formulae constructed from the predicate collector
 	 */
-	public static ArrayList<String> extendedGuardFormulas(PredicateCollector predicateCollector){		
+	public static ArrayList<String> extendedGuardFormulae(PredicateCollector predicateCollector){		
 		String properties = String.join(" & ", predicateCollector.getProperties());
 		String invariants = String.join(" & ", predicateCollector.getInvariants());
 		
@@ -52,12 +52,12 @@ public class FormulaGenerator {
 	
 	/**
 	 * <p>Generates multiple formulas for each event found.</p>
-	 * <p>See {@link #extendedGuardFormulas(PredicateCollector)} for details. This method
+	 * <p>See {@link #extendedGuardFormulae(PredicateCollector)} for details. This method
 	 * differs only by calling {@link PredicateCollector#modifyDomains(ArrayList)} on all predicates beforehand.
 	 * </p>
 	 * @param predicateCollector
 	 * @return
-	 * @see #extendedGuardFormulas(PredicateCollector)
+	 * @see #extendedGuardFormulae(PredicateCollector)
 	 * @see PredicateCollector#modifyDomains(ArrayList)
 	 */
 	public static ArrayList<String> extendedGuardFomulaeWithInfiniteDomains(PredicateCollector predicateCollector){

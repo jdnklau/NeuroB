@@ -105,7 +105,7 @@ public class SolverClassificationDataCollector implements TrainingDataCollector 
 		// Get different formulas
 		mainComp = ss.getMainComponent();	// extract main component
 		PredicateCollector predc = new PredicateCollector(mainComp);
-		formulae = FormulaGenerator.extendedGuardFormulas(predc);
+		formulae = FormulaGenerator.extendedGuardFormulae(predc);
 		logger.info("\tGenerated "+formulae.size()+" formulas to solve.");
 		
 		// generate data per formula

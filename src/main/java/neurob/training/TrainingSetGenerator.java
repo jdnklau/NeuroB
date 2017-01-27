@@ -213,7 +213,7 @@ public class TrainingSetGenerator {
 		// Get different formulas
 		mainComp = ss.getMainComponent();	// extract main component
 		PredicateCollector predc = new PredicateCollector(mainComp);
-		formulae = FormulaGenerator.extendedGuardFormulas(predc);
+		formulae = FormulaGenerator.extendedGuardFormulae(predc);
 		formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
 		log.info("\tGenerated {} formulas to solve.", formulae.size());
 		

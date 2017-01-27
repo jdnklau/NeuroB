@@ -41,7 +41,7 @@ public class TrainingSetGenerationTest {
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
 		
 		PredicateCollector pc = new PredicateCollector(ss.getMainComponent());
-		ArrayList<String> formulae = FormulaGenerator.extendedGuardFormulas(pc);
+		ArrayList<String> formulae = FormulaGenerator.extendedGuardFormulae(pc);
 		
 		assertEquals("Not enough formulae created", 50, formulae.size());
 		
