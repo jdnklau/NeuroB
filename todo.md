@@ -1,4 +1,5 @@
 # To Do List
+- add visualisations for network training
 - revisit training set generation
     - optimise
     - allow splitting of csv files on demand, do not split as part of general training set generation
