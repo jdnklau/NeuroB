@@ -16,7 +16,7 @@ import neurob.training.generators.labelling.SolverClassificationGenerator;
 
 public class NeuroBCli {
 	private static final Path libraryIOpath = Paths.get("prob_examples/LibraryIO.def");
-	private static NeuroB[] nbs;
+	private static NeuroB nb;
 	private static Path dir;
 	private static HashMap<String, ArrayList<String>> ops;
 	private static Path excludefile;
@@ -127,11 +127,11 @@ public class NeuroBCli {
 				buildNet();
 				
 				if(ops.containsKey("dir")){
-					analyseTrainingSet(dir, nbs[0].getNeuroBNet().getTrainingSetGenerator());
+					analyseTrainingSet(dir, nb.getNeuroBNet().getTrainingSetGenerator());
 				}
 				else if(ops.containsKey("file")){
 					Path csv = Paths.get(ops.get("file").get(0));
-					analyseTrainingSetCSV(csv, nbs[0].getNeuroBNet().getTrainingSetGenerator());
+					analyseTrainingSetCSV(csv, nb.getNeuroBNet().getTrainingSetGenerator());
 				}
 				else{
 					System.out.println("trainingset -analyse: Missing parameter, either -dir or -file");
@@ -172,12 +172,6 @@ public class NeuroBCli {
 		else if(cmd.equals("trainnet")){
 			if(ops.containsKey("train")){
 				if(ops.containsKey("test")){
-					if(ops.containsKey("n")){
-						int num = Integer.parseInt(ops.get("n").get(0));
-						buildNets(num);
-					} else {
-						buildNet();
-					}
 					Path trainfile = Paths.get(ops.get("train").get(0));
 					Path testfile = Paths.get(ops.get("test").get(0));
 					trainNet(trainfile, testfile);
@@ -219,13 +213,11 @@ public class NeuroBCli {
 	}
 	
 	private static void buildNet(){
-		buildNets(1);
+		buildNet(1);
 	}
 	
-	private static void buildNets(int num){
-		// Net to use
-		NeuroBNet[] nets = new NeuroBNet[num];
-		nbs = new NeuroB[num];
+	private static void buildNet(int i){
+		NeuroBNet model;
 		// get net type
 		String net = "prob";
 		if(ops.containsKey("net")){
@@ -237,32 +229,30 @@ public class NeuroBCli {
 			size = Integer.parseInt(ops.get("size").get(0));
 		}
 		// set up nets
-		for(int i=0; i<num; i++){
-			if(net.equals("prob")){
-				nets[i] = OldModels.getProBPredictionNet(i);
-			} else if(net.equals("kodkod")){
-				nets[i] = OldModels.getKodKodPredictionNet(i);
-			} else if(net.equals("pss")){
-				nets[i] = OldModels.getPredicateSolverSelectionNet(i);
-			} else if(net.equals("psp")){
-				nets[i] = OldModels.getPredicateSolverPredictionNet(i);
+		if(net.equals("prob")){
+			model = OldModels.getProBPredictionNet(i);
+		} else if(net.equals("kodkod")){
+			model = OldModels.getKodKodPredictionNet(i);
+		} else if(net.equals("pss")){
+			model = OldModels.getPredicateSolverSelectionNet(i);
+		} else if(net.equals("psp")){
+			model = OldModels.getPredicateSolverPredictionNet(i);
+		
+		} else if(net.equals("probcp")){
+			model = OldModels.getProBPredictionWithCodePortfolioNet(i, size);
+		} else if(net.equals("kodkodcp")){
+			model = OldModels.getKodKodPredictionWithCodePortfolioNet(i, size);
+		} else if(net.equals("psscp")){
+			model = OldModels.getPredicateSolverSelectionWithCodePortfolioNet(i, size);
+		} else if(net.equals("pspcp")){
+			model = OldModels.getPredicateSolverPredictionWithCodePortfolioNet(i, size);
 			
-			} else if(net.equals("probcp")){
-				nets[i] = OldModels.getProBPredictionWithCodePortfolioNet(i, size);
-			} else if(net.equals("kodkodcp")){
-				nets[i] = OldModels.getKodKodPredictionWithCodePortfolioNet(i, size);
-			} else if(net.equals("psscp")){
-				nets[i] = OldModels.getPredicateSolverSelectionWithCodePortfolioNet(i, size);
-			} else if(net.equals("pspcp")){
-				nets[i] = OldModels.getPredicateSolverPredictionWithCodePortfolioNet(i, size);
-				
-			} else {
-				nets[i] = OldModels.getPredicateSolverPredictionNet(i);
-				System.out.println("Net "+net+" is not known; defaulting to psp.");
-			}
-			
-			nbs[i] = new NeuroB(nets[i]);
+		} else {
+			model = OldModels.getPredicateSolverPredictionNet(i);
+			System.out.println("Net "+net+" is not known; defaulting to psp.");
 		}
+	
+		nb = new NeuroB(model);
 	}
 
 	private static void parseCommandLineOptions(HashMap<String, ArrayList<String>> ops) {
@@ -330,10 +320,7 @@ public class NeuroBCli {
 	
 	private static void trainingSetGeneration(Path sourceDir){
 		Path targetDir = Paths.get("training_data/");
-		
-		for(NeuroB nb : nbs){
-			nb.generateTrainingSet(sourceDir, targetDir, excludefile);
-		}
+		nb.generateTrainingSet(sourceDir, targetDir, excludefile);
 	}
 	
 	private static void analyseTrainingSet(Path dir, TrainingSetGenerator tsg) {
@@ -370,7 +357,13 @@ public class NeuroBCli {
 	}
 	
 	private static void trainNet(Path traincsv, Path testcsv){
-		for(NeuroB nb : nbs){
+		int n = 1;
+		if(ops.containsKey("n"))
+			n = Integer.parseInt(ops.get("n").get(0));
+		
+		for(int i=0; i<n; i++){
+			buildNet(i);
+			
 			try {
 				nb.train(traincsv, testcsv);
 			} catch (IOException e) {
