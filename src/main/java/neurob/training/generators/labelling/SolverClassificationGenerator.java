@@ -101,7 +101,9 @@ public class SolverClassificationGenerator implements LabelGenerator {
 
 	@Override
 	public int getClassCount() {
-		return labelledClasses+1;
+		// Regression if more than two classes
+		// TODO: Remodel this to only allow for one solver to be checked.
+		return (labelledClasses > 1) ? -1 : 2;
 	}
 
 	@Override

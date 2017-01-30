@@ -1,5 +1,8 @@
 # To Do List
 - add visualisations for network training
+- SolverClassificationGenerator should only allow for one solver to check for in future
+    - thus it will never be a regression problem
+    - regression variant can take timeouts into account
 - revisit training set generation
     - optimise
     - allow splitting of csv files on demand, do not split as part of general training set generation
