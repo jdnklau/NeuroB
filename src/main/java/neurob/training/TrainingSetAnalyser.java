@@ -129,7 +129,7 @@ public class TrainingSetAnalyser {
 		int numClasses = labelgen.getClassCount();
 		if(numClasses < 1){
 			log.error("Analysis of samples for regression problems not yet supported");
-			return null;
+			return new TrainingAnalysisData(0);
 		}
 		
 		TrainingAnalysisData data = new TrainingAnalysisData(numClasses);
@@ -165,7 +165,7 @@ public class TrainingSetAnalyser {
 		int numClasses = labelgen.getClassCount();
 		if(numClasses < 1){
 			log.error("Analysis of NBTrain files for regression problems not yet supported");
-			return null;
+			return new TrainingAnalysisData(0);
 		}
 		
 		TrainingAnalysisData data = new TrainingAnalysisData(numClasses);
