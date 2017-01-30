@@ -60,7 +60,7 @@ public class TrainingSetGenerationTest {
 		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), lg);
 		
 		// generate
-		tsg.generateTrainingDataFile(formulaeGenTestFile, formulaeGenNBTrain);
+		tsg.generateTrainingDataFromFile(formulaeGenTestFile, formulaeGenNBTrain);
 		
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		

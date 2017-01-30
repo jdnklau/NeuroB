@@ -140,7 +140,7 @@ public class TrainingSetGenerator {
 	}
 	
 	/**
-	 * Same as {@link TrainingSetGenerator#generateTrainingDataFile(Path, Path)}, but with the option to specify an exclude file and
+	 * Same as {@link TrainingSetGenerator#generateTrainingDataFromFile(Path, Path)}, but with the option to specify an exclude file and
 	 * to turn off the recursion step.
 	 * @param sourceDirectory
 	 * @param targetDirectory
@@ -182,7 +182,7 @@ public class TrainingSetGenerator {
 						if(ext.equals("mch")){
 							fileCounter++;
 							Path dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
-							generateTrainingDataFile(entry, dataFilePath);
+							generateTrainingDataFromFile(entry, dataFilePath);
 						}
 		            }
 				});
@@ -259,12 +259,21 @@ public class TrainingSetGenerator {
 	}
 	
 	/**
+	 * Deprecated because name was to confusing.
+	 * @deprecated {@link #generateTrainingDataFromFile(Path, Path)}
+	 */
+	@Deprecated
+	public void generateTrainingDataFile(Path source, Path target){
+		generateTrainingDataFromFile(source, target);
+	}
+	
+	/**
 	 * Generates a file containing feature data found in the source file,
 	 * and writes them to the target file.
 	 * @param source
 	 * @param target
 	 */
-	public void generateTrainingDataFile(Path source, Path target){
+	public void generateTrainingDataFromFile(Path source, Path target){
 		log.info("Generating: {} > {}", source, target);
 		
 		Path targetDirectory = target.getParent();

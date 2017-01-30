@@ -21,21 +21,17 @@ public class OldModelPredefinedNetsTests {
 	private void checkTrainingSetGeneration(NeuroBNet net)  throws IOException, InterruptedException {
 		NeuroB nb = new NeuroB(net);
 
-		Path traindata = tmpDirectory.resolve(net.getDataPathName()).resolve("train_data.csv");
-		Path testdata = tmpDirectory.resolve(net.getDataPathName()).resolve("train_data.csv");
+		Path data = tmpDirectory.resolve(net.getDataPathName()).resolve("data.csv");
 		
 		// make sure data.csv does not exist
-		Files.deleteIfExists(traindata);
-		Files.deleteIfExists(testdata);
+		Files.deleteIfExists(data);
 		
 		nb.generateTrainingSet(trainingDirectory, tmpDirectory, null);
 
-		assertTrue("Training Data Set not created", Files.exists(traindata));
-		assertTrue("Test Data Set not created", Files.exists(testdata));
+		assertTrue("Data Set for training not created", Files.exists(data));
 		
 		// delete directory
-		Files.deleteIfExists(traindata);
-		Files.deleteIfExists(testdata);
+		Files.deleteIfExists(data);
 	}
 	
 	@Test
