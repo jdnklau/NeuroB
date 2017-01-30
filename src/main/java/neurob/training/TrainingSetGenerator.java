@@ -309,7 +309,9 @@ public class TrainingSetGenerator {
 	 * @param train
 	 * @param test
 	 * @param trainingRatio Probability that data will be written into the training set
+	 * @deprecation Use {@link #splitCSV(Path, Path, Path, double, boolean)} instead
 	 */
+	@Deprecated
 	public void generateTrainAndTestCSVfromNBTrainData(Path sourceDirectory, Path train, Path test, double trainingRatio){
 		Random rng = new Random(123);
 		
@@ -386,6 +388,65 @@ public class TrainingSetGenerator {
 			log.error("Failed to setup CSV correctly: {}", e.getMessage());
 		}
 		
+	}
+	
+	public void generateCSVFromNBTrainFiles(Path sourceDirectory, Path csv){
+		try (Stream<Path> stream = Files.walk(sourceDirectory)){
+			// Create CSV files
+			Files.createDirectories(csv.getParent());
+			BufferedWriter trainCsv = Files.newBufferedWriter(csv);
+			
+			// set headers
+			for(int i=0; i<fg.getFeatureDimension(); i++){
+				trainCsv.write("Feature"+i+",");
+			}
+			for(int i=0; i< lg.getLabelDimension(); i++){
+				trainCsv.write("Label"+i+",");
+			}
+			trainCsv.newLine();
+			trainCsv.flush();
+			
+			stream.forEach(f -> {
+				// check if .nbtrain file
+				if(Files.isRegularFile(f)){
+					String fileName = f.getFileName().toString();
+					String ext = fileName.substring(fileName.lastIndexOf('.'));
+					if(ext.equals(".nbtrain")){
+//						logger.info("Found "+f);
+						// nbtrain file found!
+						// read line wise
+						try (Stream<String> lines = Files.lines(f)){
+							lines.forEach(l -> {
+								try {
+									String[] data = l.split(":");
+									String[] features = data[0].split(",");
+									String[] labels = data[1].split(",");
+									if(features.length+labels.length < fg.getFeatureDimension()+lg.getLabelDimension()){
+										throw new NeuroBException("Size of training vector does not match, "
+												+ "expecting "+ fg.getFeatureDimension()+" features and " + lg.getLabelDimension()+" labels, "
+												+ "but got " +features.length + " and " + labels.length + " respectively");
+									}
+									// write to chosen file
+									trainCsv.write(String.join(",", features)+","+String.join(",", labels));
+									trainCsv.newLine();
+								} catch (NeuroBException e) {
+									log.error("Could not add a data vector: {}", f, e.getMessage());
+								} catch (IOException e) {
+									log.error("Failed to write data vector to file: {}", e.getMessage());
+								}
+							});
+							trainCsv.flush();
+						} catch(IOException e) {
+							log.error("Could not add data from {}: {}", f, e.getMessage());
+						}
+					}
+					
+				}
+			});
+			
+		} catch (IOException e) {
+			log.error("Failed to setup CSV correctly: {}", e.getMessage());
+		}
 	}
 	
 	/**
