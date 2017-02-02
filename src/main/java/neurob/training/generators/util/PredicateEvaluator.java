@@ -16,9 +16,23 @@ import de.prob.animator.domainobjects.EvalResult;
 import de.prob.exception.ProBError;
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
+import spock.lang.See;
 
 public class PredicateEvaluator {
 	
+	/**
+	 * Checks if the formula given is decidable or not.
+	 * <p>
+	 * For this, the state space will be manipulated
+	 * by querying the given solverPreference as {@link SetPreferenceCommand} with the value  "true", then turning it off again 
+	 * after the computation is done. 
+	 * @param stateSpace
+	 * @param solverPreference
+	 * @param formula
+	 * @return
+	 * @throws NeuroBException
+	 * @{@link See} {@link #evaluateCommandExecution(StateSpace, ClassicalB)}
+	 */
 	public static boolean isDecidableWithSolver(StateSpace stateSpace, String solverPreference, ClassicalB formula) throws NeuroBException{
 		boolean decidable = false;
 		
@@ -41,7 +55,66 @@ public class PredicateEvaluator {
 		
 		return decidable;
 	}
+	
+	/**
+	 * Measures time needed to decide whether the formula is decidable or not. 
+	 * <p>
+	 * The state space will be manipulated
+	 * by querying the given solverPreference as {@link SetPreferenceCommand} with the value  "true", then turning it off again 
+	 * after the computation is done. 
+	 * @param stateSpace The StateSpace the predicate gets decided in
+	 * @param formula The Formula to decide
+	 * @return Time needed in nano seconds or -1 if it could not be decided
+	 * @throws NeuroBException
+	 * @see {@link #getCommandExecutionTimeInNanoSeconds(StateSpace, ClassicalB)}
+	 */
+	public static long getCommandExecutionTimeBySolverInNanoSeconds(StateSpace stateSpace, String solverPreference, ClassicalB formula) throws NeuroBException{
+		long time = -1;
+		
+		try {
+			// Set solver preference
+			stateSpace.execute(new SetPreferenceCommand(solverPreference, "true")); // turn SMT on
+		} catch(Exception e){
+			throw new IllegalStateException("Could not correctly set solver to use.", e);
+		}
+		
+		// Check decidability
+		time = PredicateEvaluator.getCommandExecutionTimeInNanoSeconds(stateSpace, formula);
+			
+		try {
+			// turn of solver preference
+			stateSpace.execute(new SetPreferenceCommand(solverPreference, "false")); // and turn it off again
+		} catch (Exception e){
+			throw new IllegalStateException("Could not correctly turn off the selected solver.", e);
+		}
+		
+		return time;
+	}
+	
+	
+	/**
+	 * Measures time needed to decide whether the formula is decidable or not. 
+	 * @param stateSpace The StateSpace the predicate gets decided in
+	 * @param formula The Formula to decide
+	 * @return Time needed in nano seconds or -1 if it could not be decided
+	 * @throws NeuroBException
+	 * @see {@link #getCommandExecutionTimeBySolverInNanoSeconds(StateSpace, String, ClassicalB)}
+	 */
+	public static long getCommandExecutionTimeInNanoSeconds(StateSpace stateSpace, ClassicalB formula) throws NeuroBException{
+		long start = System.nanoTime();
+		boolean isDecidable = evaluateCommandExecution(stateSpace, formula);
+		long duration = System.nanoTime()-start;
+		
+		return (isDecidable) ? duration : -1;
+	}
 
+	/**
+	 * Checks whether the given formula is solvable with the given state space object, or not.
+	 * @param stateSpace
+	 * @param formula
+	 * @return
+	 * @throws NeuroBException
+	 */
 	public static boolean evaluateCommandExecution(StateSpace stateSpace, ClassicalB formula) throws NeuroBException {
 		// Set up thread for timeout check
 		ExecutorService executor = Executors.newSingleThreadExecutor();
