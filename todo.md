@@ -3,11 +3,33 @@
 - SolverClassificationGenerator should only allow for one solver to check for in future
     - thus it will never be a regression problem
     - regression variant can take timeouts into account
-- revisit training set generation
-    - optimise
+- training
+    - logging
+    - recape time elapsed after each epoch or X iterations
+        - maybe calculate ETA
+    - calculate training error thus far
+    - visualisation
+    - save files to disk by default? 
+        - sounds reasonable as it allows to directly access the corresponding network
+- training set generation
+    - optimise maybe
     - take stuff out that is no longer needed
+    - think about data augmentation for larger training sets
+        - will deleting nodes in AST that simply state integer domains for variables result in translation errors on the prob side or does it just make stuff harder to decide?
+        - throw in some equivalences in the extended guard formulae, to step up hardness of decidability
+        - swap lhs and rhs randomly for code portfolios, to get some different images
+    - more support for convolutional stuff: training set of convolutional features should default to the matching directory hierarchy
+        - or should it?
+    - alternative version of predicate features that behaves binary
+        - instead of counting how often something is, simply value it as 0 or 1
+        - compare with predicate features whether this changes results drastically to the worse
 - training set analysis should be deeper
     - offer fancy stuff like PCA
+    - translate data csv of code portfolios to data structure with actual images
+        - and also translating it back
+        - what is the structure for regression?
+        - maybe simply use binary packages?
+            - read into dl4j data pipelines
 - Test cases for training data generation
     - small example files should suffice
     - think about solution to compare Code Portfolios
