@@ -1,5 +1,5 @@
 # To Do List
-- add visualisations for network training
+
 - SolverClassificationGenerator should only allow for one solver to check for in future
     - thus it will never be a regression problem
     - regression variant can take timeouts into account
@@ -14,6 +14,12 @@
 - training set generation
     - optimise maybe
     - take stuff out that is no longer needed
+    - add formulae wrapper, allowing for easier manipulation of them
+        - idea is to have a FormulaCollection object (or similar), e.g. called f, that allows wraps internally an array list of strings/ASTs
+        - one may then call f.manipulationOfAST1().manipulationOfAST2()
+        - decide whether it should simply manipulate the already present formulae or add the manipulated results to them (aka augment present data vs. augment copy of present data and keep both)
+        - maybe just allow methods and other classes to operate on such an element, but offer not much functionality on its own?
+            - could result in to many wrapper abstractions...
     - think about data augmentation for larger training sets
         - will deleting nodes in AST that simply state integer domains for variables result in translation errors on the prob side or does it just make stuff harder to decide?
         - throw in some equivalences in the extended guard formulae, to step up hardness of decidability
@@ -28,7 +34,7 @@
         - and also translating it back
         - what is the structure for regression?
         - maybe simply use binary packages?
-            - read into dl4j data pipelines
+            - read myself into dl4j data pipelines
 - Test cases for training data generation
     - small example files should suffice
     - think about solution to compare Code Portfolios
