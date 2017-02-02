@@ -3,6 +3,8 @@ package neurob.training.generators.labelling;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.nd4j.linalg.util.ArrayUtil;
+
 import com.google.inject.Inject;
 
 import de.prob.Main;
@@ -79,23 +81,21 @@ public class SolverSelectionGenerator implements LabelGenerator {
 			throw new NeuroBException("Could not create command from formula "+predicate, e);
 		}
 		
-		// get classification of predicate
-		if(PredicateEvaluator.evaluateCommandExecution(stateSpace, formula)){
-			// Decidable with ProB
-			return "1"; 
+		// Check for solvers if they can decide the predicate + get the time they need
+		long ProBTime = PredicateEvaluator.getCommandExecutionTimeInNanoSeconds(stateSpace, formula);
+		long KodKodTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, "KODKOD", formula);
+		long ProBZ3Time = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, "SMT_SUPPORTED_INTERPRETER", formula);
+		
+		// check if any solver could decide the formula
+		if(0 == ArrayUtil.argMax(new long[]{0, ProBTime, KodKodTime, ProBZ3Time})){
+			// this means all timers returned with -1, indicating that none could decide the formula
+			return "0";
 		}
 		
-		if(PredicateEvaluator.isDecidableWithSolver(stateSpace, "KODKOD", formula)){
-			// Deidable with KodKod
-			return "2";
-		}
-		
-		if(PredicateEvaluator.isDecidableWithSolver(stateSpace, "SMT_SUPPORTED_INTERPRETER", formula)){
-			return "3";
-		}
-		
-		// Not decidable with solvers in use
-		return "0";
+		// get fastest solver
+		int fastestIndex = ArrayUtil.argMin(new long[]{ProBTime, KodKodTime, ProBZ3Time});
+		// actual label will be the fastest index+1, as 0 already represents that no solver can decide it.
+		return Integer.toString(fastestIndex+1);
 		
 	}
 
