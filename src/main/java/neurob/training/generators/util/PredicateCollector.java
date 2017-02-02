@@ -1,6 +1,8 @@
 package neurob.training.generators.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
@@ -85,5 +87,23 @@ public class PredicateCollector {
 			modifiedList.add(pp.getPrettyPrint());
 		}
 		return modifiedList;
+	}
+	
+	/**
+	 * Mixes the individual entries of all the predicate lists inside.
+	 * <p>
+	 * This has no result on the data despite changing their order.
+	 * Intention is to use this for image generation from the formulae, to get a greater variance of images produced. 
+	 * @param seed
+	 */
+	public void shuffleConjunctions(long seed){
+		Random rng = new Random(seed);
+		Collections.shuffle(invariants, rng);
+		Collections.shuffle(properties, rng);
+		Collections.shuffle(preds, rng);
+		Collections.shuffle(axioms, rng);
+		for(ArrayList<String> g : guards){
+			Collections.shuffle(g, rng);
+		}
 	}
 }

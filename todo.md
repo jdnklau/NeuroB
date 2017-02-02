@@ -17,7 +17,6 @@
     - think about data augmentation for larger training sets
         - will deleting nodes in AST that simply state integer domains for variables result in translation errors on the prob side or does it just make stuff harder to decide?
         - throw in some equivalences in the extended guard formulae, to step up hardness of decidability
-        - swap lhs and rhs randomly for code portfolios, to get some different images
     - more support for convolutional stuff: training set of convolutional features should default to the matching directory hierarchy
         - or should it?
     - alternative version of predicate features that behaves binary

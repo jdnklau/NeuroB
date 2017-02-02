@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ import de.prob.exception.ProBError;
 import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
+import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
@@ -215,6 +217,15 @@ public class TrainingSetGenerator {
 		PredicateCollector predc = new PredicateCollector(mainComp);
 		formulae = FormulaGenerator.extendedGuardFormulae(predc);
 		formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
+		// get shuffles for images
+		if(fg instanceof ConvolutionFeatures){
+			for(long i=0; i<3; i++){
+				predc.shuffleConjunctions(i);
+				formulae = FormulaGenerator.extendedGuardFormulae(predc);
+				formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
+			}
+		}
+		
 		log.info("\tGenerated {} formulas to solve.", formulae.size());
 		
 		// generate data per formula
