@@ -7,12 +7,14 @@ import java.util.HashMap;
 import java.util.stream.Stream;
 
 import neurob.core.NeuroB;
+import neurob.core.features.CodePortfolios;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.nets.predefined.OldModels;
 import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
+import neurob.training.generators.labelling.SolverSelectionGenerator;
 
 public class NeuroBCli {
 	private static final Path libraryIOpath = Paths.get("prob_examples/LibraryIO.def");
@@ -87,8 +89,15 @@ public class NeuroBCli {
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
 					+ "\tBoth files being csv files generated with this tool\n"
 					
-					+ "trainnet -file <file> -n <number> [-net <net>]\n"
-					+ "\tTrains <number> neural networks of type <net>, each with a different seed to begin with\n"
+					+ "trainnet -train <traindata> -test <testdata> [-hidden <layer_sizes +>] [-seed <seed +>] [-epochs <epochs +>] [-lr <learningrate +>] [-net <net>]\n"
+					+ "\tTrains a neural networks model of type <net>\n"
+					+ "\tThe model is trained on <traindata>, then evaluated on <testdata>\n"
+					+ "\t-hidden determines the number and size of hidden layers; -hidden 256 128 128 would create 3 hidden layers with respective amount of neurons"
+					+ "\t\tDefault: -hidden 256 128 128"
+					+ "\tThe defaults for the other hyper parameters are seed: 0, epochs: 15, learningrate: 0.006"
+					+ "\t\tNote: One can set multiple values for the hyper parameters seed, epochs, and lr, resulting in training each possible combination"
+					+ "\t\t      so be carefull with how many you query"
+					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007"
 					
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
@@ -98,18 +107,18 @@ public class NeuroBCli {
 					+ "\t<toexcludes> can be a list of multiple paths to files or directories, separated by a blank space\n"
 					
 					+ "\nDefault values:\n"
-					+ "- if -net <net> is not set, it defaults to 'psp' net\n"
+					+ "- if -net <net> is not set, it defaults to 'prob' net\n"
 					+ "- if -excludefile <excludefile> is not set, it defaults to default.excludes"
 					+ "\t* if -excludefile none is set, no exclusions are made"
 					
 					+ "\nNets:\n"
 					+ "The implemented nets you can access via the cli are\n"
 					+ "\tprob - ProB only prediction (default)\n"
-					+ "\tpsp - Predicate Solver Prediction\n"
+					//+ "\tpsp - Predicate Solver Prediction\n"
 					+ "\tpss - Predicate Solver Selection\n"
 					+ "\tkodkod - KodKod only prediction\n"
 					+ "\tprobcp - ProB only prediction using Code Portfolios\n"
-					+ "\tpspcp - Predicate Solver Prediction using Code Portfolios\n"
+					//+ "\tpspcp - Predicate Solver Prediction using Code Portfolios\n"
 					+ "\tpsscp - Predicate Solver Selection using Code Portfolios\n"
 					+ "\tkodkodcp - KodKod only prediction using Code Portfolios\n"
 					+ "\t\tNote: Code Portfolio models support usage of the -size argument.\n"
@@ -169,6 +178,7 @@ public class NeuroBCli {
 				System.out.println("trainingset: missing at least -dir parameter");
 			}
 		}
+		// trainnet -train <traindata> -test <testdata> [-seed <seed>+] [-epochs <epochs>+] [-lr <learningrate>+] [-net <net>]
 		else if(cmd.equals("trainnet")){
 			if(ops.containsKey("train")){
 				if(ops.containsKey("test")){
@@ -217,6 +227,10 @@ public class NeuroBCli {
 	}
 	
 	private static void buildNet(int i){
+		buildNet(i, 0.006, new int[]{200});
+	}
+	
+	private static void buildNet(int seed, double learningrate, int[] hiddenLayers){
 		NeuroBNet model;
 		// get net type
 		String net = "prob";
@@ -229,28 +243,44 @@ public class NeuroBCli {
 			size = Integer.parseInt(ops.get("size").get(0));
 		}
 		// set up nets
-		if(net.equals("prob")){
-			model = OldModels.getProBPredictionNet(i);
-		} else if(net.equals("kodkod")){
-			model = OldModels.getKodKodPredictionNet(i);
+//		int i = seed;
+//		if(net.equals("prob")){
+//			model = OldModels.getProBPredictionNet(i);
+//		} else if(net.equals("kodkod")){
+//			model = OldModels.getKodKodPredictionNet(i);
+//		} else if(net.equals("pss")){
+//			model = OldModels.getPredicateSolverSelectionNet(i);
+//		} else if(net.equals("psp")){
+//			model = OldModels.getPredicateSolverPredictionNet(i);
+//		
+//		} else if(net.equals("probcp")){
+//			model = OldModels.getProBPredictionWithCodePortfolioNet(i, size);
+//		} else if(net.equals("kodkodcp")){
+//			model = OldModels.getKodKodPredictionWithCodePortfolioNet(i, size);
+//		} else if(net.equals("psscp")){
+//			model = OldModels.getPredicateSolverSelectionWithCodePortfolioNet(i, size);
+//		} else if(net.equals("pspcp")){
+//			model = OldModels.getPredicateSolverPredictionWithCodePortfolioNet(i, size);
+//			
+//		} else {
+//			model = OldModels.getPredicateSolverPredictionNet(i);
+//			System.out.println("Net "+net+" is not known; defaulting to psp.");
+//		}
+		//if(net.equals("prob")){
+			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverClassificationGenerator(true, false, false), seed);
+		//} else 
+		if(net.equals("kodkod")){
+			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverClassificationGenerator(false, true, false), seed);
 		} else if(net.equals("pss")){
-			model = OldModels.getPredicateSolverSelectionNet(i);
-		} else if(net.equals("psp")){
-			model = OldModels.getPredicateSolverPredictionNet(i);
-		
-		} else if(net.equals("probcp")){
-			model = OldModels.getProBPredictionWithCodePortfolioNet(i, size);
-		} else if(net.equals("kodkodcp")){
-			model = OldModels.getKodKodPredictionWithCodePortfolioNet(i, size);
-		} else if(net.equals("psscp")){
-			model = OldModels.getPredicateSolverSelectionWithCodePortfolioNet(i, size);
-		} else if(net.equals("pspcp")){
-			model = OldModels.getPredicateSolverPredictionWithCodePortfolioNet(i, size);
-			
-		} else {
-			model = OldModels.getPredicateSolverPredictionNet(i);
-			System.out.println("Net "+net+" is not known; defaulting to psp.");
+			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverSelectionGenerator(), seed);
 		}
+		else if(net.equals("probcp")){
+			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverClassificationGenerator(true, false, false), seed);
+		} else if(net.equals("kodkodcp")){
+			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverClassificationGenerator(false, true, false), seed);
+		} else if(net.equals("psscp")){
+			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverSelectionGenerator(), seed);
+		} 
 	
 		nb = new NeuroB(model);
 	}
@@ -357,21 +387,47 @@ public class NeuroBCli {
 	}
 	
 	private static void trainNet(Path traincsv, Path testcsv){
-		int n = 1;
-		if(ops.containsKey("n"))
-			n = Integer.parseInt(ops.get("n").get(0));
+		// set defaults
+		if(!ops.containsKey("seed")){
+			ops.put("seed", new ArrayList<String>());
+			ops.get("seed").add("0");
+		}
+		if(!ops.containsKey("lr")){
+			ops.put("lr", new ArrayList<String>());
+			ops.get("lr").add("0.006");
+		}
+		if(!ops.containsKey("epochs")){
+			ops.put("epochs", new ArrayList<String>());
+			ops.get("epochs").add("15");
+		}
+		int[] hidden;
+		if(ops.containsKey("hidden")){
+			hidden = ops.get("hidden").stream().mapToInt(Integer::parseInt).toArray();
+		} else {
+			hidden = new int[]{256,128,128};
+		}
 		
-		for(int i=0; i<n; i++){
-			buildNet(i);
+		for(String lrStr : ops.get("lr")){
+			double lr = Double.parseDouble(lrStr);
 			
-			try {
-				nb.train(traincsv, testcsv);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			for(String epochsStr : ops.get("epochs")){
+				int epochs = Integer.parseInt(epochsStr);
+				
+				for(String seedStr : ops.get("seed")){
+					int seed = Integer.parseInt(seedStr);
+					
+					buildNet(seed, lr, hidden);
+					
+					try {
+						nb.train(traincsv, testcsv, epochs);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 	}

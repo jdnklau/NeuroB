@@ -73,6 +73,7 @@ public class NeuroB {
 		
 	}
 	
+	@Deprecated
 	public void setEpochs(int epochs){
 		numEpochs = epochs;
 	}
@@ -87,21 +88,23 @@ public class NeuroB {
 	 * The test CSV is then used to evaluate the trained network.
 	 * @param trainCSV
 	 * @param testCSV
+	 * @param epochs Number of epochs used in training
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainCSV, Path testCSV) throws IOException, InterruptedException{
-		train(trainCSV);
+	public void train(Path trainCSV, Path testCSV, int epochs) throws IOException, InterruptedException{
+		train(trainCSV, epochs);
 		test(testCSV);
 	}
 	
 	/**
 	 * Trains the neural net with a CSV file.
 	 * @param trainCSV
+	 * @param numEpochs Number of times the training data will be fit into the network
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainCSV) throws IOException, InterruptedException{
+	public void train(Path trainCSV, int numEpochs) throws IOException, InterruptedException{
 		int batchSize = 1000;
 		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainCSV, numEpochs, batchSize);
 		

@@ -86,7 +86,7 @@ public class NeuroBNet {
 		
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
         .seed(seed)
-        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+        .optimizationAlgo(OptimizationAlgorithm.LBFGS)
         .iterations(1)
         .learningRate(learningRate)
         .updater(Updater.NESTEROVS).momentum(0.9)
@@ -107,7 +107,7 @@ public class NeuroBNet {
 				listBuilder = listBuilder.layer(i, new DenseLayer.Builder()
 						.nIn(lastOut)
 						.nOut(hiddenLayers[i])
-						.activation(Activation.RELU)
+						.activation(Activation.LEAKYRELU)
 						.weightInit(WeightInit.XAVIER)
 						.build());
 				lastOut = hiddenLayers[i];
