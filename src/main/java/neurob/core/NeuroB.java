@@ -134,26 +134,26 @@ public class NeuroB {
 	public void test(Path testCSV) throws IOException, InterruptedException{
 		log.info("Evaluating the training results");
 		
-		int batchSize = 1000;
+		int batchSize = 100;
 		DataSetIterator iterator = nbn.getDataSetIterator(testCSV, batchSize);
 		
 		// Evaluate on test set
 		Evaluation eval = new Evaluation(nbn.getOutputSize());
-		iterator.reset();
+//		iterator.reset();
 		while(iterator.hasNext()){
 			DataSet testData = iterator.next();
             
-            nbn.getNormalizer().transform(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
+            nbn.applyNormalizer(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
         	
-            // Evaluate results
-            Iterator<DataSet> it = testData.iterator();
-            
-            while(it.hasNext()){
-            	DataSet next = it.next();
-            	INDArray output = nbn.output(next.getFeatureMatrix());
+//            // Evaluate results
+//            Iterator<DataSet> it = testData.iterator();
+//            
+//            while(it.hasNext()){
+//            	DataSet next = it.next();
+            	INDArray output = nbn.output(testData.getFeatureMatrix());
             	
-            	eval.eval(next.getLabels(), output);
-            }
+            	eval.eval(testData.getLabels(), output);
+//            }
 		}
 		
 		// log evaluation results

@@ -93,7 +93,7 @@ public class NeuroBCli {
 					+ "\tTrains a neural networks model of type <net>\n"
 					+ "\tThe model is trained on <traindata>, then evaluated on <testdata>\n"
 					+ "\t-hidden determines the number and size of hidden layers; -hidden 256 128 128 would create 3 hidden layers with respective amount of neurons"
-					+ "\t\tDefault: -hidden 256 128 128"
+					+ "\t\tDefault: -hidden 512 256 128 128"
 					+ "\tThe defaults for the other hyper parameters are seed: 0, epochs: 15, learningrate: 0.006"
 					+ "\t\tNote: One can set multiple values for the hyper parameters seed, epochs, and lr, resulting in training each possible combination"
 					+ "\t\t      so be carefull with how many you query"
@@ -404,7 +404,7 @@ public class NeuroBCli {
 		if(ops.containsKey("hidden")){
 			hidden = ops.get("hidden").stream().mapToInt(Integer::parseInt).toArray();
 		} else {
-			hidden = new int[]{256,128,128};
+			hidden = new int[]{512,256,128,128};
 		}
 		
 		for(String lrStr : ops.get("lr")){
@@ -415,7 +415,7 @@ public class NeuroBCli {
 				
 				for(String seedStr : ops.get("seed")){
 					int seed = Integer.parseInt(seedStr);
-					
+					System.out.println(lr);
 					buildNet(seed, lr, hidden);
 					
 					try {

@@ -21,6 +21,8 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
+import org.nd4j.linalg.dataset.api.preprocessor.serializer.NormalizerStandardizeSerializer;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.FeatureGenerator;
@@ -35,7 +37,7 @@ public class NeuroBNet {
 	protected LabelGenerator labelgen; // Label generator in use of training set generation
 	// Preprocessing
 	protected DataNormalization normalizer; // Normalizer used 
-	protected final boolean useNormalizer = true;
+	protected boolean useNormalizer = false;
 	
 	
 	/**
@@ -48,6 +50,7 @@ public class NeuroBNet {
 		this.model = model;
 		this.features = features;
 		this.labelgen = labelling;
+		useNormalizer = false;
 	}
 	
 	/**
@@ -86,7 +89,7 @@ public class NeuroBNet {
 		
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
         .seed(seed)
-        .optimizationAlgo(OptimizationAlgorithm.LBFGS)
+        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
         .iterations(1)
         .learningRate(learningRate)
         .updater(Updater.NESTEROVS).momentum(0.9)
@@ -107,7 +110,7 @@ public class NeuroBNet {
 				listBuilder = listBuilder.layer(i, new DenseLayer.Builder()
 						.nIn(lastOut)
 						.nOut(hiddenLayers[i])
-						.activation(Activation.LEAKYRELU)
+						.activation(Activation.RELU)
 						.weightInit(WeightInit.XAVIER)
 						.build());
 				lastOut = hiddenLayers[i];
@@ -123,7 +126,7 @@ public class NeuroBNet {
 			.pretrain(false).backprop(true);
 		}
         
-		
+		setUpNormalizer();
 		
 		this.model = new MultiLayerNetwork(listBuilder.build());
 		this.features = features;
@@ -143,6 +146,10 @@ public class NeuroBNet {
 		this.labelgen = labelling;
 	}
 	
+	protected void setUpNormalizer(){
+		normalizer = new NormalizerStandardize();
+	}
+	
 	/**
 	 * Model your normaliser on the training set
 	 * @param data
@@ -150,6 +157,15 @@ public class NeuroBNet {
 	public void fitNormalizer(DataSet data){
 		if(useNormalizer)
 			normalizer.fit(data);
+	}
+	
+	public void applyNormalizer(DataSet data){
+		if(useNormalizer)
+			normalizer.transform(data);
+	}
+	
+	public DataNormalization getNormalizer(){
+		return normalizer;
 	}
 	
 	/**
@@ -175,10 +191,6 @@ public class NeuroBNet {
 	
 	public INDArray output(INDArray dataArray) {
 		return model.output(dataArray);
-	}
-	
-	public DataNormalization getNormalizer(){
-		return normalizer;
 	}
 	
 	/**
