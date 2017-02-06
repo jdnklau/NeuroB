@@ -17,6 +17,7 @@ import java.nio.file.Paths;
  * @author jannik
  *
  */
+@Deprecated
 public class GenerateDirectoryHierarchyList {
 	BufferedWriter out;
 	Path mainDir;
