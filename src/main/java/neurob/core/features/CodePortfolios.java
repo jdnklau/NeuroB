@@ -136,6 +136,21 @@ public class CodePortfolios implements ConvolutionFeatures {
 	public int getFeatureDimension() {
 		return pixels;
 	}
+	
+	@Override
+	public int getImageHeight() {
+		return dim;
+	}
+	
+	@Override
+	public int getImageWidth() {
+		return dim;
+	}
+	
+	@Override
+	public int getFeatureChannels() {
+		return 1;
+	}
 
 	@Override
 	public void reset() {

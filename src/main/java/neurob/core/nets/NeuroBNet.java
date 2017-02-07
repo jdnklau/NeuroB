@@ -127,7 +127,7 @@ public class NeuroBNet {
 			}
 			
 			// Output layer
-			listBuilder.layer(hiddenLayers.length, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
+			listBuilder = listBuilder.layer(hiddenLayers.length, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
 					.nIn(lastOut)
 					.nOut(labelling.getLabelDimension())
 					.activation(Activation.SOFTMAX)

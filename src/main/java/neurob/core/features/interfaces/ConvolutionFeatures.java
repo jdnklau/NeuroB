@@ -20,6 +20,25 @@ import neurob.exceptions.NeuroBException;
 public interface ConvolutionFeatures extends FeatureGenerator {
 	
 	/**
+	 * 
+	 * @return Number of channels the resulting image has
+	 */
+	public int getFeatureChannels();
+	
+	/**
+	 * 
+	 * @return Resulting image's height
+	 */
+	public int getImageHeight();
+	
+
+	/**
+	 * 
+	 * @return Resulting image's width
+	 */
+	public int getImageWidth();
+	
+	/**
 	 * Generates the features of the given predicate and returns them as image,
 	 * without adding it to the intern feature list.
 	 * 
