@@ -5,6 +5,7 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -101,7 +102,26 @@ public class CodePortfolios implements ConvolutionFeatures {
 		return data;
 	}
 	
-	private String translateImageFeatureToString(BufferedImage image){
+	@Override
+	public BufferedImage translateStringFeatureToImage(String featureString) {
+		
+		int[] pixels = Arrays.asList(featureString.split(",")).stream().mapToInt(Integer::parseInt).toArray();
+						// gotta love streams, heh?
+		
+		BufferedImage img = new BufferedImage(dim, dim, BufferedImage.TYPE_BYTE_GRAY);
+		WritableRaster raster = img.getRaster();
+		
+		for(int y=0; y<dim; y++){
+			for(int x=0; x<dim; x++){
+				raster.setPixel(x, y, new int[]{pixels[x+y*dim]});
+			}
+		}
+		
+		return img;
+	}
+	
+	@Override
+	public String translateImageFeatureToString(BufferedImage image){
 		// return a string representation
 		ArrayList<String> values = new ArrayList<String>();
 		
