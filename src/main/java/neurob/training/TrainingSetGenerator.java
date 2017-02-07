@@ -1,5 +1,6 @@
 package neurob.training;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -15,6 +16,8 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -567,6 +570,43 @@ public class TrainingSetGenerator {
 			
 		} catch (IOException e) {
 			log.error("Could not access target files correctly: {}", e.getMessage());
+		}
+	}
+	
+	public void translateCSVToImages(Path csv, Path imageDir){
+		if(!(lg instanceof ConvolutionFeatures)){
+			throw new IllegalArgumentException("translateCSVToImages requires to instantiate TrainingSetGenerator with ConvolutionFeatures");
+		}
+		
+		// generate directory an subdirectories
+		try {
+			for(int i=0; i<lg.getClassCount(); i++){
+				Files.createDirectories(imageDir.resolve(Integer.toString(i)));
+			}
+		} catch (IOException e) {
+			log.error("Could not create all subdirectories correctly: {}", e.getMessage());
+		}
+		
+		try(Stream<String> stream = Files.lines(csv)){
+			stream.forEach(line -> {
+				int indexOfLabel = line.lastIndexOf(',')+1;
+				
+				Path target = imageDir.resolve(line.substring(indexOfLabel)).resolve("image.gif"); // TODO: Different names
+				
+				// features
+				String features = line.substring(0, indexOfLabel-1);
+				BufferedImage img = ((ConvolutionFeatures) fg).translateStringFeatureToImage(features);
+				
+				
+				try {
+					ImageIO.write(img, "gif", target.toFile());
+				} catch (Exception e) {
+					log.error("Could not create image from features {}", features);
+				}
+				
+			});
+		} catch (IOException e) {
+			log.error("Could not access CSV properly: {}", e.getMessage());
 		}
 	}
 	
