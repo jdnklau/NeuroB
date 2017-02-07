@@ -22,7 +22,6 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
-import org.nd4j.linalg.dataset.api.preprocessor.serializer.NormalizerStandardizeSerializer;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.FeatureGenerator;
@@ -39,6 +38,17 @@ public class NeuroBNet {
 	protected DataNormalization normalizer; // Normalizer used 
 	protected boolean useNormalizer = false;
 	
+	/**
+	 * Creates a NeuroBNet without any model attached to it. 
+	 * This is useful for e.g. the training set generation, when no model is needed 
+	 * but the feature generator and label generator alone.
+	 * @param features
+	 * @param labelling
+	 */
+	public NeuroBNet(FeatureGenerator features, LabelGenerator labelling){
+		this.features = features;
+		this.labelgen = labelling;
+	}
 	
 	/**
 	 * Set up your deeplearning4j {@link MultiLayerNetwork} and use it as NeuroB class
@@ -47,9 +57,8 @@ public class NeuroBNet {
 	 * @param labelling The classification approach used --- necessary for training set generation
 	 */
 	public NeuroBNet(MultiLayerNetwork model, FeatureGenerator features, LabelGenerator labelling) {
+		this(features, labelling);
 		this.model = model;
-		this.features = features;
-		this.labelgen = labelling;
 		useNormalizer = false;
 	}
 	
@@ -86,6 +95,7 @@ public class NeuroBNet {
 	 * @param seed
 	 */
 	public NeuroBNet(int[] hiddenLayers, double learningRate, FeatureGenerator features, LabelGenerator labelling, int seed) {
+		this(features, labelling);
 		
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
         .seed(seed)
@@ -129,8 +139,6 @@ public class NeuroBNet {
 		setUpNormalizer();
 		
 		this.model = new MultiLayerNetwork(listBuilder.build());
-		this.features = features;
-		this.labelgen = labelling;
 	}
 	
 	/**
@@ -141,9 +149,8 @@ public class NeuroBNet {
 	 * @throws IOException
 	 */
 	public NeuroBNet(Path modelFile, FeatureGenerator features, LabelGenerator labelling) throws IOException{
-		this.model = ModelSerializer.restoreMultiLayerNetwork(modelFile.toFile());;
-		this.features = features;
-		this.labelgen = labelling;
+		this(features, labelling);
+		this.model = ModelSerializer.restoreMultiLayerNetwork(modelFile.toFile());
 	}
 	
 	protected void setUpNormalizer(){
