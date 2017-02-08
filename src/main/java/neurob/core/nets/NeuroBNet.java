@@ -7,6 +7,7 @@ import java.util.Random;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
+import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
@@ -15,6 +16,9 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.stats.StatsListener;
+import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -103,7 +107,7 @@ public class NeuroBNet {
         .iterations(1)
         .learningRate(learningRate)
         .updater(Updater.NESTEROVS).momentum(0.9)
-        .regularization(true).l2(1e-4)
+        .regularization(false)//.l2(1e-4)
         .list();
         
 		// Set up layers
@@ -121,13 +125,13 @@ public class NeuroBNet {
 						.nIn(lastOut)
 						.nOut(hiddenLayers[i])
 						.activation(Activation.RELU)
-						.weightInit(WeightInit.XAVIER)
+						.weightInit(WeightInit.RELU)
 						.build());
 				lastOut = hiddenLayers[i];
 			}
 			
 			// Output layer
-			listBuilder = listBuilder.layer(hiddenLayers.length, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
+			listBuilder = listBuilder.layer(hiddenLayers.length, new OutputLayer.Builder(LossFunction.MCXENT)
 					.nIn(lastOut)
 					.nOut(labelling.getLabelDimension())
 					.activation(Activation.SOFTMAX)
@@ -254,6 +258,18 @@ public class NeuroBNet {
 				+"/" + labelgen.getDataPathIdentifier()
 				+"/" +features.getDataPathIdentifier()
 				+"/";
+	}
+	
+	/**
+	 * For network training purposes: Start The DL4J UI to monitor the training of the model 
+	 */
+	public void enableDL4JUI() {
+		UIServer uiServer = UIServer.getInstance();
+		
+		StatsStorage statsStorage = new InMemoryStatsStorage();
+		uiServer.attach(statsStorage);
+		
+		model.setListeners(new StatsListener(statsStorage));
 	}
 
 }

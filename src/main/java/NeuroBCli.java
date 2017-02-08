@@ -440,7 +440,6 @@ public class NeuroBCli {
 				
 				for(String seedStr : ops.get("seed")){
 					int seed = Integer.parseInt(seedStr);
-					System.out.println(lr);
 					buildNet(seed, lr, hidden);
 					
 					try {

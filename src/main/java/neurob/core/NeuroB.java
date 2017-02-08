@@ -5,7 +5,10 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Random;
 
+import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -105,7 +108,7 @@ public class NeuroB {
 	 * @throws IOException 
 	 */
 	public void train(Path trainCSV, int numEpochs) throws IOException, InterruptedException{
-		int batchSize = 1000;
+		int batchSize = 250;
 		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainCSV, numEpochs, batchSize);
 		
 		// set up training data
@@ -115,6 +118,11 @@ public class NeuroB {
 		while(iterator.hasNext()){
 			DataSet batch = iterator.next();
         	nbn.fitNormalizer(batch);
+		}
+		
+		// If needed, set up UI
+		if(true){
+			nbn.enableDL4JUI();
 		}
 		
 		// train net on training data
