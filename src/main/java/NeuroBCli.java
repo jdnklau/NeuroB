@@ -84,6 +84,11 @@ public class NeuroBCli {
 					+ "\tSplit a given CSV file into <first> and <second>, both being CSV files again\n"
 					+ "\tFor this, the given <ratio> is used, a number in the interval [0,1]\n"
 					
+					+ "trainingset -csvtranslate -file <csv> -dir <directory> [-net <net>]\n"
+					+ "\tFor models with convolutional features, this translates the data.csv from training set generation into"
+					+ "\ta directory structure in <directory>, that contains the classes as subdirectories and places all"
+					+ "\tsamples as image files accordingly inside one of them"
+					
 					+ "trainnet -train <trainingfile> -test <testfile> [-net <net>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
 					+ "\tBoth files being csv files generated with this tool\n"
@@ -162,6 +167,23 @@ public class NeuroBCli {
 					}
 				}
 			}
+			else if(ops.containsKey("csvtranslate")){
+				if(ops.containsKey("file")){
+					if(ops.containsKey("dir")){
+						Path csv = Paths.get(ops.get("file").get(0));
+						Path dir = Paths.get(ops.get("dir").get(0));
+						buildNet();
+						translateCsv(csv, dir);
+						
+					}
+					else {
+						System.out.println("trainingset -csvtranslate: Missing parameter: -dir");
+					}
+				}
+				else {
+					System.out.println("trainingset -csvtranslate: Missing parameter: -file");
+				}
+			} 
 			else if(ops.containsKey("dir")){// generate training set
 				buildNet();
 				trainingSetGeneration(dir);
@@ -221,6 +243,10 @@ public class NeuroBCli {
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 	
+	private static void translateCsv(Path csv, Path dir) {
+		nb.getNeuroBNet().getTrainingSetGenerator().translateCSVToImages(csv, dir);
+	}
+
 	private static void buildNet(){
 		buildNet(1);
 	}

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -574,7 +575,7 @@ public class TrainingSetGenerator {
 	}
 	
 	public void translateCSVToImages(Path csv, Path imageDir){
-		if(!(lg instanceof ConvolutionFeatures)){
+		if(!(fg instanceof ConvolutionFeatures)){
 			throw new IllegalArgumentException("translateCSVToImages requires to instantiate TrainingSetGenerator with ConvolutionFeatures");
 		}
 		
@@ -588,23 +589,27 @@ public class TrainingSetGenerator {
 		}
 		
 		try(Stream<String> stream = Files.lines(csv)){
-			stream.forEach(line -> {
-				int indexOfLabel = line.lastIndexOf(',')+1;
-				
-				Path target = imageDir.resolve(line.substring(indexOfLabel)).resolve("image.gif"); // TODO: Different names
-				
-				// features
-				String features = line.substring(0, indexOfLabel-1);
-				BufferedImage img = ((ConvolutionFeatures) fg).translateStringFeatureToImage(features);
-				
-				
-				try {
-					ImageIO.write(img, "gif", target.toFile());
-				} catch (Exception e) {
-					log.error("Could not create image from features {}", features);
-				}
-				
-			});
+			AtomicInteger counter = new AtomicInteger(0);
+			stream
+				.skip(1)
+				.forEach(line -> {
+					int indexOfLabel = line.lastIndexOf(',')+1;
+					
+					Path target = 	imageDir.resolve(line.substring(indexOfLabel))
+									.resolve("image"+counter.getAndIncrement()+".gif"); // TODO: Different names
+					
+					// features
+					String features = line.substring(0, indexOfLabel-1);
+					BufferedImage img = ((ConvolutionFeatures) fg).translateStringFeatureToImage(features);
+					
+					
+					try {
+						ImageIO.write(img, "gif", target.toFile());
+					} catch (Exception e) {
+						log.error("Could not create image from features {}", features);
+					}
+					
+				});
 		} catch (IOException e) {
 			log.error("Could not access CSV properly: {}", e.getMessage());
 		}
