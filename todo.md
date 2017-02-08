@@ -5,23 +5,23 @@
     - regression variant can take timeouts into account
 - training
     - logging
-    - recape time elapsed after each epoch or X iterations
+    - recap time elapsed after each epoch or X iterations
         - maybe calculate ETA
     - calculate training error thus far
+        - after X iterations rather than just after each epoch
     - visualisation
     - save files to disk by default? 
         - sounds reasonable as it allows to directly access the corresponding network
 - training set generation
     - optimise maybe
     - take stuff out that is no longer needed
-    - add formulae wrapper, allowing for easier manipulation of them
-        - idea is to have a FormulaCollection object (or similar), e.g. called f, that allows wraps internally an array list of strings/ASTs
-        - one may then call f.manipulationOfAST1().manipulationOfAST2()
-        - decide whether it should simply manipulate the already present formulae or add the manipulated results to them (aka augment present data vs. augment copy of present data and keep both)
-        - maybe just allow methods and other classes to operate on such an element, but offer not much functionality on its own?
+    - ~add formulae wrapper, allowing for easier manipulation of them~
+        - ~idea is to have a FormulaCollection object (or similar), e.g. called f, that allows wraps internally an array list of strings/ASTs~
+        - ~one may then call f.manipulationOfAST1().manipulationOfAST2()~
+        - ~decide whether it should simply manipulate the already present formulae or add the manipulated results to them (aka augment present data vs. augment copy of present data and keep both)~
+        - ~maybe just allow methods and other classes to operate on such an element, but offer not much functionality on its own?~
             - could result in to many wrapper abstractions...
     - think about data augmentation for larger training sets
-        - will deleting nodes in AST that simply state integer domains for variables result in translation errors on the prob side or does it just make stuff harder to decide?
         - throw in some equivalences in the extended guard formulae, to step up hardness of decidability
     - more support for convolutional stuff: training set of convolutional features should default to the matching directory hierarchy
         - or should it?
@@ -30,8 +30,8 @@
         - compare with predicate features whether this changes results drastically to the worse
 - training set analysis should be deeper
     - offer fancy stuff like PCA
-    - translate data csv of code portfolios to data structure with actual images
-        - and also translating it back
+    - code portfolios
+        - ~translating image directory back to csv~ maybe uninteresting
         - what is the structure for regression?
         - maybe simply use binary packages?
             - read myself into dl4j data pipelines
@@ -40,6 +40,4 @@
     - think about solution to compare Code Portfolios
 - update cli
     - iterate about some options, like single training file generation and if this is still necessary
-    - change handling in Cli of neural nets
-        - allow to give custom seed(s) for RNG
 - update java doc
