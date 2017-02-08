@@ -10,7 +10,6 @@ import neurob.core.NeuroB;
 import neurob.core.features.CodePortfolios;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.nets.NeuroBNet;
-import neurob.core.nets.predefined.OldModels;
 import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
