@@ -97,11 +97,22 @@ public class NeuroBConvNet extends NeuroBNet {
 					.weightInit(WeightInit.XAVIER)
 					.build());
 			
-			// Output layer
-			listBuilder = listBuilder.layer(hiddenLayers.length, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
+			// Output layer - depending on whether we do regression or not
+			LossFunction lossFunction;
+			Activation activationFunction;
+			if(labelling.getClassCount()==-1){ // Regression
+				lossFunction = LossFunction.MSE;
+				activationFunction = Activation.IDENTITY; 
+			}
+			else { // No regression
+				lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
+				activationFunction = Activation.SOFTMAX;
+			}
+			// the layer itself
+			listBuilder = listBuilder.layer(hiddenLayers.length+1, new OutputLayer.Builder(lossFunction)
 					.nIn(lastOut)
 					.nOut(labelling.getLabelDimension())
-					.activation(Activation.SOFTMAX)
+					.activation(activationFunction)
 					.weightInit(WeightInit.XAVIER)
 					.build())
 			.pretrain(false).backprop(true);
