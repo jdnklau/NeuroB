@@ -308,6 +308,7 @@ public class NeuroBCli {
 		} 
 	
 		nb = new NeuroB(model);
+		nb.enableDL4JUI(true);
 	}
 
 	private static void parseCommandLineOptions(HashMap<String, ArrayList<String>> ops) {

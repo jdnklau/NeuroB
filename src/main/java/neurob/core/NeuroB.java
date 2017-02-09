@@ -70,10 +70,12 @@ public class NeuroB {
 	// Training
 	private int numEpochs = 15;
 
+	private boolean dl4jUIEnabled;
+
 	public NeuroB(NeuroBNet neuroBNet) {
 		// link neural net
 		nbn = neuroBNet;
-		
+		dl4jUIEnabled = false;
 	}
 	
 	@Deprecated
@@ -120,10 +122,12 @@ public class NeuroB {
         	nbn.fitNormalizer(batch);
 		}
 		
-		nbn.enableTrainingScoreIteration(75);
 		// If needed, set up UI
-		if(true){
+		if(dl4jUIEnabled){
 			nbn.enableDL4JUI();
+		}
+		else {
+			nbn.enableTrainingScoreIteration(75);
 		}
 		
 		// train net on training data
@@ -171,6 +175,15 @@ public class NeuroB {
 		log.info("\tRecall: {}", eval.recall());
 		log.info("\tF1 score: {}", eval.f1());
 		log.info("******************************");
+	}
+	
+	/**
+	 * Use this prior to training to enable the use of the Deeplearning4j training UI.
+	 * This allows to monitor training stats more closely and in real time.
+	 * @param enable Whether it should be enabled or not
+	 */
+	public void enableDL4JUI(boolean enable){
+		dl4jUIEnabled = enable;
 	}
 	
 	/**
