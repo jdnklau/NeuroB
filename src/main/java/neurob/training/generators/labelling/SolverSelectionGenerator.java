@@ -68,7 +68,7 @@ public class SolverSelectionGenerator implements LabelGenerator {
 
 	@Override
 	public int getLabelDimension() {
-		return 1;
+		return 4;
 	}
 
 	@Override
