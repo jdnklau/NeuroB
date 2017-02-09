@@ -32,7 +32,7 @@ public interface LabelGenerator {
 	
 	/**
 	 * Returns the size of the labelling vector generated.
-	 * This is usually {@code 1}, with the exception of multi-label approaches
+	 * This is usually identical with {@link #getClassCount()}, as  one-hot vectors are used
 	 * @return
 	 */
 	public int getLabelDimension();
@@ -71,7 +71,7 @@ public interface LabelGenerator {
 				recordReader,
 				batchSize,
 				featureDimension,	// starting index of the label values in the csv
-				getClassCount()		// Number of different classes
+				getLabelDimension()		// Number of different classes
 			);
 		return iterator;
 	}

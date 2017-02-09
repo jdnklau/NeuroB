@@ -108,7 +108,7 @@ public class SolverClassificationGenerator implements LabelGenerator {
 
 	@Override
 	public int getLabelDimension() {
-		return labelledClasses;
+		return (labelledClasses > 1) ? labelledClasses : 2;
 	}
 
 	@Override
@@ -166,15 +166,19 @@ public class SolverClassificationGenerator implements LabelGenerator {
 	
 	@Override
 	public DataSetIterator getDataSetIterator(RecordReader recordReader, int batchSize, int featureDimension) {
-		DataSetIterator iterator = new RecordReaderDataSetIterator(
-				recordReader,
-				batchSize,
-				featureDimension,	// starting index of the label values in the csv
-				featureDimension+getLabelDimension()-1, // final index of the label values in the csv
-				true	// needs to be true, as this only goes with regression
-			);
 		
-		return iterator;
+		if(getClassCount() == -1){
+			DataSetIterator iterator = new RecordReaderDataSetIterator(
+					recordReader,
+					batchSize,
+					featureDimension,	// starting index of the label values in the csv
+					featureDimension+getLabelDimension()-1, // final index of the label values in the csv
+					true	// needs to be true, as this only goes with regression
+				);
+		
+			return iterator;
+		}
+		return LabelGenerator.super.getDataSetIterator(recordReader, batchSize, featureDimension);
 	}
 
 }
