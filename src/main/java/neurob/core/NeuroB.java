@@ -120,6 +120,7 @@ public class NeuroB {
         	nbn.fitNormalizer(batch);
 		}
 		
+		nbn.enableTrainingScoreIteration(75);
 		// If needed, set up UI
 		if(true){
 			nbn.enableDL4JUI();
@@ -146,7 +147,7 @@ public class NeuroB {
 		DataSetIterator iterator = nbn.getDataSetIterator(testCSV, batchSize);
 		
 		// Evaluate on test set
-		Evaluation eval = new Evaluation(nbn.getOutputSize());
+		Evaluation eval = new Evaluation(nbn.getClassificationSize());
 //		iterator.reset();
 		while(iterator.hasNext()){
 			DataSet testData = iterator.next();
