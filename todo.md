@@ -5,39 +5,41 @@
     - regression variant can take timeouts into account
 - training
     - logging
-    - recap time elapsed after each epoch or X iterations
-        - maybe calculate ETA
     - calculate training error thus far
         - after X iterations rather than just after each epoch
-    - visualisation
-    - save files to disk by default? 
-        - sounds reasonable as it allows to directly access the corresponding network
+    - save files to disk by default
+    - more generic handling of data preprocessing if possible
 - training set generation
-    - optimise maybe
-    - take stuff out that is no longer needed
+    - also use EventB machines
+    - also use private examples
+    - model check machines
+        - generate 100 states per solver
+        - give credit to fastest one
+    - optimise
     - ~add formulae wrapper, allowing for easier manipulation of them~
         - ~idea is to have a FormulaCollection object (or similar), e.g. called f, that allows wraps internally an array list of strings/ASTs~
         - ~one may then call f.manipulationOfAST1().manipulationOfAST2()~
         - ~decide whether it should simply manipulate the already present formulae or add the manipulated results to them (aka augment present data vs. augment copy of present data and keep both)~
         - ~maybe just allow methods and other classes to operate on such an element, but offer not much functionality on its own?~
-            - could result in to many wrapper abstractions...
-    - think about data augmentation for larger training sets
+            - to many wrapper abstractions
+    - data augmentation for larger training sets
         - throw in some equivalences in the extended guard formulae, to step up hardness of decidability
-    - more support for convolutional stuff: training set of convolutional features should default to the matching directory hierarchy
-        - or should it?
-    - alternative version of predicate features that behaves binary
-        - instead of counting how often something is, simply value it as 0 or 1
-        - compare with predicate features whether this changes results drastically to the worse
+        - drop randomly (30% chance?) basic nodes in ast
+        - access/generate proof obligations
+    - more distinct support for convolutional models
 - training set analysis should be deeper
     - offer fancy stuff like PCA
     - code portfolios
-        - ~translating image directory back to csv~ maybe uninteresting
-        - what is the structure for regression?
-        - maybe simply use binary packages?
-            - read myself into dl4j data pipelines
-- Test cases for training data generation
-    - small example files should suffice
-    - think about solution to compare Code Portfolios
+        - ~~translating image directory back to csv~~
+        - zip images to big binary rather than csv or directory hierarchy
+            - this means hand crafted data pipeline
+            - benefits:
+                - images as binary objects rather than their feature string representation
+                - still regression is part of the deal as no directory hierarchy is necessary but only the data pack
+    - analyse regression
+        - get min and max value for each label generated
+        - get mean, std dev, median
+        - basically some box plot values
 - update cli
     - iterate about some options, like single training file generation and if this is still necessary
 - update java doc
