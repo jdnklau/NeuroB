@@ -14,7 +14,8 @@ import de.prob.model.representation.Axiom;
 import de.prob.model.representation.BEvent;
 import de.prob.model.representation.Guard;
 import de.prob.model.representation.Invariant;
-import neurob.exceptions.NeuroBException;
+import de.prob.statespace.StateSpace;
+import neurob.core.util.MachineType;
 
 public class PredicateCollector {
 	private ArrayList<String> invariants;
@@ -22,7 +23,22 @@ public class PredicateCollector {
 	private ArrayList<ArrayList<String>> guards;
 	private ArrayList<String> axioms;
 	private ArrayList<String> properties;
-
+	
+	private MachineType machineType;
+	
+	public PredicateCollector(StateSpace ss){
+		preds = new ArrayList<String>();
+		invariants = new ArrayList<String>();
+		guards = new ArrayList<ArrayList<String>>();
+		axioms = new ArrayList<String>();
+		properties = new ArrayList<String>();
+		
+		collectPredicates(ss.getMainComponent());
+		
+		machineType = MachineType.getTypeFromStateSpace(ss);
+	}
+	
+	@Deprecated
 	public PredicateCollector(AbstractElement comp) {
 		preds = new ArrayList<String>();
 		invariants = new ArrayList<String>();
@@ -31,6 +47,7 @@ public class PredicateCollector {
 		properties = new ArrayList<String>();
 		
 		collectPredicates(comp);
+		machineType = MachineType.CLASSICALB;
 	}
 	
 	private void collectPredicates(AbstractElement comp){
@@ -66,25 +83,37 @@ public class PredicateCollector {
 	/**
 	 * Modifies an ArrayList of predicates to have only Numbers of infinite domains.
 	 * This means, that types like NAT and INT are replaced by NATURAL and INTEGER in the typing predicates.
+	 * <p>
+	 * Note that this is only supported if the PredicateCollector was initially called on a 
+	 * Classical B statespace. Otherwise the returned list will be empty.
 	 * @param invariants Predicates (usually invariants) to modify
-	 * @return
+	 * @return The modified input or an empty array list for non-classical B.
 	 */
-	public static ArrayList<String> modifyDomains(ArrayList<String> invariants){
+	public ArrayList<String> modifyDomains(ArrayList<String> invariants){
 		ArrayList<String> modifiedList = new ArrayList<String>();
-		for(String invariant : invariants){
-			Start ast;
-			try {
-				ast = BParser.parse(BParser.PREDICATE_PREFIX + invariant);
-			} catch (BCompoundException e) {
-				// do nothing but skip this
-				continue;
+		
+		switch(machineType){
+		case CLASSICALB:
+			for(String invariant : invariants){
+				Start ast;
+				try {
+					ast = BParser.parse(BParser.PREDICATE_PREFIX + invariant);
+				} catch (BCompoundException e) {
+					// do nothing but skip this
+					continue;
+				}
+				
+				ast.apply(new ClassicalBIntegerDomainReplacer());
+				PrettyPrinter pp = new PrettyPrinter();
+				ast.apply(pp);
+				
+				modifiedList.add(pp.getPrettyPrint());
 			}
+			break;
+		
+		default:
+			break;
 			
-			ast.apply(new ClassicalBIntegerDomainReplacer());
-			PrettyPrinter pp = new PrettyPrinter();
-			ast.apply(pp);
-			
-			modifiedList.add(pp.getPrettyPrint());
 		}
 		return modifiedList;
 	}

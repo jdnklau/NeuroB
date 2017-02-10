@@ -61,12 +61,12 @@ public class FormulaGenerator {
 	 * @see PredicateCollector#modifyDomains(ArrayList)
 	 */
 	public static ArrayList<String> extendedGuardFomulaeWithInfiniteDomains(PredicateCollector predicateCollector){
-		String properties = String.join(" & ", PredicateCollector.modifyDomains(predicateCollector.getProperties()));
-		String invariants = String.join(" & ", PredicateCollector.modifyDomains(predicateCollector.getInvariants()));
+		String properties = String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getProperties()));
+		String invariants = String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getInvariants()));
 		
 		ArrayList<ArrayList<String>> allGuards = predicateCollector.getGuards();
 		for(ArrayList<String> guards : allGuards){
-			guards = PredicateCollector.modifyDomains(guards);
+			guards = predicateCollector.modifyDomains(guards);
 		}
 		
 		
@@ -78,22 +78,28 @@ public class FormulaGenerator {
 		ArrayList<String> formulae = new ArrayList<String>();
 		
 		// check for empty formulas
+		boolean emptyProperties = false;
+		boolean emptyInvariants = false;
 		if(properties.isEmpty()){
 //					logger.info("\tNo properties found. Using TRUE=TRUE.");
 			properties = "TRUE = TRUE";
+			emptyProperties = true;
 		}
 		if(invariants.isEmpty()){
 //					logger.info("\tNo invariants found. Using TRUE=TRUE.");
 			invariants = "TRUE = TRUE";
+			emptyInvariants = true;
+		} else {
+			formulae.add(invariants); // invariants			
 		}
 		
 		String negInvariants = "not("+invariants+")";
 		String propsAndInvs = "("+String.join(" & ", properties, invariants)+")";
 		String propsAndNegInvs = "("+String.join(" & ", properties, negInvariants)+")"; // properties and negated invariants
 		
-		// Add formulas
-		formulae.add(invariants); // invariants
-		formulae.add(propsAndInvs); // properties & invariants
+		// Add Properties
+		if(!emptyProperties)
+			formulae.add(propsAndInvs); // properties & invariants
 		
 		// guards
 		for(ArrayList<String> guards : allGuards){
@@ -111,21 +117,28 @@ public class FormulaGenerator {
 			
 			formulae.add(propsAndInvs + " & " + guard); // events active w/o violating invariants
 			formulae.add(propsAndInvs + " => " + guard); // events usable with unviolated invariants
-
-			formulae.add(propsAndNegInvs + " & " + guard); // events active despite invariant violation
-			formulae.add(propsAndNegInvs + " => " + guard); // events usable despite invariant violation
 			
 			formulae.add(propsAndInvs + " & " + negGuard); // events not active w/o violating invariants
 			formulae.add(propsAndInvs + " => " + negGuard); // events not usable with unviolated invariants
 
-			formulae.add(propsAndNegInvs + " & " + negGuard); // events not active despite invariant violation
-			formulae.add(propsAndNegInvs + " => " + negGuard); // events not usable despite invariant violation
-
 			formulae.add(propsAndGuard + " => "+ invariants); // events only usable w/o invariant violation
-			formulae.add(propsAndGuard + " => "+ negInvariants); // events only usable with invariant violation
 			
 			formulae.add(propsAndNegGuard + " => "+ invariants); // events never usable w/o invariant violation
+
+			if(emptyInvariants){
+				// incomming formulae would be repetitive, so skip them
+				continue;
+			}
+			
+			formulae.add(propsAndNegInvs + " & " + guard); // events active despite invariant violation
+			formulae.add(propsAndNegInvs + " => " + guard); // events usable despite invariant violation
+
+			formulae.add(propsAndNegInvs + " & " + negGuard); // events not active despite invariant violation
+			formulae.add(propsAndNegInvs + " => " + negGuard); // events not usable despite invariant violation
+			
 			formulae.add(propsAndNegGuard + " => "+ negInvariants); // events never usable with invariant violation
+
+			formulae.add(propsAndGuard + " => "+ negInvariants); // events only usable with invariant violation
 		}
 		
 		return formulae;

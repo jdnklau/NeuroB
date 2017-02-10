@@ -11,8 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -151,7 +149,7 @@ public class TrainingSetGenerator {
 	 * @param sourceDirectory
 	 * @param targetDirectory
 	 * @param excludeFile
-	 * @param recursion If false, the subdirectories are not searched
+	 * @param recursion If false, the sub-directories are not searched
 	 */
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile, boolean recursion){
 		log.info("Generating training set from {} in {}", sourceDirectory, targetDirectory);
@@ -174,22 +172,27 @@ public class TrainingSetGenerator {
 		try (Stream<Path> stream = Files.walk(sourceDirectory, depth)) {
 			Files.createDirectories(targetDirectory);
 			
-			
 			stream
 				.parallel() // parallel computation
 				.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
 				.forEach(entry -> {
 	            	if(Files.isRegularFile(entry)){
-	            		// get ful target directory
-	            		Path fullTargetDirectory = targetDirectory.resolve(entry.getParent());
 						// check file extension
 						String fileName = entry.getFileName().toString();
 						String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
 						if(ext.equals("mch")){
+		            		// get full target directory
+		            		Path fullTargetDirectory = targetDirectory.resolve("ClassicalB").resolve(entry.getParent());
 							fileCounter++;
 							Path dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 							generateTrainingDataFromFile(entry, dataFilePath);
-						}
+						} else if(ext.equals("eventb")){
+		            		// get full target directory
+		            		Path fullTargetDirectory = targetDirectory.resolve("EventB").resolve(entry.getParent());
+							fileCounter++;
+							Path dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
+							generateTrainingDataFromFile(entry, dataFilePath);
+						} 
 		            }
 				});
 			log.info("Finished training set generation");
@@ -211,14 +214,19 @@ public class TrainingSetGenerator {
 		// Access source file
 		try{
 			log.info("\tLoading machine file {} ...", sourceFile);
-			ss = api.b_load(sourceFile.toString());
+			// decide between Classical and EventB
+			String fileName = sourceFile.getFileName().toString();
+			String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
+			if(ext.equals("eventb"))
+				ss = api.eventb_load(sourceFile.toString());
+			else
+				ss = api.b_load(sourceFile.toString());
 		}catch(Exception e) {
 			throw new NeuroBException("Could not load machine correctly.", e);
 		}
 		
 		// Get different formulas
-		mainComp = ss.getMainComponent();	// extract main component
-		PredicateCollector predc = new PredicateCollector(mainComp);
+		PredicateCollector predc = new PredicateCollector(ss);
 		formulae = FormulaGenerator.extendedGuardFormulae(predc);
 		formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
 		// get shuffles for images

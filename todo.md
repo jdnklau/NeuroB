@@ -10,8 +10,6 @@
     - save files to disk by default
     - more generic handling of data preprocessing if possible
 - training set generation
-    - also use EventB machines
-    - also use private examples
     - model check machines
         - generate 100 states per solver
         - give credit to fastest one
