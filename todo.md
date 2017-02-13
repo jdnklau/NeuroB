@@ -1,5 +1,10 @@
 # To Do List
-
+- random predicate generator
+    - check whether something like this already exists for B/EventB
+    - tool to insert formal grammar and generate an amount of correct syntax snippets
+- find and read papers
+    - algorithm selection or portfolio selection
+    - rnn for code/text classification
 - training
     - logging
     - calculate training error thus far
