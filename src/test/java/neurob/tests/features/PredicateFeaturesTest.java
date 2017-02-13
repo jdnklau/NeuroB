@@ -13,7 +13,6 @@ import org.junit.Test;
 import com.google.inject.Inject;
 
 import de.prob.Main;
-import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
@@ -36,16 +35,14 @@ public class PredicateFeaturesTest {
 
 	@Test
 	public void getFeatureStringTest() throws IOException, NeuroBException, ModelTranslationError{
-		AbstractElement mainComp;
 		StateSpace ss;
 		
 		ss = api.b_load(resource.toString());
 		
-		mainComp = ss.getMainComponent();
-		ss.kill();
-		
-		PredicateCollector pc = new PredicateCollector(mainComp);
+		PredicateCollector pc = new PredicateCollector(ss);
 		List<String> invariants = pc.getInvariants();
+
+		ss.kill();
 		
 		String pred = String.join("&", invariants);
 		
@@ -61,16 +58,14 @@ public class PredicateFeaturesTest {
 
 	@Test
 	public void getFeatureArray() throws IOException, ModelTranslationError, NeuroBException{
-		AbstractElement mainComp;
 		StateSpace ss;
 		
 		ss = api.b_load(resource.toString());
 		
-		mainComp = ss.getMainComponent();
-		ss.kill();
-		
-		PredicateCollector pc = new PredicateCollector(mainComp);
+		PredicateCollector pc = new PredicateCollector(ss);
 		List<String> invariants = pc.getInvariants();
+
+		ss.kill();
 		
 		String pred = String.join("&", invariants);
 		

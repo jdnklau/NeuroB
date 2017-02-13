@@ -16,7 +16,6 @@ import de.prob.animator.domainobjects.EvalResult;
 import de.prob.exception.ProBError;
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
-import spock.lang.See;
 
 public class PredicateEvaluator {
 	

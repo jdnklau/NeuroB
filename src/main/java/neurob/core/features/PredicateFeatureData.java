@@ -26,7 +26,7 @@ public class PredicateFeatureData {
 	// Helpers
 	private IdentifierRelationHandler ids;
 	// Features
-	private int fFormulaLength; // Length of formula (count of operators)
+//	private int fFormulaLength; // Length of formula (count of operators)
 	private int fExistsQuantifiersCount; // number of existential quantifiers
 	private int fForAllQuantifiersCount; // number of universal quantifiers
 	private int fArithmOperatorsCount; // number of arithmetic operators
@@ -34,10 +34,10 @@ public class PredicateFeatureData {
 	private int fConjunctionsCount; // number of conjunctions
 	private int fDisjunctionsCount; // number of disjunctions
 	private int fNegationsCount; // number of negations
-	private int fUniqueIdentifiersCount; // number of unique identifiers used
-	private int fFiniteSizedDomainIdentifiersCount; // identifiers with finite domain
-	private int fInfiniteSizedDomainIdentifiersCount; // identifiers with infinite domain
-	private int fUnknownSizedDomainIdentifiersCount; // identifiers with unknown sized domain
+//	private int fUniqueIdentifiersCount; // number of unique identifiers used
+//	private int fFiniteSizedDomainIdentifiersCount; // identifiers with finite domain
+//	private int fInfiniteSizedDomainIdentifiersCount; // identifiers with infinite domain
+//	private int fUnknownSizedDomainIdentifiersCount; // identifiers with unknown sized domain
 	private int fSetOperatorsCount; // number of set operators
 	private int fSetMemberCount; // number of memberships to sets
 	private int fFunctionsCount; // number of functions
@@ -58,7 +58,7 @@ public class PredicateFeatureData {
 		ids = new IdentifierRelationHandler();
 		
 		// set initial values
-		fFormulaLength = 0;
+//		fFormulaLength = 0;
 		// Quantifiers
 		fExistsQuantifiersCount = 0;
 		fForAllQuantifiersCount = 0;
@@ -72,10 +72,10 @@ public class PredicateFeatureData {
 		fImplicationsCount = 0;
 		fEquivalencesCount = 0;
 		// identifiers
-		fUniqueIdentifiersCount = 0;
-		fFiniteSizedDomainIdentifiersCount = 0;
-		fInfiniteSizedDomainIdentifiersCount = 0;
-		fUnknownSizedDomainIdentifiersCount = 0;
+//		fUniqueIdentifiersCount = 0;
+//		fFiniteSizedDomainIdentifiersCount = 0;
+//		fInfiniteSizedDomainIdentifiersCount = 0;
+//		fUnknownSizedDomainIdentifiersCount = 0;
 		// Sets
 		fSetOperatorsCount = 0;
 		fSetMemberCount = 0;

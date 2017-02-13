@@ -8,7 +8,6 @@ import org.datavec.api.util.ClassPathResource;
 import org.junit.Test;
 
 import de.be4.classicalb.core.parser.BParser;
-import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
 import neurob.core.features.PredicateFeatureCollector;
 import neurob.core.features.PredicateFeatureData;

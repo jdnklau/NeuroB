@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import neurob.training.TrainingSetAnalyser;
 
 public class TrainingAnalysisData {
-	private int numClasses;
 	private ArrayList<Integer> trueLabelCounters; // For each class, have counter how many times it would be called
 	private int filesSeen; // Counter for files seen in total
 	private int emptyFilesSeen; // Counter for empty files

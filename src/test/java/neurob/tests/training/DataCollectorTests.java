@@ -3,7 +3,6 @@ package neurob.tests.training;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -33,7 +32,7 @@ public class DataCollectorTests {
 	public void extendedGuardFormulaeGeneration() throws IOException, ModelTranslationError{
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
 		
-		PredicateCollector pc = new PredicateCollector(ss.getMainComponent());
+		PredicateCollector pc = new PredicateCollector(ss);
 		ArrayList<String> formulae = FormulaGenerator.extendedGuardFormulae(pc);
 		
 		assertEquals("Not enough formulae created", 50, formulae.size());
@@ -45,7 +44,7 @@ public class DataCollectorTests {
 	public void extendedGuardFormulaeGenerationWithInfiniteDomains() throws IOException, ModelTranslationError{
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
 		
-		PredicateCollector pc = new PredicateCollector(ss.getMainComponent());
+		PredicateCollector pc = new PredicateCollector(ss);
 		ArrayList<String> formulae = FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(pc);
 		
 		assertEquals("Not enough formulae created", 50, formulae.size());

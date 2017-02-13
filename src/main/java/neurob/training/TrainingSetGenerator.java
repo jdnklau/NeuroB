@@ -26,7 +26,6 @@ import com.google.inject.Inject;
 
 import de.prob.Main;
 import de.prob.exception.ProBError;
-import de.prob.model.representation.AbstractElement;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.ConvolutionFeatures;
@@ -208,7 +207,6 @@ public class TrainingSetGenerator {
 	protected void collectTrainingData(Path sourceFile, Path targetFile) throws NeuroBException{
 		// StateSpace and main component
 		StateSpace ss = null;
-		AbstractElement mainComp;
 		// For the formula and ProB command to use
 		ArrayList<String> formulae;
 		

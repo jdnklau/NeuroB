@@ -2,7 +2,6 @@ package neurob.core;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Random;
 
 import org.deeplearning4j.eval.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -60,11 +59,6 @@ public class NeuroB {
 	private static final Logger log = LoggerFactory.getLogger(NeuroB.class);
 	
 	private NeuroBNet nbn;
-	// RNG
-	private long seed = 12345;
-	private Random rnd = new Random(seed);
-	// Training
-	private int numEpochs = 15;
 
 	private boolean dl4jUIEnabled;
 
@@ -72,11 +66,6 @@ public class NeuroB {
 		// link neural net
 		nbn = neuroBNet;
 		dl4jUIEnabled = false;
-	}
-	
-	@Deprecated
-	public void setEpochs(int epochs){
-		numEpochs = epochs;
 	}
 	
 	public NeuroBNet getNeuroBNet(){
@@ -148,21 +137,12 @@ public class NeuroB {
 		
 		// Evaluate on test set
 		Evaluation eval = new Evaluation(nbn.getClassificationSize());
-//		iterator.reset();
+		
 		while(iterator.hasNext()){
 			DataSet testData = iterator.next();
-            
             nbn.applyNormalizer(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
-        	
-//            // Evaluate results
-//            Iterator<DataSet> it = testData.iterator();
-//            
-//            while(it.hasNext()){
-//            	DataSet next = it.next();
-            	INDArray output = nbn.output(testData.getFeatureMatrix());
-            	
-            	eval.eval(testData.getLabels(), output);
-//            }
+        	INDArray output = nbn.output(testData.getFeatureMatrix());        	
+        	eval.eval(testData.getLabels(), output);
 		}
 		
 		// log evaluation results

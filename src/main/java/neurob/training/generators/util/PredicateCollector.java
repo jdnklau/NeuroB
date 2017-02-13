@@ -38,18 +38,6 @@ public class PredicateCollector {
 		machineType = MachineType.getTypeFromStateSpace(ss);
 	}
 	
-	@Deprecated
-	public PredicateCollector(AbstractElement comp) {
-		preds = new ArrayList<String>();
-		invariants = new ArrayList<String>();
-		guards = new ArrayList<ArrayList<String>>();
-		axioms = new ArrayList<String>();
-		properties = new ArrayList<String>();
-		
-		collectPredicates(comp);
-		machineType = MachineType.CLASSICALB;
-	}
-	
 	private void collectPredicates(AbstractElement comp){
 		// properties
 		for(Property x : comp.getChildrenOfType(Property.class)){

@@ -2,10 +2,8 @@ package neurob.training.generators.labelling;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 import org.datavec.api.records.reader.RecordReader;
-import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import com.google.inject.Inject;

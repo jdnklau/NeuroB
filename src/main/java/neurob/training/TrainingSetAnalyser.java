@@ -3,13 +3,11 @@ package neurob.training;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import neurob.exceptions.NeuroBException;
 import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
 
