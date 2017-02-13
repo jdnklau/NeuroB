@@ -10,6 +10,7 @@ import neurob.core.NeuroB;
 import neurob.core.features.CodePortfolios;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.nets.NeuroBNet;
+import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
@@ -292,17 +293,17 @@ public class NeuroBCli {
 //			System.out.println("Net "+net+" is not known; defaulting to psp.");
 //		}
 		//if(net.equals("prob")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverClassificationGenerator(true, false, false), seed);
+			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverClassificationGenerator(SolverType.PROB), seed);
 		//} else 
 		if(net.equals("kodkod")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverClassificationGenerator(false, true, false), seed);
+			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverClassificationGenerator(SolverType.KODKOD), seed);
 		} else if(net.equals("pss")){
 			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverSelectionGenerator(), seed);
 		}
 		else if(net.equals("probcp")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverClassificationGenerator(true, false, false), seed);
+			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverClassificationGenerator(SolverType.PROB), seed);
 		} else if(net.equals("kodkodcp")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverClassificationGenerator(false, true, false), seed);
+			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverClassificationGenerator(SolverType.KODKOD), seed);
 		} else if(net.equals("psscp")){
 			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverSelectionGenerator(), seed);
 		} 
@@ -367,11 +368,11 @@ public class NeuroBCli {
 	}
 	
 	private static void singleTrainingDataGeneration(Path source){
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(true, true, true));
+		buildNet();
 		
 		String fileName = source.getFileName().toString();
 		Path target = Paths.get("training_data/single_file_generation/").resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
-		tsg.generateTrainingDataFromFile(source, target);
+		nb.getNeuroBNet().getTrainingSetGenerator().generateTrainingDataFromFile(source, target);
 	}
 	
 	private static void trainingSetGeneration(Path sourceDir){
@@ -407,7 +408,7 @@ public class NeuroBCli {
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(true, true, true));
+		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(SolverType.PROB));
 		tsg.exclude(excludefile, excl);
 		
 	}

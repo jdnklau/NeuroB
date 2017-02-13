@@ -15,6 +15,7 @@ import neurob.core.features.CodePortfolios;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.nets.NeuroBNet;
+import neurob.core.util.SolverType;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
 import neurob.training.generators.labelling.SolverSelectionGenerator;
@@ -56,44 +57,45 @@ public class OldModels {
 	public static NeuroBNet getProBPredictionNet(int seed) {
 		return getOldModel(
 				new PredicateFeatures(),
-				new SolverClassificationGenerator(true, false, false),
+				new SolverClassificationGenerator(SolverType.PROB),
 				seed);
 	}
 	
 	public static NeuroBNet getProBPredictionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
 				new CodePortfolios(size),
-				new SolverClassificationGenerator(true, false, false),
+				new SolverClassificationGenerator(SolverType.PROB),
 				seed);
 	}
 	
 	public static NeuroBNet getKodKodPredictionNet(int seed){
 		return getOldModel(
 				new PredicateFeatures(),
-				new SolverClassificationGenerator(false, true, false),
+				new SolverClassificationGenerator(SolverType.KODKOD),
 				seed);
 	}
 	
 	public static NeuroBNet getKodKodPredictionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
 				new CodePortfolios(size),
-				new SolverClassificationGenerator(false, true, false),
+				new SolverClassificationGenerator(SolverType.KODKOD),
 				seed);
 	}
 	
-	public static NeuroBNet getPredicateSolverPredictionNet(int seed){
-		return getOldModel(
-				new PredicateFeatures(),
-				new SolverClassificationGenerator(true, true, true),
-				seed);
-	}
-	
-	public static NeuroBNet getPredicateSolverPredictionWithCodePortfolioNet(int seed, int size){
-		return getOldModel(
-				new CodePortfolios(size),
-				new SolverClassificationGenerator(true, true, true),
-				seed);
-	}
+//	NOTE: No longer supported
+//	public static NeuroBNet getPredicateSolverPredictionNet(int seed){
+//		return getOldModel(
+//				new PredicateFeatures(),
+//				new SolverClassificationGenerator(true, true, true),
+//				seed);
+//	}
+//	
+//	public static NeuroBNet getPredicateSolverPredictionWithCodePortfolioNet(int seed, int size){
+//		return getOldModel(
+//				new CodePortfolios(size),
+//				new SolverClassificationGenerator(true, true, true),
+//				seed);
+//	}
 	
 	public static NeuroBNet getPredicateSolverSelectionNet(int seed){
 		return getOldModel(

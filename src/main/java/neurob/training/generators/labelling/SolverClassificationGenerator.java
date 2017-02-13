@@ -15,6 +15,7 @@ import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
+import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
@@ -49,71 +50,40 @@ import neurob.training.generators.util.PredicateEvaluator;
  *
  */
 public class SolverClassificationGenerator implements LabelGenerator {
-	private int labelledClasses; // How many classes are differentiated
 	private Api api;
 	// what to classify
-	private boolean decideProB;
-	private boolean decideKodKod;
-	private boolean decideProBZ3;
-	
+	private SolverType solver;
+
 	/**
-	 * Set up a solver classifier, allowing to generate a multi-labelling approach for a given predicate.
-	 * <p> 
-	 * The multi-labelling indicates for ProB, KodKod, and a PoB/Z3 combination, whether the given predicate is
-	 * decidable by the respective solver.
-	 * One can decide which solvers to check for, by passing the parameters in the constructor accordingly.
-	 * @param classifyProB Set to true, if the decidability of the predicate with respect to ProB should be classified
-	 * @param classifyKodKod Set to true, if the decidability of the predicate with respect to KodKod should be classified
-	 * @param classifyProBZ3 Set to true, if the decidability of the predicate with respect to ProB+Z3 should be classified
+	 * Set up a classification generator for the given predicate solver.
+	 * @param solver
 	 */
-	@Inject
-	public SolverClassificationGenerator(boolean classifyProB, boolean classifyKodKod, boolean classifyProBZ3) {
+	@Inject 
+	public SolverClassificationGenerator(SolverType solver){
 		api = Main.getInjector().getInstance(Api.class);
 		
-		decideProB = classifyProB;
-		decideKodKod = classifyKodKod;
-		decideProBZ3 = classifyProBZ3;
-		
-		labelledClasses = 0;
-		if(decideProB) ++labelledClasses;
-		if(decideKodKod) ++labelledClasses;
-		if(decideProBZ3) ++labelledClasses;
-		
-		// Doing anything at all?
-		if(labelledClasses == 0){
-			throw new IllegalStateException("No solver given to classify for.");
-		}
-		
+		this.solver = solver;
 	}
 	
 	
 	@Override
 	public String getDataPathIdentifier() {
-		String res = LabelGenerator.super.getDataPathIdentifier();
-		if(decideProB)
-			res += "_ProB";
-		if(decideKodKod)
-			res += "_KodKod";
-		if(decideProBZ3)
-			res += "_Z3";
-		return res;
+		return LabelGenerator.super.getDataPathIdentifier() + "_" + solver.name();
 	}
 
 	@Override
 	public int getClassCount() {
-		// Regression if more than two classes
-		// TODO: Remodel this to only allow for one solver to be checked.
-		return (labelledClasses > 1) ? -1 : 2;
+		return 2;
 	}
 
 	@Override
 	public int getLabelDimension() {
-		return (labelledClasses > 1) ? labelledClasses : 2;
+		return 2;
 	}
 
 	@Override
 	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
-		ArrayList<Boolean> labelling = new ArrayList<>();
+		boolean label;
 		ClassicalB formula;
 		// Set up formula to solve
 		try {
@@ -122,24 +92,22 @@ public class SolverClassificationGenerator implements LabelGenerator {
 			throw new NeuroBException("Could not create command from formula "+predicate, e);
 		}
 		
-		// Try the solvers one by one
-		if(decideProB) {
-			labelling.add(PredicateEvaluator.evaluateCommandExecution(stateSpace, formula));
+		// Use specific solver
+		switch(solver){
+		case	PROB:
+			label = PredicateEvaluator.evaluateCommandExecution(stateSpace, formula);
+			break;
+		case	KODKOD:
+			label = PredicateEvaluator.isDecidableWithSolver(stateSpace, "KODKOD", formula);
+			break;
+		case	SMT_SUPPORTED_INTERPRETER:
+			label = PredicateEvaluator.isDecidableWithSolver(stateSpace, "SMT_SUPPORTED_INTERPRETER", formula);
+			break;
+		default:
+			label = false;	
 		}
 		
-		if(decideKodKod) {
-			labelling.add(PredicateEvaluator.isDecidableWithSolver(stateSpace, "KODKOD", formula));
-		}
-		
-		if(decideProBZ3) {
-			labelling.add(PredicateEvaluator.isDecidableWithSolver(stateSpace, "SMT_SUPPORTED_INTERPRETER", formula));
-		}
-		
-		// Collect solutions
-		ArrayList<String> charLabels = new ArrayList<>();
-		labelling.forEach(label -> charLabels.add((label) ? "1" : "0"));
-		
-		return String.join(",", charLabels);
+		return (label) ? "1" : "0";
 		
 		
 	}
@@ -166,18 +134,6 @@ public class SolverClassificationGenerator implements LabelGenerator {
 	
 	@Override
 	public DataSetIterator getDataSetIterator(RecordReader recordReader, int batchSize, int featureDimension) {
-		
-		if(getClassCount() == -1){
-			DataSetIterator iterator = new RecordReaderDataSetIterator(
-					recordReader,
-					batchSize,
-					featureDimension,	// starting index of the label values in the csv
-					featureDimension+getLabelDimension()-1, // final index of the label values in the csv
-					true	// needs to be true, as this only goes with regression
-				);
-		
-			return iterator;
-		}
 		return LabelGenerator.super.getDataSetIterator(recordReader, batchSize, featureDimension);
 	}
 

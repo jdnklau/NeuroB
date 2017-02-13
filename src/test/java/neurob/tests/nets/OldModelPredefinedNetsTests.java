@@ -59,18 +59,6 @@ public class OldModelPredefinedNetsTests {
 	}
 	
 	@Test
-	public void PredicateSolverPredictionTrainingTest() throws IOException, InterruptedException {
-		NeuroBNet net = OldModels.getPredicateSolverPredictionNet(0);
-		checkTrainingSetGeneration(net);
-	}
-	
-	@Test
-	public void PredicateSolverPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
-		NeuroBNet net = OldModels.getPredicateSolverPredictionWithCodePortfolioNet(0,64);
-		checkTrainingSetGeneration(net);
-	}
-	
-	@Test
 	public void PredicateSolverSelectionTrainingTest() throws IOException, InterruptedException {
 		NeuroBNet net = OldModels.getPredicateSolverSelectionNet(0);
 		checkTrainingSetGeneration(net);
