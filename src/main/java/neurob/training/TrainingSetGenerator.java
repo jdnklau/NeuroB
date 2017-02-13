@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -275,6 +276,7 @@ public class TrainingSetGenerator {
 				out.newLine();
 				out.flush();
 			}
+			log.info("\tDone: {}", targetFile);
 		} catch (IOException e) {
 			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
 		}
@@ -299,6 +301,24 @@ public class TrainingSetGenerator {
 	public void generateTrainingDataFromFile(Path source, Path target){
 		log.info("Generating: {} > {}", source, target);
 		
+		// check necessity of file creation:
+		// if a nbtrain file already exists and is newer than the machine file, 
+		// then the data should be up to date
+		if(Files.exists(target, LinkOption.NOFOLLOW_LINKS)){
+			try{
+				if(Files.getLastModifiedTime(source, LinkOption.NOFOLLOW_LINKS)
+						.compareTo(Files.getLastModifiedTime(target, LinkOption.NOFOLLOW_LINKS))
+					<= 0){ // last edit source file <= last edit target file -> nothing to do here
+					log.info("\tTarget file {} is already present and seems to be up to date. Doing nothing.", target);
+					return;
+				}
+			}
+			catch(IOException e){
+				log.error("\t.nbtrain file exists but could not access it or the source machine file: {}", e.getMessage());
+				log.info("\tSkipping machine.");
+			}
+		}
+		
 		Path targetDirectory = target.getParent();
 		// ensure existence of target directory
 		try {
@@ -310,7 +330,6 @@ public class TrainingSetGenerator {
 		// create file
 		try {
 			collectTrainingData(source, target);
-			log.info("\tDone: {}", target);
 			return;
 		} catch (ProBError e) {
 			log.warn("\tProBError on {}: {}", source, e.getMessage());
