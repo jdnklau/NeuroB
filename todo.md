@@ -1,8 +1,5 @@
 # To Do List
 
-- SolverClassificationGenerator should only allow for one solver to check for in future
-    - thus it will never be a regression problem
-    - regression variant can take timeouts into account
 - training
     - logging
     - calculate training error thus far
@@ -14,11 +11,11 @@
         - generate 100 states per solver
         - give credit to fastest one
     - optimise
-    - ~add formulae wrapper, allowing for easier manipulation of them~
-        - ~idea is to have a FormulaCollection object (or similar), e.g. called f, that allows wraps internally an array list of strings/ASTs~
-        - ~one may then call f.manipulationOfAST1().manipulationOfAST2()~
-        - ~decide whether it should simply manipulate the already present formulae or add the manipulated results to them (aka augment present data vs. augment copy of present data and keep both)~
-        - ~maybe just allow methods and other classes to operate on such an element, but offer not much functionality on its own?~
+    - ~~add formulae wrapper, allowing for easier manipulation of them~~
+        - ~~idea is to have a FormulaCollection object (or similar), e.g. called f, that allows wraps internally an array list of strings/ASTs~~
+        - ~~one may then call f.manipulationOfAST1().manipulationOfAST2()~~
+        - ~~decide whether it should simply manipulate the already present formulae or add the manipulated results to them (aka augment present data vs. augment copy of present data and keep both)~~
+        - ~~maybe just allow methods and other classes to operate on such an element, but offer not much functionality on its own?~~
             - to many wrapper abstractions
     - data augmentation for larger training sets
         - throw in some equivalences in the extended guard formulae, to step up hardness of decidability
@@ -39,5 +36,6 @@
         - get mean, std dev, median
         - basically some box plot values
 - update cli
-    - iterate about some options, like single training file generation and if this is still necessary
+    - instead of setting neural net identifiers as arguments, allow for construction by giving label generator and feature generator
+        - this eases up implementation of new generators, as not each possible combination would be in need of a name but only the new generator
 - update java doc
