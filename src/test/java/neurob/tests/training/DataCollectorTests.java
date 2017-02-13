@@ -35,7 +35,7 @@ public class DataCollectorTests {
 		PredicateCollector pc = new PredicateCollector(ss);
 		ArrayList<String> formulae = FormulaGenerator.extendedGuardFormulae(pc);
 		
-		assertEquals("Not enough formulae created", 50, formulae.size());
+		assertEquals("Not enough formulae created", 49, formulae.size());
 		
 		ss.kill();
 	}
@@ -47,7 +47,7 @@ public class DataCollectorTests {
 		PredicateCollector pc = new PredicateCollector(ss);
 		ArrayList<String> formulae = FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(pc);
 		
-		assertEquals("Not enough formulae created", 50, formulae.size());
+		assertEquals("Not enough formulae created", 49, formulae.size());
 		
 		ss.kill();
 	}

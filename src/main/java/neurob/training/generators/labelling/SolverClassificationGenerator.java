@@ -19,9 +19,9 @@ import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
 /**
- * For given predicates, calculates a multi-labelling that indicates for each solver, whether the predicate is decidable with it.
+ * For given predicates, calculates a label that indicates if a given solver can decide it.
  * <p>
- * Via constructor control what solvers shall the predicates be tested for, 
+ * Via constructor control what solver the predicates shall be tested for, 
  * then continue by inputing a predicate, to generate the labelling vector.
  * <p>
  * Usage example:
@@ -29,17 +29,12 @@ import neurob.training.generators.util.PredicateEvaluator;
  * // set up state space
  * StateSpace stateSpace = ...
  * 
- * // What solvers should be classified for?
- * boolean classifyProB = true;
- * boolean classifyKodKod = true;
- * boolean classifyProBZ3 = false;
- * 
  * // Create SolverClassificationGenerator instance
- * SolverClassificationGenerator labelgen = new SolverClassificationGenerator(classifyProB, classifyKodKod, classifyProBZ3);
+ * SolverClassificationGenerator labelgen = new SolverClassificationGenerator(SolverType.PROB);
  * 
  * // Use it to solve predicates
  * String pred = "x : NAT & x > 4";
- * labels = labelgen(pred, stateSpace); // => "1,1"
+ * labels = generateLabelling(pred, stateSpace); // => "1"
  *
  *  </code></pre>
  * @author jannik

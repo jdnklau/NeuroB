@@ -13,7 +13,7 @@ public class PathIdentifierTest {
 	public void SolverClassificationProBTest() {
 		SolverClassificationGenerator gen = new SolverClassificationGenerator(SolverType.PROB);
 		
-		String expected = "SolverClassificationGenerator_ProB";
+		String expected = "SolverClassificationGenerator_PROB";
 		String actual = gen.getDataPathIdentifier();
 		
 		assertEquals("Path identifying strings do not match.", expected, actual);
@@ -23,7 +23,7 @@ public class PathIdentifierTest {
 	public void SolverClassificationKodKodTest() {
 		SolverClassificationGenerator gen = new SolverClassificationGenerator(SolverType.KODKOD);
 		
-		String expected = "SolverClassificationGenerator_KodKod";
+		String expected = "SolverClassificationGenerator_KODKOD";
 		String actual = gen.getDataPathIdentifier();
 		
 		assertEquals("Path identifying strings do not match.", expected, actual);

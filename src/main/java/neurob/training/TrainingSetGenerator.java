@@ -282,15 +282,6 @@ public class TrainingSetGenerator {
 	}
 	
 	/**
-	 * Deprecated because name was to confusing.
-	 * @deprecated {@link #generateTrainingDataFromFile(Path, Path)}
-	 */
-	@Deprecated
-	public void generateTrainingDataFile(Path source, Path target){
-		generateTrainingDataFromFile(source, target);
-	}
-	
-	/**
 	 * Generates a file containing feature data found in the source file,
 	 * and writes them to the target file.
 	 * @param source
@@ -341,95 +332,10 @@ public class TrainingSetGenerator {
 	}
 	
 	/**
-	 * Creates two CSV files from the .nbtrain files in the given {@code sourceDirectory}.
-	 * <p>
-	 * With a probability of {@code triningRation}, the data will be put into the training file,
-	 * or in the test file otherwise.
+	 * Collects data from all nbtrain files in the given directory and writes them into the specified csv file.
 	 * @param sourceDirectory
-	 * @param train
-	 * @param test
-	 * @param trainingRatio Probability that data will be written into the training set
-	 * @deprecation Use {@link #splitCSV(Path, Path, Path, double, boolean)} instead
+	 * @param csv
 	 */
-	@Deprecated
-	public void generateTrainAndTestCSVfromNBTrainData(Path sourceDirectory, Path train, Path test, double trainingRatio){
-		Random rng = new Random(123);
-		
-		try (Stream<Path> stream = Files.walk(sourceDirectory)){
-			// Create CSV files
-			Files.createDirectories(train.getParent());
-			Files.createDirectories(test.getParent());
-			BufferedWriter trainCsv = Files.newBufferedWriter(train);
-			BufferedWriter testCsv = Files.newBufferedWriter(test);
-			
-			// set headers
-			for(int i=0; i<fg.getFeatureDimension(); i++){
-				trainCsv.write("Feature"+i+",");
-				testCsv.write("Feature"+i+",");
-			}
-			for(int i=0; i< lg.getLabelDimension(); i++){
-				trainCsv.write("Label"+i+",");
-				testCsv.write("Label"+i+",");
-			}
-			trainCsv.newLine();
-			trainCsv.flush();
-			testCsv.newLine();
-			testCsv.flush();
-			
-			stream.forEach(f -> {
-				// check if .nbtrain file
-				if(Files.isRegularFile(f)){
-					String fileName = f.getFileName().toString();
-					String ext = fileName.substring(fileName.lastIndexOf('.'));
-					if(ext.equals(".nbtrain")){
-//						logger.info("Found "+f);
-						// nbtrain file found!
-						// read line wise
-						try (Stream<String> lines = Files.lines(f)){
-							lines.forEach(l -> {
-								try {
-									String[] data = l.split(":");
-									String[] features = data[0].split(",");
-									String[] labels = data[1].split(",");
-									if(features.length+labels.length < fg.getFeatureDimension()+lg.getLabelDimension()){
-										throw new NeuroBException("Size of training vector does not match, "
-												+ "expecting "+ fg.getFeatureDimension()+" features and " + lg.getLabelDimension()+" labels, "
-												+ "but got " +features.length + " and " + labels.length + " respectively");
-									}
-									
-									// decide file to write to
-									BufferedWriter targetCsv;
-									if(rng.nextDouble() <= trainingRatio){
-										targetCsv = trainCsv;
-									}
-									else {
-										targetCsv = testCsv;
-									}
-									// write to chosen file
-									targetCsv.write(String.join(",", features)+","+String.join(",", labels));
-									targetCsv.newLine();
-								} catch (NeuroBException e) {
-									log.error("Could not add a data vector: {}", f, e.getMessage());
-								} catch (IOException e) {
-									log.error("Failed to write data vector to file: {}", e.getMessage());
-								}
-							});
-							trainCsv.flush();
-							testCsv.flush();
-						} catch(IOException e) {
-							log.error("Could not add data from {}: {}", f, e.getMessage());
-						}
-					}
-					
-				}
-			});
-			
-		} catch (IOException e) {
-			log.error("Failed to setup CSV correctly: {}", e.getMessage());
-		}
-		
-	}
-	
 	public void generateCSVFromNBTrainFiles(Path sourceDirectory, Path csv){
 		try (Stream<Path> stream = Files.walk(sourceDirectory)){
 			// Create CSV files
