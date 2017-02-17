@@ -220,8 +220,8 @@ public class TrainingSetGenerator {
 				ss = api.eventb_load(sourceFile.toString());
 			else
 				ss = api.b_load(sourceFile.toString());
-		}catch(Exception e) {
-			throw new NeuroBException("Could not load machine correctly.", e);
+		} catch(Exception e) {
+			throw new NeuroBException("Could not load machine correctly: "+e.getMessage(), e);
 		}
 		
 		// Get different formulas
@@ -237,7 +237,7 @@ public class TrainingSetGenerator {
 			}
 		}
 		
-		log.info("\tGenerated {} formulas to solve.", formulae.size());
+		log.info("\tGenerated {} formulae to solve.", formulae.size());
 		
 		// generate data per formula
 		ArrayList<String> results = new ArrayList<String>();
@@ -321,7 +321,7 @@ public class TrainingSetGenerator {
 			collectTrainingData(source, target);
 			return;
 		} catch (ProBError e) {
-			log.warn("\tProBError on {}: {}", source, e.getMessage());
+			log.error("\tProBError on {}: {}", source, e.getMessage());
 		} catch (IllegalStateException e) {
 			log.error("\tReached illegal state while processing: {}", e.getMessage());
 		} catch (NeuroBException e) {
