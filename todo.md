@@ -3,8 +3,16 @@
     - check whether something like this already exists for B/EventB
     - tool to insert formal grammar and generate an amount of correct syntax snippets
 - find and read papers
-    - algorithm selection or portfolio selection
     - rnn for code/text classification
+- model handling
+    - iterate if NeuroBNet class is still necessary
+        - feed complete models to NeuroB class and gain one abstraction layer less?
+            - make NeuroB full utility class
+            - give model, feature generator and label generator as parameters
+            - **label generator only relevant if model needs to be trained**
+
+        - still use NeuroBNet as model independent wrapper class if maybe the backend will be switched to TensorFlow in the future?
+    - have list of preprocessing utilities that is managed by responsible class
 - training
     - logging
     - calculate training error thus far
@@ -24,7 +32,8 @@
             - to many wrapper abstractions
     - data augmentation for larger training sets
         - throw in some equivalences in the extended guard formulae, to step up hardness of decidability
-        - drop randomly (30% chance?) basic nodes in ast
+        - invariants & guards1 & ~guards2
+        - ~~drop randomly (30% chance?) basic nodes in ast~~
         - access/generate proof obligations
     - more distinct support for convolutional models
 - training set analysis should be deeper
