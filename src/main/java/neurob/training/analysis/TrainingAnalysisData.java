@@ -30,9 +30,9 @@ public class TrainingAnalysisData {
 		
 		if(filesSeen > 0){
 			int relevantFiles = filesSeen-emptyFilesSeen;
-			log.info("Files found: "+filesSeen);
-			log.info("Of these were "+emptyFilesSeen+" seemingly empty");
-			log.info("\t=> "+relevantFiles+" relevant files");
+			log.info("Files found: {}", filesSeen);
+			log.info("Of these were {} seemingly empty", emptyFilesSeen);
+			log.info("\t=> {} relevant files", relevantFiles);
 		}
 		// list classification mappings
 		log.info("Overview of class representation:");
