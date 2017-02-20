@@ -3,6 +3,9 @@
  */
 package neurob.training.analysis;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +18,7 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 	private double[] minimum;
 	private double[] maximum;
 	private double[] sumOfAllSamples; // used for mean computation at logging
+	private ArrayList<ArrayList<Double>> samples;
 	// file information
 	private int filesSeen;
 	private int emptyFilesSeen;
@@ -28,6 +32,11 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 		minimum = new double[numberOfOutputs];
 		maximum = new double[numberOfOutputs];
 		sumOfAllSamples = new double[numberOfOutputs];
+		
+		samples = new ArrayList<ArrayList<Double>>(numberOfOutputs);
+		for(int i=0; i<numberOfOutputs; i++){
+			samples.add(i, new ArrayList<Double>());
+		}
 		
 		filesSeen = 0;
 		emptyFilesSeen = 0;
@@ -50,9 +59,39 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 		
 		// log boxplot values
 		for(int i=0; i<outputCount; i++){
+			ArrayList<Double> samps = samples.get(i);
+			
 			log.info("Overview for first regression value:");
 			log.info("\tMinimum: {}, Maximum: {}", minimum[i], maximum[i]);
-			log.info("\tMean: {}", sumOfAllSamples[i]/outputCount);
+			
+			double mean = sumOfAllSamples[i]/outputCount;
+			
+			log.info("\tMean: {}", mean);
+			
+			// variance and std dev
+			double sqrsum = 0;
+			for(Double d : samps){
+				sqrsum += Math.pow(d-mean, 2); // for each data point: squared distance to mean
+			}
+			double variance = sqrsum/samplesSeen;
+			
+			log.info("\tVariance: {}", variance);
+			log.info("\tStandard deviation: {}", Math.sqrt(variance));
+			
+			// median, first and third quartile
+			Collections.sort(samps);
+			
+			int medianIndex = samplesSeen/2;
+			int firstQIndex = (int) (samplesSeen*0.25);
+			int thirdQIndex = (int) (samplesSeen*0.75);
+			
+			double median = (medianIndex %2 == 1) ? samps.get(medianIndex) : (samps.get(medianIndex-1) + samps.get(medianIndex))/2.0;
+			double firstQ = (firstQIndex %2 == 1) ? samps.get(firstQIndex) : (samps.get(firstQIndex-1) + samps.get(firstQIndex))/2.0;
+			double thirdQ = (thirdQIndex %2 == 1) ? samps.get(thirdQIndex) : (samps.get(thirdQIndex-1) + samps.get(thirdQIndex))/2.0;
+			
+			log.info("\tMedian: {}", median);
+			log.info("\tFirst Quartile: {}, Third Quartile: {}", firstQ, thirdQ);
+			
 		}
 		
 		log.info("*****************************");
@@ -116,6 +155,9 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 			
 			// add to total sum
 			sumOfAllSamples[i] += labels[i];
+			
+			// and add to sample collection
+			samples.get(i).add(labels[i]);
 		}
 
 	}
