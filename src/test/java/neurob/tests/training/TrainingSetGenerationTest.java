@@ -14,7 +14,7 @@ import neurob.core.features.PredicateFeatures;
 import neurob.core.util.SolverType;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
-import neurob.training.analysis.TrainingAnalysisData;
+import neurob.training.analysis.ClassificationAnalysis;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
 import neurob.training.generators.labelling.SolverSelectionGenerator;
@@ -42,7 +42,7 @@ public class TrainingSetGenerationTest {
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		
 		// analyse
-		TrainingAnalysisData analysis = tsa.analyseNBTrainSet(Paths.get("src/test/resources/training/nbtrain/"), lg);
+		ClassificationAnalysis analysis = tsa.analyseNBTrainSet(Paths.get("src/test/resources/training/nbtrain/"), lg);
 
 		assertEquals("File counter does not match", 1, analysis.getFilesCount());
 		assertEquals("Empty files counter does not match", 0, analysis.getEmptyFilesCount());
@@ -60,7 +60,7 @@ public class TrainingSetGenerationTest {
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		
 		// analyse
-		TrainingAnalysisData analysis = tsa.analyseTrainingCSV(Paths.get("src/test/resources/training_analysis_testset.csv"), lg);
+		ClassificationAnalysis analysis = tsa.analyseTrainingCSV(Paths.get("src/test/resources/training_analysis_testset.csv"), lg);
 		
 		ArrayList<Integer> trueLabels = analysis.getTrueLabelCounters();
 		assertEquals("Class 0 counter does not match", 3, trueLabels.get(0).intValue());
