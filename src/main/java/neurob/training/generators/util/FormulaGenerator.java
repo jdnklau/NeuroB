@@ -1,6 +1,9 @@
 package neurob.training.generators.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>This class provides access to reusable methods to get different formulas from a specific input.</p>
@@ -74,32 +77,95 @@ public class FormulaGenerator {
 		
 	}
 	
+	/**
+	 * Generates multiple formulae containing each possible pairing of guards
+	 * @param predicateCollector
+	 * @return
+	 */
+	public static ArrayList<String> multiGuardFormulae(PredicateCollector predicateCollector){
+		ArrayList<String> formulae = new ArrayList<String>();
+		
+		String properties = String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getProperties()));
+		String invariants = String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getInvariants()));
+		
+		// check for empty formulas
+		String propertyPre;
+		if(properties.isEmpty()){
+			propertyPre = "";
+		} else {
+			propertyPre = properties+" & ";
+		}
+		String invariantsPre;
+		if(invariants.isEmpty()){
+			invariantsPre = "";
+		} else {
+			invariantsPre = invariants+" & ";
+		}
+		String propsAndInvsPre = propertyPre + invariantsPre;
+		
+		List<String> allGuards = predicateCollector.getGuards()
+				.stream()
+				.map(g -> String.join(" & ", g))
+				.collect(Collectors.toList());
+		
+		int guardCount = allGuards.size();
+		
+		// pairwise iterate over guards
+		for(int i=0; i<guardCount; i++){
+			for(int j=i+1; j<guardCount; j++){
+				String g1 = propsAndInvsPre + allGuards.get(i);
+				String g2 = allGuards.get(j);
+
+				formulae.add(g1 + " => " + g2);
+				formulae.add(g1 + " <=> " + g2);
+				formulae.add(g1 + " => not(" + g2 + ")" );
+				formulae.add(g1 + " <=> not(" + g2 + ")" );
+			}
+		}
+		
+				
+		
+		return formulae;
+	}
+	
 	private static ArrayList<String> generateExtendedGuardFormulae(String properties, String invariants, ArrayList<ArrayList<String>> allGuards){
 		ArrayList<String> formulae = new ArrayList<String>();
 		
 		// check for empty formulas
 		boolean emptyProperties = false;
-		boolean emptyInvariants = false;
+		String propertyPre;
 		if(properties.isEmpty()){
-//					logger.info("\tNo properties found. Using TRUE=TRUE.");
-			properties = "TRUE = TRUE";
 			emptyProperties = true;
-		}
-		if(invariants.isEmpty()){
-//					logger.info("\tNo invariants found. Using TRUE=TRUE.");
-			invariants = "TRUE = TRUE";
-			emptyInvariants = true;
+			propertyPre = "";
 		} else {
-			formulae.add(invariants); // invariants			
+			propertyPre = properties+" & ";
 		}
 		
-		String negInvariants = "not("+invariants+")";
-		String propsAndInvs = "("+String.join(" & ", properties, invariants)+")";
-		String propsAndNegInvs = "("+String.join(" & ", properties, negInvariants)+")"; // properties and negated invariants
 		
-		// Add Properties
-		if(!emptyProperties)
+		boolean emptyInvariants = false;
+		String invariantsPre;
+		String negInvariants;
+		String negInvariantsPre;
+		if(invariants.isEmpty()){
+			emptyInvariants = true;
+			invariantsPre = "";
+			negInvariants = "";
+			negInvariantsPre = "";
+		} else {
+			formulae.add(invariants); // invariants
+			invariantsPre = invariants+" & ";
+			negInvariants= "not("+invariants+")";
+			negInvariantsPre = "not("+invariants+") & ";
+		}
+		
+		
+		String propsAndInvs = propertyPre + invariants;
+		String propsAndNegInvs = propertyPre + negInvariants;
+		
+
+		if(!emptyProperties){
 			formulae.add(propsAndInvs); // properties & invariants
+		}
 		
 		// guards
 		for(ArrayList<String> guards : allGuards){
@@ -112,14 +178,23 @@ public class FormulaGenerator {
 			
 			String negGuard = "not("+guard+")";
 
-			String propsAndGuard = "("+String.join(" & ", properties, guard)+")";
-			String propsAndNegGuard = "("+String.join(" & ", properties, negGuard)+")";
+			String propsAndGuard;
+			propsAndGuard = propertyPre + guard;
+			String propsAndNegGuard = propertyPre + negGuard;
 			
-			formulae.add(propsAndInvs + " & " + guard); // events active w/o violating invariants
+			formulae.add(propertyPre + invariantsPre + guard); // events active w/o violating invariants
+			// following code only makes sense if invariants or properties are not empty
+			if(emptyInvariants && emptyProperties){
+				continue;
+			}
+
 			formulae.add(propsAndInvs + " => " + guard); // events usable with unviolated invariants
+			formulae.add(propsAndInvs + " <=> " + guard); // events usable iff invariants unviolated
 			
 			formulae.add(propsAndInvs + " & " + negGuard); // events not active w/o violating invariants
 			formulae.add(propsAndInvs + " => " + negGuard); // events not usable with unviolated invariants
+			formulae.add(propsAndInvs + " <=> " + negGuard); // events not usable iff invariants unviolated
+			
 
 			formulae.add(propsAndGuard + " => "+ invariants); // events only usable w/o invariant violation
 			
@@ -132,9 +207,11 @@ public class FormulaGenerator {
 			
 			formulae.add(propsAndNegInvs + " & " + guard); // events active despite invariant violation
 			formulae.add(propsAndNegInvs + " => " + guard); // events usable despite invariant violation
+			formulae.add(propsAndNegInvs + " <=> " + guard); // events usable despite invariant violation
 
-			formulae.add(propsAndNegInvs + " & " + negGuard); // events not active despite invariant violation
-			formulae.add(propsAndNegInvs + " => " + negGuard); // events not usable despite invariant violation
+			formulae.add(propsAndNegInvs + " & " + negGuard); // events not active with invariant violation
+			formulae.add(propsAndNegInvs + " => " + negGuard); // events not usable with invariant violation
+			formulae.add(propsAndNegInvs + " <=> " + negGuard); // events not usable with invariant violation
 			
 			formulae.add(propsAndNegGuard + " => "+ negInvariants); // events never usable with invariant violation
 
