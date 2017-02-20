@@ -30,8 +30,6 @@
             - to many wrapper abstractions
     - data augmentation for larger training sets
         - throw in some equivalences in the extended guard formulae, to step up hardness of decidability
-        - invariants & guards1 & ~guards2
-        - ~~drop randomly (30% chance?) basic nodes in ast~~
         - access/generate proof obligations
     - more distinct support for convolutional models
     - code portfolios
