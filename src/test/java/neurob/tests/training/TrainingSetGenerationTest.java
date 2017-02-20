@@ -42,7 +42,8 @@ public class TrainingSetGenerationTest {
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		
 		// analyse
-		ClassificationAnalysis analysis = tsa.analyseNBTrainSet(Paths.get("src/test/resources/training/nbtrain/"), lg);
+		ClassificationAnalysis analysis = new ClassificationAnalysis(4); 
+		tsa.analyseNBTrainSet(Paths.get("src/test/resources/training/nbtrain/"), analysis);
 
 		assertEquals("File counter does not match", 1, analysis.getFilesCount());
 		assertEquals("Empty files counter does not match", 0, analysis.getEmptyFilesCount());
@@ -56,11 +57,11 @@ public class TrainingSetGenerationTest {
 
 	@Test
 	public void trainingSetAnalysisForCSV() throws IOException{
-		LabelGenerator lg = new SolverSelectionGenerator();		
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		
 		// analyse
-		ClassificationAnalysis analysis = tsa.analyseTrainingCSV(Paths.get("src/test/resources/training_analysis_testset.csv"), lg);
+		ClassificationAnalysis analysis = new ClassificationAnalysis(4); 
+		tsa.analyseTrainingCSV(Paths.get("src/test/resources/training_analysis_testset.csv"), analysis, 1);
 		
 		ArrayList<Integer> trueLabels = analysis.getTrueLabelCounters();
 		assertEquals("Class 0 counter does not match", 3, trueLabels.get(0).intValue());
