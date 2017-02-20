@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import akka.util.Collections;
 import neurob.training.analysis.ClassificationAnalysis;
+import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
 
 public class TrainingSetAnalyser {
@@ -26,23 +27,25 @@ public class TrainingSetAnalyser {
 		analysis.log();
 	}
 	
-	public ClassificationAnalysis analyseTrainingCSV(Path csv, LabelGenerator labelgen) throws IOException{
+	public TrainingAnalysisData analyseTrainingCSV(Path csv, LabelGenerator labelgen) throws IOException{
 		int numClasses = labelgen.getClassCount();
 		if(numClasses < 1){
 			log.error("Analysis of samples for regression problems not yet supported");
 			return new ClassificationAnalysis(0);
 		}
 		
-		ClassificationAnalysis data = new ClassificationAnalysis(numClasses);
+		TrainingAnalysisData data = new ClassificationAnalysis(numClasses);
 		
 		try(Stream<String> stream = Files.lines(csv)){
 			stream
 				.skip(1) // skip first line
 				.forEachOrdered(line -> {
-					// NOTE: huge assumption, that
-					// last entry is classification
-					int trueLabel = Integer.parseInt(line.substring(line.lastIndexOf(',')+1));
-					data.countEntryForClass(trueLabel);
+					String[] sample = line.split(":");
+					double[] features = Arrays.stream(sample[0].split(","))
+							.mapToDouble(Double::parseDouble).toArray();
+					double[] labels = Arrays.stream(sample[1].split(","))
+							.mapToDouble(Double::parseDouble).toArray();
+					data.analyseSample(features, labels);
 				});
 		} catch (IOException e) {
 			// log.error("Could not open target csv {}: {}", csv, e.getMessage());
@@ -51,6 +54,7 @@ public class TrainingSetAnalyser {
 		
 		return data;
 	}
+	
 	
 	
 	/**
@@ -62,14 +66,14 @@ public class TrainingSetAnalyser {
 	 * @param labelgen A LabelGenerator used to create the nbtrain files
 	 * @return A {@link ClassificationAnalysis} object or {@code null} in case of errors.
 	 */
-	public ClassificationAnalysis analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen) throws IOException{		
+	public TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen) throws IOException{		
 		int numClasses = labelgen.getClassCount();
 		if(numClasses < 1){
 			log.error("Analysis of NBTrain files for regression problems not yet supported");
 			return new ClassificationAnalysis(0);
 		}
 		
-		ClassificationAnalysis data = new ClassificationAnalysis(numClasses);
+		TrainingAnalysisData data = new ClassificationAnalysis(numClasses);
 		
 		// iterate over directory recursively
 		try (Stream<Path> stream = Files.walk(sourceDirectory)) {
