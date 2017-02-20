@@ -1,6 +1,5 @@
 # To Do List
 - random predicate generator
-    - check whether something like this already exists for B/EventB
     - tool to insert formal grammar and generate an amount of correct syntax snippets
 - find and read papers
     - rnn for code/text classification
@@ -10,7 +9,6 @@
             - make NeuroB full utility class
             - give model, feature generator and label generator as parameters
             - **label generator only relevant if model needs to be trained**
-
         - still use NeuroBNet as model independent wrapper class if maybe the backend will be switched to TensorFlow in the future?
     - have list of preprocessing utilities that is managed by responsible class
 - training
@@ -36,19 +34,18 @@
         - ~~drop randomly (30% chance?) basic nodes in ast~~
         - access/generate proof obligations
     - more distinct support for convolutional models
-- training set analysis should be deeper
-    - offer fancy stuff like PCA
     - code portfolios
+        - rename?
         - ~~translating image directory back to csv~~
-        - zip images to big binary rather than csv or directory hierarchy
-            - this means hand crafted data pipeline
-            - benefits:
-                - images as binary objects rather than their feature string representation
-                - still regression is part of the deal as no directory hierarchy is necessary but only the data pack
-    - analyse regression
-        - get min and max value for each label generated
-        - get mean, std dev, median
-        - basically some box plot values
+    - store training data in binary option, instead of csv or directory hierarchy
+        - this means hand crafted data pipeline
+        - benefits:
+            - images as binary objects rather than their feature string representation
+            - still regression is part of the deal as no directory hierarchy is necessary but only the data pack
+- training set analysis
+    - add fancy stuff for classification
+        - t-SNE
+        - PCA
 - update cli
     - instead of setting neural net identifiers as arguments, allow for construction by giving label generator and feature generator
         - this eases up implementation of new generators, as not each possible combination would be in need of a name but only the new generator
