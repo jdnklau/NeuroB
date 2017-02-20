@@ -44,8 +44,8 @@ public class TrainingSetGenerationTest {
 		// analyse
 		TrainingAnalysisData analysis = tsa.analyseNBTrainSet(Paths.get("src/test/resources/training/nbtrain/"), lg);
 
-		assertEquals("File counter does not match", 1, analysis.getFilesSeen());
-		assertEquals("Empty files counter does not match", 0, analysis.getEmptyFilesSeen());
+		assertEquals("File counter does not match", 1, analysis.getFilesCount());
+		assertEquals("Empty files counter does not match", 0, analysis.getEmptyFilesCount());
 		
 		ArrayList<Integer> trueLabels = analysis.getTrueLabelCounters();
 		assertEquals("Class 0 counter does not match", 0, trueLabels.get(0).intValue());

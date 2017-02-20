@@ -6,10 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class TrainingAnalysisData {
+public class TrainingAnalysisData implements TrainingAnalysisDataContainer {
 	private ArrayList<Integer> trueLabelCounters; // For each class, have counter how many times it would be called
 	private int filesSeen; // Counter for files seen in total
 	private int emptyFilesSeen; // Counter for empty files
+	private int samples; // Number of samples seen
 
 	private static final Logger log = LoggerFactory.getLogger(TrainingAnalysisData.class);
 	
@@ -19,12 +20,16 @@ public class TrainingAnalysisData {
 	 */
 	public TrainingAnalysisData(int classes){
 		trueLabelCounters = new ArrayList<Integer>(0);
+		filesSeen = 0;
+		emptyFilesSeen = 0;
+		samples = 0;
 		
 		for(int i=0; i < classes; i++){
 			trueLabelCounters.add(0);
 		}
 	}
-	
+
+	@Override
 	public void log(){
 		log.info("Analysis of training data");
 		
@@ -56,6 +61,19 @@ public class TrainingAnalysisData {
 		trueLabelCounters.set(clss, c+1);
 	}
 	
+	@Override
+	public void analyseSample(double[] features, double[] labels) {
+		// TODO: For now only takes labels into account. Maybe add TSne or PCA or stuff like that?
+		int clss = (int) Math.round(labels[0]); // TODO: make this beautiful, as this is plain ugly code 
+		countEntryForClass(clss);
+		samples++;
+	}
+	
+	@Override
+	public int getSamplesCount(){
+		return samples;
+	}
+	
 	/**
 	 * @return An {@link ArrayList} of Integer counters how often each class (being the index) is represented. 
 	 */
@@ -63,29 +81,23 @@ public class TrainingAnalysisData {
 		return trueLabelCounters;
 	}
 	
-	/**
-	 * Increases the counter of files seen by one.
-	 * 
-	 * @see #addEmptyFileSeen()
-	 */
-	public void addFileSeen(){
+	@Override
+	public void countFileSeen(){
 		filesSeen++;
 	}
 	
-	public int getFilesSeen(){
+	@Override
+	public int getFilesCount(){
 		return filesSeen;
 	}
 	
-	/**
-	 * Increases the counter for empty files seen by one.
-	 * 
-	 * @see #addEmptyFileSeen()
-	 */
-	public void addEmptyFileSeen(){
+	@Override
+	public void countEmptyFileSeen(){
 		emptyFilesSeen++;
 	}
 	
-	public int getEmptyFilesSeen(){
+	@Override
+	public int getEmptyFilesCount(){
 		return emptyFilesSeen;
 	}
 	

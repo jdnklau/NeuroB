@@ -3,21 +3,20 @@ package neurob.training;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import akka.util.Collections;
 import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
 
 public class TrainingSetAnalyser {
-	private int dataCount; // counts the lines in the found files, being the feature and target data 
 	private static final Logger log = LoggerFactory.getLogger(TrainingSetAnalyser.class);
-	
-	public TrainingSetAnalyser(){
-		dataCount = 0;
-	}
 	
 	public void logTrainingAnalysis(TrainingAnalysisData analysis){
 		if(analysis == null){
@@ -78,7 +77,7 @@ public class TrainingSetAnalyser {
 				.parallel()
 				.forEachOrdered(entry -> {
 					if(Files.isRegularFile(entry)){
-						data.addFileSeen(); // found a file, did it not?
+						data.countFileSeen(); // found a file, did it not?
 			
 						// check file extension
 						String fileName = entry.getFileName().toString();
@@ -86,19 +85,18 @@ public class TrainingSetAnalyser {
 						
 						if(ext.equals("nbtrain")){
 						// save old data count to compare later on if we got an empty file
-						int oldDataCount = dataCount;
+						int oldDataCount = data.getSamplesCount();
 						
 						// check if targets are not all equal
 						try(Stream<String> filelines = Files.lines(entry)){
 							filelines.forEach(line -> {
-								dataCount++; // found data line
-						
-								// NOTE: This may be a huge assumption, that we only got one dimension in
-								// the label. The net later will predict a one-hot vector, but this is
-								// pre training.
-								int trueLabel = Integer.parseInt(line.split(":")[1]);
 								
-								data.countEntryForClass(trueLabel);
+								String[] sample = line.split(":");
+								double[] features = Arrays.stream(sample[0].split(","))
+										.mapToDouble(Double::parseDouble).toArray();
+								double[] labels = Arrays.stream(sample[1].split(","))
+										.mapToDouble(Double::parseDouble).toArray();
+								data.analyseSample(features, labels);
 						
 							});
 						} catch (IOException e){
@@ -106,8 +104,8 @@ public class TrainingSetAnalyser {
 						}
 			
 						// no new data found
-						if (dataCount == oldDataCount){
-							data.addEmptyFileSeen();
+						if (data.getSamplesCount() == oldDataCount){
+							data.countEmptyFileSeen();
 						}
 					}
 				}
