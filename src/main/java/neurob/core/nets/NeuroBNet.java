@@ -41,7 +41,7 @@ public class NeuroBNet {
 	protected LabelGenerator labelgen; // Label generator in use of training set generation
 	// Preprocessing
 	protected DataNormalization normalizer; // Normalizer used 
-	protected boolean useNormalizer = false;
+	protected boolean useNormalizer;
 	
 	/**
 	 * Creates a NeuroBNet without any model attached to it. 
@@ -53,6 +53,7 @@ public class NeuroBNet {
 	public NeuroBNet(FeatureGenerator features, LabelGenerator labelling){
 		this.features = features;
 		this.labelgen = labelling;
+		useNormalizer = false;
 	}
 	
 	/**
@@ -64,7 +65,8 @@ public class NeuroBNet {
 	public NeuroBNet(MultiLayerNetwork model, FeatureGenerator features, LabelGenerator labelling) {
 		this(features, labelling);
 		this.model = model;
-		useNormalizer = false;
+		useNormalizer = true;
+		setUpNormalizer();
 	}
 	
 	/**
