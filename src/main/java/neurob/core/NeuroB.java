@@ -2,8 +2,15 @@ package neurob.core;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
+import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.optimize.api.IterationListener;
+import org.deeplearning4j.optimize.listeners.PerformanceListener;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.stats.StatsListener;
+import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -107,13 +114,18 @@ public class NeuroB {
         	nbn.fitNormalizer(batch);
 		}
 		
-		// If needed, set up UI
+		// Set up listeners
+		ArrayList<IterationListener> listeners = new ArrayList<>();
 		if(dl4jUIEnabled){
-			nbn.enableDL4JUI();
+			UIServer uiServer = UIServer.getInstance();
+			
+			StatsStorage statsStorage = new InMemoryStatsStorage();
+			uiServer.attach(statsStorage);
+			
+			listeners.add(new StatsListener(statsStorage));
 		}
-		else {
-			nbn.enableTrainingScoreIteration(75);
-		}
+		listeners.add(new PerformanceListener(75, true));
+		nbn.setListeners(listeners);
 		
 		// train net on training data
 		for(int i=0; i<numEpochs; i++){

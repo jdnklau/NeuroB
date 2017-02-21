@@ -2,12 +2,12 @@ package neurob.core.nets;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Random;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
-import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
@@ -16,10 +16,7 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.listeners.PerformanceListener;
-import org.deeplearning4j.ui.api.UIServer;
-import org.deeplearning4j.ui.stats.StatsListener;
-import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
+import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -277,19 +274,19 @@ public class NeuroBNet {
 	}
 	
 	/**
-	 * For network training purposes: Start The DL4J UI to monitor the training of the model 
+	 * Sets and overrides the listeners attached to the dl4j model.
+	 * @param listeners
 	 */
-	public void enableDL4JUI() {
-		UIServer uiServer = UIServer.getInstance();
-		
-		StatsStorage statsStorage = new InMemoryStatsStorage();
-		uiServer.attach(statsStorage);
-		
-		model.setListeners(new StatsListener(statsStorage));
+	public void setListeners(IterationListener... listeners){
+		model.setListeners(listeners);
 	}
 	
-	public void enableTrainingScoreIteration(int iterationCount){
-		model.setListeners(new PerformanceListener(iterationCount, true));
+	/**
+	 * Sets and overrides the listeners attached to the dl4j model.
+	 * @param listeners
+	 */
+	public void setListeners(Collection<IterationListener> listeners){
+		model.setListeners(listeners);
 	}
 
 }
