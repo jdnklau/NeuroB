@@ -90,9 +90,9 @@ public class NeuroBCli {
 					+ "\tFor this, the given <ratio> is used, a number in the interval [0,1]\n"
 					
 					+ "trainingset -csvtranslate -file <csv> -dir <directory> [-net <features> <labels>]\n"
-					+ "\tFor models with convolutional features, this translates the data.csv from training set generation into"
-					+ "\ta directory structure in <directory>, that contains the classes as subdirectories and places all"
-					+ "\tsamples as image files accordingly inside one of them"
+					+ "\tFor models with convolutional features, this translates the data.csv from training set generation into\n"
+					+ "\ta directory structure in <directory>, that contains the classes as subdirectories and places all\n"
+					+ "\tsamples as image files accordingly inside one of them\n"
 					
 					+ "trainnet -train <trainingfile> -test <testfile> [-net <features> <labels>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
@@ -101,12 +101,12 @@ public class NeuroBCli {
 					+ "trainnet -train <traindata> -test <testdata> [-hidden <layer_sizes +>] [-seed <seed +>] [-epochs <epochs +>] [-lr <learningrate +>] [-net <features> <labels>]\n"
 					+ "\tTrains a neural networks model of type <net>\n"
 					+ "\tThe model is trained on <traindata>, then evaluated on <testdata>\n"
-					+ "\t-hidden determines the number and size of hidden layers; -hidden 256 128 128 would create 3 hidden layers with respective amount of neurons"
-					+ "\t\tDefault: -hidden 512 256 128 128"
-					+ "\tThe defaults for the other hyper parameters are seed: 0, epochs: 15, learningrate: 0.006"
+					+ "\t-hidden determines the number and size of hidden layers; -hidden 256 128 128 would create 3 hidden layers with respective amount of neurons\n"
+					+ "\t\tDefault: -hidden 512 256 128 128\n"
+					+ "\tThe defaults for the other hyper parameters are seed: 0, epochs: 15, learningrate: 0.006\n"
 					+ "\t\tNote: One can set multiple values for the hyper parameters seed, epochs, and lr, resulting in training each possible combination\n"
-					+ "\t\t      so be carefull with how many you query"
-					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007"
+					+ "\t\t      so be carefull with how many you query\n"
+					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007\n"
 					
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
@@ -116,7 +116,6 @@ public class NeuroBCli {
 					+ "\t<toexcludes> can be a list of multiple paths to files or directories, separated by a blank space\n"
 					
 					+ "\nDefault values:\n"
-					+ "- if -net <features> <labels> is not set, it defaults to 'prob' net\n"
 					+ "- if -excludefile <excludefile> is not set, it defaults to default.excludes\n"
 					+ "\t* if -excludefile none is set, no exclusions are made\n"
 					
@@ -126,7 +125,7 @@ public class NeuroBCli {
 					+ "<features> can be one of the following:\n"
 					+ "\tpredf: (default) Basic, handcrafted features for predicates\n"
 					+ "\tpredi: Predicate image features, i.e. image versions of the predicates\n"
-					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)"
+					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)\n"
 					
 					+ "<labels> describe the labelling mechanism in use:\n"
 					+ "\tsolclass: (default) Solver classification; classifies whether a given solver can decide a predicate or not\n"
