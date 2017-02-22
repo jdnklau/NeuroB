@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 import neurob.core.NeuroB;
 import neurob.core.features.CodeImages;
 import neurob.core.features.PredicateFeatures;
-import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;

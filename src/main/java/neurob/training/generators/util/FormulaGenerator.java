@@ -1,7 +1,6 @@
 package neurob.training.generators.util;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -145,17 +144,14 @@ public class FormulaGenerator {
 		boolean emptyInvariants = false;
 		String invariantsPre;
 		String negInvariants;
-		String negInvariantsPre;
 		if(invariants.isEmpty()){
 			emptyInvariants = true;
 			invariantsPre = "";
 			negInvariants = "";
-			negInvariantsPre = "";
 		} else {
 			formulae.add(invariants); // invariants
 			invariantsPre = invariants+" & ";
 			negInvariants= "not("+invariants+")";
-			negInvariantsPre = "not("+invariants+") & ";
 		}
 		
 		

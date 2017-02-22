@@ -17,7 +17,6 @@ import neurob.training.TrainingSetGenerator;
 import neurob.training.analysis.ClassificationAnalysis;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
-import neurob.training.generators.labelling.SolverSelectionGenerator;
 
 public class TrainingSetGenerationTest {
 	private final Path formulaeGenTestFile = Paths.get("src/test/resources/training/formulae_generation.mch");
