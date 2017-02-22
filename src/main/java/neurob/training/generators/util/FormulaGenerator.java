@@ -44,9 +44,9 @@ public class FormulaGenerator {
 	 * @param predicateCollector An already used {@link PredicateCollector}
 	 * @return An ArrayList containing all formulae constructed from the predicate collector
 	 */
-	public static ArrayList<String> extendedGuardFormulae(PredicateCollector predicateCollector){		
-		String properties = String.join(" & ", predicateCollector.getProperties());
-		String invariants = String.join(" & ", predicateCollector.getInvariants());
+	public static ArrayList<String> extendedGuardFormulae(PredicateCollector predicateCollector){
+		String properties = getPropertyString(predicateCollector);
+		String invariants = getInvariantString(predicateCollector);
 		
 		return generateExtendedGuardFormulae(properties, invariants, predicateCollector.getGuards());
 		
@@ -63,8 +63,8 @@ public class FormulaGenerator {
 	 * @see PredicateCollector#modifyDomains(ArrayList)
 	 */
 	public static ArrayList<String> extendedGuardFomulaeWithInfiniteDomains(PredicateCollector predicateCollector){
-		String properties = String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getProperties()));
-		String invariants = String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getInvariants()));
+		String properties = getPropertyString(predicateCollector);
+		String invariants = getInvariantString(predicateCollector);
 		
 		ArrayList<ArrayList<String>> allGuards = predicateCollector.getGuards();
 		for(ArrayList<String> guards : allGuards){
@@ -84,23 +84,7 @@ public class FormulaGenerator {
 	public static ArrayList<String> multiGuardFormulae(PredicateCollector predicateCollector){
 		ArrayList<String> formulae = new ArrayList<String>();
 		
-		String properties = String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getProperties()));
-		String invariants = String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getInvariants()));
-		
-		// check for empty formulas
-		String propertyPre;
-		if(properties.isEmpty()){
-			propertyPre = "";
-		} else {
-			propertyPre = properties+" & ";
-		}
-		String invariantsPre;
-		if(invariants.isEmpty()){
-			invariantsPre = "";
-		} else {
-			invariantsPre = invariants+" & ";
-		}
-		String propsAndInvsPre = propertyPre + invariantsPre;
+		String propsAndInvsPre = getPropsAndInvsPre(predicateCollector);
 		
 		List<String> allGuards = predicateCollector.getGuards()
 				.stream()
@@ -125,6 +109,100 @@ public class FormulaGenerator {
 				
 		
 		return formulae;
+	}
+	
+	public static ArrayList<String> assertionsAndTheorems(PredicateCollector predicateCollector){
+		String propsAndInv = getPropertyAndInvariantString(predicateCollector);
+		ArrayList<String> formulae = new ArrayList<>();
+
+		ArrayList<String> assertionsList = predicateCollector.getAssertions();
+		ArrayList<String> theoremsList = predicateCollector.getTheorems();
+		String allAssertions = String.join(" & ", assertionsList);
+		String allTheorems = String.join(" & ", theoremsList);
+		
+		if(propsAndInv.isEmpty()){
+			for(String a : assertionsList){
+				formulae.add(a);
+			}
+			for(String a : theoremsList){
+				formulae.add(a);
+			}
+			
+			if(!allAssertions.isEmpty())
+				formulae.add(allAssertions);
+			if(!allTheorems.isEmpty())
+				formulae.add(allTheorems);
+			
+			return formulae;
+		}
+		
+		// proof assertions
+		for(String a : assertionsList){
+			formulae.add(propsAndInv + " & " + a);
+			formulae.add(propsAndInv + " => " + a);
+			formulae.add(propsAndInv + " <=> " + a);
+		}
+		if(!allAssertions.isEmpty()){
+			formulae.add(propsAndInv + " & " + allAssertions);
+			formulae.add(propsAndInv + " => " + allAssertions);
+			formulae.add(propsAndInv + " <=> " + allAssertions);
+		}
+		
+		// proof theorems
+		for(String a : theoremsList){
+			formulae.add(propsAndInv + " & " + a);
+			formulae.add(propsAndInv + " => " + a);
+			formulae.add(propsAndInv + " <=> " + a);
+		}
+		if(!allTheorems.isEmpty()){
+			formulae.add(propsAndInv + " & " + allTheorems);
+			formulae.add(propsAndInv + " => " + allTheorems);
+			formulae.add(propsAndInv + " <=> " + allTheorems);
+		}
+		
+		return formulae;
+	}
+	
+	private static String getPropertyString(PredicateCollector predicateCollector){
+		return String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getProperties()));
+	}
+	
+	private static String getInvariantString(PredicateCollector predicateCollector){
+		return String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getInvariants()));
+	}
+	
+	private static String getPropertyPre(PredicateCollector predicateCollector){
+		String properties = getPropertyString(predicateCollector);
+		
+		if(properties.isEmpty()){
+			return "";
+		} else {
+			return properties+" & ";
+		}
+	}
+	
+	private static String getInvariantsPre(PredicateCollector predicateCollector){
+		String invariants = getInvariantString(predicateCollector);
+		
+		if(invariants.isEmpty()){
+			return "";
+		} else {
+			return invariants+" & ";
+		}
+	}
+	
+	private static String getPropsAndInvsPre(PredicateCollector predicateCollector){
+		return getPropertyPre(predicateCollector)+getInvariantsPre(predicateCollector);
+	}
+	
+	private static String getPropertyAndInvariantString(PredicateCollector predicateCollector){
+		String inv =  getInvariantString(predicateCollector);
+		
+		if(inv.isEmpty())
+			return getPropertyString(predicateCollector);
+		
+		
+		return getPropertyPre(predicateCollector) + inv;
 	}
 	
 	private static ArrayList<String> generateExtendedGuardFormulae(String properties, String invariants, ArrayList<ArrayList<String>> allGuards){
@@ -158,10 +236,6 @@ public class FormulaGenerator {
 		String propsAndInvs = propertyPre + invariants;
 		String propsAndNegInvs = propertyPre + negInvariants;
 		
-
-		if(!emptyProperties){
-			formulae.add(propsAndInvs); // properties & invariants
-		}
 		
 		// guards
 		for(ArrayList<String> guards : allGuards){

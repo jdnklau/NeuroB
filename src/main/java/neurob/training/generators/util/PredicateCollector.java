@@ -7,6 +7,7 @@ import java.util.Random;
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.Start;
+import de.prob.model.classicalb.Assertion;
 import de.prob.model.classicalb.PrettyPrinter;
 import de.prob.model.classicalb.Property;
 import de.prob.model.representation.AbstractElement;
@@ -23,6 +24,8 @@ public class PredicateCollector {
 	private ArrayList<ArrayList<String>> guards;
 	private ArrayList<String> axioms;
 	private ArrayList<String> properties;
+	private ArrayList<String> assertions;
+	private ArrayList<String> theorems;
 	
 	private MachineType machineType;
 	
@@ -32,6 +35,8 @@ public class PredicateCollector {
 		guards = new ArrayList<ArrayList<String>>();
 		axioms = new ArrayList<String>();
 		properties = new ArrayList<String>();
+		assertions = new ArrayList<String>();
+		theorems = new ArrayList<String>();
 		
 		collectPredicates(ss.getMainComponent());
 		
@@ -46,7 +51,14 @@ public class PredicateCollector {
 		
 		// add invariants
 		for(Invariant x : comp.getChildrenOfType(Invariant.class)){
-			invariants.add(x.getFormula().getCode());
+			if(x.isTheorem())
+				theorems.add(x.getFormula().getCode());
+			else
+				invariants.add(x.getFormula().getCode());
+		}
+		
+		for(Assertion x : comp.getChildrenOfType(Assertion.class)){
+			assertions.add(x.getFormula().getCode());
 		}
 		
 		// for each event collect guards
@@ -68,6 +80,8 @@ public class PredicateCollector {
 	public ArrayList<ArrayList<String>> getGuards(){ return guards; }
 	public ArrayList<String> getInvariants(){ return invariants; }
 	public ArrayList<String> getProperties(){ return properties; }
+	public ArrayList<String> getAssertions(){ return assertions; }
+	public ArrayList<String> getTheorems(){ return theorems; }
 
 	/**
 	 * Modifies an ArrayList of predicates to have only Numbers of infinite domains.

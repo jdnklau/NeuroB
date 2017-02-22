@@ -228,6 +228,7 @@ public class TrainingSetGenerator {
 		PredicateCollector predc = new PredicateCollector(ss);
 		formulae = FormulaGenerator.extendedGuardFormulae(predc);
 		formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
+		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
 		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
 		// get shuffles for images
 		if(fg instanceof ConvolutionFeatures){
