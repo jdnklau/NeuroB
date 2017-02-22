@@ -4,3 +4,7 @@ examples/prob_examples/public_examples/B/RefinementChecking
 examples/prob_examples/public_examples/B/Tickets/LargeMachTypeErr/sequenceur_values.mch
 examples/prob_examples/public_examples/B/Mathematical/Argumentation/ExampleVeryLarge_Kodkod.mch
 examples/prob_examples/public_examples/B/Kodkod/flat200-90.mch
+examples/prob_examples/examples/B/Systerel
+examples/prob_examples/public_examples/ProofObligations/Abrial_ABZ_Devel1
+examples/prob_examples/public_examples/ProofObligations/Abrial_ABZ_Devel2
+examples/prob_examples/public_examples/ProofObligations/Abrial_ABZ_Devel3
