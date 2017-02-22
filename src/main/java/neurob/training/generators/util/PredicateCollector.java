@@ -55,7 +55,8 @@ public class PredicateCollector {
 			for(Guard g : x.getChildrenOfType(Guard.class)){
 				event.add(g.getFormula().getCode());
 			}
-			guards.add(event);
+			if(!event.isEmpty())
+				guards.add(event);
 		}
 		// axioms
 		for(Axiom x : comp.getChildrenOfType(Axiom.class)){
