@@ -14,7 +14,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.exceptions.NeuroBException;
 
-public class CodePortfolios implements ConvolutionFeatures {
+public class CodeImages implements ConvolutionFeatures {
 	private int dim;
 	private int pixels; // has to be dim*dim
 	// Features
@@ -23,7 +23,7 @@ public class CodePortfolios implements ConvolutionFeatures {
 	 * The image size generated will be of size {@code dimension * dimension}
 	 * @param dimension 
 	 */
-	public CodePortfolios(int dimension) {
+	public CodeImages(int dimension) {
 		this.dim = dimension;
 		pixels = dim*dim;
 		features = new ArrayList<BufferedImage>();

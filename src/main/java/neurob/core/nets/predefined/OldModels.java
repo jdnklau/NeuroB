@@ -11,7 +11,7 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
-import neurob.core.features.CodePortfolios;
+import neurob.core.features.CodeImages;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.nets.NeuroBNet;
@@ -63,7 +63,7 @@ public class OldModels {
 	
 	public static NeuroBNet getProBPredictionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodePortfolios(size),
+				new CodeImages(size),
 				new SolverClassificationGenerator(SolverType.PROB),
 				seed);
 	}
@@ -77,7 +77,7 @@ public class OldModels {
 	
 	public static NeuroBNet getKodKodPredictionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodePortfolios(size),
+				new CodeImages(size),
 				new SolverClassificationGenerator(SolverType.KODKOD),
 				seed);
 	}
@@ -92,7 +92,7 @@ public class OldModels {
 //	
 //	public static NeuroBNet getPredicateSolverPredictionWithCodePortfolioNet(int seed, int size){
 //		return getOldModel(
-//				new CodePortfolios(size),
+//				new CodeImages(size),
 //				new SolverClassificationGenerator(true, true, true),
 //				seed);
 //	}
@@ -106,7 +106,7 @@ public class OldModels {
 	
 	public static NeuroBNet getPredicateSolverSelectionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodePortfolios(size),
+				new CodeImages(size),
 				new SolverSelectionGenerator(),
 				seed);
 	}

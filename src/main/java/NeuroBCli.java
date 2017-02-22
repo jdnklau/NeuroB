@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.stream.Stream;
 
 import neurob.core.NeuroB;
-import neurob.core.features.CodePortfolios;
+import neurob.core.features.CodeImages;
 import neurob.core.features.PredicateFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.nets.NeuroBConvNet;
@@ -301,7 +301,7 @@ public class NeuroBCli {
 			if(ops.containsKey("size")){
 				s = Integer.parseInt(ops.get("size").get(0));
 			}
-			model = new NeuroBConvNet(hiddenLayers, learningrate, new CodePortfolios(s), labelling, seed);
+			model = new NeuroBConvNet(hiddenLayers, learningrate, new CodeImages(s), labelling, seed);
 		}
 		else {//if(feats.equals("predf")){
 			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), labelling, seed);

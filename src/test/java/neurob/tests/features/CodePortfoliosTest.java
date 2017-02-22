@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage;
 
 import org.junit.Test;
 
-import neurob.core.features.CodePortfolios;
+import neurob.core.features.CodeImages;
 import neurob.exceptions.NeuroBException;
 
 public class CodePortfoliosTest {
@@ -16,7 +16,7 @@ public class CodePortfoliosTest {
 		String pred = "x : NATURAL & y : INTEGER & z : NATURAL & z < 20 & a : NAT & b : NAT1 & a < 7 & c : INT"
 				+ " & # y . (y < x) & ! z . (z < 15 => x > 3)";
 		
-		CodePortfolios cp = new CodePortfolios(32);
+		CodeImages cp = new CodeImages(32);
 		
 		BufferedImage img = cp.generateFeatureImage(pred);
 		

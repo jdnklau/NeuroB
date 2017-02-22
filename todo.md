@@ -18,8 +18,7 @@
     - data augmentation for larger training sets
         - access/generate proof obligations
     - more distinct support for convolutional models
-    - code portfolios
-        - rename?
+    - code images
         - ~~translating image directory back to csv~~
     - store training data in binary option, instead of csv or directory hierarchy
         - this means hand crafted data pipeline
