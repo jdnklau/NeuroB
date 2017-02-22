@@ -1,6 +1,6 @@
 # Shortcut to run the Cli of NeuroB
 RUNCLI = ./build/install/NeuroB/bin/NeuroB
-EXAMPLES = examples/prob_examples/public_examples/B/
+EXAMPLES = examples/prob_examples/
 
 all :
 	@echo "***** Building gradle files"
@@ -32,32 +32,18 @@ dev :
 trainingset : distributedlibraryfile
 	@echo "***** Beginning generation of training set"
 	@echo "This will take a while. Maybe just come back tomorrow"
-	@$(RUNCLI) trainingset -dir examples/prob_examples/public_examples/B/
+	@$(RUNCLI) trainingset -dir $(EXAMPLES)
 	@echo "*****/ Training set generated"
 
-trainingsetsnocp64 :
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psp
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pss
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net prob
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkod
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pspcp -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psscp -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net probcp -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkodcp -size 32
-
-alltrainingsets :
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psp
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pss
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net prob
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkod
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pspcp
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psscp
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net probcp
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkodcp
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net pspcp -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net psscp -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net probcp -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net kodkodcp -size 32
+alltrainingsets : distributedlibraryfile
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solclass -solver prob
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solclass -solver kodkod
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solsel
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf soltime
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi solclass -solver prob -size 32
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi solclass -solver kodkod -size 32
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi solsel -size 32
+	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi soltime -size 32
 
 distributedlibraryfile :
 	@echo "***** Ensuring existence of LibraryIO.def in respective directories"

@@ -30,7 +30,4 @@
     - add fancy stuff for classification
         - t-SNE
         - PCA
-- update cli
-    - instead of setting neural net identifiers as arguments, allow for construction by giving label generator and feature generator
-        - this eases up implementation of new generators, as not each possible combination would be in need of a name but only the new generator
 - update java doc

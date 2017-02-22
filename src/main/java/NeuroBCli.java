@@ -9,12 +9,16 @@ import java.util.stream.Stream;
 import neurob.core.NeuroB;
 import neurob.core.features.CodePortfolios;
 import neurob.core.features.PredicateFeatures;
+import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetGenerator;
+import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
 import neurob.training.generators.labelling.SolverSelectionGenerator;
+import neurob.training.generators.labelling.SolverTimerGenerator;
 
 public class NeuroBCli {
 	private static final Path libraryIOpath = Paths.get("prob_examples/LibraryIO.def");
@@ -65,19 +69,19 @@ public class NeuroBCli {
 		
 		if(cmd.equals("help")){
 			String help =
-					  "Call with the following arguments, where -net <net> indicates the neural net to be used (see below):\n"
+					  "Call with the following arguments, where -net <features> <labels> indicates the neural net to be used (see below):\n"
 					
-					+ "trainingset -dir <directory> [-net <net>] [-excludefile <excludefile]\n"
+					+ "trainingset -dir <directory> [-net <features> <labels>] [-excludefile <excludefile]\n"
 					+ "\tGenerate training data from the mch files found in <directory>, but ignore those listed in <excludefile>\n"
 					
-					+ "trainingset -file <filename> [-net <net>]\n"
+					+ "trainingset -file <filename> [-net <features> <labels>]\n"
 					+ "\tGenerate training data from a specific file. \n"
 					
-					+ "trainingset -analyse -dir <directory> [-net <net>]\n"
+					+ "trainingset -analyse -dir <directory> [-net <features> <labels>]\n"
 					+ "\tAnalyse the generated training data in <directory>\n"
 					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
 					
-					+ "trainingset -analyse -file <file> [-net <net>]\n"
+					+ "trainingset -analyse -file <file> [-net <features> <labels>]\n"
 					+ "\tAnalyse the generated training data in <file>\n"
 					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
 
@@ -85,22 +89,22 @@ public class NeuroBCli {
 					+ "\tSplit a given CSV file into <first> and <second>, both being CSV files again\n"
 					+ "\tFor this, the given <ratio> is used, a number in the interval [0,1]\n"
 					
-					+ "trainingset -csvtranslate -file <csv> -dir <directory> [-net <net>]\n"
+					+ "trainingset -csvtranslate -file <csv> -dir <directory> [-net <features> <labels>]\n"
 					+ "\tFor models with convolutional features, this translates the data.csv from training set generation into"
 					+ "\ta directory structure in <directory>, that contains the classes as subdirectories and places all"
 					+ "\tsamples as image files accordingly inside one of them"
 					
-					+ "trainnet -train <trainingfile> -test <testfile> [-net <net>]\n"
+					+ "trainnet -train <trainingfile> -test <testfile> [-net <features> <labels>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
 					+ "\tBoth files being csv files generated with this tool\n"
 					
-					+ "trainnet -train <traindata> -test <testdata> [-hidden <layer_sizes +>] [-seed <seed +>] [-epochs <epochs +>] [-lr <learningrate +>] [-net <net>]\n"
+					+ "trainnet -train <traindata> -test <testdata> [-hidden <layer_sizes +>] [-seed <seed +>] [-epochs <epochs +>] [-lr <learningrate +>] [-net <features> <labels>]\n"
 					+ "\tTrains a neural networks model of type <net>\n"
 					+ "\tThe model is trained on <traindata>, then evaluated on <testdata>\n"
 					+ "\t-hidden determines the number and size of hidden layers; -hidden 256 128 128 would create 3 hidden layers with respective amount of neurons"
 					+ "\t\tDefault: -hidden 512 256 128 128"
 					+ "\tThe defaults for the other hyper parameters are seed: 0, epochs: 15, learningrate: 0.006"
-					+ "\t\tNote: One can set multiple values for the hyper parameters seed, epochs, and lr, resulting in training each possible combination"
+					+ "\t\tNote: One can set multiple values for the hyper parameters seed, epochs, and lr, resulting in training each possible combination\n"
 					+ "\t\t      so be carefull with how many you query"
 					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007"
 					
@@ -112,22 +116,25 @@ public class NeuroBCli {
 					+ "\t<toexcludes> can be a list of multiple paths to files or directories, separated by a blank space\n"
 					
 					+ "\nDefault values:\n"
-					+ "- if -net <net> is not set, it defaults to 'prob' net\n"
-					+ "- if -excludefile <excludefile> is not set, it defaults to default.excludes"
-					+ "\t* if -excludefile none is set, no exclusions are made"
+					+ "- if -net <features> <labels> is not set, it defaults to 'prob' net\n"
+					+ "- if -excludefile <excludefile> is not set, it defaults to default.excludes\n"
+					+ "\t* if -excludefile none is set, no exclusions are made\n"
 					
 					+ "\nNets:\n"
-					+ "The implemented nets you can access via the cli are\n"
-					+ "\tprob - ProB only prediction (default)\n"
-					//+ "\tpsp - Predicate Solver Prediction\n"
-					+ "\tpss - Predicate Solver Selection\n"
-					+ "\tkodkod - KodKod only prediction\n"
-					+ "\tprobcp - ProB only prediction using Code Portfolios\n"
-					//+ "\tpspcp - Predicate Solver Prediction using Code Portfolios\n"
-					+ "\tpsscp - Predicate Solver Selection using Code Portfolios\n"
-					+ "\tkodkodcp - KodKod only prediction using Code Portfolios\n"
-					+ "\t\tNote: Code Portfolio models support usage of the -size argument.\n"
-					+ "\t\t-size S, where S is the length of the image's sides, defaulting to 64."
+					+ "The -net argument takes two parameters: <features> and <labels>.\n"
+					
+					+ "<features> can be one of the following:\n"
+					+ "\tpredf: (default) Basic, handcrafted features for predicates\n"
+					+ "\tpredi: Predicate image features, i.e. image versions of the predicates\n"
+					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)"
+					
+					+ "<labels> describe the labelling mechanism in use:\n"
+					+ "\tsolclass: (default) Solver classification; classifies whether a given solver can decide a predicate or not\n"
+					+ "\t\tTakes optional -solver <solver> argument, with <solver> being\n"
+					+ "\t\tprob (default), kodkod,\n"
+					+ "\t\tor smt (for SMT_SUPPORTED_INTERPRETER setting in ProB, using ProB+Z3 together)\n"
+					+ "\tsolsel: Selection approach, what solver decides a given predicate the fastes\n"
+					+ "\tsoltime: Regression approach for each solver, how long it takes to decide a predicate\n"
 					
 					;
 			
@@ -200,7 +207,7 @@ public class NeuroBCli {
 				System.out.println("trainingset: missing at least -dir parameter");
 			}
 		}
-		// trainnet -train <traindata> -test <testdata> [-seed <seed>+] [-epochs <epochs>+] [-lr <learningrate>+] [-net <net>]
+		// trainnet -train <traindata> -test <testdata> [-seed <seed>+] [-epochs <epochs>+] [-lr <learningrate>+] [-net <features> <labels>]
 		else if(cmd.equals("trainnet")){
 			if(ops.containsKey("train")){
 				if(ops.containsKey("test")){
@@ -259,55 +266,47 @@ public class NeuroBCli {
 	private static void buildNet(int seed, double learningrate, int[] hiddenLayers){
 		NeuroBNet model;
 		// get net type
-		String net = "prob";
+		String feats = "predf";
+		String label = "solclass";
 		if(ops.containsKey("net")){
-			net = ops.get("net").get(0);
+			ArrayList<String> net = ops.get("net");
+			if(net.size() != 2){
+				System.out.println("-net expects two parameters: <features> and <labels>");
+				System.exit(10);
+			}
+			feats = net.get(0);
+			label = net.get(1);
 		}
-		// get size for code portfolio
-		int size = 64;
-		if(ops.containsKey("size")){
-			size = Integer.parseInt(ops.get("size").get(0));
+		
+		LabelGenerator labelling;
+		if(label.equals("soltime")) {
+			labelling = new SolverTimerGenerator();
+		} else if(label.equals("solsel")){
+			labelling = new SolverSelectionGenerator();
+		} else { // if (label.equals("solclass")) {
+			SolverType solver = SolverType.PROB;
+			if(ops.containsKey("solver")){
+				String sstring = ops.get("solver").get(0);
+				if(sstring.equals("kodkod"))
+					solver = SolverType.KODKOD;
+				else if(sstring.equals("smt"))
+					solver = SolverType.SMT_SUPPORTED_INTERPRETER;
+			}
+			labelling = new SolverClassificationGenerator(solver);
 		}
-		// set up nets
-//		int i = seed;
-//		if(net.equals("prob")){
-//			model = OldModels.getProBPredictionNet(i);
-//		} else if(net.equals("kodkod")){
-//			model = OldModels.getKodKodPredictionNet(i);
-//		} else if(net.equals("pss")){
-//			model = OldModels.getPredicateSolverSelectionNet(i);
-//		} else if(net.equals("psp")){
-//			model = OldModels.getPredicateSolverPredictionNet(i);
-//		
-//		} else if(net.equals("probcp")){
-//			model = OldModels.getProBPredictionWithCodePortfolioNet(i, size);
-//		} else if(net.equals("kodkodcp")){
-//			model = OldModels.getKodKodPredictionWithCodePortfolioNet(i, size);
-//		} else if(net.equals("psscp")){
-//			model = OldModels.getPredicateSolverSelectionWithCodePortfolioNet(i, size);
-//		} else if(net.equals("pspcp")){
-//			model = OldModels.getPredicateSolverPredictionWithCodePortfolioNet(i, size);
-//			
-//		} else {
-//			model = OldModels.getPredicateSolverPredictionNet(i);
-//			System.out.println("Net "+net+" is not known; defaulting to psp.");
-//		}
-		//if(net.equals("prob")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverClassificationGenerator(SolverType.PROB), seed);
-		//} else 
-		if(net.equals("kodkod")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverClassificationGenerator(SolverType.KODKOD), seed);
-		} else if(net.equals("pss")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), new SolverSelectionGenerator(), seed);
+		
+		// FeatureGenerator features;
+		if(feats.equals("predi")){
+			int s = 32;
+			if(ops.containsKey("size")){
+				s = Integer.parseInt(ops.get("size").get(0));
+			}
+			model = new NeuroBConvNet(hiddenLayers, learningrate, new CodePortfolios(s), labelling, seed);
 		}
-		else if(net.equals("probcp")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverClassificationGenerator(SolverType.PROB), seed);
-		} else if(net.equals("kodkodcp")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverClassificationGenerator(SolverType.KODKOD), seed);
-		} else if(net.equals("psscp")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new CodePortfolios(size), new SolverSelectionGenerator(), seed);
-		} 
-	
+		else {//if(feats.equals("predf")){
+			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), labelling, seed);
+		}
+		
 		nb = new NeuroB(model);
 		nb.enableDL4JUI(true);
 	}
