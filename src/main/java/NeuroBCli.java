@@ -73,8 +73,8 @@ public class NeuroBCli {
 					+ "trainingset -dir <directory> [-net <features> <labels>] [-excludefile <excludefile]\n"
 					+ "\tGenerate training data from the mch files found in <directory>, but ignore those listed in <excludefile>\n"
 					
-					+ "trainingset -file <filename> [-net <features> <labels>]\n"
-					+ "\tGenerate training data from a specific file. \n"
+					+ "trainingset -file <filename +> [-net <features> <labels>]\n"
+					+ "\tGenerate training data from the specified files, separated by a space character \n"
 					
 					+ "trainingset -analyse -dir <directory> [-net <features> <labels>]\n"
 					+ "\tAnalyse the generated training data in <directory>\n"
@@ -197,8 +197,11 @@ public class NeuroBCli {
 			// generate single nbtrain file
 			else if(ops.containsKey("file")){
 					buildNet();
-					Path sourcefile = Paths.get(ops.get("file").get(0));
-					singleTrainingDataGeneration(sourcefile);
+					Path sourcefile;
+					for(String file : ops.get("file")){
+						sourcefile= Paths.get(file);
+						singleTrainingDataGeneration(sourcefile);
+					}
 				}
 			// nope
 			else {
