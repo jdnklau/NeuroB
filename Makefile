@@ -1,6 +1,6 @@
 # Shortcut to run the Cli of NeuroB
 RUNCLI = ./build/install/NeuroB/bin/NeuroB
-EXAMPLES = examples/prob_examples/
+EXAMPLES = examples/prob_examples/public_examples
 
 all :
 	@echo "***** Building gradle files"
