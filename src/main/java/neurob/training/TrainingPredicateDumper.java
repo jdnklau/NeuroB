@@ -19,7 +19,6 @@ import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
-import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
@@ -39,6 +38,13 @@ import neurob.training.generators.util.PredicateEvaluator;
  * with {@code labels} being a comma separated list of labels. For each solver, the time needed to
  * decide the predicate is listed in nanoseconds, or a negative value, if it could not be decided.
  * <br> Times are the mean of three runs by default; this amount can be changed by {@link #setSamplingSize(int)}
+ * <p>
+ * The solvers are, in this order
+ * <ol>
+ * <li>ProB</li>
+ * <li>KodKod</li>
+ * <li>ProB+Z3 (SMT_SUPPORTED_INTERPRETERS)</li>
+ * </ol>
  * 
  * @author jannik
  *

@@ -2,6 +2,7 @@ package neurob.training.generators.labelling;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 import org.nd4j.linalg.util.ArrayUtil;
 
@@ -15,6 +16,7 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
+import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.util.PredicateEvaluator;
 
 /**
@@ -47,7 +49,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @see SolverClassificationGenerator
  *
  */
-public class SolverSelectionGenerator implements LabelGenerator {
+public class SolverSelectionGenerator implements LabelGenerator, PredicateDumpTranslator {
 	private Api api;
 	
 	
@@ -92,16 +94,7 @@ public class SolverSelectionGenerator implements LabelGenerator {
 		long KodKodTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, "KODKOD", formula);
 		long ProBZ3Time = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, "SMT_SUPPORTED_INTERPRETER", formula);
 		
-		// check if any solver could decide the formula
-		if(0 == ArrayUtil.argMax(new long[]{0, ProBTime, KodKodTime, ProBZ3Time})){
-			// this means all timers returned with -1, indicating that none could decide the formula
-			return "0";
-		}
-		
-		// get fastest solver
-		int fastestIndex = ArrayUtil.argMin(new long[]{ProBTime, KodKodTime, ProBZ3Time});
-		// actual label will be the fastest index+1, as 0 already represents that no solver can decide it.
-		return Integer.toString(fastestIndex+1);
+		return getLabellingByTimes(ProBTime, KodKodTime, ProBZ3Time);
 		
 	}
 
@@ -123,6 +116,24 @@ public class SolverSelectionGenerator implements LabelGenerator {
 		ss.kill();
 		// return
 		return labelling;
+	}
+	
+	private String getLabellingByTimes(long ProBTime, long KodKodTime, long ProBZ3Time){
+		// check if any solver could decide the formula
+		if(0 == ArrayUtil.argMax(new long[]{0, ProBTime, KodKodTime, ProBZ3Time})){
+			// this means all timers returned with -1, indicating that none could decide the formula
+			return "0";
+		}
+		
+		// get fastest solver
+		int fastestIndex = ArrayUtil.argMin(new long[]{ProBTime, KodKodTime, ProBZ3Time});
+		// actual label will be the fastest index+1, as 0 already represents that no solver can decide it.
+		return Integer.toString(fastestIndex+1);
+	}
+
+	@Override
+	public String translateToCSVLabelString(ArrayList<Long> labellings) {
+		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
 	}
 
 }

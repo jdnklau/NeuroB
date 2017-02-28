@@ -5,6 +5,7 @@ package neurob.training.generators.labelling;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
@@ -20,13 +21,14 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
+import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.util.PredicateEvaluator;
 
 /**
  * @author jannik
  *
  */
-public class SolverTimerGenerator implements LabelGenerator {
+public class SolverTimerGenerator implements LabelGenerator, PredicateDumpTranslator {
 	private int samplingSize;
 	private Api api;
 	
@@ -105,6 +107,11 @@ public class SolverTimerGenerator implements LabelGenerator {
 		KodKodTime /= samplingSize;
 		ProBZ3Time /= samplingSize;
 		
+		return getLabellingByTimes(ProBTime, KodKodTime, ProBZ3Time);
+		
+	}
+	
+	private String getLabellingByTimes(long ProBTime, long KodKodTime, long ProBZ3Time){
 		//return Long.toString(ProBTime)+","+Long.toString(KodKodTime)+","+Long.toString(ProBZ3Time);
 		
 		// convert appropriately to milliseconds
@@ -152,6 +159,11 @@ public class SolverTimerGenerator implements LabelGenerator {
 			);
 	
 		return iterator;
+	}
+
+	@Override
+	public String translateToCSVLabelString(ArrayList<Long> labellings) {
+		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
 	}
 
 }

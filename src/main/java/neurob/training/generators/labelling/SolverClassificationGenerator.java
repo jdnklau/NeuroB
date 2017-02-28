@@ -2,6 +2,7 @@ package neurob.training.generators.labelling;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -17,6 +18,7 @@ import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
+import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.util.PredicateEvaluator;
 
 /**
@@ -43,7 +45,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @See {@link #SolverClassificationGenerator(boolean, boolean, boolean)}
  *
  */
-public class SolverClassificationGenerator implements LabelGenerator {
+public class SolverClassificationGenerator implements LabelGenerator, PredicateDumpTranslator {
 	private Api api;
 	// what to classify
 	private SolverType solver;
@@ -134,6 +136,27 @@ public class SolverClassificationGenerator implements LabelGenerator {
 	@Override
 	public DataSetIterator getDataSetIterator(RecordReader recordReader, int batchSize, int featureDimension) {
 		return LabelGenerator.super.getDataSetIterator(recordReader, batchSize, featureDimension);
+	}
+
+
+	@Override
+	public String translateToCSVLabelString(ArrayList<Long> labellings) {
+		// Label to be picked depends on solver type
+		Long label;
+		switch (solver) {
+		case KODKOD:
+			label = labellings.get(1);
+			break;
+		case SMT_SUPPORTED_INTERPRETER:
+			label = labellings.get(2);
+			break;
+		case PROB:
+		default: // defaulting to ProB
+			label = labellings.get(0);
+			break;
+		}
+		
+		return (label >= 0) ? "1" : "0";
 	}
 
 }

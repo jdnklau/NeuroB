@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
-import org.codehaus.groovy.transform.trait.TraitASTTransformation;
-
 import de.prob.scripting.ModelTranslationError;
 import neurob.core.NeuroB;
 import neurob.core.features.CodeImages;
