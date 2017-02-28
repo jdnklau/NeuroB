@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
+import org.codehaus.groovy.transform.trait.TraitASTTransformation;
+
+import de.prob.scripting.ModelTranslationError;
 import neurob.core.NeuroB;
 import neurob.core.features.CodeImages;
 import neurob.core.features.PredicateFeatures;
@@ -13,6 +16,7 @@ import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
+import neurob.training.TrainingPredicateDumper;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
@@ -95,6 +99,12 @@ public class NeuroBCli {
 					
 					+ "trainingset -csvgenerate -dir <directory> [-net <features> <labels>]\n"
 					+ "\tCreates a data.csv from found .nbtrain files in the given <directory>\n"
+					
+					+ "pdump -dir <directory> [-excludefile <excludefile]\n"
+					+ "\tCreates predicate dump files from the (Event)B machines in <directory>\n"
+					
+					+ "pdump -file <file>\n"
+					+ "\tCreates predicate dump files from <file>\n"
 					
 					+ "trainnet -train <trainingfile> -test <testfile> [-net <features> <labels>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
@@ -220,6 +230,20 @@ public class NeuroBCli {
 				System.out.println("trainingset: missing at least -dir parameter");
 			}
 		}
+		// pdump
+		else if(cmd.equals("pdump")){
+			if(ops.containsKey("dir")){
+				Path dir = Paths.get(ops.get("dir").get(0));
+				generatePDump(dir);
+			}
+			else if(ops.containsKey("dir")){
+				Path dir = Paths.get(ops.get("dir").get(0));
+				generatePDumpFromFile(dir);
+			}
+			else {
+				System.out.println("pdump: expecting either -file or -dir parameter");
+			}
+		}
 		// trainnet -train <traindata> -test <testdata> [-seed <seed>+] [-epochs <epochs>+] [-lr <learningrate>+] [-net <features> <labels>]
 		else if(cmd.equals("trainnet")){
 			if(ops.containsKey("train")){
@@ -264,6 +288,24 @@ public class NeuroBCli {
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 	
+	private static void generatePDumpFromFile(Path dir) {
+		TrainingPredicateDumper tpd = new TrainingPredicateDumper();
+		try {
+			tpd.createPredicateDumpFromFile(dir, Paths.get("training_data/PredicateDump/"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ModelTranslationError e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private static void generatePDump(Path dir) {
+		TrainingPredicateDumper tpd = new TrainingPredicateDumper();
+		tpd.createPredicateDump(dir, Paths.get("training_data/PredicateDump/"), excludefile);
+	}
+
 	private static void translateCsv(Path csv, Path dir) {
 		nb.getNeuroBNet().getTrainingSetGenerator().translateCSVToImages(csv, dir);
 	}

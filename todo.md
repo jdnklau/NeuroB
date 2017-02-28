@@ -19,6 +19,7 @@
             - can ProB+Z3 decide it? In which time can ProB+Z3 decide it?
         - labelling format is <solver decidability classification>,<solver time> for each solver
             - new solvers at end, should be downwards compatible
+    - make sure to distinguish properly between ClassicalB and EventB commands
     - add function to truncate data.csv to contain all classes more evenly
     - model check machines
         - generate 100 states per solver
