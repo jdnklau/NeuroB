@@ -339,6 +339,7 @@ public class TrainingSetGenerator {
 	 * @param csv
 	 */
 	public void generateCSVFromNBTrainFiles(Path sourceDirectory, Path csv){
+		log.info("Generating csv-file {} from .nbtrain data in {}", csv, sourceDirectory);
 		try (Stream<Path> stream = Files.walk(sourceDirectory)){
 			// Create CSV files
 			Files.createDirectories(csv.getParent());
@@ -384,7 +385,7 @@ public class TrainingSetGenerator {
 									String[] labels = data[1].split(",");
 									if(features.length+labels.length < featureDim+labelDim){
 										throw new NeuroBException("Size of training vector does not match, "
-												+ "expecting "+ fg.getFeatureDimension()+" features and " + lg.getLabelDimension()+" labels, "
+												+ "expecting "+ featureDim+" features and " + labelDim+" labels, "
 												+ "but got " +features.length + " and " + labels.length + " respectively");
 									}
 									// write to chosen file
