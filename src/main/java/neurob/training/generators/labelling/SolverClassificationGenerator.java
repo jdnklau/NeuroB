@@ -13,6 +13,7 @@ import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
+import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
@@ -72,6 +73,11 @@ public class SolverClassificationGenerator implements LabelGenerator {
 	@Override
 	public int getLabelDimension() {
 		return 2;
+	}
+	
+	@Override
+	public ProblemType getProblemType(){
+		return ProblemType.CLASSIFICATION;
 	}
 
 	@Override

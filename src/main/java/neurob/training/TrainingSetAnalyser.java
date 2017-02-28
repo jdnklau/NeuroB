@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import neurob.core.util.ProblemType;
 import neurob.training.analysis.ClassificationAnalysis;
 import neurob.training.analysis.RegressionAnalysis;
 import neurob.training.analysis.TrainingAnalysisData;
@@ -41,13 +42,12 @@ public class TrainingSetAnalyser {
 	public TrainingAnalysisData analyseTrainingCSV(Path csv, LabelGenerator labelgen) throws IOException{
 		TrainingAnalysisData data;
 		
-		int numClasses = labelgen.getClassCount();
-		if(numClasses < 1){
+		if(labelgen.getProblemType() == ProblemType.REGRESSION){
 			data = new RegressionAnalysis(labelgen.getLabelDimension());
 			return analyseTrainingCSV(csv, data, labelgen.getLabelDimension());
 		}
 		else {
-			data = new ClassificationAnalysis(numClasses);
+			data = new ClassificationAnalysis(labelgen.getClassCount());
 			return analyseTrainingCSV(csv, data, 1); // classification in csv is only one dimensional
 		}
 	}
@@ -107,12 +107,11 @@ public class TrainingSetAnalyser {
 	public TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen) throws IOException{
 		TrainingAnalysisData data;
 		
-		int numClasses = labelgen.getClassCount();
-		if(numClasses < 1){
+		if(labelgen.getProblemType() == ProblemType.REGRESSION){
 			data = new RegressionAnalysis(labelgen.getLabelDimension());
 		}
 		else {
-			data = new ClassificationAnalysis(numClasses);
+			data = new ClassificationAnalysis(labelgen.getClassCount());
 		}
 		
 		return analyseNBTrainSet(sourceDirectory, data);

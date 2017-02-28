@@ -366,11 +366,15 @@ public class TrainingSetGenerator {
 						try (Stream<String> lines = Files.lines(f)){
 							int featureDim = fg.getFeatureDimension();
 							int labelDim;
-							if (lg.getClassCount() < 0){
+							switch(lg.getProblemType()){
+							case REGRESSION:
 								labelDim = lg.getLabelDimension();
-							}
-							else {
+								break;
+							
+							default: // defaulting to a classification problem. TODO: decide if this is sensible 
+							case CLASSIFICATION:
 								labelDim = 1;
+								break;
 							}
 							lines.forEach(l -> {
 								try {

@@ -16,6 +16,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.core.util.ProblemType;
 import neurob.training.generators.interfaces.LabelGenerator;
 
 /**
@@ -146,7 +147,7 @@ public class NeuroBModels {
 			// Output layer - depending on whether we do regression or not
 			LossFunction lossFunction;
 			Activation activationFunction;
-			if(labelling.getClassCount()==-1){ // Regression
+			if(labelling.getProblemType() == ProblemType.REGRESSION){ // Regression
 				lossFunction = LossFunction.MSE;
 				activationFunction = Activation.IDENTITY; 
 			}
@@ -308,7 +309,7 @@ public class NeuroBModels {
 			// Output layer - depending on whether we do regression or not
 			LossFunction lossFunction;
 			Activation activationFunction;
-			if(labelling.getClassCount()==-1){ // Regression
+			if(labelling.getProblemType() == ProblemType.REGRESSION){ // Regression
 				lossFunction = LossFunction.MSE;
 				activationFunction = Activation.IDENTITY; 
 			}

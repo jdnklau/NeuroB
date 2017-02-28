@@ -7,6 +7,7 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import de.prob.statespace.StateSpace;
+import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
 
 public interface LabelGenerator {
@@ -36,6 +37,15 @@ public interface LabelGenerator {
 	 * @return
 	 */
 	public int getLabelDimension();
+	
+	/**
+	 * Returns the type of problem the label generator tries to tackle.
+	 * <p>
+	 * See {@link ProblemType} for more information about the possible values.
+	 * @return
+	 * @see {@link ProblemType}
+	 */
+	public ProblemType getProblemType();
 	
 	/**
 	 * Generates the labelling for the given predicate with respect to the given StateSpace.

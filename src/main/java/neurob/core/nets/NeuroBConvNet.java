@@ -24,6 +24,7 @@ import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.ConvolutionFeatures;
+import neurob.core.util.ProblemType;
 import neurob.training.generators.interfaces.LabelGenerator;
 
 public class NeuroBConvNet extends NeuroBNet {
@@ -99,7 +100,7 @@ public class NeuroBConvNet extends NeuroBNet {
 			// Output layer - depending on whether we do regression or not
 			LossFunction lossFunction;
 			Activation activationFunction;
-			if(labelling.getClassCount()==-1){ // Regression
+			if(labelling.getProblemType() == ProblemType.REGRESSION){ // Regression
 				lossFunction = LossFunction.MSE;
 				activationFunction = Activation.IDENTITY; 
 			}
