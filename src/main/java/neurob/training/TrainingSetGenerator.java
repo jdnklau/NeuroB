@@ -345,12 +345,25 @@ public class TrainingSetGenerator {
 			BufferedWriter trainCsv = Files.newBufferedWriter(csv);
 			
 			// set headers
-			for(int i=0; i<fg.getFeatureDimension(); i++){
+			int featureDim = fg.getFeatureDimension();
+			for(int i=0; i<featureDim; i++){
 				trainCsv.write("Feature"+i+",");
 			}
-			for(int i=0; i< lg.getLabelDimension(); i++){
+			
+			int labelDim;
+			switch(lg.getProblemType()){
+			case REGRESSION:
+				labelDim = lg.getLabelDimension();
+				break;
+			default:
+			case CLASSIFICATION:
+				labelDim = 1;
+				break;
+			}
+			for(int i=0; i< labelDim; i++){
 				trainCsv.write("Label"+i+",");
 			}
+			
 			trainCsv.newLine();
 			trainCsv.flush();
 			
@@ -364,18 +377,6 @@ public class TrainingSetGenerator {
 						// nbtrain file found!
 						// read line wise
 						try (Stream<String> lines = Files.lines(f)){
-							int featureDim = fg.getFeatureDimension();
-							int labelDim;
-							switch(lg.getProblemType()){
-							case REGRESSION:
-								labelDim = lg.getLabelDimension();
-								break;
-							
-							default: // defaulting to a classification problem. TODO: decide if this is sensible 
-							case CLASSIFICATION:
-								labelDim = 1;
-								break;
-							}
 							lines.forEach(l -> {
 								try {
 									String[] data = l.split(":");
