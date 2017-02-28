@@ -367,6 +367,7 @@ public class TrainingSetGenerator {
 			
 			trainCsv.newLine();
 			trainCsv.flush();
+			AtomicInteger dataCounter = new AtomicInteger(0);
 			
 			stream.forEach(f -> {
 				// check if .nbtrain file
@@ -374,7 +375,7 @@ public class TrainingSetGenerator {
 					String fileName = f.getFileName().toString();
 					String ext = fileName.substring(fileName.lastIndexOf('.'));
 					if(ext.equals(".nbtrain")){
-//						logger.info("Found "+f);
+						log.debug("Found {}. Processing...", f);
 						// nbtrain file found!
 						// read line wise
 						try (Stream<String> lines = Files.lines(f)){
@@ -391,6 +392,7 @@ public class TrainingSetGenerator {
 									// write to chosen file
 									trainCsv.write(String.join(",", features)+","+String.join(",", labels));
 									trainCsv.newLine();
+									dataCounter.incrementAndGet();
 								} catch (NeuroBException e) {
 									log.error("Could not add a data vector: {}", f, e.getMessage());
 								} catch (IOException e) {
@@ -401,10 +403,12 @@ public class TrainingSetGenerator {
 						} catch(IOException e) {
 							log.error("Could not add data from {}: {}", f, e.getMessage());
 						}
+						log.debug("Done with {}", f);
 					}
 					
 				}
 			});
+			log.info("Found {} entries and wrote them into {}", dataCounter.get(), csv);
 			
 		} catch (IOException e) {
 			log.error("Failed to setup CSV correctly: {}", e.getMessage());
