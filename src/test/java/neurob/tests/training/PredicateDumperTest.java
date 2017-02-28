@@ -16,7 +16,7 @@ import neurob.training.TrainingPredicateDumper;
 public class PredicateDumperTest {
 	private final Path formulaeGenTestFile = Paths.get("src/test/resources/training/formulae_generation.mch");
 	private final Path formulaeGenPDump = Paths.get("src/test/resources/training/pdump/ClassicalB/src/test/resources/training/formulae_generation.pdump");
-
+	
 	@Test
 	public void DumpFromFile() throws IOException, ModelTranslationError {
 		TrainingPredicateDumper tpd = new TrainingPredicateDumper();
