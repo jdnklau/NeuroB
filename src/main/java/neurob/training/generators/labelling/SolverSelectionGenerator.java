@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
+import org.apache.commons.math3.util.MathUtils;
 import org.nd4j.linalg.util.ArrayUtil;
 
 import com.google.inject.Inject;
@@ -126,9 +127,27 @@ public class SolverSelectionGenerator implements LabelGenerator, PredicateDumpTr
 		}
 		
 		// get fastest solver
-		int fastestIndex = ArrayUtil.argMin(new long[]{ProBTime, KodKodTime, ProBZ3Time});
-		// actual label will be the fastest index+1, as 0 already represents that no solver can decide it.
-		return Integer.toString(fastestIndex+1);
+//		double eps = 1e-3;
+//		int fastestIndex = ArrayUtil.argMax(new double[]{1./(ProBTime+eps), 1./(KodKodTime+eps), 1./(ProBZ3Time+eps)});
+//		// actual label will be the fastest index+1, as 0 already represents that no solver can decide it.
+//		return Integer.toString(fastestIndex+1);
+		// NOTE: Above code did not work, as one single solver still could be -1; we only ensured that not all of them are.
+		
+		double eps = 1e-3;
+		double proB = 1./(ProBTime+eps);
+		double kodKod = 1./(KodKodTime+eps);
+		double proBZ3 = 1./(ProBZ3Time+eps);
+		
+		// select biggest
+		if(proB >= kodKod && proB >= proBZ3){
+			return "1";
+		}
+		else if(kodKod >= proBZ3){
+			return "2";
+		}
+		else {
+			return "3";
+		}
 	}
 
 	@Override
