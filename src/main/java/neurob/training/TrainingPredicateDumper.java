@@ -164,7 +164,7 @@ public class TrainingPredicateDumper {
 		try {
 			createDump(ss, dataFilePath);
 		} catch (NeuroBException e) {
-			log.error("\t{}", e.getMessage());
+			log.error("\t{} - {}", e.getMessage(), e.getCause().getMessage());
 		}
 		
 		ss.kill();
@@ -183,7 +183,7 @@ public class TrainingPredicateDumper {
 		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
 		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
 		
-		log.info("\tGenerated {} predicates to dump into {}.", formulae.size(), targetFile);
+		log.info("\tGenerated {} predicates to dump into {}", formulae.size(), targetFile);
 		
 		// generate data per formula
 		ArrayList<String> results = new ArrayList<String>();
@@ -207,6 +207,11 @@ public class TrainingPredicateDumper {
 		}
 		
 		// write predicates to target file
+		try {
+			Files.createDirectories(targetFile.getParent());
+		} catch (IOException e) {
+			throw new NeuroBException("Could not create target file: "+targetFile, e);
+		}
 		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
 			// write feature vector to stream
 			log.info("\tDumping {} entries to {}", results.size(), targetFile);
@@ -250,6 +255,8 @@ public class TrainingPredicateDumper {
 		
 		// append formula
 		res.append(":").append(formula);
+		
+		log.debug("\tdumping {}", res.toString());
 		
 		return res.toString();
 	}
