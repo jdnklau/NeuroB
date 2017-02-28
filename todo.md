@@ -11,6 +11,15 @@
     - save files to disk by default
     - more generic handling of data preprocessing if possible
 - training set generation
+    - introduce predicate dumps
+        - files containing all predicates generateable by NeuroB with possible labelling
+        - labellings include: 
+            - can ProB decide it? In which time can ProB decide it?
+            - can KodKod decide it? In which time can KodKod decide it?
+            - can ProB+Z3 decide it? In which time can ProB+Z3 decide it?
+        - labelling format is <solver decidability classification>,<solver time> for each solver
+            - new solvers at end, should be downwards compatible
+    - add function to truncate data.csv to contain all classes more evenly
     - model check machines
         - generate 100 states per solver
         - give credit to fastest one

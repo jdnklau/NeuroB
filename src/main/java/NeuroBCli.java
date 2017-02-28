@@ -93,6 +93,9 @@ public class NeuroBCli {
 					+ "\ta directory structure in <directory>, that contains the classes as subdirectories and places all\n"
 					+ "\tsamples as image files accordingly inside one of them\n"
 					
+					+ "trainingset -csvgenerate -dir <directory> [-net <features> <labels>]\n"
+					+ "\tCreates a data.csv from found .nbtrain files in the given <directory>\n"
+					
 					+ "trainnet -train <trainingfile> -test <testfile> [-net <features> <labels>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
 					+ "\tBoth files being csv files generated with this tool\n"
@@ -188,6 +191,15 @@ public class NeuroBCli {
 				}
 				else {
 					System.out.println("trainingset -csvtranslate: Missing parameter: -file");
+				}
+			}
+			else if(ops.containsKey("csvgenerate")){
+				if(ops.containsKey("dir")){
+					buildNet();
+					csvgenerate(dir);
+				} 
+				else {
+					System.out.println("trainingset -csvgenerate: Missing -dir parameter");
 				}
 			} 
 			else if(ops.containsKey("dir")){// generate training set
@@ -405,6 +417,11 @@ public class NeuroBCli {
 		} catch (NeuroBException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static void csvgenerate(Path dir){
+		Path csv = dir.resolve("data.csv");
+		nb.getNeuroBNet().getTrainingSetGenerator().generateCSVFromNBTrainFiles(dir, csv);
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {

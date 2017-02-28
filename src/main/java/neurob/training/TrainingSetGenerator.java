@@ -364,12 +364,20 @@ public class TrainingSetGenerator {
 						// nbtrain file found!
 						// read line wise
 						try (Stream<String> lines = Files.lines(f)){
+							int featureDim = fg.getFeatureDimension();
+							int labelDim;
+							if (lg.getClassCount() < 0){
+								labelDim = lg.getLabelDimension();
+							}
+							else {
+								labelDim = 1;
+							}
 							lines.forEach(l -> {
 								try {
 									String[] data = l.split(":");
 									String[] features = data[0].split(",");
 									String[] labels = data[1].split(",");
-									if(features.length+labels.length < fg.getFeatureDimension()+lg.getLabelDimension()){
+									if(features.length+labels.length < featureDim+labelDim){
 										throw new NeuroBException("Size of training vector does not match, "
 												+ "expecting "+ fg.getFeatureDimension()+" features and " + lg.getLabelDimension()+" labels, "
 												+ "but got " +features.length + " and " + labels.length + " respectively");
