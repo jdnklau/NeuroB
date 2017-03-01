@@ -14,6 +14,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -339,7 +340,51 @@ public class TrainingSetGenerator {
 	 * @param csv
 	 */
 	public void generateCSVFromNBTrainFiles(Path sourceDirectory, Path csv){
-		log.info("Generating csv-file {} from .nbtrain data in {}", csv, sourceDirectory);
+		int featureDim = fg.getFeatureDimension();
+		int labelDim;
+		switch(lg.getProblemType()){
+		case REGRESSION:
+			labelDim = lg.getLabelDimension();
+			break;
+		default:
+			log.warn("\tProblem type of label generator unknown, defaulting to classification");
+		case CLASSIFICATION:
+			labelDim = 1;
+			break;
+		}
+		
+		generateCSVOverFiles("nbtrain", sourceDirectory, csv, line -> {
+			
+			String[] data = line.split(":");
+			String[] features = data[0].split(",");
+			String[] labels = data[1].split(",");
+			if(features.length+labels.length < featureDim+labelDim){
+				log.warn("Size of training vector does not match, "
+						+ "expecting "+ featureDim+" features and " + labelDim+" labels, "
+						+ "but got " +features.length + " and " + labels.length + " respectively");
+				return "";
+			}
+			// write to chosen file
+			return String.join(",", features)+","+String.join(",", labels);
+		});
+	}
+	
+	/**
+	 * Use this to generate a CSV file from separate files in a directory, that all have a specified extension.
+	 * <p>
+	 * The specified translator may return the empty string. In this case, no line is written
+	 * to the CSV.
+	 * 
+	 * @param withExtension Extension to check for; e.g. "nbtrain" will only check for .nbtrain files
+	 * @param sourceDirectory Directory in which the files recursively are searched in
+	 * @param csv File to save data to
+	 * @param transformation Transformation function to convert a line of the found file into a line of CSV
+	 */
+	private void generateCSVOverFiles(String withExtension, Path sourceDirectory, Path csv, Function<String, String> transformation){
+		// ensure the dot at beginning of extension
+		String extension = (withExtension.charAt(0) == '.') ? withExtension : "."+withExtension;
+		
+		log.info("Generating csv-file {} from {} data in {}", csv, extension, sourceDirectory);
 		try (Stream<Path> stream = Files.walk(sourceDirectory)){
 			// Create CSV files
 			Files.createDirectories(csv.getParent());
@@ -357,6 +402,7 @@ public class TrainingSetGenerator {
 				labelDim = lg.getLabelDimension();
 				break;
 			default:
+				log.warn("\tProblem type of label generator unknown, defaulting to classification");
 			case CLASSIFICATION:
 				labelDim = 1;
 				break;
@@ -374,34 +420,28 @@ public class TrainingSetGenerator {
 				if(Files.isRegularFile(f)){
 					String fileName = f.getFileName().toString();
 					String ext = fileName.substring(fileName.lastIndexOf('.'));
-					if(ext.equals(".nbtrain")){
+					if(ext.equals(extension)){
 						log.debug("Found {}. Processing...", f);
 						// nbtrain file found!
 						// read line wise
 						try (Stream<String> lines = Files.lines(f)){
 							lines.forEach(l -> {
 								try {
-									String[] data = l.split(":");
-									String[] features = data[0].split(",");
-									String[] labels = data[1].split(",");
-									if(features.length+labels.length < featureDim+labelDim){
-										throw new NeuroBException("Size of training vector does not match, "
-												+ "expecting "+ featureDim+" features and " + labelDim+" labels, "
-												+ "but got " +features.length + " and " + labels.length + " respectively");
+									String result = transformation.apply(l);
+									if(!result.isEmpty()){
+										trainCsv.write(result);
+										trainCsv.newLine();
+										dataCounter.incrementAndGet();
 									}
-									// write to chosen file
-									trainCsv.write(String.join(",", features)+","+String.join(",", labels));
-									trainCsv.newLine();
-									dataCounter.incrementAndGet();
-								} catch (NeuroBException e) {
-									log.error("Could not add a data vector: {}", f, e.getMessage());
 								} catch (IOException e) {
-									log.error("Failed to write data vector to file: {}", e.getMessage());
+									log.error("Failed to write data vector to file: {}", e);
+								} catch (Exception e) {
+									log.error("Could not add a data vector: {}", f, e);
 								}
 							});
 							trainCsv.flush();
 						} catch(IOException e) {
-							log.error("Could not add data from {}: {}", f, e.getMessage());
+							log.error("Could not add data from {}", f, e);
 						}
 						log.debug("Done with {}", f);
 					}
