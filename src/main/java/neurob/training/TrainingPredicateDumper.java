@@ -209,7 +209,7 @@ public class TrainingPredicateDumper {
 				log.info("\tLoading EventB machine {}", file);
 				return api.eventb_load(file.toString());
 			default:
-				log.warn("\tUnkown value for MachineType at state space loading. Defaulting to Classical B.");
+				log.warn("\tUnknown value for MachineType at state space loading. Defaulting to Classical B.");
 			case CLASSICALB:
 				log.info("\tLoading ClassicalB machine {}", file);
 				return api.b_load(file.toString());
