@@ -21,6 +21,7 @@ import de.prob.exception.ProBError;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
+import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
@@ -154,38 +155,35 @@ public class TrainingPredicateDumper {
 		String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
 		Path fullTargetDirectory;
 		Path dataFilePath;
-		StateSpace ss;
+		MachineType mt;
 		if(ext.equals("mch")){
 			log.info("Dumping predicates from {}", sourceFile);
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("ClassicalB").resolve(sourceFile.getParent());
 			dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+pdumpExt);
-			if(isDumpAlreadyPresent(sourceFile, dataFilePath)){
-				log.info("\tPredicate dump for {} is already present at {} and seems to be up to date. Doing nothing.", sourceFile, dataFilePath);
-				return;
-			}
-			try {
-				ss = api.b_load(sourceFile.toString());
-			} catch (ProBError e){
-				log.error("\tError at predicate dump creation: "+e.getMessage());
-				return;
-			}
+			// set machine type
+			mt = MachineType.CLASSICALB;
 		} else if(ext.equals("eventb")){
 			log.info("Dumping predicates from {}", sourceFile);
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("EventB").resolve(sourceFile.getParent());
 			dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+pdumpExt);
-			if(isDumpAlreadyPresent(sourceFile, dataFilePath)){
-				log.info("\tPredicate dump for {} is already present at {} and seems to be up to date. Doing nothing.", sourceFile, dataFilePath);
-				return;
-			}
-			try {
-				ss = api.eventb_load(sourceFile.toString());
-			} catch (ProBError e){
-				log.error("\tError at predicate dump creation: "+e.getMessage());
-				return;
-			}
+			// set machine type
+			mt = MachineType.EVENTB;
 		} else {
+			return;
+		}
+		
+		// load state space
+		if(isDumpAlreadyPresent(sourceFile, dataFilePath)){
+			log.info("\tPredicate dump for {} is already present at {} and seems to be up to date. Doing nothing.", sourceFile, dataFilePath);
+			return;
+		}
+		StateSpace ss;
+		try {
+			ss = loadStateSpace(sourceFile, mt);
+		} catch (ProBError e){
+			log.error("\tError at predicate dump creation: "+e.getMessage());
 			return;
 		}
 		
@@ -196,6 +194,20 @@ public class TrainingPredicateDumper {
 		}
 		
 		ss.kill();
+	}
+	
+	private StateSpace loadStateSpace(Path file, MachineType mt) throws IOException, ModelTranslationError{
+		switch(mt){
+		case EVENTB:
+			log.info("\tLoading EventB machine {}", file);
+			return api.eventb_load(file.toString());
+		default:
+			log.warn("\tUnkown value for MachineType at state space loading. Defaulting to Classical B.");
+		case CLASSICALB:
+			log.info("\tLoading ClassicalB machine {}", file);
+			return api.b_load(file.toString());
+		}
+		
 	}
 	
 	/**
