@@ -147,7 +147,6 @@ public class TrainingPredicateDumper {
 	 * @throws ModelTranslationError
 	 */
 	public void createPredicateDumpFromFile(Path sourceFile, Path targetDir) throws IOException, ModelTranslationError{
-		log.info("Dumping predicates from {}", sourceFile);		
 		
 		// check file extension
 		String fileName = sourceFile.getFileName().toString();
@@ -156,6 +155,7 @@ public class TrainingPredicateDumper {
 		Path dataFilePath;
 		StateSpace ss;
 		if(ext.equals("mch")){
+			log.info("Dumping predicates from {}", sourceFile);
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("ClassicalB").resolve(sourceFile.getParent());
 			dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+pdumpExt);
@@ -165,6 +165,7 @@ public class TrainingPredicateDumper {
 			}
 			ss = api.b_load(sourceFile.toString());
 		} else if(ext.equals("eventb")){
+			log.info("Dumping predicates from {}", sourceFile);
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("EventB").resolve(sourceFile.getParent());
 			dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+pdumpExt);
