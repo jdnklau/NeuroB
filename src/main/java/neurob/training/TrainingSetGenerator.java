@@ -33,8 +33,10 @@ import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
+import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
+import neurob.training.generators.util.PredicateDumpData;
 
 /**
  * Class to generate the training data for the neural net.
@@ -366,6 +368,33 @@ public class TrainingSetGenerator {
 			}
 			// write to chosen file
 			return String.join(",", features)+","+String.join(",", labels);
+		});
+	}
+	
+	/**
+	 * Collects data from all pdump files in the given directory and writes them into the specified csv file.
+	 * @param sourceDirectory
+	 * @param csv
+	 * @throws NeuroBException
+	 */
+	public void generateCSVFromPDumpFiles(Path sourceDirectory, Path csv) throws NeuroBException{
+		if(!(lg instanceof PredicateDumpTranslator)){
+			throw new NeuroBException("Trying to generate a CSV from predicate dumps, but "
+									+ "TrainingSetGenerator was not initialised with a LabelGenerator "
+									+ "implementing also the PredicateDumpTranslator interface.");
+		}
+		
+		PredicateDumpTranslator pdt = (PredicateDumpTranslator) lg;
+		
+		generateCSVOverFiles("pdump", sourceDirectory, csv, line -> {
+			
+			try {
+				return pdt.translateToCSVDataString(fg, line);
+			} catch (NeuroBException e) {
+				log.warn("\t{}", e.getMessage(), e);
+			}
+			
+			return "";
 		});
 	}
 	

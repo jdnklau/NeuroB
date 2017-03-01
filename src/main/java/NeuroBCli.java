@@ -105,6 +105,9 @@ public class NeuroBCli {
 					+ "pdump -file <file>\n"
 					+ "\tCreates predicate dump files from <file>\n"
 					
+					+ "pdump -translate <directory> [-net <features> <labels>]\n"
+					+ "\tTranslates the given directory of pdump-files into a CSV to train the given neural network\n"
+					
 					+ "trainnet -train <trainingfile> -test <testfile> [-net <features> <labels>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
 					+ "\tBoth files being csv files generated with this tool\n"
@@ -236,11 +239,16 @@ public class NeuroBCli {
 				generatePDump(dir);
 			}
 			else if(ops.containsKey("file")){
-				Path dir = Paths.get(ops.get("file").get(0));
-				generatePDumpFromFile(dir);
+				Path file = Paths.get(ops.get("file").get(0));
+				generatePDumpFromFile(file);
+			}
+			else if(ops.containsKey("translate")){
+				buildNet();
+				Path dir = Paths.get(ops.get("translate").get(0));
+				translatePDump(dir);
 			}
 			else {
-				System.out.println("pdump: expecting either -file or -dir parameter");
+				System.out.println("pdump: expecting either -file, -dir, or -translate parameter");
 			}
 		}
 		// trainnet -train <traindata> -test <testdata> [-seed <seed>+] [-epochs <epochs>+] [-lr <learningrate>+] [-net <features> <labels>]
@@ -303,6 +311,16 @@ public class NeuroBCli {
 	private static void generatePDump(Path dir) {
 		TrainingPredicateDumper tpd = new TrainingPredicateDumper();
 		tpd.createPredicateDump(dir, Paths.get("training_data/PredicateDump/"), excludefile);
+	}
+	
+	private static void translatePDump(Path dir) {
+		try {
+			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName()).resolve("pdata.csv");
+			nb.getNeuroBNet().getTrainingSetGenerator().generateCSVFromPDumpFiles(dir, target);
+		} catch (NeuroBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private static void translateCsv(Path csv, Path dir) {
