@@ -3,6 +3,7 @@ package neurob.training;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -146,7 +147,8 @@ public class TrainingPredicateDumper {
 	 * @throws ModelTranslationError
 	 */
 	public void createPredicateDumpFromFile(Path sourceFile, Path targetDir) throws IOException, ModelTranslationError{
-		log.info("Dumping predicates from {}", sourceFile);
+		log.info("Dumping predicates from {}", sourceFile);		
+		
 		// check file extension
 		String fileName = sourceFile.getFileName().toString();
 		String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
@@ -157,11 +159,19 @@ public class TrainingPredicateDumper {
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("ClassicalB").resolve(sourceFile.getParent());
 			dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+pdumpExt);
+			if(isDumpAlreadyPresent(sourceFile, dataFilePath)){
+				log.info("\tPredicate dump for {} is already present at {} and seems to be up to date. Doing nothing.", sourceFile, dataFilePath);
+				return;
+			}
 			ss = api.b_load(sourceFile.toString());
 		} else if(ext.equals("eventb")){
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("EventB").resolve(sourceFile.getParent());
 			dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+pdumpExt);
+			if(isDumpAlreadyPresent(sourceFile, dataFilePath)){
+				log.info("\tPredicate dump for {} is already present at {} and seems to be up to date. Doing nothing.", sourceFile, dataFilePath);
+				return;
+			}
 			ss = api.eventb_load(sourceFile.toString());
 		} else {
 			return;
@@ -170,10 +180,30 @@ public class TrainingPredicateDumper {
 		try {
 			createDump(ss, dataFilePath);
 		} catch (NeuroBException e) {
-			log.error("\t{} - {}", e.getMessage(), e.getCause().getMessage());
+			log.error("\t{}", e.getMessage());
 		}
 		
 		ss.kill();
+	}
+	
+	/**
+	 *
+	 * @param source
+	 * @param target
+	 * @return true if the target files already exists and is newer than the source file; false otherwise
+	 */
+	private boolean isDumpAlreadyPresent(Path source, Path target) throws IOException{
+		// check necessity of file creation:
+		// if a pdump file already exists and is newer than the machine file, 
+		// then the data should be up to date
+		if(Files.exists(target, LinkOption.NOFOLLOW_LINKS)){
+			if(Files.getLastModifiedTime(source, LinkOption.NOFOLLOW_LINKS)
+					.compareTo(Files.getLastModifiedTime(target, LinkOption.NOFOLLOW_LINKS))
+				<= 0){ // last edit source file <= last edit target file -> nothing to do here
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private void createDump(StateSpace ss, Path targetFile) throws NeuroBException{
