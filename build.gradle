@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven'
 apply plugin: 'application'
 
-project.version = '0.35.3'
+project.version = '0.36.0'
 project.group = 'de.hhu.stups'
 project.archivesBaseName = "NeuroB"
 

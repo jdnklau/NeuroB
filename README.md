@@ -42,10 +42,3 @@ $ NeuroB trainingset -file /path/to/file.mch
 # After training set generate, get an overview of the training data
 $ NeuroB trainingset -analyse -dir /path/to/training/data/
 ```
-
-## Using the fatjar
-```
-# Here you go
-$ make jar
-```
-This generates `build/libs/NeuroB-cli-$(VERSION).jar`, that takes the same command line arguments as mentioned (most notably: `help`). `$(VERSION)` hereby references the NeuroB version (obviously), and if you have multiple versions of it, use the latest one (again, obviously).
