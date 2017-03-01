@@ -35,6 +35,11 @@ trainingset : distributedlibraryfile
 	@$(RUNCLI) trainingset -dir $(EXAMPLES)
 	@echo "*****/ Training set generated"
 
+predicatedump : distributedlibraryfile
+	@$(RUNCLI) pdump -dir $(EXAMPLES)
+	@echo "Ensuring the termination of all KodKod processes... the hard way:"
+	pkill -u $(USER) -f probkodkod
+
 alltrainingsets : distributedlibraryfile
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solclass -solver prob
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solclass -solver kodkod
