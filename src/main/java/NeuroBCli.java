@@ -234,8 +234,8 @@ public class NeuroBCli {
 				Path dir = Paths.get(ops.get("dir").get(0));
 				generatePDump(dir);
 			}
-			else if(ops.containsKey("dir")){
-				Path dir = Paths.get(ops.get("dir").get(0));
+			else if(ops.containsKey("file")){
+				Path dir = Paths.get(ops.get("file").get(0));
 				generatePDumpFromFile(dir);
 			}
 			else {
