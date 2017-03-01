@@ -96,13 +96,13 @@ public class FormulaGenerator {
 		// pairwise iterate over guards
 		for(int i=0; i<guardCount; i++){
 			for(int j=i+1; j<guardCount; j++){
-				String g1 = propsAndInvsPre + allGuards.get(i);
+				String g1 = allGuards.get(i);
 				String g2 = allGuards.get(j);
 
-				formulae.add(g1 + " => " + g2);
-				formulae.add(g1 + " <=> " + g2);
-				formulae.add(g1 + " => not(" + g2 + ")" );
-				formulae.add(g1 + " <=> not(" + g2 + ")" );
+				formulae.add(propsAndInvsPre + "(" + g1 + " => " + g2 + ")");
+				formulae.add(propsAndInvsPre + "(" + g1 + " <=> " + g2 + ")");
+				formulae.add(propsAndInvsPre + "(" + g1 + " => not(" + g2 + "))" );
+				formulae.add(propsAndInvsPre + "(" + g1 + " <=> not(" + g2 + "))" );
 			}
 		}
 		
