@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
+import de.prob.exception.ProBError;
 import de.prob.scripting.ModelTranslationError;
 import neurob.core.NeuroB;
 import neurob.core.features.CodeImages;

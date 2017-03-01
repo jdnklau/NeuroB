@@ -17,6 +17,7 @@ import com.google.inject.Inject;
 
 import de.prob.Main;
 import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.exception.ProBError;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
@@ -128,7 +129,7 @@ public class TrainingPredicateDumper {
 							log.error("Could not access source file {}.", entry, e);
 						} catch (ModelTranslationError e) {
 							log.error("Error at model translation for file {}.", entry, e);
-						}						
+						}
 		            }
 				});
 			log.info("Finished predicate dump creation");
@@ -163,7 +164,12 @@ public class TrainingPredicateDumper {
 				log.info("\tPredicate dump for {} is already present at {} and seems to be up to date. Doing nothing.", sourceFile, dataFilePath);
 				return;
 			}
-			ss = api.b_load(sourceFile.toString());
+			try {
+				ss = api.b_load(sourceFile.toString());
+			} catch (ProBError e){
+				log.error("\tError at predicate dump creation: "+e.getMessage());
+				return;
+			}
 		} else if(ext.equals("eventb")){
 			log.info("Dumping predicates from {}", sourceFile);
     		// get full target directory
@@ -173,7 +179,12 @@ public class TrainingPredicateDumper {
 				log.info("\tPredicate dump for {} is already present at {} and seems to be up to date. Doing nothing.", sourceFile, dataFilePath);
 				return;
 			}
-			ss = api.eventb_load(sourceFile.toString());
+			try {
+				ss = api.eventb_load(sourceFile.toString());
+			} catch (ProBError e){
+				log.error("\tError at predicate dump creation: "+e.getMessage());
+				return;
+			}
 		} else {
 			return;
 		}
