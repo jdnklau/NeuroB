@@ -183,7 +183,14 @@ public class TrainingPredicateDumper {
 		try {
 			ss = loadStateSpace(sourceFile, mt);
 		} catch (ProBError e){
-			log.error("\tError at predicate dump creation: "+e.getMessage());
+			log.error("\tError at predicate dump creation: {}", e.getMessage(), e);
+			return;
+		} catch(IOException | ModelTranslationError e){
+			throw e; // forward this
+		} catch(Exception e){
+			// anything else is the real problem
+			log.error("\tUnexpected, critical error): {}", e.getMessage(), e);
+			log.debug("\tSkipping this entry, but system may not be stable anymore.");
 			return;
 		}
 		
@@ -197,16 +204,16 @@ public class TrainingPredicateDumper {
 	}
 	
 	private StateSpace loadStateSpace(Path file, MachineType mt) throws IOException, ModelTranslationError{
-		switch(mt){
-		case EVENTB:
-			log.info("\tLoading EventB machine {}", file);
-			return api.eventb_load(file.toString());
-		default:
-			log.warn("\tUnkown value for MachineType at state space loading. Defaulting to Classical B.");
-		case CLASSICALB:
-			log.info("\tLoading ClassicalB machine {}", file);
-			return api.b_load(file.toString());
-		}
+			switch(mt){
+			case EVENTB:
+				log.info("\tLoading EventB machine {}", file);
+				return api.eventb_load(file.toString());
+			default:
+				log.warn("\tUnkown value for MachineType at state space loading. Defaulting to Classical B.");
+			case CLASSICALB:
+				log.info("\tLoading ClassicalB machine {}", file);
+				return api.b_load(file.toString());
+			}
 		
 	}
 	
