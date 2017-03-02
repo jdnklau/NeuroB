@@ -138,26 +138,26 @@ public class FormulaGenerator {
 		
 		// proof assertions
 		for(String a : assertionsList){
-			formulae.add(propsAndInv + " & " + a);
-			formulae.add(propsAndInv + " => " + a);
-			formulae.add(propsAndInv + " <=> " + a);
+			formulae.add(propsAndInv + " & (" + a+")");
+			formulae.add(propsAndInv + " => (" + a+")");
+			formulae.add(propsAndInv + " <=> (" + a+")");
 		}
 		if(!allAssertions.isEmpty()){
-			formulae.add(propsAndInv + " & " + allAssertions);
-			formulae.add(propsAndInv + " => " + allAssertions);
-			formulae.add(propsAndInv + " <=> " + allAssertions);
+			formulae.add(propsAndInv + " & (" + allAssertions+")");
+			formulae.add(propsAndInv + " => (" + allAssertions+")");
+			formulae.add(propsAndInv + " <=> (" + allAssertions+")");
 		}
 		
 		// proof theorems
 		for(String a : theoremsList){
-			formulae.add(propsAndInv + " & " + a);
-			formulae.add(propsAndInv + " => " + a);
-			formulae.add(propsAndInv + " <=> " + a);
+			formulae.add(propsAndInv + " & (" + a+")");
+			formulae.add(propsAndInv + " => (" + a+")");
+			formulae.add(propsAndInv + " <=> (" + a+")");
 		}
 		if(!allTheorems.isEmpty()){
-			formulae.add(propsAndInv + " & " + allTheorems);
-			formulae.add(propsAndInv + " => " + allTheorems);
-			formulae.add(propsAndInv + " <=> " + allTheorems);
+			formulae.add(propsAndInv + " & (" + allTheorems+")");
+			formulae.add(propsAndInv + " => (" + allTheorems+")");
+			formulae.add(propsAndInv + " <=> (" + allTheorems+")");
 		}
 		
 		return formulae;
@@ -258,34 +258,34 @@ public class FormulaGenerator {
 				continue;
 			}
 
-			formulae.add(propsAndInvs + " => " + guard); // events usable with unviolated invariants
-			formulae.add(propsAndInvs + " <=> " + guard); // events usable iff invariants unviolated
+			formulae.add(propsAndInvs + " => (" + guard+")"); // events usable with unviolated invariants
+			formulae.add(propsAndInvs + " <=> (" + guard+")"); // events usable iff invariants unviolated
 			
-			formulae.add(propsAndInvs + " & " + negGuard); // events not active w/o violating invariants
-			formulae.add(propsAndInvs + " => " + negGuard); // events not usable with unviolated invariants
-			formulae.add(propsAndInvs + " <=> " + negGuard); // events not usable iff invariants unviolated
+			formulae.add(propsAndInvs + " & (" + negGuard+")"); // events not active w/o violating invariants
+			formulae.add(propsAndInvs + " => (" + negGuard+")"); // events not usable with unviolated invariants
+			formulae.add(propsAndInvs + " <=> (" + negGuard+")"); // events not usable iff invariants unviolated
 			
 
-			formulae.add(propsAndGuard + " => "+ invariants); // events only usable w/o invariant violation
+			formulae.add(propsAndGuard + " => ("+ invariants+")"); // events only usable w/o invariant violation
 			
-			formulae.add(propsAndNegGuard + " => "+ invariants); // events never usable w/o invariant violation
+			formulae.add(propsAndNegGuard + " => ("+ invariants+")"); // events never usable w/o invariant violation
 
 			if(emptyInvariants){
 				// incomming formulae would be repetitive, so skip them
 				continue;
 			}
 			
-			formulae.add(propsAndNegInvs + " & " + guard); // events active despite invariant violation
-			formulae.add(propsAndNegInvs + " => " + guard); // events usable despite invariant violation
-			formulae.add(propsAndNegInvs + " <=> " + guard); // events usable despite invariant violation
+			formulae.add(propsAndNegInvs + " & (" + guard+")"); // events active despite invariant violation
+			formulae.add(propsAndNegInvs + " => (" + guard+")"); // events usable despite invariant violation
+			formulae.add(propsAndNegInvs + " <=> (" + guard+")"); // events usable despite invariant violation
 
-			formulae.add(propsAndNegInvs + " & " + negGuard); // events not active with invariant violation
-			formulae.add(propsAndNegInvs + " => " + negGuard); // events not usable with invariant violation
-			formulae.add(propsAndNegInvs + " <=> " + negGuard); // events not usable with invariant violation
+			formulae.add(propsAndNegInvs + " & (" + negGuard+")"); // events not active with invariant violation
+			formulae.add(propsAndNegInvs + " => (" + negGuard+")"); // events not usable with invariant violation
+			formulae.add(propsAndNegInvs + " <=> (" + negGuard+")"); // events not usable with invariant violation
 			
-			formulae.add(propsAndNegGuard + " => "+ negInvariants); // events never usable with invariant violation
+			formulae.add(propsAndNegGuard + " => ("+ negInvariants+")"); // events never usable with invariant violation
 
-			formulae.add(propsAndGuard + " => "+ negInvariants); // events only usable with invariant violation
+			formulae.add(propsAndGuard + " => ("+ negInvariants+")"); // events only usable with invariant violation
 		}
 		
 		return formulae;
