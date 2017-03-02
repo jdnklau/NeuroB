@@ -2,20 +2,22 @@
 RUNCLI = ./build/install/NeuroB/bin/NeuroB
 EXAMPLES = examples/prob_examples/public_examples
 
-all :
-	@echo "***** Building gradle files"
-	@./gradlew build
-	@echo "*****/ Built"
+all : neurob dev unzip_examples distributedlibraryfile 
+	@echo "Done."
 
-install :
+examples/prob_examples :
+	@echo "***** Cloning prob_examples; if this fails, you do not have permission"
+	@echo "      You can still use NeuroB though"
+	@git clone git@tuatara.cs.uni-duesseldorf.de:prob/prob_examples.git examples/prob_examples/
+	
+unzip_examples : examples/prob_examples
+	@echo "***** unzipping eventb machines"
+	@find examples/prob_examples/public_examples/ -iname *.zip -exec unzip -fo -d "{}_unpacked" {} \;
+
+neurob :
 	@echo "***** Create NeuroB binary"
 	@./gradlew installDist
 	@echo "*****/ Created binary"
-
-jar :
-	@echo "***** Build .jar file"
-	@./gradlew CliFatJar
-	@echo "*****/ Done building jar"
 
 clean :
 	@echo "***** Clean gradle"
@@ -50,7 +52,7 @@ alltrainingsets : distributedlibraryfile
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi solsel -size 32
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi soltime -size 32
 
-distributedlibraryfile :
+distributedlibraryfile : examples/prob_examples
 	@echo "***** Ensuring existence of LibraryIO.def in respective directories"
 	@$(RUNCLI) libraryIODef -dir examples/prob_examples/public_examples/B/
 	@echo "*****/ Libraries made"

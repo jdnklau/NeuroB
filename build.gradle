@@ -61,15 +61,3 @@ sourceSets {
 		}
 	}
 }
-
-task CliFatJar(type: Jar) {
-	manifest {
-        attributes 'Implementation-Title': 'Training Set Generation',
-        	'Implementation-Version': version,
-        	'Main-Class': 'NeuroBCli'
-    }
-    baseName = project.name
-    appendix = 'cli'
-	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-	with jar
-}
