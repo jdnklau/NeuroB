@@ -9,6 +9,7 @@ import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.MachineType;
+import neurob.exceptions.NeuroBException;
 
 /**
  * <p>This class provides access to reusable methods to get different formulas from a specific input.</p>
@@ -19,17 +20,23 @@ import neurob.core.util.MachineType;
  */
 public class FormulaGenerator {
 	
-	public static IBEvalElement generateBCommandByMachineType(MachineType mt, String formula){
-		switch(mt){
-		case EVENTB:
-			return new EventB(formula);
-		default:
-		case CLASSICALB:
-			return new ClassicalB(formula);
+	public static IBEvalElement generateBCommandByMachineType(MachineType mt, String formula) throws NeuroBException{
+		IBEvalElement cmd;
+		try {
+			switch(mt){
+			case EVENTB:
+				cmd = new EventB(formula);
+			default:
+			case CLASSICALB:
+				cmd = new ClassicalB(formula);
+			}
+		} catch(Exception e){
+			throw new NeuroBException("Could not set up command for evaluation from formula "+formula, e);
 		}
+		return cmd;
 	}
 	
-	public static IBEvalElement generateBCommandByMachineType(StateSpace ss, String formula){
+	public static IBEvalElement generateBCommandByMachineType(StateSpace ss, String formula) throws NeuroBException{
 		return generateBCommandByMachineType(MachineType.getTypeFromStateSpace(ss), formula);
 	}
 	

@@ -27,6 +27,7 @@ import de.prob.model.representation.Guard;
 import de.prob.model.representation.Invariant;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.MachineType;
+import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetGenerator;
 
 public class PredicateCollector {
@@ -128,14 +129,11 @@ public class PredicateCollector {
 			// weakest pre condition for all invariants
 			IEvalElement invariant;
 			String inv = String.join(" & ", invariants);
-			switch(machineType){
-			case EVENTB:
-				invariant = new EventB(inv);
-				break;
-			default:
-			case CLASSICALB:
-				invariant = new ClassicalB(inv);
-				break;
+			try {
+				invariant = FormulaGenerator.generateBCommandByMachineType(machineType, inv);
+			} catch (NeuroBException e) {
+				log.warn("\t{}", e.getMessage(), e);
+				continue; // next entry in loop
 			}				
 			
 			wpcc = new WeakestPreconditionCommand(x.getName(), invariant);

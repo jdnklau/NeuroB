@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 
 import de.prob.Main;
-import de.prob.animator.domainobjects.ClassicalB;
-import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.exception.ProBError;
 import de.prob.scripting.Api;

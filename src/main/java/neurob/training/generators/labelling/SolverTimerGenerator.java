@@ -83,13 +83,7 @@ public class SolverTimerGenerator implements LabelGenerator, PredicateDumpTransl
 	 */
 	@Override
 	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
-		IBEvalElement formula;
-		// Set up formula to solve
-		try {
-			formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
-		} catch(Exception e) {
-			throw new NeuroBException("Could not create command from formula "+predicate, e);
-		}
+		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
 		long ProBTime = 0;
