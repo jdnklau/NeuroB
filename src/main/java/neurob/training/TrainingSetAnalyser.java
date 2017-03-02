@@ -157,7 +157,7 @@ public class TrainingSetAnalyser {
 						
 							});
 						} catch (IOException e){
-							log.warn("Could not access {}: {}", entry, e.getMessage());
+							log.warn("Could not access {}: {}", entry, e.getMessage(), e);
 						}
 			
 						// no new data found

@@ -111,7 +111,7 @@ public class TrainingPredicateDumper {
 							.filter(s -> !s.isEmpty())
 							.map(s -> Paths.get(s)).collect(Collectors.toList()));
 			} catch (IOException e) {
-				log.error("Could not access exclude file: {}", e.getMessage());
+				log.error("Could not access exclude file: {}", e.getMessage(), e);
 			}
 		}
 		
@@ -136,7 +136,7 @@ public class TrainingPredicateDumper {
 			log.info("Finished predicate dump creation");
 	    }
 		catch (IOException e){
-			log.error("Could not access directory {}: {}", sourceDir, e.getMessage());
+			log.error("Could not access directory {}: {}", sourceDir, e.getMessage(), e);
 		}
 		log.info("******************************");
 	}
@@ -197,7 +197,7 @@ public class TrainingPredicateDumper {
 		try {
 			createDump(ss, dataFilePath);
 		} catch (NeuroBException e) {
-			log.error("\t{}", e.getMessage());
+			log.error("\t{}", e.getMessage(), e);
 		}
 		
 		ss.kill();
@@ -262,9 +262,9 @@ public class TrainingPredicateDumper {
 				// labelling:predicate
 				results.add(createDumpResult(ss, formula));
 			} catch (NeuroBException e) {
-				log.error("\t{}", e.getMessage());
+				log.error("\t{}", e.getMessage(), e);
 			} catch (IllegalStateException e) {
-				log.error("\tReached Illegal State: {}", e.getMessage());
+				log.error("\tReached Illegal State: {}", e.getMessage(), e);
 			} catch (Exception e){
 				log.error("\tUnexpected Exception encountered: {}", e.getMessage(), e);
 			}

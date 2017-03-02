@@ -166,7 +166,7 @@ public class TrainingSetGenerator {
 							.filter(s -> !s.isEmpty())
 							.map(s -> Paths.get(s)).collect(Collectors.toList()));
 			} catch (IOException e) {
-				log.error("Could not access exclude file: {}", e.getMessage());
+				log.error("Could not access exclude file: {}", e.getMessage(), e);
 			}
 		}
 		
@@ -202,7 +202,7 @@ public class TrainingSetGenerator {
 			log.info("******************************");
 	    }
 		catch (IOException e){
-			log.error("Could not access directory {}: {}", sourceDirectory, e.getMessage());
+			log.error("Could not access directory {}: {}", sourceDirectory, e.getMessage(), e);
 		}
 		
 	}
@@ -254,9 +254,9 @@ public class TrainingSetGenerator {
 				// features:labeling vector:comment
 				results.add(fg.generateFeatureString(formula)+":"+lg.generateLabelling(formula, ss)+":\""+formula+"\"");
 			} catch (NeuroBException e) {
-				log.warn("\t{}", e.getMessage());
+				log.warn("\t{}", e.getMessage(), e);
 			} catch (IllegalStateException e) {
-				log.error("\tReached Illegal State: {}", e.getMessage());
+				log.error("\tReached Illegal State: {}", e.getMessage(), e);
 			} catch (Exception e) {
 				log.error("\tUnexpected Exception encountered: {}", e.getMessage(), e);
 			}
@@ -310,7 +310,7 @@ public class TrainingSetGenerator {
 				}
 			}
 			catch(IOException e){
-				log.error("\t.nbtrain file exists but could not access it or the source machine file: {}", e.getMessage());
+				log.error("\t.nbtrain file exists but could not access it or the source machine file: {}", e.getMessage(), e);
 				log.info("\tSkipping machine.");
 			}
 		}
@@ -320,7 +320,7 @@ public class TrainingSetGenerator {
 		try {
 			Files.createDirectories(targetDirectory);
 		} catch (IOException e) {
-			log.error("\tCould not create or access directory {}: {}", targetDirectory, e.getMessage());
+			log.error("\tCould not create or access directory {}: {}", targetDirectory, e.getMessage(), e);
 			return;
 		}
 		// create file
@@ -328,11 +328,11 @@ public class TrainingSetGenerator {
 			collectTrainingData(source, target);
 			return;
 		} catch (ProBError e) {
-			log.error("\tProBError on {}: {}", source, e.getMessage());
+			log.error("\tProBError on {}: {}", source, e.getMessage(), e);
 		} catch (IllegalStateException e) {
-			log.error("\tReached illegal state while processing: {}", e.getMessage());
+			log.error("\tReached illegal state while processing: {}", e.getMessage(), e);
 		} catch (NeuroBException e) {
-			log.error("\t{}", e.getMessage());
+			log.error("\t{}", e.getMessage(), e);
 		}
 		log.info("\tStopped with errors: {}", target);
 		++fileProblemsCounter;
@@ -482,7 +482,7 @@ public class TrainingSetGenerator {
 			log.info("Found {} entries and wrote them into {}", dataCounter.get(), csv);
 			
 		} catch (IOException e) {
-			log.error("Failed to setup CSV correctly: {}", e.getMessage());
+			log.error("Failed to setup CSV correctly: {}", e.getMessage(), e);
 		}
 	}
 	
@@ -543,9 +543,9 @@ public class TrainingSetGenerator {
 			header = br.readLine();
 			br.close();		
 		} catch (FileNotFoundException e) {
-			throw new NeuroBException("Could not find the source CSV: " + e.getMessage());
+			throw new NeuroBException("Could not find the source CSV: " + e.getMessage(), e);
 		} catch (IOException e) {
-			throw new NeuroBException("Could not access the source CSV: " + e.getMessage());
+			throw new NeuroBException("Could not access the source CSV: " + e.getMessage(), e);
 		}
 		
 		try(Stream<String> stream = Files.lines(csv)){
@@ -581,7 +581,7 @@ public class TrainingSetGenerator {
 						target.write(line);
 						target.newLine();
 					} catch (Exception e) {
-						log.error("Could not write data to target csv: {}", e.getMessage());
+						log.error("Could not write data to target csv: {}", e.getMessage(), e);
 					}
 				});
 			
@@ -592,7 +592,7 @@ public class TrainingSetGenerator {
 			testCsv.close();
 			
 		} catch (IOException e) {
-			log.error("Could not access target files correctly: {}", e.getMessage());
+			log.error("Could not access target files correctly: {}", e.getMessage(), e);
 		}
 	}
 	
@@ -607,7 +607,7 @@ public class TrainingSetGenerator {
 				Files.createDirectories(imageDir.resolve(Integer.toString(i)));
 			}
 		} catch (IOException e) {
-			log.error("Could not create all subdirectories correctly: {}", e.getMessage());
+			log.error("Could not create all subdirectories correctly: {}", e.getMessage(), e);
 		}
 		
 		try(Stream<String> stream = Files.lines(csv)){
@@ -633,7 +633,7 @@ public class TrainingSetGenerator {
 					
 				});
 		} catch (IOException e) {
-			log.error("Could not access CSV properly: {}", e.getMessage());
+			log.error("Could not access CSV properly: {}", e.getMessage(), e);
 		}
 	}
 	
@@ -653,8 +653,8 @@ public class TrainingSetGenerator {
 		if(Files.exists(excludeFile)){
 			try(Stream<String> stream = Files.lines(excludeFile)){
 				newExclude = stream.noneMatch(s -> s.equals(exclude.toString()));
-			} catch (IOException e1) {
-				System.err.println("Could not access exclude file: "+e1.getMessage());
+			} catch (IOException e) {
+				log.error("Could not access exclude file: "+e.getMessage(), e);
 			}
 		}
 		
@@ -663,7 +663,7 @@ public class TrainingSetGenerator {
 			try {
 				Files.write(excludeFile, (exclude.toString()+"\n").getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 			} catch (IOException e) {
-				System.err.println("Could not append the exclude properly: "+e.getMessage());
+				log.error("Could not append the exclude properly: "+e.getMessage(), e);
 			}
 		}
 	}

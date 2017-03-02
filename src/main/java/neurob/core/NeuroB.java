@@ -209,7 +209,7 @@ public class NeuroB {
 		try {
 			tsg.logTrainingSetAnalysis(fullTargetDirectory);
 		} catch (IOException e) {
-			log.error("Could not access target directory {} for training data analysis: {}", targetDirectory, e.getMessage());
+			log.error("Could not access target directory {} for training data analysis: {}", targetDirectory, e.getMessage(), e);
 		}
 		
 		// generate csv
