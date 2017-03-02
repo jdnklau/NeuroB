@@ -11,7 +11,7 @@
     - save files to disk by default
     - more generic handling of data preprocessing if possible
 - training set generation
-    - make sure to distinguish properly between ClassicalB and EventB commands
+    - when conjuncting invariants from machines, make sure each invariant is correctly set in parenthesis
     - add function to truncate data.csv to contain all classes more evenly
     - model check machines
         - generate 100 states per solver
