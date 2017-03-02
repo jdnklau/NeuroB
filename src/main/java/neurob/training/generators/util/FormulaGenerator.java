@@ -233,8 +233,8 @@ public class FormulaGenerator {
 		}
 		
 		
-		String propsAndInvs = propertyPre + invariants;
-		String propsAndNegInvs = propertyPre + negInvariants;
+		String propsAndInvs = (invariants.isEmpty()) ? properties : propertyPre + invariants;
+		String propsAndNegInvs = (invariants.isEmpty()) ? properties : propertyPre + negInvariants; 
 		
 		
 		// guards
