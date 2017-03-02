@@ -17,6 +17,8 @@ import com.google.inject.Inject;
 
 import de.prob.Main;
 import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.exception.ProBError;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
@@ -195,7 +197,7 @@ public class TrainingPredicateDumper {
 		}
 		
 		try {
-			createDump(ss, dataFilePath);
+			createDump(mt, ss, dataFilePath);
 		} catch (NeuroBException e) {
 			log.error("\t{}", e.getMessage(), e);
 		}
@@ -237,7 +239,7 @@ public class TrainingPredicateDumper {
 		return false;
 	}
 	
-	private void createDump(StateSpace ss, Path targetFile) throws NeuroBException{
+	private void createDump(MachineType mt, StateSpace ss, Path targetFile) throws NeuroBException{
 		// For the formulae created
 		ArrayList<String> formulae;
 		
@@ -260,7 +262,7 @@ public class TrainingPredicateDumper {
 			log.info("\tAt {}/{}...", curr++, count);
 			try {
 				// labelling:predicate
-				results.add(createDumpResult(ss, formula));
+				results.add(createDumpResult(mt, ss, formula));
 			} catch (NeuroBException e) {
 				log.error("\t{}", e.getMessage(), e);
 			} catch (IllegalStateException e) {
@@ -296,9 +298,9 @@ public class TrainingPredicateDumper {
 		
 	}
 
-	private String createDumpResult(StateSpace stateSpace, String formula) throws NeuroBException {
+	private String createDumpResult(MachineType mt, StateSpace stateSpace, String formula) throws NeuroBException {
 		StringBuilder res = new StringBuilder();
-		ClassicalB pred = new ClassicalB(formula);
+		IBEvalElement pred = FormulaGenerator.generateBCommandByMachineType(mt, formula);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
 		long ProBTime = 0;

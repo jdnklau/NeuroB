@@ -4,13 +4,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-import org.apache.commons.math3.util.MathUtils;
 import org.nd4j.linalg.util.ArrayUtil;
 
 import com.google.inject.Inject;
 
 import de.prob.Main;
-import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
@@ -18,6 +17,7 @@ import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
+import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
 /**
@@ -82,10 +82,10 @@ public class SolverSelectionGenerator implements LabelGenerator, PredicateDumpTr
 
 	@Override
 	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
-		ClassicalB formula;
+		IBEvalElement formula;
 		// Set up formula to solve
 		try {
-			formula = new ClassicalB(predicate);
+			formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		} catch(Exception e) {
 			throw new NeuroBException("Could not create command from formula "+predicate, e);
 		}

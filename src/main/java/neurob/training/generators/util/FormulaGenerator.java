@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.IBEvalElement;
+import de.prob.statespace.StateSpace;
+import neurob.core.util.MachineType;
+
 /**
  * <p>This class provides access to reusable methods to get different formulas from a specific input.</p>
  * <p>Mostly it rearranges an input formula to generate variations or extends the input by recombining different parts of it.</p>
@@ -12,6 +18,20 @@ import java.util.stream.Collectors;
  *
  */
 public class FormulaGenerator {
+	
+	public static IBEvalElement generateBCommandByMachineType(MachineType mt, String formula){
+		switch(mt){
+		case EVENTB:
+			return new EventB(formula);
+		default:
+		case CLASSICALB:
+			return new ClassicalB(formula);
+		}
+	}
+	
+	public static IBEvalElement generateBCommandByMachineType(StateSpace ss, String formula){
+		return generateBCommandByMachineType(MachineType.getTypeFromStateSpace(ss), formula);
+	}
 	
 	/**
 	 * <p>Generates multiple formulas for each event found.</p>

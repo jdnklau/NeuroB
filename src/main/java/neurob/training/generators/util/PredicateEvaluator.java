@@ -10,9 +10,9 @@ import java.util.concurrent.TimeoutException;
 import de.prob.animator.command.CbcSolveCommand;
 import de.prob.animator.command.SetPreferenceCommand;
 import de.prob.animator.domainobjects.AbstractEvalResult;
-import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.ComputationNotCompletedResult;
 import de.prob.animator.domainobjects.EvalResult;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.exception.ProBError;
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
@@ -30,9 +30,9 @@ public class PredicateEvaluator {
 	 * @param formula
 	 * @return
 	 * @throws NeuroBException
-	 * @{@link See} {@link #evaluateCommandExecution(StateSpace, ClassicalB)}
+	 * @see {@link #evaluateCommandExecution(StateSpace, IBEvalElement)}
 	 */
-	public static boolean isDecidableWithSolver(StateSpace stateSpace, String solverPreference, ClassicalB formula) throws NeuroBException{
+	public static boolean isDecidableWithSolver(StateSpace stateSpace, String solverPreference, IBEvalElement formula) throws NeuroBException{
 		boolean decidable = false;
 		
 		try {
@@ -65,9 +65,9 @@ public class PredicateEvaluator {
 	 * @param formula The Formula to decide
 	 * @return Time needed in nano seconds or -1 if it could not be decided
 	 * @throws NeuroBException
-	 * @see {@link #getCommandExecutionTimeInNanoSeconds(StateSpace, ClassicalB)}
+	 * @see {@link #getCommandExecutionTimeInNanoSeconds(StateSpace, IBEvalElement)}
 	 */
-	public static long getCommandExecutionTimeBySolverInNanoSeconds(StateSpace stateSpace, String solverPreference, ClassicalB formula) throws NeuroBException{
+	public static long getCommandExecutionTimeBySolverInNanoSeconds(StateSpace stateSpace, String solverPreference, IBEvalElement formula) throws NeuroBException{
 		long time = -1;
 		
 		try {
@@ -97,9 +97,9 @@ public class PredicateEvaluator {
 	 * @param formula The Formula to decide
 	 * @return Time needed in nano seconds or -1 if it could not be decided
 	 * @throws NeuroBException
-	 * @see {@link #getCommandExecutionTimeBySolverInNanoSeconds(StateSpace, String, ClassicalB)}
+	 * @see {@link #getCommandExecutionTimeBySolverInNanoSeconds(StateSpace, String, IBEvalElement)}
 	 */
-	public static long getCommandExecutionTimeInNanoSeconds(StateSpace stateSpace, ClassicalB formula) throws NeuroBException{
+	public static long getCommandExecutionTimeInNanoSeconds(StateSpace stateSpace, IBEvalElement formula) throws NeuroBException{
 		long start = System.nanoTime();
 		boolean isDecidable = evaluateCommandExecution(stateSpace, formula);
 		long duration = System.nanoTime()-start;
@@ -114,7 +114,7 @@ public class PredicateEvaluator {
 	 * @return
 	 * @throws NeuroBException
 	 */
-	public static boolean evaluateCommandExecution(StateSpace stateSpace, ClassicalB formula) throws NeuroBException {
+	public static boolean evaluateCommandExecution(StateSpace stateSpace, IBEvalElement formula) throws NeuroBException {
 		// Set up thread for timeout check
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		Future<Boolean> futureRes = executor.submit(() -> {
