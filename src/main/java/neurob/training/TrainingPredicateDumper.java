@@ -163,7 +163,7 @@ public class TrainingPredicateDumper {
 			dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+pdumpExt);
 			// set machine type
 			mt = MachineType.CLASSICALB;
-		} else if(ext.equals("eventb")){
+		} else if(ext.equals("bcm")){
 			log.info("Dumping predicates from {}", sourceFile);
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("EventB").resolve(sourceFile.getParent());

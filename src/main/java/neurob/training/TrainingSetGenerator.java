@@ -189,7 +189,7 @@ public class TrainingSetGenerator {
 							fileCounter++;
 							Path dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 							generateTrainingDataFromFile(entry, dataFilePath);
-						} else if(ext.equals("eventb")){
+						} else if(ext.equals("bcm")){
 		            		// get full target directory
 		            		Path fullTargetDirectory = targetDirectory.resolve("EventB").resolve(entry.getParent());
 							fileCounter++;
