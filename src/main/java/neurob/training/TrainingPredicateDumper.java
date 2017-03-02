@@ -265,6 +265,8 @@ public class TrainingPredicateDumper {
 				log.error("\t{}", e.getMessage());
 			} catch (IllegalStateException e) {
 				log.error("\tReached Illegal State: {}", e.getMessage());
+			} catch (Exception e){
+				log.error("\tUnexpected Exception encountered: {}", e.getMessage(), e);
 			}
 		}
 		
