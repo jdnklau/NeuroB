@@ -164,11 +164,11 @@ public class FormulaGenerator {
 	}
 	
 	private static String getPropertyString(PredicateCollector predicateCollector){
-		return String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getProperties()));
+		return String.join(" & ", predicateCollector.getProperties());
 	}
 	
 	private static String getInvariantString(PredicateCollector predicateCollector){
-		return String.join(" & ", predicateCollector.modifyDomains(predicateCollector.getInvariants()));
+		return String.join(" & ", predicateCollector.getInvariants());
 	}
 	
 	private static String getPropertyPre(PredicateCollector predicateCollector){

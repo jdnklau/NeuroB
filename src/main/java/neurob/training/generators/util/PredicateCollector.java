@@ -114,6 +114,8 @@ public class PredicateCollector {
 			}
 			break;
 		
+		case EVENTB:
+			// TODO
 		default:
 			break;
 			
