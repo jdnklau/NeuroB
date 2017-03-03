@@ -298,7 +298,7 @@ public class TrainingPredicateDumper {
 
 	private String createDumpResult(MachineType mt, StateSpace stateSpace, String formula) throws NeuroBException {
 		StringBuilder res = new StringBuilder();
-		IBEvalElement pred = FormulaGenerator.generateBCommandByMachineType(mt, formula);
+		IBEvalElement pred = FormulaGenerator.generateBCommandByMachineType(stateSpace, formula);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
 		long ProBTime = 0;

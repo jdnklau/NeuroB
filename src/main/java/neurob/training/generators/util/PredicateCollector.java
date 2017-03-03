@@ -104,7 +104,7 @@ public class PredicateCollector {
 			for(String inv : invariants){
 				IEvalElement invariant;
 				try {
-					invariant = FormulaGenerator.generateBCommandByMachineType(machineType, inv);
+					invariant = FormulaGenerator.generateBCommandByMachineType(ss, inv);
 				} catch (NeuroBException e) {
 					log.warn("\tCould not build weakest precondition for {} by event {}: {}", inv, x.getName(), e.getMessage(), e);
 					continue;
@@ -125,7 +125,7 @@ public class PredicateCollector {
 			IEvalElement invariant;
 			String inv = FormulaGenerator.getStringConjunction(invariants);
 			try {
-				invariant = FormulaGenerator.generateBCommandByMachineType(machineType, inv);
+				invariant = FormulaGenerator.generateBCommandByMachineType(ss, inv);
 			} catch (NeuroBException e) {
 				log.warn("\t{}", e.getMessage(), e);
 				continue; // next entry in loop
@@ -158,14 +158,11 @@ public class PredicateCollector {
 
 		for(String inv : invariants){
 			IEvalElement invariant;
-			switch(machineType){
-			case EVENTB:
-				invariant = new EventB(inv);
-				break;
-			default:
-			case CLASSICALB:
-				invariant = new ClassicalB(inv);
-				break;
+			try {
+				invariant = FormulaGenerator.generateBCommandByMachineType(ss, inv);
+			} catch (NeuroBException e) {
+				log.warn("\t{}", e.getMessage(), e);
+				continue; // next entry in loop
 			}
 			
 			try{

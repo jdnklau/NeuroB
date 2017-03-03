@@ -21,6 +21,17 @@ import neurob.exceptions.NeuroBException;
  */
 public class FormulaGenerator {
 	
+	/**
+	 * Creates an {@link IBEvalElement} for command creation for ProB2 with respect to the machine type.
+	 * <p>
+	 * If you are using a state space of a B machine, it is advised to use {@link #generateBCommandByMachineType(StateSpace, String)}
+	 * instead
+	 * @param mt Machine type the command should get parsed in
+	 * @param formula Formula to create an evaluation element from
+	 * @return
+	 * @throws NeuroBException
+	 * @see {@link #generateBCommandByMachineType(StateSpace, String)}
+	 */
 	public static IBEvalElement generateBCommandByMachineType(MachineType mt, String formula) throws NeuroBException{
 		IBEvalElement cmd;
 		try {
@@ -37,8 +48,22 @@ public class FormulaGenerator {
 		return cmd;
 	}
 	
+	/**
+	 * Creates an {@link IBEvalElement} for command creation for ProB2 with respect to a given StateSpace.
+	 * <p>
+	 * If you got no StateSpace, use {@link #generateBCommandByMachineType(MachineType, String)}
+	 * @param ss StateSpace over which the eval element will be created
+	 * @param formula Formula to create an evaluation element from
+	 * @return
+	 * @throws NeuroBException
+	 * @see {@link #generateBCommandByMachineType(MachineType, String)}
+	 */
 	public static IBEvalElement generateBCommandByMachineType(StateSpace ss, String formula) throws NeuroBException{
-		return generateBCommandByMachineType(MachineType.getTypeFromStateSpace(ss), formula);
+		try {
+			return (IBEvalElement) ss.getModel().parseFormula(formula);
+		} catch(Exception e){
+			throw new NeuroBException("Could not set up command for evaluation from formula "+formula, e);
+		}
 	}
 	
 	/**
