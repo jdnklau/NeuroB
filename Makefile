@@ -12,7 +12,7 @@ examples/prob_examples :
 	
 unzip_examples : examples/prob_examples
 	@echo "***** unzipping eventb machines"
-	@find examples/prob_examples/public_examples/ -iname *.zip -exec unzip -fo -d "{}_unpacked" {} \;
+	@find examples/prob_examples/public_examples/ -iname *.zip -exec unzip -uo -d "{}_unpacked" {} \;
 
 neurob :
 	@echo "***** Create NeuroB binary"
