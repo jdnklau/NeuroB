@@ -128,7 +128,7 @@ public class PredicateCollector {
 			
 			// weakest pre condition for all invariants
 			IEvalElement invariant;
-			String inv = String.join(" & ", invariants);
+			String inv = FormulaGenerator.getStringConjunction(invariants);
 			try {
 				invariant = FormulaGenerator.generateBCommandByMachineType(machineType, inv);
 			} catch (NeuroBException e) {
