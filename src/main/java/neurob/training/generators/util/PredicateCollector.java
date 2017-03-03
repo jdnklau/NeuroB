@@ -159,15 +159,15 @@ public class PredicateCollector {
 		
 		}
 
-		for(IBEvalElement invariant : invCmds){			
-			try{
-				PrimePredicateCommand ppc = new PrimePredicateCommand(invariant);
-				ss.execute(ppc);
-				primedInvariants.add(ppc.getPrimedPredicate().getCode());
-			}catch(Exception e) {
-				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
-			}
-		}
+//		for(IBEvalElement invariant : invCmds){			
+//			try{
+//				PrimePredicateCommand ppc = new PrimePredicateCommand(invariant);
+//				ss.execute(ppc);
+//				primedInvariants.add(ppc.getPrimedPredicate().getCode());
+//			}catch(Exception e) {
+//				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
+//			}
+//		}
 			
 	}
 
