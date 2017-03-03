@@ -103,18 +103,15 @@ public class PredicateCollector {
 			WeakestPreconditionCommand wpcc;
 			for(String inv : invariants){
 				IEvalElement invariant;
-				switch(machineType){
-				case EVENTB:
-					invariant = new EventB(inv);
-					break;
-				default:
-				case CLASSICALB:
-					invariant = new ClassicalB(inv);
-					break;
-				}				
+				try {
+					invariant = FormulaGenerator.generateBCommandByMachineType(machineType, inv);
+				} catch (NeuroBException e) {
+					log.warn("\tCould not build weakest precondition for {} by event {}: {}", inv, x.getName(), e.getMessage(), e);
+					continue;
+				}
 				
-				wpcc = new WeakestPreconditionCommand(x.getName(), invariant);
 				try{
+					wpcc = new WeakestPreconditionCommand(x.getName(), invariant);
 					ss.execute(wpcc);
 					weakestPreconditions.add(wpcc.getWeakestPrecondition().getCode());
 				} catch(Exception e) {
@@ -134,8 +131,8 @@ public class PredicateCollector {
 				continue; // next entry in loop
 			}				
 			
-			wpcc = new WeakestPreconditionCommand(x.getName(), invariant);
 			try{
+				wpcc = new WeakestPreconditionCommand(x.getName(), invariant);
 				ss.execute(wpcc);
 				weakestPreconditions.add(wpcc.getWeakestPrecondition().getCode());
 			} catch(Exception e) {
@@ -149,8 +146,8 @@ public class PredicateCollector {
 			if(x.getName().equals("INITIALISATION"))
 				continue; // None for initialisation
 			
-			BeforeAfterPredicateCommand bapc = new BeforeAfterPredicateCommand(x.getName());
 			try{
+				BeforeAfterPredicateCommand bapc = new BeforeAfterPredicateCommand(x.getName());
 				ss.execute(bapc);
 				beforeAfterPredicates.add(bapc.getBeforeAfterPredicate().getCode());
 			} catch(Exception e) {
@@ -171,8 +168,8 @@ public class PredicateCollector {
 				break;
 			}
 			
-			PrimePredicateCommand ppc = new PrimePredicateCommand(invariant);
 			try{
+				PrimePredicateCommand ppc = new PrimePredicateCommand(invariant);
 				ss.execute(ppc);
 				primedInvariants.add(ppc.getPrimedPredicate().getCode());
 			}catch(Exception e) {

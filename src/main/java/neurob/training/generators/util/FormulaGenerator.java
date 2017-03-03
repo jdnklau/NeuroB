@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import de.be4.classicalb.core.parser.BParser;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.IBEvalElement;
