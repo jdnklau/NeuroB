@@ -57,7 +57,7 @@ public class TrainingPredicateDumper {
 	private final String pdumpExt = ".pdump"; // extension for predicate dump files
 	private int samplingSize;
 	
-	private static final Logger log = LoggerFactory.getLogger(TrainingSetGenerator.class);
+	private static final Logger log = LoggerFactory.getLogger(TrainingPredicateDumper.class);
 	
 	@Inject
 	public TrainingPredicateDumper(){

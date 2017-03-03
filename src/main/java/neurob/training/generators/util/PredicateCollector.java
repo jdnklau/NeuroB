@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.Start;
-import de.prob.animator.command.AbstractCommand;
 import de.prob.animator.command.BeforeAfterPredicateCommand;
 import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.command.WeakestPreconditionCommand;
@@ -28,7 +27,6 @@ import de.prob.model.representation.Invariant;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.TrainingSetGenerator;
 
 public class PredicateCollector {
 	private ArrayList<String> invariants;
@@ -44,7 +42,7 @@ public class PredicateCollector {
 	
 	private MachineType machineType;
 	
-	private static final Logger log = LoggerFactory.getLogger(TrainingSetGenerator.class);
+	private static final Logger log = LoggerFactory.getLogger(PredicateCollector.class);
 	
 	public PredicateCollector(StateSpace ss){
 		preds = new ArrayList<String>();
