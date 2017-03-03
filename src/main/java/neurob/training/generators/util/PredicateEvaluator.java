@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import de.prob.animator.command.CbcSolveCommand;
+import de.prob.animator.command.EvaluateFormulaCommand;
 import de.prob.animator.command.SetPreferenceCommand;
 import de.prob.animator.domainobjects.AbstractEvalResult;
 import de.prob.animator.domainobjects.ComputationNotCompletedResult;
@@ -119,6 +120,7 @@ public class PredicateEvaluator {
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		Future<Boolean> futureRes = executor.submit(() -> {
 			Boolean res = false;
+//			EvaluateFormulaCommand cmd = new EvaluateFormulaCommand(formula, "0");
 			CbcSolveCommand cmd = new CbcSolveCommand(formula);
 			
 			stateSpace.execute(cmd);
@@ -133,7 +135,7 @@ public class PredicateEvaluator {
 				res = false;
 			} else {
 				// durr?
-				throw new IllegalStateException("Unexpected output recieved from command execution.");
+				throw new IllegalStateException("Unexpected output recieved from command execution: "+cmdres.toString());
 			}
 			return res;
 		});
