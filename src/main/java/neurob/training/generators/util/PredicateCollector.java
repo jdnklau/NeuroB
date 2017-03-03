@@ -15,6 +15,7 @@ import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.command.WeakestPreconditionCommand;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.animator.domainobjects.IEvalElement;
 import de.prob.model.classicalb.Assertion;
 import de.prob.model.classicalb.PrettyPrinter;
@@ -95,48 +96,50 @@ public class PredicateCollector {
 			axioms.add(x.getFormula().getCode());
 		}
 		
+		// set up invariants as commands for below
+		ArrayList<IBEvalElement> invCmds = new ArrayList<>();
+		for(String inv : invariants) {
+			try {
+				invCmds.add(FormulaGenerator.generateBCommandByMachineType(ss, inv));
+			} catch (NeuroBException e) {
+				log.warn("\tCould not set up EvalElement from {} for weakest precondition calculation or priming", inv, e);
+				continue;
+			}
+		}
+		// full invariant
+		IBEvalElement invConjCmd = null;
+		String invConj = FormulaGenerator.getStringConjunction(invariants);
+		try {
+			invConjCmd = FormulaGenerator.generateBCommandByMachineType(ss, invConj);
+		} catch (NeuroBException e) {
+			log.warn("\tCould not set up EvalElement for invariant conjunct {} for weakest precondition calculation or priming", invConj, e);
+		}
+		
 		// weakest preconditions
 		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 			if(x.getName().equals("INITIALISATION"))
 				continue; // None for initialisation
 			
 			WeakestPreconditionCommand wpcc;
-			for(String inv : invariants){
-				IEvalElement invariant;
-				try {
-					invariant = FormulaGenerator.generateBCommandByMachineType(ss, inv);
-				} catch (NeuroBException e) {
-					log.warn("\tCould not build weakest precondition for {} by event {}: {}", inv, x.getName(), e.getMessage(), e);
-					continue;
-				}
-				
+			for(IBEvalElement invariant : invCmds){
 				try{
 					wpcc = new WeakestPreconditionCommand(x.getName(), invariant);
 					ss.execute(wpcc);
 					weakestPreconditions.add(wpcc.getWeakestPrecondition().getCode());
 				} catch(Exception e) {
-					log.warn("\tCould not build weakest precondition for {} by event {}: {}", inv, x.getName(), e.getMessage(), e);
+					log.warn("\tCould not build weakest precondition for {} by event {}.", invariant.getCode(), x.getName(), e);
 				}
-				
-				
 			}
 			
 			// weakest pre condition for all invariants
-			IEvalElement invariant;
-			String inv = FormulaGenerator.getStringConjunction(invariants);
-			try {
-				invariant = FormulaGenerator.generateBCommandByMachineType(ss, inv);
-			} catch (NeuroBException e) {
-				log.warn("\t{}", e.getMessage(), e);
-				continue; // next entry in loop
-			}				
-			
-			try{
-				wpcc = new WeakestPreconditionCommand(x.getName(), invariant);
-				ss.execute(wpcc);
-				weakestPreconditions.add(wpcc.getWeakestPrecondition().getCode());
-			} catch(Exception e) {
-				log.warn("\tCould not build weakest precondition for {} by event {}: {}", inv, x.getName(), e.getMessage(), e);
+			if(invConjCmd != null){
+				try{
+					wpcc = new WeakestPreconditionCommand(x.getName(), invConjCmd);
+					ss.execute(wpcc);
+					weakestPreconditions.add(wpcc.getWeakestPrecondition().getCode());
+				} catch(Exception e) {
+					log.warn("\tCould not build weakest precondition for {} by event {}.", invConjCmd.getCode(), x.getName(), e);
+				}
 			}
 			
 		}
@@ -151,26 +154,18 @@ public class PredicateCollector {
 				ss.execute(bapc);
 				beforeAfterPredicates.add(bapc.getBeforeAfterPredicate().getCode());
 			} catch(Exception e) {
-				log.warn("\tCould not build Before After Predicate for event {}: {}", x.getName(), e.getMessage(), e);
+				log.warn("\tCould not build Before After Predicate for event {}.", x.getName(), e);
 			}
 		
 		}
 
-		for(String inv : invariants){
-			IEvalElement invariant;
-			try {
-				invariant = FormulaGenerator.generateBCommandByMachineType(ss, inv);
-			} catch (NeuroBException e) {
-				log.warn("\t{}", e.getMessage(), e);
-				continue; // next entry in loop
-			}
-			
+		for(IBEvalElement invariant : invCmds){			
 			try{
 				PrimePredicateCommand ppc = new PrimePredicateCommand(invariant);
 				ss.execute(ppc);
 				primedInvariants.add(ppc.getPrimedPredicate().getCode());
 			}catch(Exception e) {
-				log.warn("\tCould not build primed invariant from {}: {}", inv, e.getMessage(), e);
+				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
 			}
 		}
 			
