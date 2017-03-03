@@ -170,8 +170,8 @@ public class FormulaGenerator {
 
 		ArrayList<String> assertionsList = predicateCollector.getAssertions();
 		ArrayList<String> theoremsList = predicateCollector.getTheorems();
-		String allAssertions = String.join(" & ", assertionsList);
-		String allTheorems = String.join(" & ", theoremsList);
+		String allAssertions = getStringConjunction(assertionsList);
+		String allTheorems = getStringConjunction(theoremsList);
 		
 		if(propsAndInv.isEmpty()){
 			for(String a : assertionsList){
@@ -330,9 +330,9 @@ public class FormulaGenerator {
 			formulae.add(propsAndInvs + " <=> " + negGuard); // events not usable iff invariants unviolated
 			
 
-			formulae.add(propsAndGuard + " => ("+ invariants); // events only usable w/o invariant violation
+			formulae.add(propsAndGuard + " => "+ invariants); // events only usable w/o invariant violation
 			
-			formulae.add(propsAndNegGuard + " => ("+ invariants); // events never usable w/o invariant violation
+			formulae.add(propsAndNegGuard + " => "+ invariants); // events never usable w/o invariant violation
 
 			if(emptyInvariants){
 				// incomming formulae would be repetitive, so skip them
