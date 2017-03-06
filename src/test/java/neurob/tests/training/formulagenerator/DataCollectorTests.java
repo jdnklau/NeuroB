@@ -5,21 +5,16 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
 import com.google.inject.Inject;
 
 import de.prob.Main;
-import de.prob.animator.domainobjects.ClassicalB;
-import de.prob.animator.domainobjects.EventB;
-import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
-import neurob.core.util.MachineType;
-import neurob.exceptions.NeuroBException;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
 
@@ -38,7 +33,7 @@ public class DataCollectorTests {
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
 		
 		PredicateCollector pc = new PredicateCollector(ss);
-		ArrayList<String> formulae = FormulaGenerator.extendedGuardFormulae(pc);
+		List<String> formulae = FormulaGenerator.extendedGuardFormulae(pc);
 		
 		assertEquals("Not enough formulae created", 65, formulae.size());
 		
@@ -50,7 +45,7 @@ public class DataCollectorTests {
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
 		
 		PredicateCollector pc = new PredicateCollector(ss);
-		ArrayList<String> formulae = FormulaGenerator.multiGuardFormulae(pc);
+		List<String> formulae = FormulaGenerator.multiGuardFormulae(pc);
 		
 		assertEquals("Not enough formulae created", 24, formulae.size());
 		
@@ -62,7 +57,7 @@ public class DataCollectorTests {
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
 		
 		PredicateCollector pc = new PredicateCollector(ss);
-		ArrayList<String> formulae = FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(pc);
+		List<String> formulae = FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(pc);
 		
 		assertEquals("Not enough formulae created", 65, formulae.size());
 		

@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -156,12 +157,12 @@ public class TrainingSetGenerator {
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile, boolean recursion){
 		log.info("Generating training set from {} in {}", sourceDirectory, targetDirectory);
 		// prepare exclude data
-		ArrayList<Path> excludes = new ArrayList<Path>();
+		List<Path> excludes = new ArrayList<Path>();
 		if(excludeFile != null){
 //			Path excludeFileDirectory = excludeFile.getParent();
 			try(Stream<String> exc = Files.lines(excludeFile)){
 				excludes.addAll(
-						(ArrayList<Path>) exc
+						(List<Path>) exc
 							.filter(s -> !s.isEmpty())
 							.map(s -> Paths.get(s)).collect(Collectors.toList()));
 			} catch (IOException e) {
@@ -210,7 +211,7 @@ public class TrainingSetGenerator {
 		// StateSpace and main component
 		StateSpace ss = null;
 		// For the formula and ProB command to use
-		ArrayList<String> formulae;
+		List<String> formulae;
 		
 		// Access source file
 		try{
@@ -247,7 +248,7 @@ public class TrainingSetGenerator {
 		log.info("\tGenerated {} formulae to solve.", formulae.size());
 		
 		// generate data per formula
-		ArrayList<String> results = new ArrayList<String>();
+		List<String> results = new ArrayList<String>();
 		int count = formulae.size();
 		int curr = 1;
 		for( String formula : formulae) {

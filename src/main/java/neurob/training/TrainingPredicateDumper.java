@@ -7,6 +7,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -239,7 +240,7 @@ public class TrainingPredicateDumper {
 	
 	private void createDump(MachineType mt, StateSpace ss, Path targetFile) throws NeuroBException{
 		// For the formulae created
-		ArrayList<String> formulae;
+		List<String> formulae;
 		
 		// Get different formulas
 		PredicateCollector predc = new PredicateCollector(ss);
@@ -253,7 +254,7 @@ public class TrainingPredicateDumper {
 		log.info("\tGenerated {} predicates to dump into {}", formulae.size(), targetFile);
 		
 		// generate data per formula
-		ArrayList<String> results = new ArrayList<String>();
+		List<String> results = new ArrayList<String>();
 		int count = formulae.size();
 		int curr = 1;
 		for( String formula : formulae) {

@@ -1,8 +1,9 @@
 package neurob.training.generators.util;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +27,15 @@ import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
 
 public class PredicateCollector {
-	private ArrayList<String> invariants;
-	private ArrayList<ArrayList<String>> guards;
-	private ArrayList<String> axioms;
-	private ArrayList<String> properties;
-	private ArrayList<String> assertions;
-	private ArrayList<String> theorems;
-	private ArrayList<String> beforeAfterPredicates;
-	private ArrayList<String> weakestPreconditions;
-	private ArrayList<String> primedInvariants;
+	private List<String> invariants;
+	private Map<String, List<String>> guards;
+	private List<String> axioms;
+	private List<String> properties;
+	private List<String> assertions;
+	private List<String> theorems;
+	private List<String> beforeAfterPredicates;
+	private Map<String, List<String>> weakestPreconditions;
+	private Map<String, String> primedInvariants;
 	
 	private StateSpace ss;
 	
@@ -46,15 +47,15 @@ public class PredicateCollector {
 		this.ss = ss;
 		machineType = MachineType.getTypeFromStateSpace(ss);
 		
-		invariants = new ArrayList<String>();
-		guards = new ArrayList<ArrayList<String>>();
-		axioms = new ArrayList<String>();
-		properties = new ArrayList<String>();
-		assertions = new ArrayList<String>();
-		theorems = new ArrayList<String>();
-		beforeAfterPredicates = new ArrayList<String>();
-		weakestPreconditions = new ArrayList<String>();
-		primedInvariants = new ArrayList<String>();
+		invariants = new ArrayList<>();
+		guards = new HashMap<String, List<String>>();
+		axioms = new ArrayList<>();
+		properties = new ArrayList<>();
+		assertions = new ArrayList<>();
+		theorems = new ArrayList<>();
+		beforeAfterPredicates = new ArrayList<>();
+		weakestPreconditions = new HashMap<>();
+		primedInvariants = new HashMap<>();
 		
 		collectPredicates();
 		
@@ -87,7 +88,7 @@ public class PredicateCollector {
 				event.add(g.getFormula().getCode());
 			}
 			if(!event.isEmpty())
-				guards.add(event);
+				guards.put(x.getName(), event);
 		}
 		// axioms
 		for(Axiom x : comp.getChildrenOfType(Axiom.class)){
@@ -95,16 +96,39 @@ public class PredicateCollector {
 		}
 		
 		// set up invariants as commands for below
-		ArrayList<IBEvalElement> invCmds = new ArrayList<>();
+		Map<String, IBEvalElement> invCmds = new HashMap<>();
 		for(String inv : invariants) {
 			try {
-				invCmds.add(FormulaGenerator.generateBCommandByMachineType(ss, inv));
+				invCmds.put(inv, FormulaGenerator.generateBCommandByMachineType(ss, inv));
 			} catch (NeuroBException e) {
 				log.warn("\tCould not set up EvalElement from {} for weakest precondition calculation or priming", inv, e);
 				continue;
 			}
 		}
-		// full invariant
+		
+		// weakest preconditions for each invariant
+		for(String inv : invCmds.keySet()){
+			IBEvalElement invCmd = invCmds.get(inv);
+			
+
+			List<String> wpcs = new ArrayList<>();
+			for(BEvent x : comp.getChildrenOfType(BEvent.class)){
+				if(x.getName().equals("INITIALISATION"))
+					continue; // None for initialisation
+				
+				try{
+					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invCmd);
+					ss.execute(wpcc);
+					wpcs.add(wpcc.getWeakestPrecondition().getCode());
+				} catch(Exception e) {
+					log.warn("\tCould not build weakest precondition for {} by event {}.", invCmd.getCode(), x.getName(), e);
+				}
+				
+			}
+			weakestPreconditions.put(inv, wpcs);
+		}
+		
+		// Weakest precondition for all invariants conjuncted
 		IBEvalElement invConjCmd = null;
 		String invConj = FormulaGenerator.getStringConjunction(invariants);
 		try {
@@ -112,35 +136,23 @@ public class PredicateCollector {
 		} catch (NeuroBException e) {
 			log.warn("\tCould not set up EvalElement for invariant conjunct {} for weakest precondition calculation or priming", invConj, e);
 		}
-		
-		// weakest preconditions
-		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
-			if(x.getName().equals("INITIALISATION"))
-				continue; // None for initialisation
-			
-			WeakestPreconditionCommand wpcc;
-			for(IBEvalElement invariant : invCmds){
+		if(invConjCmd !=null){
+			List<String> wpcs = new ArrayList<>();
+			for(BEvent x : comp.getChildrenOfType(BEvent.class)){
+				if(x.getName().equals("INITIALISATION"))
+					continue; // None for initialisation
+				
 				try{
-					wpcc = new WeakestPreconditionCommand(x.getName(), invariant);
+					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invConjCmd);
 					ss.execute(wpcc);
-					weakestPreconditions.add(wpcc.getWeakestPrecondition().getCode());
-				} catch(Exception e) {
-					log.warn("\tCould not build weakest precondition for {} by event {}.", invariant.getCode(), x.getName(), e);
-				}
-			}
-			
-			// weakest pre condition for all invariants
-			if(invConjCmd != null){
-				try{
-					wpcc = new WeakestPreconditionCommand(x.getName(), invConjCmd);
-					ss.execute(wpcc);
-					weakestPreconditions.add(wpcc.getWeakestPrecondition().getCode());
+					wpcs.add(wpcc.getWeakestPrecondition().getCode());
 				} catch(Exception e) {
 					log.warn("\tCould not build weakest precondition for {} by event {}.", invConjCmd.getCode(), x.getName(), e);
 				}
 			}
-			
+			weakestPreconditions.put(invConj, wpcs);
 		}
+		
 		
 		if(machineType != MachineType.EVENTB)
 			return; // FIXME: allow usage of classical B, too
@@ -160,24 +172,26 @@ public class PredicateCollector {
 		
 		}
 
-		for(IBEvalElement invariant : invCmds){			
+		for(String inv : invCmds.keySet()){
+			IBEvalElement invCmd = invCmds.get(inv);
 			try{
-				primedInvariants.add(FormulaGenerator.generatePrimedPredicate(ss, invariant));
+				primedInvariants.put(inv, FormulaGenerator.generatePrimedPredicate(ss, invCmd));
 			}catch(Exception e) {
-				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
+				log.warn("\tCould not build primed invariant from {}", inv, e);
 			}
 		}
 			
 	}
-
-	public ArrayList<ArrayList<String>> getGuards(){ return guards; }
-	public ArrayList<String> getInvariants(){ return invariants; }
-	public ArrayList<String> getProperties(){ return properties; }
-	public ArrayList<String> getAssertions(){ return assertions; }
-	public ArrayList<String> getTheorems(){ return theorems; }
-	public ArrayList<String> getBeforeAfterPredicates(){ return beforeAfterPredicates; }
-	public ArrayList<String> getWeakestPreConditions(){ return weakestPreconditions; }
-	public ArrayList<String> getPrimedInvariants(){ return primedInvariants; }
+	
+	public Map<String, List<String>> getGuards(){ return guards; }
+	public List<String> getInvariants(){ return invariants; }
+	public List<String> getProperties(){ return properties; }
+	public List<String> getAssertions(){ return assertions; }
+	public List<String> getTheorems(){ return theorems; }
+	public List<String> getBeforeAfterPredicates(){ return beforeAfterPredicates; }
+	public Map<String, List<String>> getWeakestPreConditions(){ return weakestPreconditions; }
+	public Map<String, String> getPrimedInvariants(){ return primedInvariants; }
+	public StateSpace accessStateSpace(){ return ss; }
 
 	/**
 	 * Modifies an ArrayList of predicates to have only Numbers of infinite domains.
@@ -188,7 +202,7 @@ public class PredicateCollector {
 	 * @param invariants Predicates (usually invariants) to modify
 	 * @return The modified input or an empty array list for non-classical B.
 	 */
-	public ArrayList<String> modifyDomains(ArrayList<String> invariants){
+	public List<String> modifyDomains(List<String> invariants){
 		ArrayList<String> modifiedList = new ArrayList<String>();
 		
 		switch(machineType){
@@ -217,29 +231,5 @@ public class PredicateCollector {
 			
 		}
 		return modifiedList;
-	}
-	
-	/**
-	 * Mixes the individual entries of all the predicate lists inside.
-	 * <p>
-	 * This has no result on the data despite changing their order.
-	 * Intention is to use this for image generation from the formulae, to get a greater variance of images produced. 
-	 * @param seed
-	 */
-	@Deprecated
-	public void shuffleConjunctions(long seed){
-		Random rng = new Random(seed);
-		Collections.shuffle(invariants, rng);
-		rng = new Random(seed); // invariants and primed invariants should be in the same order
-		Collections.shuffle(primedInvariants, rng);
-		
-		Collections.shuffle(properties, rng);
-		Collections.shuffle(axioms, rng);
-		for(ArrayList<String> g : guards){
-			Collections.shuffle(g, rng);
-		}
-		Collections.shuffle(theorems, rng);
-		Collections.shuffle(assertions, rng);
-//		Collections.shuffle(beforeAfterPredicates, rng);
 	}
 }

@@ -2,7 +2,11 @@ package neurob.training.generators.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.domainobjects.ClassicalB;
@@ -20,6 +24,8 @@ import neurob.exceptions.NeuroBException;
  *
  */
 public class FormulaGenerator {
+
+	private static final Logger log = LoggerFactory.getLogger(FormulaGenerator.class);
 	
 	/**
 	 * Creates an {@link IBEvalElement} for command creation for ProB2 with respect to the machine type.
@@ -134,7 +140,7 @@ public class FormulaGenerator {
 	 * @param predicateCollector An already used {@link PredicateCollector}
 	 * @return An ArrayList containing all formulae constructed from the predicate collector
 	 */
-	public static ArrayList<String> extendedGuardFormulae(PredicateCollector predicateCollector){
+	public static List<String> extendedGuardFormulae(PredicateCollector predicateCollector){
 		String properties = getPropertyString(predicateCollector);
 		String invariants = getInvariantString(predicateCollector);
 		
@@ -152,15 +158,15 @@ public class FormulaGenerator {
 	 * @see #extendedGuardFormulae(PredicateCollector)
 	 * @see PredicateCollector#modifyDomains(ArrayList)
 	 */
-	public static ArrayList<String> extendedGuardFomulaeWithInfiniteDomains(PredicateCollector predicateCollector){
+	public static List<String> extendedGuardFomulaeWithInfiniteDomains(PredicateCollector predicateCollector){
 		String properties = getPropertyString(predicateCollector);
 		String invariants = getInvariantString(predicateCollector);
 		
-		ArrayList<ArrayList<String>> allGuards = predicateCollector.getGuards();
-		for(ArrayList<String> guards : allGuards){
+		Map<String, List<String>> allGuards = predicateCollector.getGuards();
+		for(String event: allGuards.keySet()){
+			List<String> guards = allGuards.get(event);
 			guards = predicateCollector.modifyDomains(guards);
 		}
-		
 		
 		return generateExtendedGuardFormulae(properties, invariants, allGuards);
 		
@@ -171,13 +177,14 @@ public class FormulaGenerator {
 	 * @param predicateCollector
 	 * @return
 	 */
-	public static ArrayList<String> multiGuardFormulae(PredicateCollector predicateCollector){
+	public static List<String> multiGuardFormulae(PredicateCollector predicateCollector){
 		ArrayList<String> formulae = new ArrayList<String>();
 		
 		String propsAndInvsPre = getPropsAndInvsPre(predicateCollector);
 		
-		List<String> allGuards = predicateCollector.getGuards()
+		List<String> allGuards = predicateCollector.getGuards().entrySet()
 				.stream()
+				.map(e->e.getValue())
 				.map(FormulaGenerator::getStringConjunction)
 				.collect(Collectors.toList());
 		
@@ -201,12 +208,12 @@ public class FormulaGenerator {
 		return formulae;
 	}
 	
-	public static ArrayList<String> assertionsAndTheorems(PredicateCollector predicateCollector){
+	public static List<String> assertionsAndTheorems(PredicateCollector predicateCollector){
 		String propsAndInv = getPropertyAndInvariantString(predicateCollector);
 		ArrayList<String> formulae = new ArrayList<>();
 
-		ArrayList<String> assertionsList = predicateCollector.getAssertions();
-		ArrayList<String> theoremsList = predicateCollector.getTheorems();
+		List<String> assertionsList = predicateCollector.getAssertions();
+		List<String> theoremsList = predicateCollector.getTheorems();
 		String allAssertions = getStringConjunction(assertionsList);
 		String allTheorems = getStringConjunction(theoremsList);
 		
@@ -306,8 +313,8 @@ public class FormulaGenerator {
 		return getPropertyPre(predicateCollector) + inv;
 	}
 	
-	private static ArrayList<String> generateExtendedGuardFormulae(String properties, String invariants, ArrayList<ArrayList<String>> allGuards){
-		ArrayList<String> formulae = new ArrayList<String>();
+	private static List<String> generateExtendedGuardFormulae(String properties, String invariants, Map<String, List<String>> allGuards){
+		List<String> formulae = new ArrayList<String>();
 		
 		// check for empty formulas
 		boolean emptyProperties = false;
@@ -339,7 +346,12 @@ public class FormulaGenerator {
 		
 		
 		// guards
-		for(ArrayList<String> guards : allGuards){
+		List<List<String>> allGuardsList = allGuards.entrySet()
+				.stream()
+				.map(e -> e.getValue())
+				.collect(Collectors.toList());
+									
+		for(List<String> guards : allGuardsList){
 			String guard = getStringConjunction(guards);
 			
 			// only continue if the guards are nonempty
