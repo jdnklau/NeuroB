@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import de.be4.classicalb.core.parser.BParser;
+import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.IBEvalElement;
@@ -63,6 +63,42 @@ public class FormulaGenerator {
 			return (IBEvalElement) ss.getModel().parseFormula(formula);
 		} catch(Exception e){
 			throw new NeuroBException("Could not set up command for evaluation from formula "+formula, e);
+		}
+	}
+	
+	/**
+	 * Takes a given predicate and primes the identifiers.
+	 * <p>
+	 * Example: "x>y & y>x" will be translated into "x'>y' & y'>x'"
+	 * <p>
+	 * This is mainly useful for before-after predicates.
+	 * @param ss
+	 * @param predicate
+	 * @return
+	 * @throws NeuroBException
+	 */
+	public static String generatePrimedPredicate(StateSpace ss, String predicate) throws NeuroBException{
+		return generatePrimedPredicate(ss, generateBCommandByMachineType(ss, predicate));
+	}
+	
+	/**
+	 * Takes a given {@link IBEvalElement} and primes the identifiers.
+	 * <p>
+	 * Example: "x>y & y>x" will be translated into "x'>y' & y'>x'"
+	 * <p>
+	 * This is mainly useful for before-after predicates.
+	 * @param ss
+	 * @param evalElement
+	 * @return
+	 * @throws NeuroBException
+	 */
+	public static String generatePrimedPredicate(StateSpace ss, IBEvalElement evalElement) throws NeuroBException{
+		try{
+			PrimePredicateCommand ppc = new PrimePredicateCommand(evalElement);
+			ss.execute(ppc);
+			return ppc.getPrimedPredicate().getCode();
+		}catch(Exception e) {
+			throw new NeuroBException("Could not build primed predicate from "+ evalElement.getCode(), e);
 		}
 	}
 	

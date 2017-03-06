@@ -11,12 +11,8 @@ import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.Start;
 import de.prob.animator.command.BeforeAfterPredicateCommand;
-import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.command.WeakestPreconditionCommand;
-import de.prob.animator.domainobjects.ClassicalB;
-import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.IBEvalElement;
-import de.prob.animator.domainobjects.IEvalElement;
 import de.prob.model.classicalb.Assertion;
 import de.prob.model.classicalb.PrettyPrinter;
 import de.prob.model.classicalb.Property;
@@ -31,7 +27,6 @@ import neurob.exceptions.NeuroBException;
 
 public class PredicateCollector {
 	private ArrayList<String> invariants;
-	private ArrayList<String> preds;
 	private ArrayList<ArrayList<String>> guards;
 	private ArrayList<String> axioms;
 	private ArrayList<String> properties;
@@ -41,12 +36,16 @@ public class PredicateCollector {
 	private ArrayList<String> weakestPreconditions;
 	private ArrayList<String> primedInvariants;
 	
+	private StateSpace ss;
+	
 	private MachineType machineType;
 	
 	private static final Logger log = LoggerFactory.getLogger(PredicateCollector.class);
 	
 	public PredicateCollector(StateSpace ss){
-		preds = new ArrayList<String>();
+		this.ss = ss;
+		machineType = MachineType.getTypeFromStateSpace(ss);
+		
 		invariants = new ArrayList<String>();
 		guards = new ArrayList<ArrayList<String>>();
 		axioms = new ArrayList<String>();
@@ -56,13 +55,12 @@ public class PredicateCollector {
 		beforeAfterPredicates = new ArrayList<String>();
 		weakestPreconditions = new ArrayList<String>();
 		primedInvariants = new ArrayList<String>();
-
-		machineType = MachineType.getTypeFromStateSpace(ss);
 		
-		collectPredicates(ss);
+		collectPredicates();
+		
 	}
 	
-	private void collectPredicates(StateSpace ss){
+	private void collectPredicates(){
 		AbstractElement comp = ss.getMainComponent();
 		// properties
 		for(Property x : comp.getChildrenOfType(Property.class)){
@@ -159,15 +157,13 @@ public class PredicateCollector {
 		
 		}
 
-//		for(IBEvalElement invariant : invCmds){			
-//			try{
-//				PrimePredicateCommand ppc = new PrimePredicateCommand(invariant);
-//				ss.execute(ppc);
-//				primedInvariants.add(ppc.getPrimedPredicate().getCode());
-//			}catch(Exception e) {
-//				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
-//			}
-//		}
+		for(IBEvalElement invariant : invCmds){			
+			try{
+				primedInvariants.add(FormulaGenerator.generatePrimedPredicate(ss, invariant));
+			}catch(Exception e) {
+				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
+			}
+		}
 			
 	}
 
@@ -230,11 +226,16 @@ public class PredicateCollector {
 	public void shuffleConjunctions(long seed){
 		Random rng = new Random(seed);
 		Collections.shuffle(invariants, rng);
+		rng = new Random(seed); // invariants and primed invariants should be in the same order
+		Collections.shuffle(primedInvariants, rng);
+		
 		Collections.shuffle(properties, rng);
-		Collections.shuffle(preds, rng);
 		Collections.shuffle(axioms, rng);
 		for(ArrayList<String> g : guards){
 			Collections.shuffle(g, rng);
 		}
+		Collections.shuffle(theorems, rng);
+		Collections.shuffle(assertions, rng);
+		Collections.shuffle(beforeAfterPredicates, rng);
 	}
 }
