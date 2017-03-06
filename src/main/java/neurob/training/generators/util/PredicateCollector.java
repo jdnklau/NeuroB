@@ -226,6 +226,7 @@ public class PredicateCollector {
 	 * Intention is to use this for image generation from the formulae, to get a greater variance of images produced. 
 	 * @param seed
 	 */
+	@Deprecated
 	public void shuffleConjunctions(long seed){
 		Random rng = new Random(seed);
 		Collections.shuffle(invariants, rng);
@@ -239,6 +240,6 @@ public class PredicateCollector {
 		}
 		Collections.shuffle(theorems, rng);
 		Collections.shuffle(assertions, rng);
-		Collections.shuffle(beforeAfterPredicates, rng);
+//		Collections.shuffle(beforeAfterPredicates, rng);
 	}
 }

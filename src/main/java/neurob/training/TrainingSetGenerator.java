@@ -232,14 +232,17 @@ public class TrainingSetGenerator {
 		formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
 		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
 		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
-		// get shuffles for images
-		if(fg instanceof ConvolutionFeatures){
-			for(long i=0; i<3; i++){
-				predc.shuffleConjunctions(i);
-				formulae = FormulaGenerator.extendedGuardFormulae(predc);
-				formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
-			}
-		}
+		// TODO: this should be implemented for convolution features, but for predicates only
+		// This should be implemented after restructuring training set generation
+		// into a more general format, that is not restricted to predicates only
+//		// get shuffles for images
+//		if(fg instanceof ConvolutionFeatures){
+//			for(long i=0; i<3; i++){
+//				predc.shuffleConjunctions(i);
+//				formulae = FormulaGenerator.extendedGuardFormulae(predc);
+//				formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
+//			}
+//		}
 		
 		log.info("\tGenerated {} formulae to solve.", formulae.size());
 		
