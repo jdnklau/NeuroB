@@ -132,30 +132,30 @@ public class PredicateCollector {
 			weakestPreconditions.put(inv, wpcs);
 		}
 		
-		// Weakest precondition for all invariants conjuncted
-		IBEvalElement invConjCmd = null;
-		String invConj = FormulaGenerator.getStringConjunction(invariants);
-		try {
-			invConjCmd = FormulaGenerator.generateBCommandByMachineType(ss, invConj);
-		} catch (NeuroBException e) {
-			log.warn("\tCould not set up EvalElement for invariant conjunct {} for weakest precondition calculation or priming", invConj, e);
-		}
-		if(invConjCmd !=null){
-			Map<String, String> wpcs = new HashMap<>();
-			for(BEvent x : comp.getChildrenOfType(BEvent.class)){
-				if(x.getName().equals("INITIALISATION"))
-					continue; // None for initialisation
-				
-				try{
-					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invConjCmd);
-					ss.execute(wpcc);
-					wpcs.put(x.getName(), wpcc.getWeakestPrecondition().getCode());
-				} catch(Exception e) {
-					log.warn("\tCould not build weakest precondition for {} by event {}.", invConjCmd.getCode(), x.getName(), e);
-				}
-			}
-			weakestPreconditions.put(invConj, wpcs);
-		}
+//		// Weakest precondition for all invariants conjuncted
+//		IBEvalElement invConjCmd = null;
+//		String invConj = FormulaGenerator.getStringConjunction(invariants);
+//		try {
+//			invConjCmd = FormulaGenerator.generateBCommandByMachineType(ss, invConj);
+//		} catch (NeuroBException e) {
+//			log.warn("\tCould not set up EvalElement for invariant conjunct {} for weakest precondition calculation or priming", invConj, e);
+//		}
+//		if(invConjCmd !=null){
+//			Map<String, String> wpcs = new HashMap<>();
+//			for(BEvent x : comp.getChildrenOfType(BEvent.class)){
+//				if(x.getName().equals("INITIALISATION"))
+//					continue; // None for initialisation
+//				
+//				try{
+//					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invConjCmd);
+//					ss.execute(wpcc);
+//					wpcs.put(x.getName(), wpcc.getWeakestPrecondition().getCode());
+//				} catch(Exception e) {
+//					log.warn("\tCould not build weakest precondition for {} by event {}.", invConjCmd.getCode(), x.getName(), e);
+//				}
+//			}
+//			weakestPreconditions.put(invConj, wpcs);
+//		}
 		
 		
 		if(machineType != MachineType.EVENTB)
@@ -205,9 +205,6 @@ public class PredicateCollector {
 	 * <p>
 	 * Each invariant hereby references a map with event names as keys and the weakest precondition
 	 * of the invariant wrt the event as values.
-	 * Special entry is the key {@code FormulaGenerator.getStringConjunction(this.getInvariants)},
-	 * which holds the event/weakest precondition mapping for the invariant conjunction.
-	 * 
 	 * @return A map, that pairs an invariant with a map of events to weakest precondition.
 	 */
 	public Map<String, Map<String, String>> getWeakestPreConditions(){ return weakestPreconditions; }
