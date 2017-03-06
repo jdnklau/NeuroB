@@ -157,13 +157,13 @@ public class PredicateCollector {
 		
 		}
 
-		for(IBEvalElement invariant : invCmds){			
-			try{
-				primedInvariants.add(FormulaGenerator.generatePrimedPredicate(ss, invariant));
-			}catch(Exception e) {
-				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
-			}
-		}
+//		for(IBEvalElement invariant : invCmds){			
+//			try{
+//				primedInvariants.add(FormulaGenerator.generatePrimedPredicate(ss, invariant));
+//			}catch(Exception e) {
+//				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
+//			}
+//		}
 			
 	}
 
