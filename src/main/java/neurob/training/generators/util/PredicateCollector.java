@@ -142,6 +142,9 @@ public class PredicateCollector {
 			
 		}
 		
+		if(machineType != MachineType.EVENTB)
+			return; // FIXME: allow usage of classical B, too
+		
 		// Before/After predicates
 		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 			if(x.getName().equals("INITIALISATION"))
@@ -157,13 +160,13 @@ public class PredicateCollector {
 		
 		}
 
-//		for(IBEvalElement invariant : invCmds){			
-//			try{
-//				primedInvariants.add(FormulaGenerator.generatePrimedPredicate(ss, invariant));
-//			}catch(Exception e) {
-//				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
-//			}
-//		}
+		for(IBEvalElement invariant : invCmds){			
+			try{
+				primedInvariants.add(FormulaGenerator.generatePrimedPredicate(ss, invariant));
+			}catch(Exception e) {
+				log.warn("\tCould not build primed invariant from {}", invariant.getCode(), e);
+			}
+		}
 			
 	}
 
