@@ -38,6 +38,7 @@ public class FormulaGenerator {
 			switch(mt){
 			case EVENTB:
 				cmd = new EventB(formula);
+				break;
 			default:
 			case CLASSICALB:
 				cmd = new ClassicalB(formula);
