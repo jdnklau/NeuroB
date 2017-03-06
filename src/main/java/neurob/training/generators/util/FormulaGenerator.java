@@ -1,6 +1,7 @@
 package neurob.training.generators.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -204,6 +205,87 @@ public class FormulaGenerator {
 		}
 		
 				
+		
+		return formulae;
+	}
+	
+	/**
+	 * Returns a list of formulae that revolve around enabling analysis.
+	 * <p>
+	 * For two events, e1 and e2, the following formulae are created:
+	 * <ul>
+	 * <li> executing e1 implies e2 is enabled
+	 * <li> executing e1 implies e2 is disabled
+	 * <li> e2 is enabled iff e1 is executed
+	 * <li> e2 is disabled iff e1 is executed
+	 * </ul>
+	 * @param predicateCollector
+	 * @return
+	 */
+	public static List<String> enablingRelationships(PredicateCollector predicateCollector){
+		List<String> formulae = new ArrayList<>();
+		
+		// unsupported for non-EventB
+		if(predicateCollector.getMachineType() != MachineType.EVENTB)
+			return formulae;
+		
+		String PropsAndInvsPre = getPropsAndInvsPre(predicateCollector);
+		String PrimedInvs = getStringConjunction(
+				predicateCollector.getPrimedInvariants().entrySet()
+				.stream()
+				.map(e->e.getValue())
+				.collect(Collectors.toList()));
+		String PrimedInvsPre = (PrimedInvs.isEmpty() ? "" : PrimedInvs+" & "); 
+		
+		/*
+		 * Generate for each pair of events formulae whether one
+		 * is enabled in the next state after executing the other
+		 * 
+		 * For this we need the guards of all events,
+		 * the events for which we got before after predicates,
+		 * the respective before after predicates,
+		 * primed guards
+		 */
+		
+		List<String> events = predicateCollector.getGuards().keySet().stream().collect(Collectors.toList());
+		Map<String, List<String>> guardConjuncts = predicateCollector.getGuards();
+		
+		// get conjuncted guards
+		Map<String, String> guards = new HashMap<>();
+		for(String event : events){
+			guards.put(event, getStringConjunction(guardConjuncts.get(event)));
+		}
+		
+		// befpre after predicates
+		Map<String, String> beforeAfter = predicateCollector.getBeforeAfterPredicates();
+		
+		// get primed guards of events we also got before/after predicates for
+		Map<String, String> primedGuards = new HashMap<>();
+		for(String event : beforeAfter.keySet().stream().collect(Collectors.toList())){
+			try {
+				primedGuards.put(event, generatePrimedPredicate(
+						predicateCollector.accessStateSpace(),
+						getStringConjunction(guardConjuncts.get(event))));
+			} catch (NeuroBException e) {
+				log.warn("\t{}", e.getMessage(), e);
+			}
+		}
+		
+		
+		// set up formulae
+		for(String event : beforeAfter.keySet()){
+			String g1 = guards.get(event);
+			
+			for(String primedEvent : primedGuards.keySet()){
+				String g2 = primedGuards.get(primedEvent);
+				String ba = beforeAfter.get(primedEvent);
+
+				formulae.add(PropsAndInvsPre + "((("+g1+") & ("+ba+")) => ("+g2+"))");
+				formulae.add(PropsAndInvsPre + "((("+g1+") & ("+ba+")) => not("+g2+"))");
+				formulae.add(PropsAndInvsPre + "((("+g1+") & ("+ba+")) <=> ("+g2+"))");
+				formulae.add(PropsAndInvsPre + "((("+g1+") & ("+ba+")) <=> not("+g2+"))");
+			}
+		}
 		
 		return formulae;
 	}

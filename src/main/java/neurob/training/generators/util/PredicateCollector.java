@@ -212,6 +212,9 @@ public class PredicateCollector {
 	 * @return A map of invariants to their primed version
 	 */
 	public Map<String, String> getPrimedInvariants(){ return primedInvariants; }
+	
+	
+	public MachineType getMachineType(){ return machineType; }
 	public StateSpace accessStateSpace(){ return ss; }
 
 	
