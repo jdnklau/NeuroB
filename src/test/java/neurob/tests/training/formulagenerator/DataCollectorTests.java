@@ -1,4 +1,4 @@
-package neurob.tests.training;
+package neurob.tests.training.formulagenerator;
 
 import static org.junit.Assert.*;
 
@@ -67,23 +67,5 @@ public class DataCollectorTests {
 		assertEquals("Not enough formulae created", 65, formulae.size());
 		
 		ss.kill();
-	}
-	
-	@Test
-	public void classicalBCommandByMachineTypeTest() throws NeuroBException{
-		String pred = "x>y & y>x";
-		
-		IBEvalElement evalElem = FormulaGenerator.generateBCommandByMachineType(MachineType.CLASSICALB, pred);
-		
-		assertEquals("Wrong object created!", ClassicalB.class, evalElem.getClass());
-	}
-	
-	@Test
-	public void eventBCommandByMachineTypeTest() throws NeuroBException{
-		String pred = "x>y & y>x";
-		
-		IBEvalElement evalElem = FormulaGenerator.generateBCommandByMachineType(MachineType.EVENTB, pred);
-		
-		assertEquals("Wrong object created!", EventB.class, evalElem.getClass());
 	}
 }
