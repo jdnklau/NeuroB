@@ -12,9 +12,14 @@ import org.junit.Test;
 import com.google.inject.Inject;
 
 import de.prob.Main;
+import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
+import neurob.core.util.MachineType;
+import neurob.exceptions.NeuroBException;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
 
@@ -62,5 +67,23 @@ public class DataCollectorTests {
 		assertEquals("Not enough formulae created", 65, formulae.size());
 		
 		ss.kill();
+	}
+	
+	@Test
+	public void classicalBCommandByMachineTypeTest() throws NeuroBException{
+		String pred = "x>y & y>x";
+		
+		IBEvalElement evalElem = FormulaGenerator.generateBCommandByMachineType(MachineType.CLASSICALB, pred);
+		
+		assertEquals("Wrong object created!", ClassicalB.class, evalElem.getClass());
+	}
+	
+	@Test
+	public void eventBCommandByMachineTypeTest() throws NeuroBException{
+		String pred = "x>y & y>x";
+		
+		IBEvalElement evalElem = FormulaGenerator.generateBCommandByMachineType(MachineType.EVENTB, pred);
+		
+		assertEquals("Wrong object created!", EventB.class, evalElem.getClass());
 	}
 }

@@ -36,7 +36,6 @@ import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
-import neurob.training.generators.util.PredicateDumpData;
 
 /**
  * Class to generate the training data for the neural net.
@@ -219,7 +218,7 @@ public class TrainingSetGenerator {
 			// decide between Classical and EventB
 			String fileName = sourceFile.getFileName().toString();
 			String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-			if(ext.equals("eventb"))
+			if(ext.equals("bcm"))
 				ss = api.eventb_load(sourceFile.toString());
 			else
 				ss = api.b_load(sourceFile.toString());
