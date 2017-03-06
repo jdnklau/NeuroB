@@ -28,13 +28,14 @@ import neurob.exceptions.NeuroBException;
 
 public class PredicateCollector {
 	private List<String> invariants;
+	private List<String> events;
 	private Map<String, List<String>> guards;
 	private List<String> axioms;
 	private List<String> properties;
 	private List<String> assertions;
 	private List<String> theorems;
-	private List<String> beforeAfterPredicates;
-	private Map<String, List<String>> weakestPreconditions;
+	private Map<String, String> beforeAfterPredicates;
+	private Map<String, Map<String, String>> weakestPreconditions;
 	private Map<String, String> primedInvariants;
 	
 	private StateSpace ss;
@@ -46,14 +47,15 @@ public class PredicateCollector {
 	public PredicateCollector(StateSpace ss){
 		this.ss = ss;
 		machineType = MachineType.getTypeFromStateSpace(ss);
-		
+
 		invariants = new ArrayList<>();
+		events = new ArrayList<>();
 		guards = new HashMap<String, List<String>>();
 		axioms = new ArrayList<>();
 		properties = new ArrayList<>();
 		assertions = new ArrayList<>();
 		theorems = new ArrayList<>();
-		beforeAfterPredicates = new ArrayList<>();
+		beforeAfterPredicates = new HashMap<>();
 		weakestPreconditions = new HashMap<>();
 		primedInvariants = new HashMap<>();
 		
@@ -83,6 +85,8 @@ public class PredicateCollector {
 		
 		// for each event collect guards
 		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
+			events.add(x.getName());
+			
 			ArrayList<String> event = new ArrayList<String>();
 			for(Guard g : x.getChildrenOfType(Guard.class)){
 				event.add(g.getFormula().getCode());
@@ -111,7 +115,7 @@ public class PredicateCollector {
 			IBEvalElement invCmd = invCmds.get(inv);
 			
 
-			List<String> wpcs = new ArrayList<>();
+			Map<String, String> wpcs = new HashMap<>();
 			for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 				if(x.getName().equals("INITIALISATION"))
 					continue; // None for initialisation
@@ -119,7 +123,7 @@ public class PredicateCollector {
 				try{
 					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invCmd);
 					ss.execute(wpcc);
-					wpcs.add(wpcc.getWeakestPrecondition().getCode());
+					wpcs.put(x.getName(), wpcc.getWeakestPrecondition().getCode());
 				} catch(Exception e) {
 					log.warn("\tCould not build weakest precondition for {} by event {}.", invCmd.getCode(), x.getName(), e);
 				}
@@ -137,7 +141,7 @@ public class PredicateCollector {
 			log.warn("\tCould not set up EvalElement for invariant conjunct {} for weakest precondition calculation or priming", invConj, e);
 		}
 		if(invConjCmd !=null){
-			List<String> wpcs = new ArrayList<>();
+			Map<String, String> wpcs = new HashMap<>();
 			for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 				if(x.getName().equals("INITIALISATION"))
 					continue; // None for initialisation
@@ -145,7 +149,7 @@ public class PredicateCollector {
 				try{
 					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invConjCmd);
 					ss.execute(wpcc);
-					wpcs.add(wpcc.getWeakestPrecondition().getCode());
+					wpcs.put(x.getName(), wpcc.getWeakestPrecondition().getCode());
 				} catch(Exception e) {
 					log.warn("\tCould not build weakest precondition for {} by event {}.", invConjCmd.getCode(), x.getName(), e);
 				}
@@ -165,7 +169,7 @@ public class PredicateCollector {
 			try{
 				BeforeAfterPredicateCommand bapc = new BeforeAfterPredicateCommand(x.getName());
 				ss.execute(bapc);
-				beforeAfterPredicates.add(bapc.getBeforeAfterPredicate().getCode());
+				beforeAfterPredicates.put(x.getName(), bapc.getBeforeAfterPredicate().getCode());
 			} catch(Exception e) {
 				log.warn("\tCould not build Before After Predicate for event {}.", x.getName(), e);
 			}
@@ -183,16 +187,38 @@ public class PredicateCollector {
 			
 	}
 	
+	/**
+	 * @return A Map, that pairs an event name (key) with a list of its respective guards
+	 */
 	public Map<String, List<String>> getGuards(){ return guards; }
 	public List<String> getInvariants(){ return invariants; }
+	public List<String> getEvenNames(){return events; }
 	public List<String> getProperties(){ return properties; }
 	public List<String> getAssertions(){ return assertions; }
 	public List<String> getTheorems(){ return theorems; }
-	public List<String> getBeforeAfterPredicates(){ return beforeAfterPredicates; }
-	public Map<String, List<String>> getWeakestPreConditions(){ return weakestPreconditions; }
+	/**
+	 * @return A map, pairing each event (key) with its respective before/after predicate.
+	 */
+	public Map<String, String> getBeforeAfterPredicates(){ return beforeAfterPredicates; }
+	/**
+	 * Returns a map, that pairs an invariant with a map of events to weakest precondition.
+	 * <p>
+	 * Each invariant hereby references a map with event names as keys and the weakest precondition
+	 * of the invariant wrt the event as values.
+	 * Special entry is the key {@code FormulaGenerator.getStringConjunction(this.getInvariants)},
+	 * which holds the event/weakest precondition mapping for the invariant conjunction.
+	 * 
+	 * @return A map, that pairs an invariant with a map of events to weakest precondition.
+	 */
+	public Map<String, Map<String, String>> getWeakestPreConditions(){ return weakestPreconditions; }
+	/**
+	 * @return A map of invariants to their primed version
+	 */
 	public Map<String, String> getPrimedInvariants(){ return primedInvariants; }
 	public StateSpace accessStateSpace(){ return ss; }
 
+	
+	
 	/**
 	 * Modifies an ArrayList of predicates to have only Numbers of infinite domains.
 	 * This means, that types like NAT and INT are replaced by NATURAL and INTEGER in the typing predicates.
