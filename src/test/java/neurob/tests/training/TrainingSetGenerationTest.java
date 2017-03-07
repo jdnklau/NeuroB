@@ -49,7 +49,7 @@ public class TrainingSetGenerationTest {
 		
 		ArrayList<Integer> trueLabels = analysis.getTrueLabelCounters();
 		assertEquals("Class 0 counter does not match", 0, trueLabels.get(0).intValue());
-		assertEquals("Class 1 counter does not match", 154, trueLabels.get(1).intValue());
+		assertEquals("Class 1 counter does not match", 137, trueLabels.get(1).intValue());
 		
 		Files.deleteIfExists(formulaeGenNBTrain);
 	}

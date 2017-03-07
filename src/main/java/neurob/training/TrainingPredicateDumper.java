@@ -7,6 +7,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 
 import de.prob.Main;
-import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.exception.ProBError;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
@@ -57,7 +58,7 @@ public class TrainingPredicateDumper {
 	private final String pdumpExt = ".pdump"; // extension for predicate dump files
 	private int samplingSize;
 	
-	private static final Logger log = LoggerFactory.getLogger(TrainingSetGenerator.class);
+	private static final Logger log = LoggerFactory.getLogger(TrainingPredicateDumper.class);
 	
 	@Inject
 	public TrainingPredicateDumper(){
@@ -195,7 +196,7 @@ public class TrainingPredicateDumper {
 		}
 		
 		try {
-			createDump(ss, dataFilePath);
+			createDump(mt, ss, dataFilePath);
 		} catch (NeuroBException e) {
 			log.error("\t{}", e.getMessage(), e);
 		}
@@ -237,9 +238,9 @@ public class TrainingPredicateDumper {
 		return false;
 	}
 	
-	private void createDump(StateSpace ss, Path targetFile) throws NeuroBException{
+	private void createDump(MachineType mt, StateSpace ss, Path targetFile) throws NeuroBException{
 		// For the formulae created
-		ArrayList<String> formulae;
+		List<String> formulae;
 		
 		// Get different formulas
 		PredicateCollector predc = new PredicateCollector(ss);
@@ -249,18 +250,20 @@ public class TrainingPredicateDumper {
 		// new data
 		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
 		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
+		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
+		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
 		
 		log.info("\tGenerated {} predicates to dump into {}", formulae.size(), targetFile);
 		
 		// generate data per formula
-		ArrayList<String> results = new ArrayList<String>();
+		List<String> results = new ArrayList<String>();
 		int count = formulae.size();
 		int curr = 1;
 		for( String formula : formulae) {
 			log.info("\tAt {}/{}...", curr++, count);
 			try {
 				// labelling:predicate
-				results.add(createDumpResult(ss, formula));
+				results.add(createDumpResult(mt, ss, formula));
 			} catch (NeuroBException e) {
 				log.error("\t{}", e.getMessage(), e);
 			} catch (IllegalStateException e) {
@@ -296,9 +299,9 @@ public class TrainingPredicateDumper {
 		
 	}
 
-	private String createDumpResult(StateSpace stateSpace, String formula) throws NeuroBException {
+	private String createDumpResult(MachineType mt, StateSpace stateSpace, String formula) throws NeuroBException {
 		StringBuilder res = new StringBuilder();
-		ClassicalB pred = new ClassicalB(formula);
+		IBEvalElement pred = FormulaGenerator.generateBCommandByMachineType(stateSpace, formula);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
 		long ProBTime = 0;

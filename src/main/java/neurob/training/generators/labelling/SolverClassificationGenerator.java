@@ -10,7 +10,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import com.google.inject.Inject;
 
 import de.prob.Main;
-import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
@@ -19,6 +19,7 @@ import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
+import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
 /**
@@ -85,13 +86,7 @@ public class SolverClassificationGenerator implements LabelGenerator, PredicateD
 	@Override
 	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
 		boolean label;
-		ClassicalB formula;
-		// Set up formula to solve
-		try {
-			formula = new ClassicalB(predicate);
-		} catch(Exception e) {
-			throw new NeuroBException("Could not create command from formula "+predicate, e);
-		}
+		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Use specific solver
 		switch(solver){

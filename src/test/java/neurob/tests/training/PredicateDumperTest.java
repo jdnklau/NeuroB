@@ -32,7 +32,7 @@ public class PredicateDumperTest {
 		
 		Files.deleteIfExists(formulaeGenPDump);
 		
-		assertEquals("Amount of dumped predicates does not match", 89, entries); 
+		assertEquals("Amount of dumped predicates does not match", 113, entries); 
 	}
 
 }

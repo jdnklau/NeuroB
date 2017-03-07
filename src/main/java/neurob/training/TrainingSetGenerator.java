@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -36,7 +37,6 @@ import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
-import neurob.training.generators.util.PredicateDumpData;
 
 /**
  * Class to generate the training data for the neural net.
@@ -157,12 +157,12 @@ public class TrainingSetGenerator {
 	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile, boolean recursion){
 		log.info("Generating training set from {} in {}", sourceDirectory, targetDirectory);
 		// prepare exclude data
-		ArrayList<Path> excludes = new ArrayList<Path>();
+		List<Path> excludes = new ArrayList<Path>();
 		if(excludeFile != null){
 //			Path excludeFileDirectory = excludeFile.getParent();
 			try(Stream<String> exc = Files.lines(excludeFile)){
 				excludes.addAll(
-						(ArrayList<Path>) exc
+						(List<Path>) exc
 							.filter(s -> !s.isEmpty())
 							.map(s -> Paths.get(s)).collect(Collectors.toList()));
 			} catch (IOException e) {
@@ -211,7 +211,7 @@ public class TrainingSetGenerator {
 		// StateSpace and main component
 		StateSpace ss = null;
 		// For the formula and ProB command to use
-		ArrayList<String> formulae;
+		List<String> formulae;
 		
 		// Access source file
 		try{
@@ -219,7 +219,7 @@ public class TrainingSetGenerator {
 			// decide between Classical and EventB
 			String fileName = sourceFile.getFileName().toString();
 			String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-			if(ext.equals("eventb"))
+			if(ext.equals("bcm"))
 				ss = api.eventb_load(sourceFile.toString());
 			else
 				ss = api.b_load(sourceFile.toString());
@@ -230,22 +230,26 @@ public class TrainingSetGenerator {
 		// Get different formulas
 		PredicateCollector predc = new PredicateCollector(ss);
 		formulae = FormulaGenerator.extendedGuardFormulae(predc);
-		formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
 		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
 		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
-		// get shuffles for images
-		if(fg instanceof ConvolutionFeatures){
-			for(long i=0; i<3; i++){
-				predc.shuffleConjunctions(i);
-				formulae = FormulaGenerator.extendedGuardFormulae(predc);
-				formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
-			}
-		}
+		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
+		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
+		// TODO: this should be implemented for convolution features, but for predicates only
+		// This should be implemented after restructuring training set generation
+		// into a more general format, that is not restricted to predicates only
+//		// get shuffles for images
+//		if(fg instanceof ConvolutionFeatures){
+//			for(long i=0; i<3; i++){
+//				predc.shuffleConjunctions(i);
+//				formulae = FormulaGenerator.extendedGuardFormulae(predc);
+//				formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
+//			}
+//		}
 		
 		log.info("\tGenerated {} formulae to solve.", formulae.size());
 		
 		// generate data per formula
-		ArrayList<String> results = new ArrayList<String>();
+		List<String> results = new ArrayList<String>();
 		int count = formulae.size();
 		int curr = 1;
 		for( String formula : formulae) {
