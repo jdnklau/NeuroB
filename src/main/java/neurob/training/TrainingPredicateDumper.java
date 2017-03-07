@@ -190,7 +190,7 @@ public class TrainingPredicateDumper {
 			throw e; // forward this
 		} catch(Exception e){
 			// anything else is the real problem
-			log.error("\tUnexpected, critical error): {}", e.getMessage(), e);
+			log.error("\tUnexpected, critical error: {}", e.getMessage(), e);
 			log.debug("\tSkipping this entry, but system may not be stable anymore.");
 			return;
 		}

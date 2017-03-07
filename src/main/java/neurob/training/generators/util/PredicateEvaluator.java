@@ -80,7 +80,7 @@ public class PredicateEvaluator {
 		
 		// Check decidability
 		time = PredicateEvaluator.getCommandExecutionTimeInNanoSeconds(stateSpace, formula);
-			
+		
 		try {
 			// turn of solver preference
 			stateSpace.execute(new SetPreferenceCommand(solverPreference, "false")); // and turn it off again
