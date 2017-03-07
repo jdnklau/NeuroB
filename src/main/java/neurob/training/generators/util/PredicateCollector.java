@@ -111,25 +111,24 @@ public class PredicateCollector {
 		}
 		
 		// weakest preconditions for each invariant
-		for(String inv : invCmds.keySet()){
-			IBEvalElement invCmd = invCmds.get(inv);
+		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
+			if(x.getName().equals("INITIALISATION"))
+				continue; // None for initialisation
 			
-
 			Map<String, String> wpcs = new HashMap<>();
-			for(BEvent x : comp.getChildrenOfType(BEvent.class)){
-				if(x.getName().equals("INITIALISATION"))
-					continue; // None for initialisation
+			for(String inv : invCmds.keySet()){
+				IBEvalElement invCmd = invCmds.get(inv);
 				
 				try{
 					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invCmd);
 					ss.execute(wpcc);
-					wpcs.put(x.getName(), wpcc.getWeakestPrecondition().getCode());
+					wpcs.put(inv, wpcc.getWeakestPrecondition().getCode());
 				} catch(Exception e) {
 					log.warn("\tCould not build weakest precondition for {} by event {}.", invCmd.getCode(), x.getName(), e);
 				}
 				
 			}
-			weakestPreconditions.put(inv, wpcs);
+			weakestPreconditions.put(x.getName(), wpcs);
 		}
 		
 //		// Weakest precondition for all invariants conjuncted
@@ -201,11 +200,11 @@ public class PredicateCollector {
 	 */
 	public Map<String, String> getBeforeAfterPredicates(){ return beforeAfterPredicates; }
 	/**
-	 * Returns a map, that pairs an invariant with a map of events to weakest precondition.
+	 * Returns a map, that pairs an event name with a map of invariants to respective weakest precondition.
 	 * <p>
-	 * Each invariant hereby references a map with event names as keys and the weakest precondition
+	 * Each event name hereby references a map with invariants as keys and the weakest precondition
 	 * of the invariant wrt the event as values.
-	 * @return A map, that pairs an invariant with a map of events to weakest precondition.
+	 * @return A map, that pairs an event with a map of invariants to weakest precondition.
 	 */
 	public Map<String, Map<String, String>> getWeakestPreConditions(){ return weakestPreconditions; }
 	/**
