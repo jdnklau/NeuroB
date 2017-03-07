@@ -230,9 +230,10 @@ public class TrainingSetGenerator {
 		// Get different formulas
 		PredicateCollector predc = new PredicateCollector(ss);
 		formulae = FormulaGenerator.extendedGuardFormulae(predc);
-		formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
 		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
 		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
+		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
+		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
 		// TODO: this should be implemented for convolution features, but for predicates only
 		// This should be implemented after restructuring training set generation
 		// into a more general format, that is not restricted to predicates only

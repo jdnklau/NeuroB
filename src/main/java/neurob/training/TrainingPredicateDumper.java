@@ -157,14 +157,14 @@ public class TrainingPredicateDumper {
 		Path fullTargetDirectory;
 		Path dataFilePath;
 		MachineType mt;
-		/*if(ext.equals("mch")){
+		if(ext.equals("mch")){
 			log.info("Dumping predicates from {}", sourceFile);
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("ClassicalB").resolve(sourceFile.getParent());
 			dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+pdumpExt);
 			// set machine type
 			mt = MachineType.CLASSICALB;
-		} else*/ if(ext.equals("bcm")){
+		} else if(ext.equals("bcm")){
 			log.info("Dumping predicates from {}", sourceFile);
     		// get full target directory
     		fullTargetDirectory = targetDir.resolve("EventB").resolve(sourceFile.getParent());
@@ -250,6 +250,8 @@ public class TrainingPredicateDumper {
 		// new data
 		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
 		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
+		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
+		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
 		
 		log.info("\tGenerated {} predicates to dump into {}", formulae.size(), targetFile);
 		
