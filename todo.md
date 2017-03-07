@@ -11,17 +11,14 @@
     - save files to disk by default
     - more generic handling of data preprocessing if possible
 - training set generation
-    - when conjuncting invariants from machines, make sure each invariant is correctly set in parenthesis
     - add function to truncate data.csv to contain all classes more evenly
     - model check machines
         - generate 100 states per solver
         - give credit to fastest one
+        - future work?
     - optimise
     - data augmentation for larger training sets
-        - access/generate proof obligations
     - more distinct support for convolutional models
-    - code images
-        - ~~translating image directory back to csv~~
     - store training data in binary option, instead of csv or directory hierarchy
         - this means hand crafted data pipeline
         - benefits:
