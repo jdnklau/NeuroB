@@ -134,7 +134,7 @@ public class FormulaGenerator {
 	 * {@code
 	 * // load machine and main component ...
 	 * PredicateCollector pc = new PredicateCollector(mainComponent);
-	 * ArrayList<String> formulae = FormulaGenerator.extendedGuardFormulae(pc);
+	 * List<String> formulae = FormulaGenerator.extendedGuardFormulae(pc);
 	 * for(String formula : formulae) {
 	 *     // do stuff
 	 * }
@@ -215,12 +215,17 @@ public class FormulaGenerator {
 	/**
 	 * Returns a list of formulae that revolve around enabling analysis.
 	 * <p>
-	 * For two events, e1 and e2, the following formulae are created:
+	 * The formulae created:
+	 * <br> Let P be the concatenation of properties and invariants.
+	 * Let g1, g2 be guards of two events, 
+	 * Let ba be the before/after predicate for the event of g1. 
 	 * <ul>
-	 * <li> executing e1 implies e2 is enabled
-	 * <li> executing e1 implies e2 is disabled
-	 * <li> e2 is enabled iff e1 is executed
-	 * <li> e2 is disabled iff e1 is executed
+	 * <li> P & g1 & ba & g2 [Events enabled after executing another first]
+	 * <li> P & g1 & ba & ~g2 [Events disabled after executing another first]
+	 * <li> P & ~(g1 & ba) & g2
+	 * <li> P & ~(g1 & ba) & ~g2
+	 * <li> P & (~(g1 & ba) => g2)
+	 * <li> P & (~(g1 & ba) => ~g2)
 	 * </ul>
 	 * @param predicateCollector
 	 * @return
@@ -284,8 +289,8 @@ public class FormulaGenerator {
 //				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" <=> "+g2+")");
 //				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" <=> not("+g2+"))");
 				
-				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") & "+g2+")");
-				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") & not("+g2+"))");
+				formulae.add(PropsAndInvsPre + "not("+g1+" & "+ba+") & "+g2+"");
+				formulae.add(PropsAndInvsPre + "not("+g1+" & "+ba+") & not("+g2+")");
 				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") => "+g2+")");
 				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") => not("+g2+"))");
 //				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") <=> "+g2+")");
@@ -297,6 +302,32 @@ public class FormulaGenerator {
 		return formulae;
 	}
 	
+	/**
+	 * Returns a list of invariant preservation proof obligations and other formulae inspired by those.
+	 * <p>
+	 * The following formulae are generated:
+	 * <br>Let P be the properties. Let i be an invariant or the conjunction of all invariants. 
+	 * Let W be the weakest precondition of the respective invariant for an event in the machine.
+	 * <ul>
+	 * <li> P & i & W
+	 * <li> P & i & ~W
+	 * <li> P & (~i => W)
+	 * <li> P & (~i => ~W)
+	 * </ul>
+	 * <p>
+	 * Further, let g be a guard of an event and ba the events before/after predicate.
+	 * Let j be the invariant after the event (j:=i')
+	 * <br>
+	 * The following additional formulae are generated for EventB machines:
+	 * <ul>
+	 * <li> P & i & g & ba & j 
+	 * <li> P & i & g & ba & ~j
+	 * <li> P & (~(i & g & ba) => j)
+	 * <li> P & (~(i & g & ba) => ~j)  
+	 * </ul>
+	 * @param predicateCollector
+	 * @return
+	 */
 	public static List<String> invariantPreservations(PredicateCollector predicateCollector){
 		List<String> formulae = new ArrayList<>();
 		
@@ -321,10 +352,10 @@ public class FormulaGenerator {
 				String inv = invEntry.getKey();
 				String wpc = invEntry.getValue();
 
-				formulae.add(PropsPre+ "("+inv+" & "+wpc+")");
-				formulae.add(PropsPre+ "("+inv+" => "+wpc+")");
-				formulae.add(PropsPre+ "("+inv+" & not("+wpc+"))");
-				formulae.add(PropsPre+ "("+inv+" => not("+wpc+"))");
+				formulae.add(PropsPre+ inv+" & "+wpc);
+				formulae.add(PropsPre+ "(not("+inv+") => "+wpc+")");
+				formulae.add(PropsPre+ inv+" & not("+wpc+")");
+				formulae.add(PropsPre+ "(not("+inv+") => not("+wpc+"))");
 				
 				weakestPres.add(wpc);
 			}
@@ -334,9 +365,9 @@ public class FormulaGenerator {
 			
 			String negInvs = "not("+Invs+")";
 
-			formulae.add(PropsPre+"("+Invs + " & "+getStringConjunction(weakestPres)+")");
+			formulae.add(PropsPre+Invs + " & "+getStringConjunction(weakestPres));
 			formulae.add(PropsPre+"("+negInvs + " => "+getStringConjunction(weakestPres)+")");
-			formulae.add(PropsPre+"("+Invs + " & not("+getStringConjunction(weakestPres)+"))");
+			formulae.add(PropsPre+Invs + " & not("+getStringConjunction(weakestPres)+")");
 			formulae.add(PropsPre+"("+negInvs + " => not("+getStringConjunction(weakestPres)+"))");
 		}
 		
@@ -358,10 +389,10 @@ public class FormulaGenerator {
 				String g = getStringConjunction(guards.get(event)); // the guard of the event
 				String ba = beforeAfter.get(event);
 
-				formulae.add(PropsPre+"("+unprimedInv+" & "+g+" & "+ba+" & "+primedInv+")");
-				formulae.add("not("+PropsPre+"("+unprimedInv+" & "+g+" & "+ba+") => "+primedInv+")");
-				formulae.add(PropsPre+"("+unprimedInv+" & "+g+" & "+ba+" & not("+primedInv+"))");
-				formulae.add("not("+PropsPre+"("+unprimedInv+" & "+g+" & "+ba+") => not("+primedInv+"))");
+				formulae.add(PropsPre+unprimedInv+" & "+g+" & "+ba+" & "+primedInv);
+				formulae.add(PropsPre+"(not("+unprimedInv+" & "+g+" & "+ba+") => "+primedInv+")");
+				formulae.add(PropsPre+unprimedInv+" & "+g+" & "+ba+" & not("+primedInv+")");
+				formulae.add(PropsPre+"(not("+unprimedInv+" & "+g+" & "+ba+") => not("+primedInv+"))");
 				
 			}
 		}
@@ -370,6 +401,20 @@ public class FormulaGenerator {
 		return formulae;
 	}
 	
+	/**
+	 * Generates a list of predicates from the assertions and theorems in the machine.
+	 * <p>
+	 * Let P be the propterties and invariant. Let A be an assertion or theorem.
+	 * <br>
+	 * The formulae generated are:
+	 * <ul>
+	 * <li>P & A
+	 * <li>P & ~A
+	 * <li>~P => A
+	 * </ul>
+	 * @param predicateCollector
+	 * @return
+	 */
 	public static List<String> assertionsAndTheorems(PredicateCollector predicateCollector){
 		String propsAndInv = getPropertyAndInvariantString(predicateCollector);
 		ArrayList<String> formulae = new ArrayList<>();
@@ -478,6 +523,7 @@ public class FormulaGenerator {
 		
 		return getPropertyPre(predicateCollector) + inv;
 	}
+	
 	
 	private static List<String> generateExtendedGuardFormulae(String properties, String invariants, Map<String, List<String>> allGuards){
 		List<String> formulae = new ArrayList<String>();
