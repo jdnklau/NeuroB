@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -256,7 +257,7 @@ public class FormulaGenerator {
 			guards.put(event, getStringConjunction(guardConjuncts.get(event)));
 		}
 		
-		// befpre after predicates
+		// before after predicates
 		Map<String, String> beforeAfter = predicateCollector.getBeforeAfterPredicates();
 		
 		// get primed guards of events we also got before/after predicates for
@@ -280,12 +281,77 @@ public class FormulaGenerator {
 				String g2 = primedGuards.get(primedEvent);
 				String ba = beforeAfter.get(primedEvent);
 
-				formulae.add(PropsAndInvsPre + "((("+g1+") & ("+ba+")) => ("+g2+"))");
-				formulae.add(PropsAndInvsPre + "((("+g1+") & ("+ba+")) => not("+g2+"))");
-				formulae.add(PropsAndInvsPre + "((("+g1+") & ("+ba+")) <=> ("+g2+"))");
-				formulae.add(PropsAndInvsPre + "((("+g1+") & ("+ba+")) <=> not("+g2+"))");
+				formulae.add(PropsAndInvsPre + "(("+g1+" & "+ba+") => "+g2+")");
+				formulae.add(PropsAndInvsPre + "(("+g1+" & "+ba+") => not("+g2+"))");
+				formulae.add(PropsAndInvsPre + "(("+g1+" & "+ba+") <=> "+g2+")");
+				formulae.add(PropsAndInvsPre + "(("+g1+" & "+ba+") <=> not("+g2+"))");
 			}
 		}
+		
+		return formulae;
+	}
+	
+	public static List<String> invariantPreservations(PredicateCollector predicateCollector){
+		List<String> formulae = new ArrayList<>();
+		
+		String PropsPre = getPropertyPre(predicateCollector);
+		String InvsPre = getInvariantsPre(predicateCollector);
+		
+		/*
+		 * Generate invariants preservation strings:
+		 * - Inv => weakestPre
+		 * - Inv & Guard & before/after => Inv'
+		 */
+		
+		// Classical B: weakest precondition
+		Map<String, Map<String, String>> weakestPreMap = predicateCollector.getWeakestPreConditions();
+		
+		// - for each event
+		for(Entry<String, Map<String, String>> evEntry : weakestPreMap.entrySet()){
+			List<String> weakestPres = new ArrayList<>(); // collect all for this event to concatenate later
+			
+			// - for each invariant
+			for(Entry<String, String> invEntry : evEntry.getValue().entrySet()){
+				String inv = invEntry.getKey();
+				String wpc = invEntry.getValue();
+
+				formulae.add(PropsPre+ "("+inv+" => "+wpc+")");
+				formulae.add(PropsPre+ "("+inv+" => not("+wpc+"))");
+				
+				weakestPres.add(wpc);
+			}
+			
+			if(InvsPre.isEmpty())
+				continue; // skip if there is no invariant to preserve
+
+			formulae.add(PropsPre+"("+InvsPre + " => "+getStringConjunction(weakestPres)+")");
+			formulae.add(PropsPre+"("+InvsPre + " => not("+getStringConjunction(weakestPres)+"))");
+		}
+		
+		
+		// Event B: before/after predicate
+		if(predicateCollector.getMachineType() != MachineType.EVENTB)
+			return formulae; // the following is for EVENTB only FIXME
+		
+		Map<String, String> primedInvsMap = predicateCollector.getPrimedInvariants();
+		
+		if(!primedInvsMap.isEmpty()){ // do only if the map is not empty
+			String unprimedInv = getStringConjunction(primedInvsMap.keySet().stream().collect(Collectors.toList()));
+			String primedInv = getStringConjunction(primedInvsMap.entrySet().stream().map(e->e.getValue()).collect(Collectors.toList()));
+			
+			Map<String, List<String>> guards = predicateCollector.getGuards();
+			Map<String, String> beforeAfter = predicateCollector.getBeforeAfterPredicates();
+			
+			for(String event : beforeAfter.keySet()){
+				String g = getStringConjunction(guards.get(event)); // the guard of the event
+				String ba = beforeAfter.get(event);
+
+				formulae.add(PropsPre+"("+unprimedInv+" & "+g+" & "+ba+" => "+primedInv+")");
+				formulae.add(PropsPre+"("+unprimedInv+" & "+g+" & "+ba+" => not("+primedInv+"))");
+				
+			}
+		}
+		
 		
 		return formulae;
 	}
