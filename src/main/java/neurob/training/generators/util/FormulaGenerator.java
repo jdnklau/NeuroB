@@ -198,10 +198,12 @@ public class FormulaGenerator {
 				String g1 = allGuards.get(i);
 				String g2 = allGuards.get(j);
 
-				formulae.add(propsAndInvsPre + "(" + g1 + " => " + g2 + ")");
-				formulae.add(propsAndInvsPre + "(" + g1 + " <=> " + g2 + ")");
+				formulae.add(propsAndInvsPre + g1 + " & " + g2);
+				formulae.add(propsAndInvsPre + "(not(" + g1 + ") => " + g2 + ")");
+//				formulae.add(propsAndInvsPre + "(" + g1 + " <=> " + g2 + ")");
+				formulae.add(propsAndInvsPre + g1 + " & not(" + g2 + ")");
 				formulae.add(propsAndInvsPre + "(" + g1 + " => not(" + g2 + "))" );
-				formulae.add(propsAndInvsPre + "(" + g1 + " <=> not(" + g2 + "))" );
+//				formulae.add(propsAndInvsPre + "(" + g1 + " <=> not(" + g2 + "))" );
 			}
 		}
 		
@@ -230,13 +232,7 @@ public class FormulaGenerator {
 		if(predicateCollector.getMachineType() != MachineType.EVENTB)
 			return formulae;
 		
-		String PropsAndInvsPre = getPropsAndInvsPre(predicateCollector);
-		String PrimedInvs = getStringConjunction(
-				predicateCollector.getPrimedInvariants().entrySet()
-				.stream()
-				.map(e->e.getValue())
-				.collect(Collectors.toList()));
-		String PrimedInvsPre = (PrimedInvs.isEmpty() ? "" : PrimedInvs+" & "); 
+		String PropsAndInvsPre = getPropsAndInvsPre(predicateCollector); 
 		
 		/*
 		 * Generate for each pair of events formulae whether one
@@ -281,10 +277,20 @@ public class FormulaGenerator {
 				String g2 = primedGuards.get(primedEvent);
 				String ba = beforeAfter.get(primedEvent);
 
-				formulae.add(PropsAndInvsPre + "(("+g1+" & "+ba+") => "+g2+")");
-				formulae.add(PropsAndInvsPre + "(("+g1+" & "+ba+") => not("+g2+"))");
-				formulae.add(PropsAndInvsPre + "(("+g1+" & "+ba+") <=> "+g2+")");
-				formulae.add(PropsAndInvsPre + "(("+g1+" & "+ba+") <=> not("+g2+"))");
+				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" & "+g2+")");
+				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" & not("+g2+"))");
+//				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" => "+g2+")");
+//				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" => not("+g2+"))");
+//				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" <=> "+g2+")");
+//				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" <=> not("+g2+"))");
+				
+				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") & "+g2+")");
+				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") & not("+g2+"))");
+				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") => "+g2+")");
+				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") => not("+g2+"))");
+//				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") <=> "+g2+")");
+//				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") <=> not("+g2+"))");
+				
 			}
 		}
 		
@@ -295,7 +301,7 @@ public class FormulaGenerator {
 		List<String> formulae = new ArrayList<>();
 		
 		String PropsPre = getPropertyPre(predicateCollector);
-		String InvsPre = getInvariantsPre(predicateCollector);
+		String Invs = getInvariantString(predicateCollector);
 		
 		/*
 		 * Generate invariants preservation strings:
@@ -315,17 +321,23 @@ public class FormulaGenerator {
 				String inv = invEntry.getKey();
 				String wpc = invEntry.getValue();
 
+				formulae.add(PropsPre+ "("+inv+" & "+wpc+")");
 				formulae.add(PropsPre+ "("+inv+" => "+wpc+")");
+				formulae.add(PropsPre+ "("+inv+" & not("+wpc+"))");
 				formulae.add(PropsPre+ "("+inv+" => not("+wpc+"))");
 				
 				weakestPres.add(wpc);
 			}
 			
-			if(InvsPre.isEmpty())
+			if(Invs.isEmpty())
 				continue; // skip if there is no invariant to preserve
+			
+			String negInvs = "not("+Invs+")";
 
-			formulae.add(PropsPre+"("+InvsPre + " => "+getStringConjunction(weakestPres)+")");
-			formulae.add(PropsPre+"("+InvsPre + " => not("+getStringConjunction(weakestPres)+"))");
+			formulae.add(PropsPre+"("+Invs + " & "+getStringConjunction(weakestPres)+")");
+			formulae.add(PropsPre+"("+negInvs + " => "+getStringConjunction(weakestPres)+")");
+			formulae.add(PropsPre+"("+Invs + " & not("+getStringConjunction(weakestPres)+"))");
+			formulae.add(PropsPre+"("+negInvs + " => not("+getStringConjunction(weakestPres)+"))");
 		}
 		
 		
@@ -346,8 +358,10 @@ public class FormulaGenerator {
 				String g = getStringConjunction(guards.get(event)); // the guard of the event
 				String ba = beforeAfter.get(event);
 
-				formulae.add(PropsPre+"("+unprimedInv+" & "+g+" & "+ba+" => "+primedInv+")");
-				formulae.add(PropsPre+"("+unprimedInv+" & "+g+" & "+ba+" => not("+primedInv+"))");
+				formulae.add(PropsPre+"("+unprimedInv+" & "+g+" & "+ba+" & "+primedInv+")");
+				formulae.add("not("+PropsPre+"("+unprimedInv+" & "+g+" & "+ba+") => "+primedInv+")");
+				formulae.add(PropsPre+"("+unprimedInv+" & "+g+" & "+ba+" & not("+primedInv+"))");
+				formulae.add("not("+PropsPre+"("+unprimedInv+" & "+g+" & "+ba+") => not("+primedInv+"))");
 				
 			}
 		}
@@ -384,25 +398,29 @@ public class FormulaGenerator {
 		// proof assertions
 		for(String a : assertionsList){
 			formulae.add(propsAndInv + " & " + a);
-			formulae.add(propsAndInv + " => " + a);
-			formulae.add(propsAndInv + " <=> " + a);
+			formulae.add(propsAndInv + " & not(" + a+")");
+			formulae.add("not("+propsAndInv + ") => " + a);
+//			formulae.add(propsAndInv + " <=> " + a);
 		}
 		if(!allAssertions.isEmpty()){
 			formulae.add(propsAndInv + " & " + allAssertions);
-			formulae.add(propsAndInv + " => " + allAssertions);
-			formulae.add(propsAndInv + " <=> " + allAssertions);
+			formulae.add(propsAndInv + " & not(" + allAssertions+")");
+			formulae.add("not("+propsAndInv + ") => " + allAssertions);
+//			formulae.add(propsAndInv + " <=> " + allAssertions);
 		}
 		
 		// proof theorems
 		for(String a : theoremsList){
 			formulae.add(propsAndInv + " & " + a);
-			formulae.add(propsAndInv + " => " + a);
-			formulae.add(propsAndInv + " <=> " + a);
+			formulae.add(propsAndInv + " & not(" + a+")");
+			formulae.add("not("+propsAndInv + ") => " + a);
+//			formulae.add(propsAndInv + " <=> " + a);
 		}
 		if(!allTheorems.isEmpty()){
 			formulae.add(propsAndInv + " & " + allTheorems);
-			formulae.add(propsAndInv + " => " + allTheorems);
-			formulae.add(propsAndInv + " <=> " + allTheorems);
+			formulae.add(propsAndInv + " & not(" + allTheorems+")");
+			formulae.add("not("+propsAndInv + ") => " + allTheorems);
+//			formulae.add(propsAndInv + " <=> " + allTheorems);
 		}
 		
 		return formulae;
@@ -519,34 +537,34 @@ public class FormulaGenerator {
 				continue;
 			}
 
-			formulae.add(propsAndInvs + " => " + guard); // events usable with unviolated invariants
-			formulae.add(propsAndInvs + " <=> " + guard); // events usable iff invariants unviolated
+			formulae.add("not("+propsAndInvs + ") => " + guard); // events usable with unviolated invariants
+//			formulae.add(propsAndInvs + " <=> " + guard); // events usable iff invariants unviolated
 			
 			formulae.add(propsAndInvs + " & " + negGuard); // events not active w/o violating invariants
-			formulae.add(propsAndInvs + " => " + negGuard); // events not usable with unviolated invariants
-			formulae.add(propsAndInvs + " <=> " + negGuard); // events not usable iff invariants unviolated
+			formulae.add("not("+propsAndInvs + ") => " + negGuard); // events not usable with unviolated invariants
+//			formulae.add(propsAndInvs + " <=> " + negGuard); // events not usable iff invariants unviolated
 			
 
-			formulae.add(propsAndGuard + " => "+ invariants); // events only usable w/o invariant violation
+			formulae.add("not("+propsAndGuard + ") => "+ invariants); // events only usable w/o invariant violation
 			
-			formulae.add(propsAndNegGuard + " => "+ invariants); // events never usable w/o invariant violation
+			formulae.add("not("+propsAndNegGuard + ") => "+ invariants); // events never usable w/o invariant violation
 
 			if(emptyInvariants){
-				// incomming formulae would be repetitive, so skip them
+				// incoming formulae would be repetitive, so skip them
 				continue;
 			}
 			
 			formulae.add(propsAndNegInvs + " & " + guard); // events active despite invariant violation
-			formulae.add(propsAndNegInvs + " => " + guard); // events usable despite invariant violation
-			formulae.add(propsAndNegInvs + " <=> " + guard); // events usable despite invariant violation
+			formulae.add("not("+propsAndNegInvs + ") => " + guard); // events usable despite invariant violation
+//			formulae.add(propsAndNegInvs + " <=> " + guard); // events usable despite invariant violation
 
 			formulae.add(propsAndNegInvs + " & " + negGuard);// events not active with invariant violation
-			formulae.add(propsAndNegInvs + " => " + negGuard); // events not usable with invariant violation
-			formulae.add(propsAndNegInvs + " <=> " + negGuard); // events not usable with invariant violation
+			formulae.add("not("+propsAndNegInvs + ") => " + negGuard); // events not usable with invariant violation
+//			formulae.add(propsAndNegInvs + " <=> " + negGuard); // events not usable with invariant violation
 			
-			formulae.add(propsAndNegGuard + " => "+ negInvariants); // events never usable with invariant violation
+			formulae.add("not("+propsAndNegGuard + ") => "+ negInvariants); // events never usable with invariant violation
 
-			formulae.add(propsAndGuard + " => "+ negInvariants); // events only usable with invariant violation
+			formulae.add("not("+propsAndGuard + ") => "+ negInvariants); // events only usable with invariant violation
 		}
 		
 		return formulae;
