@@ -61,20 +61,6 @@ public class TrainingSetGenerator {
 	// logger
 	private static final Logger log = LoggerFactory.getLogger(TrainingSetGenerator.class);
 	
-	/**
-	 * Set up a training set generator, using the given feature generator and label generator
-	 * @param featureGenerator
-	 * @param labelGenerator
-	 */
-	@Deprecated
-	public TrainingSetGenerator(FeatureGenerator featureGenerator, LabelGenerator labelGenerator){
-		fg = featureGenerator;
-		lg = labelGenerator;
-		
-		fileCounter = 0;
-		fileProblemsCounter = 0;
-	}
-	
 	public TrainingSetGenerator(TrainingDataGenerator dataGenerator){
 		fg = dataGenerator.getFeatureGenerator();
 		lg = dataGenerator.getLabelGenerator();
