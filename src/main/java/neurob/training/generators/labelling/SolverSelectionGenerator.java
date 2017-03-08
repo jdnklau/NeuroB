@@ -14,6 +14,7 @@ import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
+import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
@@ -29,7 +30,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  *   <li> Not decidable by any of the solvers in use
  *   <li> Use ProB
  *   <li> Use KodKod
- *   <li> Use ProB+Z3 
+ *   <li> Use Z3 
  * </ol>
  * 
  * <p>
@@ -65,7 +66,7 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		 * 0 - no solver
 		 * 1 - ProB
 		 * 2 - KodKod
-		 * 3 - ProBZ3
+		 * 3 - Z3
 		 */
 		return 4;
 	}
@@ -85,11 +86,11 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
-		long ProBTime = PredicateEvaluator.getCommandExecutionTimeInNanoSeconds(stateSpace, formula);
-		long KodKodTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, "KODKOD", formula);
-		long ProBZ3Time = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, "SMT_SUPPORTED_INTERPRETER", formula);
+		long ProBTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.PROB, formula);
+		long KodKodTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.KODKOD, formula);
+		long Z3Time = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
 		
-		return getLabellingByTimes(ProBTime, KodKodTime, ProBZ3Time);
+		return getLabellingByTimes(ProBTime, KodKodTime, Z3Time);
 		
 	}
 
@@ -113,16 +114,16 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		return labelling;
 	}
 	
-	private String getLabellingByTimes(long ProBTime, long KodKodTime, long ProBZ3Time){
+	private String getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
 		// check if any solver could decide the formula
-		if(0 == ArrayUtil.argMax(new long[]{0, ProBTime, KodKodTime, ProBZ3Time})){
+		if(0 == ArrayUtil.argMax(new long[]{0, ProBTime, KodKodTime, Z3Time})){
 			// this means all timers returned with -1, indicating that none could decide the formula
 			return "0";
 		}
 		
 		// get fastest solver
 //		double eps = 1e-3;
-//		int fastestIndex = ArrayUtil.argMax(new double[]{1./(ProBTime+eps), 1./(KodKodTime+eps), 1./(ProBZ3Time+eps)});
+//		int fastestIndex = ArrayUtil.argMax(new double[]{1./(ProBTime+eps), 1./(KodKodTime+eps), 1./(Z3Time+eps)});
 //		// actual label will be the fastest index+1, as 0 already represents that no solver can decide it.
 //		return Integer.toString(fastestIndex+1);
 		// NOTE: Above code did not work, as one single solver still could be -1; we only ensured that not all of them are.
@@ -130,13 +131,13 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		double eps = 1e-3;
 		double proB = 1./(ProBTime+eps);
 		double kodKod = 1./(KodKodTime+eps);
-		double proBZ3 = 1./(ProBZ3Time+eps);
+		double z3 = 1./(Z3Time+eps);
 		
 		// select biggest
-		if(proB >= kodKod && proB >= proBZ3){
+		if(proB >= kodKod && proB >= z3){
 			return "1";
 		}
-		else if(kodKod >= proBZ3){
+		else if(kodKod >= z3){
 			return "2";
 		}
 		else {

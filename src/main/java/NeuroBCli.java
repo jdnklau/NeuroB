@@ -144,7 +144,7 @@ public class NeuroBCli {
 					+ "<labels> describe the labelling mechanism in use:\n"
 					+ "\tsolclass: (default) Solver classification; classifies whether a given solver can decide a predicate or not\n"
 					+ "\t\tTakes optional -solver <solver> argument, with <solver> being\n"
-					+ "\t\tprob (default), kodkod,\n"
+					+ "\t\tprob (default), kodkod, z3,\n"
 					+ "\t\tor smt (for SMT_SUPPORTED_INTERPRETER setting in ProB, using ProB+Z3 together)\n"
 					+ "\tsolsel: Selection approach, what solver decides a given predicate the fastes\n"
 					+ "\tsoltime: Regression approach for each solver, how long it takes to decide a predicate\n"
@@ -360,6 +360,8 @@ public class NeuroBCli {
 				String sstring = ops.get("solver").get(0);
 				if(sstring.equals("kodkod"))
 					solver = SolverType.KODKOD;
+				else if(sstring.equals("z3"))
+					solver = SolverType.Z3;
 				else if(sstring.equals("smt"))
 					solver = SolverType.SMT_SUPPORTED_INTERPRETER;
 			}

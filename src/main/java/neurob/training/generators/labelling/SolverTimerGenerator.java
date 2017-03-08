@@ -19,6 +19,7 @@ import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
+import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
@@ -88,26 +89,26 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 		// Check for solvers if they can decide the predicate + get the time they need
 		long ProBTime = 0;
 		long KodKodTime = 0;
-		long ProBZ3Time = 0;
+		long Z3Time = 0;
 		
 		for(int sample=0; sample<samplingSize; ++sample){
-			ProBTime += PredicateEvaluator.getCommandExecutionTimeInNanoSeconds(stateSpace, formula);
-			KodKodTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, "KODKOD", formula);
-			ProBZ3Time += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, "SMT_SUPPORTED_INTERPRETER", formula);
+			ProBTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.PROB, formula);
+			KodKodTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.KODKOD, formula);
+			Z3Time = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
 		}
 		
 		// normalise times
 		// if a solver can not decide the predicate, it should be samplingSize*(-1)/samplingSize = -1
 		ProBTime /= samplingSize;
 		KodKodTime /= samplingSize;
-		ProBZ3Time /= samplingSize;
+		Z3Time /= samplingSize;
 		
-		return getLabellingByTimes(ProBTime, KodKodTime, ProBZ3Time);
+		return getLabellingByTimes(ProBTime, KodKodTime, Z3Time);
 		
 	}
 	
-	private String getLabellingByTimes(long ProBTime, long KodKodTime, long ProBZ3Time){
-		//return Long.toString(ProBTime)+","+Long.toString(KodKodTime)+","+Long.toString(ProBZ3Time);
+	private String getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
+		//return Long.toString(ProBTime)+","+Long.toString(KodKodTime)+","+Long.toString(Z3Time);
 		
 		// convert appropriately to milliseconds
 		// 1 ms = 1e-3 s
@@ -115,9 +116,9 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 		// => 1ms = 1e6 ns		
 		double ProBTimeMilliSeconds = (ProBTime < 0) ? -1 : ProBTime / 1e6;
 		double KodKodTimeMilliSeconds = (KodKodTime < 0) ? -1 : KodKodTime / 1e6;
-		double ProBZ3TimeMilliSeconds = (ProBZ3Time < 0) ? -1 : ProBZ3Time / 1e6;
+		double Z3TimeMilliSeconds = (Z3Time < 0) ? -1 : Z3Time / 1e6;
 		
-		return Double.toString(ProBTimeMilliSeconds)+","+Double.toString(KodKodTimeMilliSeconds)+","+Double.toString(ProBZ3TimeMilliSeconds);
+		return Double.toString(ProBTimeMilliSeconds)+","+Double.toString(KodKodTimeMilliSeconds)+","+Double.toString(Z3TimeMilliSeconds);
 	}
 
 	/* (non-Javadoc)

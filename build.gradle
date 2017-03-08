@@ -27,7 +27,7 @@ repositories {
 dependencies {
 
 	compile 'commons-cli:commons-cli:1.2'
-	compile (group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '3.0.1-SNAPSHOT')
+	compile (group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '3.1.1-SNAPSHOT')
 
 	compile 'org.deeplearning4j:deeplearning4j-core:0.7.2'
 	compile 'org.nd4j:nd4j-native-platform:0.7.2'

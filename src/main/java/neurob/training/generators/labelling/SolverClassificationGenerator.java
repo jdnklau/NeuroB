@@ -86,19 +86,7 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Use specific solver
-		switch(solver){
-		case	PROB:
-			label = PredicateEvaluator.evaluateCommandExecution(stateSpace, formula);
-			break;
-		case	KODKOD:
-			label = PredicateEvaluator.isDecidableWithSolver(stateSpace, "KODKOD", formula);
-			break;
-		case	SMT_SUPPORTED_INTERPRETER:
-			label = PredicateEvaluator.isDecidableWithSolver(stateSpace, "SMT_SUPPORTED_INTERPRETER", formula);
-			break;
-		default:
-			label = false;	
-		}
+		label = PredicateEvaluator.isDecidableWithSolver(stateSpace, solver, formula);
 		
 		return (label) ? "1" : "0";
 		
