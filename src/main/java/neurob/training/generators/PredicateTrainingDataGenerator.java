@@ -48,7 +48,7 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		log.info("\tLoading machine file {} ...", sourceFile);
 		try{
 			ss = loadStateSpace(sourceFile, mt);
-		} catch(NeuroBException e){
+		} catch(IOException | NeuroBException e){
 			throw new NeuroBException("Could not load machine correctly: "+e.getMessage(), e);
 		} catch(Exception e) {
 			throw new NeuroBException("Unexpected exception encountered: "+e.getMessage(), e);
@@ -100,7 +100,7 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 						break;
 					}
 				} else {
-					log.warn("\tStateSpace corrupted sequentially {} times. Aborting further formulae.", corruptionCounter);
+					log.warn("StateSpace corrupted sequentially {} times. Aborting further formulae.", corruptionCounter);
 					break; // get out of the loop to save at least the other formulae to file
 				}
 			}
