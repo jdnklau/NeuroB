@@ -287,7 +287,8 @@ public class TrainingSetGenerator {
 				}
 			}
 			catch(IOException e){
-				log.error("\t.nbtrain file exists but could not access it or the source machine file: {}", e.getMessage(), e);
+				log.error("\t.{} file exists but could not access it or the source machine file: {}",
+						tdg.getPreferedFileExtension(), e.getMessage(), e);
 				log.info("\tSkipping machine.");
 			}
 		}

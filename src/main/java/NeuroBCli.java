@@ -15,8 +15,8 @@ import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.TrainingPredicateDumper;
 import neurob.training.TrainingSetGenerator;
+import neurob.training.generators.PredicateDumpGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
 import neurob.training.generators.labelling.SolverSelectionGenerator;
@@ -295,22 +295,21 @@ public class NeuroBCli {
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 	
-	private static void generatePDumpFromFile(Path dir) {
-		TrainingPredicateDumper tpd = new TrainingPredicateDumper();
+	private static void generatePDumpFromFile(Path file) {
+		PredicateDumpGenerator tpg = new PredicateDumpGenerator();
+		
 		try {
-			tpd.createPredicateDumpFromFile(dir, Paths.get("training_data/PredicateDump/"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ModelTranslationError e) {
+			Path targetFile = tpg.generateTargetFilePath(file, Paths.get("training_data/PredicateDump/"));
+			tpg.collectTrainingDataFromFile(file, targetFile);
+		} catch (NeuroBException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
 	private static void generatePDump(Path dir) {
-		TrainingPredicateDumper tpd = new TrainingPredicateDumper();
-		tpd.createPredicateDump(dir, Paths.get("training_data/PredicateDump/"), excludefile);
+		TrainingSetGenerator tpd = new TrainingSetGenerator(new PredicateDumpGenerator());
+		tpd.generateTrainingSet(dir, Paths.get("training_data/PredicateDump/"), excludefile);
 	}
 	
 	private static void translatePDump(Path dir) {

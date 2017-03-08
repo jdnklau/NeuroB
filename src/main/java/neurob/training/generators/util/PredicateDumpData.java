@@ -2,8 +2,6 @@ package neurob.training.generators.util;
 
 import java.util.ArrayList;
 
-import neurob.training.TrainingPredicateDumper;
-
 /**
  * Class used to translate entries of predicate dumps into Java Objects
  * @author jannik

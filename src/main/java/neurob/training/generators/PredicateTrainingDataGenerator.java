@@ -94,6 +94,8 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 					ss.kill();
 					try {
 						ss = loadStateSpace(sourceFile, mt);
+						isStateSpaceCorrupted=false;
+						log.info("\tRecovered StateSpace!");
 					} catch (Exception e) {
 						log.error("Unable to restore state space to uncorrupted state: {}", e.getMessage(), e);
 						log.info("Skipping remaining formulae.");
@@ -108,10 +110,11 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 			log.info("\tAt {}/{}...", curr++, count);
 			try {
 				// features:labeling vector:comment
-				results.add(fg.generateFeatureString(formula)+":"+lg.generateLabelling(formula, ss)+":\""+formula+"\"");
-				corruptionCounter--; // could use new state space without corrupting it again
+				results.add(generateOutput(formula, ss));
+				corruptionCounter = (corruptionCounter ==0 ? 0 : corruptionCounter-1); // could use new state space without corrupting it again
 			} catch (NeuroBException e) {
 				log.warn("\t{}", e.getMessage(), e);
+				isStateSpaceCorrupted = true;
 			} catch (IllegalStateException e) {
 				log.error("\tReached Illegal State: {}", e.getMessage(), e);
 				isStateSpaceCorrupted = true;
@@ -145,6 +148,10 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
 		}
 
+	}
+	
+	protected String generateOutput(String predicate, StateSpace ss) throws NeuroBException{
+		return fg.generateFeatureString(predicate)+":"+lg.generateLabelling(predicate, ss)+":"+predicate;
 	}
 
 }
