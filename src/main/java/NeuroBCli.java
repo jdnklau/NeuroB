@@ -484,7 +484,8 @@ public class NeuroBCli {
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), new SolverClassificationGenerator(SolverType.PROB));
+		TrainingSetGenerator tsg = new TrainingSetGenerator(
+				new SolverClassificationGenerator(SolverType.PROB).getTrainingDataGenerator(new PredicateFeatures()));
 		tsg.exclude(excludefile, excl);
 		
 	}

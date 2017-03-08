@@ -215,7 +215,6 @@ public class TrainingPredicateDumper {
 				log.info("\tLoading ClassicalB machine {}", file);
 				return api.b_load(file.toString());
 			}
-		
 	}
 	
 	/**

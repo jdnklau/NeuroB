@@ -223,7 +223,7 @@ public class NeuroBNet {
 	 * @return
 	 */
 	public TrainingSetGenerator getTrainingSetGenerator(){
-		return new TrainingSetGenerator(features, labelgen);
+		return new TrainingSetGenerator(labelgen.getTrainingDataGenerator(features));
 	}
 	
 	public int getInputSize(){

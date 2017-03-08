@@ -24,19 +24,13 @@ import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-
-import de.prob.Main;
 import de.prob.exception.ProBError;
-import de.prob.scripting.Api;
-import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
+import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
-import neurob.training.generators.util.FormulaGenerator;
-import neurob.training.generators.util.PredicateCollector;
 
 /**
  * Class to generate the training data for the neural net.
@@ -60,8 +54,7 @@ public class TrainingSetGenerator {
 	// Training data handling
 	private FeatureGenerator fg; // Feature generator in use
 	private LabelGenerator lg; // Label generator in use
-	// FInding the api
-	protected Api api;
+	private TrainingDataGenerator tdg; // Training data generator in use
 	// statistics
 	private int fileCounter; // number of files seen
 	private int fileProblemsCounter; // number of files which caused problems
@@ -73,15 +66,23 @@ public class TrainingSetGenerator {
 	 * @param featureGenerator
 	 * @param labelGenerator
 	 */
-	@Inject
+	@Deprecated
 	public TrainingSetGenerator(FeatureGenerator featureGenerator, LabelGenerator labelGenerator){
 		fg = featureGenerator;
 		lg = labelGenerator;
 		
 		fileCounter = 0;
 		fileProblemsCounter = 0;
+	}
+	
+	public TrainingSetGenerator(TrainingDataGenerator dataGenerator){
+		fg = dataGenerator.getFeatureGenerator();
+		lg = dataGenerator.getLabelGenerator();
 		
-		api = Main.getInjector().getInstance(Api.class);
+		tdg = dataGenerator;
+		
+		fileCounter = 0;
+		fileProblemsCounter = 0;
 	}
 	
 	/**
@@ -180,22 +181,8 @@ public class TrainingSetGenerator {
 				.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
 				.forEach(entry -> {
 	            	if(Files.isRegularFile(entry)){
-						// check file extension
-						String fileName = entry.getFileName().toString();
-						String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-						if(ext.equals("mch")){
-		            		// get full target directory
-		            		Path fullTargetDirectory = targetDirectory.resolve("ClassicalB").resolve(entry.getParent());
-							fileCounter++;
-							Path dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
-							generateTrainingDataFromFile(entry, dataFilePath);
-						} else if(ext.equals("bcm")){
-		            		// get full target directory
-		            		Path fullTargetDirectory = targetDirectory.resolve("EventB").resolve(entry.getParent());
-							fileCounter++;
-							Path dataFilePath = fullTargetDirectory.resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
-							generateTrainingDataFromFile(entry, dataFilePath);
-						} 
+						Path targetFile = tdg.generateTargetFilePath(entry, targetDirectory);
+						generateTrainingDataFromFile(entry, targetFile);
 		            }
 				});
 			log.info("Finished training set generation");
@@ -207,90 +194,90 @@ public class TrainingSetGenerator {
 		
 	}
 	
-	protected void collectTrainingData(Path sourceFile, Path targetFile) throws NeuroBException{
-		// StateSpace and main component
-		StateSpace ss = null;
-		// For the formula and ProB command to use
-		List<String> formulae;
-		
-		// Access source file
-		try{
-			log.info("\tLoading machine file {} ...", sourceFile);
-			// decide between Classical and EventB
-			String fileName = sourceFile.getFileName().toString();
-			String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-			if(ext.equals("bcm"))
-				ss = api.eventb_load(sourceFile.toString());
-			else
-				ss = api.b_load(sourceFile.toString());
-		} catch(Exception e) {
-			throw new NeuroBException("Could not load machine correctly: "+e.getMessage(), e);
-		}
-		
-		// Get different formulas
-		PredicateCollector predc = new PredicateCollector(ss);
-		formulae = FormulaGenerator.extendedGuardFormulae(predc);
-		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
-		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
-		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
-		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
-		// TODO: this should be implemented for convolution features, but for predicates only
-		// This should be implemented after restructuring training set generation
-		// into a more general format, that is not restricted to predicates only
-//		// get shuffles for images
-//		if(fg instanceof ConvolutionFeatures){
-//			for(long i=0; i<3; i++){
-//				predc.shuffleConjunctions(i);
-//				formulae = FormulaGenerator.extendedGuardFormulae(predc);
-//				formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
+//	protected void collectTrainingData(Path sourceFile, Path targetFile) throws NeuroBException{
+//		// StateSpace and main component
+//		StateSpace ss = null;
+//		// For the formula and ProB command to use
+//		List<String> formulae;
+//		
+//		// Access source file
+//		try{
+//			log.info("\tLoading machine file {} ...", sourceFile);
+//			// decide between Classical and EventB
+//			String fileName = sourceFile.getFileName().toString();
+//			String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
+//			if(ext.equals("bcm"))
+//				ss = api.eventb_load(sourceFile.toString());
+//			else
+//				ss = api.b_load(sourceFile.toString());
+//		} catch(Exception e) {
+//			throw new NeuroBException("Could not load machine correctly: "+e.getMessage(), e);
+//		}
+//		
+//		// Get different formulas
+//		PredicateCollector predc = new PredicateCollector(ss);
+//		formulae = FormulaGenerator.extendedGuardFormulae(predc);
+//		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
+//		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
+//		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
+//		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
+//		// TODO: this should be implemented for convolution features, but for predicates only
+//		// This should be implemented after restructuring training set generation
+//		// into a more general format, that is not restricted to predicates only
+////		// get shuffles for images
+////		if(fg instanceof ConvolutionFeatures){
+////			for(long i=0; i<3; i++){
+////				predc.shuffleConjunctions(i);
+////				formulae = FormulaGenerator.extendedGuardFormulae(predc);
+////				formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
+////			}
+////		}
+//		
+//		log.info("\tGenerated {} formulae to solve.", formulae.size());
+//		
+//		// generate data per formula
+//		List<String> results = new ArrayList<String>();
+//		int count = formulae.size();
+//		int curr = 1;
+//		for( String formula : formulae) {
+//			log.info("\tAt {}/{}...", curr++, count);
+//			try {
+//				// features:labeling vector:comment
+//				results.add(fg.generateFeatureString(formula)+":"+lg.generateLabelling(formula, ss)+":\""+formula+"\"");
+//			} catch (NeuroBException e) {
+//				log.warn("\t{}", e.getMessage(), e);
+//			} catch (IllegalStateException e) {
+//				log.error("\tReached Illegal State: {}", e.getMessage(), e);
+//			} catch (Exception e) {
+//				log.error("\tUnexpected Exception encountered: {}", e.getMessage(), e);
 //			}
 //		}
-		
-		log.info("\tGenerated {} formulae to solve.", formulae.size());
-		
-		// generate data per formula
-		List<String> results = new ArrayList<String>();
-		int count = formulae.size();
-		int curr = 1;
-		for( String formula : formulae) {
-			log.info("\tAt {}/{}...", curr++, count);
-			try {
-				// features:labeling vector:comment
-				results.add(fg.generateFeatureString(formula)+":"+lg.generateLabelling(formula, ss)+":\""+formula+"\"");
-			} catch (NeuroBException e) {
-				log.warn("\t{}", e.getMessage(), e);
-			} catch (IllegalStateException e) {
-				log.error("\tReached Illegal State: {}", e.getMessage(), e);
-			} catch (Exception e) {
-				log.error("\tUnexpected Exception encountered: {}", e.getMessage(), e);
-			}
-		}
-		
-		// close StateSpace
-		ss.kill();
-		
-		// No training data to write? -> return from method
-		// otherwise write to targetFile
-		if(results.isEmpty()){
-			log.info("\tNo training data created");
-			return;
-		}
-		
-		// open target file
-		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
-			// write feature vector to stream
-			log.info("\tWriting training data...");
-			for(String res : results){
-				out.write(res);
-				out.newLine();
-				out.flush();
-			}
-			log.info("\tDone: {}", targetFile);
-		} catch (IOException e) {
-			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
-		}
-				
-	}
+//		
+//		// close StateSpace
+//		ss.kill();
+//		
+//		// No training data to write? -> return from method
+//		// otherwise write to targetFile
+//		if(results.isEmpty()){
+//			log.info("\tNo training data created");
+//			return;
+//		}
+//		
+//		// open target file
+//		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
+//			// write feature vector to stream
+//			log.info("\tWriting training data...");
+//			for(String res : results){
+//				out.write(res);
+//				out.newLine();
+//				out.flush();
+//			}
+//			log.info("\tDone: {}", targetFile);
+//		} catch (IOException e) {
+//			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
+//		}
+//				
+//	}
 	
 	/**
 	 * Generates a file containing feature data found in the source file,
@@ -329,7 +316,7 @@ public class TrainingSetGenerator {
 		}
 		// create file
 		try {
-			collectTrainingData(source, target);
+			tdg.collectTrainingDataFromFile(source, target);
 			return;
 		} catch (ProBError e) {
 			log.error("\tProBError on {}: {}", source, e.getMessage(), e);
@@ -362,7 +349,6 @@ public class TrainingSetGenerator {
 		}
 		
 		generateCSVOverFiles("nbtrain", sourceDirectory, csv, line -> {
-			
 			String[] data = line.split(":");
 			String[] features = data[0].split(",");
 			String[] labels = data[1].split(",");

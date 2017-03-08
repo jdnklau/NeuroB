@@ -7,8 +7,10 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import de.prob.statespace.StateSpace;
+import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
+import neurob.training.generators.TrainingDataGenerator;
 
 public interface LabelGenerator {
 	
@@ -85,6 +87,13 @@ public interface LabelGenerator {
 			);
 		return iterator;
 	}
+	
+	/**
+	 * Couples this label generator with an arbitrary feature generator to
+	 * a fitting {@link TrainingDataGenerator}
+	 * @return
+	 */
+	public TrainingDataGenerator getTrainingDataGenerator(FeatureGenerator fg);
 	
 
 }

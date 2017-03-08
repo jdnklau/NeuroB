@@ -15,8 +15,8 @@ import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
+import neurob.training.generators.interfaces.PredicateLabelGenerator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
@@ -50,7 +50,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @see SolverClassificationGenerator
  *
  */
-public class SolverSelectionGenerator implements LabelGenerator, PredicateDumpTranslator {
+public class SolverSelectionGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
 	private Api api;
 	
 	

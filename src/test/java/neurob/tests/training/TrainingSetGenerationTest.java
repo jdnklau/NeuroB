@@ -31,7 +31,7 @@ public class TrainingSetGenerationTest {
 	@Test
 	public void trainingSetAnalysisForNBTrain() throws IOException{
 		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
-		TrainingSetGenerator tsg = new TrainingSetGenerator(new PredicateFeatures(), lg);
+		TrainingSetGenerator tsg = new TrainingSetGenerator(lg.getTrainingDataGenerator(new PredicateFeatures()));
 		
 		Files.deleteIfExists(formulaeGenNBTrain);
 		

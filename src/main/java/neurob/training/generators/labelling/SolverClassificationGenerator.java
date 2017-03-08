@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-import org.datavec.api.records.reader.RecordReader;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-
 import com.google.inject.Inject;
 
 import de.prob.Main;
@@ -17,8 +14,8 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
+import neurob.training.generators.interfaces.PredicateLabelGenerator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
@@ -46,7 +43,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @See {@link #SolverClassificationGenerator(boolean, boolean, boolean)}
  *
  */
-public class SolverClassificationGenerator implements LabelGenerator, PredicateDumpTranslator {
+public class SolverClassificationGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
 	private Api api;
 	// what to classify
 	private SolverType solver;
@@ -65,7 +62,7 @@ public class SolverClassificationGenerator implements LabelGenerator, PredicateD
 	
 	@Override
 	public String getDataPathIdentifier() {
-		return LabelGenerator.super.getDataPathIdentifier() + "_" + solver.name();
+		return PredicateLabelGenerator.super.getDataPathIdentifier() + "_" + solver.name();
 	}
 
 	@Override
@@ -126,11 +123,6 @@ public class SolverClassificationGenerator implements LabelGenerator, PredicateD
 		ss.kill();
 		// return
 		return labelling;
-	}
-	
-	@Override
-	public DataSetIterator getDataSetIterator(RecordReader recordReader, int batchSize, int featureDimension) {
-		return LabelGenerator.super.getDataSetIterator(recordReader, batchSize, featureDimension);
 	}
 
 
