@@ -161,13 +161,13 @@ public class TrainingSetAnalyser {
 						// check if targets are not all equal
 						try(Stream<String> filelines = Files.lines(entry)){
 							filelines.forEach(line -> {
-								
-								String[] sample = line.split(":");
-								double[] features = Arrays.stream(sample[0].split(","))
-										.mapToDouble(Double::parseDouble).toArray();
-								double[] labels = Arrays.stream(sample[1].split(","))
-										.mapToDouble(Double::parseDouble).toArray();
-								data.analyseSample(features, labels);
+								data.analyseTrainingDataSample(line);
+//								String[] sample = line.split(":");
+//								double[] features = Arrays.stream(sample[0].split(","))
+//										.mapToDouble(Double::parseDouble).toArray();
+//								double[] labels = Arrays.stream(sample[1].split(","))
+//										.mapToDouble(Double::parseDouble).toArray();
+//								data.analyseSample(features, labels);
 						
 							});
 						} catch (IOException e){

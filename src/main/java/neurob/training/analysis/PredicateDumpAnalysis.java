@@ -17,7 +17,7 @@ public class PredicateDumpAnalysis implements TrainingAnalysisData {
 	private double[] sampleSums;
 	private long[] negSamples;
 	private List<List<Double>> posSamples;
-	private int solversAccountedFor;
+	private final int solversAccountedFor = 3;
 	
 	// logger
 	private static final Logger log = LoggerFactory.getLogger(PredicateDumpAnalysis.class);
@@ -28,7 +28,6 @@ public class PredicateDumpAnalysis implements TrainingAnalysisData {
 		emptyFilesSeen = 0;
 		
 		// Note: using 4 values here, but generating only data for first three solvers
-		solversAccountedFor = 3;
 		sampleSums = new double[]{0.,0.,0.,0.};
 		negSamples = new long[]{0L,0L,0L,0L};
 		posSamples = new ArrayList<>(4);
@@ -53,12 +52,13 @@ public class PredicateDumpAnalysis implements TrainingAnalysisData {
 		for(int i=0; i<solversAccountedFor; i++){
 			List<Double> samps = posSamples.get(i);
 			Collections.sort(samps);
+			int posSamplesSeen = samps.size();
 			
-			log.info("# Overview for {}", i, solverNames[i]);
-			log.info("{} of {} samples could be decided:", samplesSeen-negSamples[i], samplesSeen);
+			log.info("# Overview for {}", solverNames[i]);
+			log.info("{} of {} samples could be decided:", posSamplesSeen, samplesSeen);
 			log.info("\tMinimum: {}, Maximum: {}", samps.get(0), samps.get(samps.size()-1));
 			
-			double mean = sampleSums[i]/samps.size();
+			double mean = sampleSums[i]/posSamplesSeen;
 			
 			log.info("\tMean: {}", mean);
 			
@@ -67,15 +67,15 @@ public class PredicateDumpAnalysis implements TrainingAnalysisData {
 			for(Double d : samps){
 				sqrsum += Math.pow(d-mean, 2); // for each data point: squared distance to mean
 			}
-			double variance = sqrsum/samplesSeen;
+			double variance = sqrsum/posSamplesSeen;
 			
 			log.info("\tVariance: {}", variance);
 			log.info("\tStandard deviation: {}", Math.sqrt(variance));
 			
 			// median, first and third quartile
-			int medianIndex = samplesSeen/2;
-			int firstQIndex = (int) (samplesSeen*0.25);
-			int thirdQIndex = (int) (samplesSeen*0.75);
+			int medianIndex = posSamplesSeen/2;
+			int firstQIndex = (int) (posSamplesSeen*0.25);
+			int thirdQIndex = (int) (posSamplesSeen*0.75);
 			
 			double median = (medianIndex %2 == 1) ? samps.get(medianIndex) : (samps.get(medianIndex-1) + samps.get(medianIndex))/2.0;
 			double firstQ = (firstQIndex %2 == 1) ? samps.get(firstQIndex) : (samps.get(firstQIndex-1) + samps.get(firstQIndex))/2.0;
