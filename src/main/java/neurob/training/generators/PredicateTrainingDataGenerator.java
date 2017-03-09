@@ -45,6 +45,8 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 			log.debug("Not a machine file. Skipping: {}", sourceFile);
 			return;
 		}
+
+		log.info("Generating: {} > {}", sourceFile, targetFile);
 		
 		// Access source file/loading state space
 		StateSpace ss = null;

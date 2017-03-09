@@ -187,8 +187,6 @@ public class TrainingSetGenerator {
 	 * @param target
 	 */
 	public void generateTrainingDataFromFile(Path source, Path target){
-		log.info("Generating: {} > {}", source, target);
-		
 		// check necessity of file creation:
 		// if a train file already exists and is newer than the machine file, 
 		// then the data should be up to date
@@ -197,14 +195,14 @@ public class TrainingSetGenerator {
 				if(Files.getLastModifiedTime(source, LinkOption.NOFOLLOW_LINKS)
 						.compareTo(Files.getLastModifiedTime(target, LinkOption.NOFOLLOW_LINKS))
 					<= 0){ // last edit source file <= last edit target file -> nothing to do here
-					log.info("\tTarget file {} is already present and seems to be up to date. Doing nothing.", target);
+					log.info("Found {}, but target file {} is already present and seems to be up to date. Doing nothing.", source, target);
 					return;
 				}
 			}
 			catch(IOException e){
-				log.error("\t.{} file exists but could not access it or the source machine file: {}",
-						tdg.getPreferedFileExtension(), e.getMessage(), e);
-				log.info("\tSkipping machine.");
+				log.error("Found {} and corresponding .{} file exists but could not access it or the source machine file: {}",
+						source, tdg.getPreferedFileExtension(), e.getMessage(), e);
+				log.info("\tSkipping file.");
 			}
 		}
 		
