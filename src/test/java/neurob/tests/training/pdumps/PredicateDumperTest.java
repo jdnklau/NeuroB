@@ -20,7 +20,7 @@ public class PredicateDumperTest {
 	
 	@Test
 	public void DumpFromFileTest() throws IOException, ModelTranslationError, NeuroBException {
-		PredicateDumpGenerator tpg = new PredicateDumpGenerator();
+		PredicateDumpGenerator tpg = new PredicateDumpGenerator(1);
 		
 		Files.deleteIfExists(formulaeGenPDump);
 		

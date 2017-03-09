@@ -2,12 +2,16 @@ package neurob.training.generators;
 
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.labelling.SolverTimerGenerator;
+import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
 
 public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 
 	public PredicateDumpGenerator() {
-		super(null, new SolverTimerGenerator(3));
+		this(3);
+	}
+	
+	public PredicateDumpGenerator(int samplingSize) {
+		super(null, new PredicateDumpLabelGenerator(samplingSize));
 		preferedFileExtension = "pdump";
 	}
 	
