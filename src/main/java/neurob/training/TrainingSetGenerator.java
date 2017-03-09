@@ -180,91 +180,6 @@ public class TrainingSetGenerator {
 		
 	}
 	
-//	protected void collectTrainingData(Path sourceFile, Path targetFile) throws NeuroBException{
-//		// StateSpace and main component
-//		StateSpace ss = null;
-//		// For the formula and ProB command to use
-//		List<String> formulae;
-//		
-//		// Access source file
-//		try{
-//			log.info("\tLoading machine file {} ...", sourceFile);
-//			// decide between Classical and EventB
-//			String fileName = sourceFile.getFileName().toString();
-//			String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-//			if(ext.equals("bcm"))
-//				ss = api.eventb_load(sourceFile.toString());
-//			else
-//				ss = api.b_load(sourceFile.toString());
-//		} catch(Exception e) {
-//			throw new NeuroBException("Could not load machine correctly: "+e.getMessage(), e);
-//		}
-//		
-//		// Get different formulas
-//		PredicateCollector predc = new PredicateCollector(ss);
-//		formulae = FormulaGenerator.extendedGuardFormulae(predc);
-//		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
-//		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
-//		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
-//		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
-//		// TODO: this should be implemented for convolution features, but for predicates only
-//		// This should be implemented after restructuring training set generation
-//		// into a more general format, that is not restricted to predicates only
-////		// get shuffles for images
-////		if(fg instanceof ConvolutionFeatures){
-////			for(long i=0; i<3; i++){
-////				predc.shuffleConjunctions(i);
-////				formulae = FormulaGenerator.extendedGuardFormulae(predc);
-////				formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
-////			}
-////		}
-//		
-//		log.info("\tGenerated {} formulae to solve.", formulae.size());
-//		
-//		// generate data per formula
-//		List<String> results = new ArrayList<String>();
-//		int count = formulae.size();
-//		int curr = 1;
-//		for( String formula : formulae) {
-//			log.info("\tAt {}/{}...", curr++, count);
-//			try {
-//				// features:labeling vector:comment
-//				results.add(fg.generateFeatureString(formula)+":"+lg.generateLabelling(formula, ss)+":\""+formula+"\"");
-//			} catch (NeuroBException e) {
-//				log.warn("\t{}", e.getMessage(), e);
-//			} catch (IllegalStateException e) {
-//				log.error("\tReached Illegal State: {}", e.getMessage(), e);
-//			} catch (Exception e) {
-//				log.error("\tUnexpected Exception encountered: {}", e.getMessage(), e);
-//			}
-//		}
-//		
-//		// close StateSpace
-//		ss.kill();
-//		
-//		// No training data to write? -> return from method
-//		// otherwise write to targetFile
-//		if(results.isEmpty()){
-//			log.info("\tNo training data created");
-//			return;
-//		}
-//		
-//		// open target file
-//		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
-//			// write feature vector to stream
-//			log.info("\tWriting training data...");
-//			for(String res : results){
-//				out.write(res);
-//				out.newLine();
-//				out.flush();
-//			}
-//			log.info("\tDone: {}", targetFile);
-//		} catch (IOException e) {
-//			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
-//		}
-//				
-//	}
-	
 	/**
 	 * Generates a file containing feature data found in the source file,
 	 * and writes them to the target file.
@@ -275,7 +190,7 @@ public class TrainingSetGenerator {
 		log.info("Generating: {} > {}", source, target);
 		
 		// check necessity of file creation:
-		// if a nbtrain file already exists and is newer than the machine file, 
+		// if a train file already exists and is newer than the machine file, 
 		// then the data should be up to date
 		if(Files.exists(target, LinkOption.NOFOLLOW_LINKS)){
 			try{

@@ -19,7 +19,7 @@ public class PredicateDumperTest {
 	private final Path formulaeGenPDump = Paths.get("src/test/resources/training/pdump/formulae_generation.pdump");
 	
 	@Test
-	public void DumpFromFile() throws IOException, ModelTranslationError, NeuroBException {
+	public void DumpFromFileTest() throws IOException, ModelTranslationError, NeuroBException {
 		PredicateDumpGenerator tpg = new PredicateDumpGenerator();
 		
 		Files.deleteIfExists(formulaeGenPDump);

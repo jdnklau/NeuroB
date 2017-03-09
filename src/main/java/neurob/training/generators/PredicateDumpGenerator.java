@@ -8,6 +8,7 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 
 	public PredicateDumpGenerator() {
 		super(null, new SolverTimerGenerator(3));
+		preferedFileExtension = "pdump";
 	}
 	
 	@Override
