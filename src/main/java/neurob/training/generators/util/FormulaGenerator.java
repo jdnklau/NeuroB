@@ -264,6 +264,10 @@ public class FormulaGenerator {
 		// get primed guards of events we also got before/after predicates for
 		Map<String, String> primedGuards = new HashMap<>();
 		for(String event : beforeAfter.keySet().stream().collect(Collectors.toList())){
+			if(!guards.containsKey(event)){
+				// some non-skip events have no guard but still a before/after predicate
+				continue;
+			}
 			try {
 				primedGuards.put(event, generatePrimedPredicate(
 						predicateCollector.accessStateSpace(),
@@ -276,25 +280,31 @@ public class FormulaGenerator {
 		
 		// set up formulae
 		for(String event : beforeAfter.keySet()){
-			String g1 = guards.get(event);
+			String g1;
+			
+			if(guards.containsKey(event)){
+				g1 = guards.get(event) + " & ";
+			} else {
+				g1 = "";
+			}
 			
 			for(String primedEvent : primedGuards.keySet()){
 				String g2 = primedGuards.get(primedEvent);
-				String ba = beforeAfter.get(primedEvent);
+				String g1AndBa = g1+beforeAfter.get(primedEvent);
 
-				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" & "+g2+")");
-				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" & not("+g2+"))");
-//				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" => "+g2+")");
-//				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" => not("+g2+"))");
-//				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" <=> "+g2+")");
-//				formulae.add(PropsAndInvsPre + "("+g1+" & "+ba+" <=> not("+g2+"))");
+				formulae.add(PropsAndInvsPre + "("+g1AndBa+" & "+g2+")");
+				formulae.add(PropsAndInvsPre + "("+g1AndBa+" & not("+g2+"))");
+//				formulae.add(PropsAndInvsPre + "("+g1AndBa+" => "+g2+")");
+//				formulae.add(PropsAndInvsPre + "("+g1AndBa+" => not("+g2+"))");
+//				formulae.add(PropsAndInvsPre + "("+g1AndBa+" <=> "+g2+")");
+//				formulae.add(PropsAndInvsPre + "("+g1AndBa+" <=> not("+g2+"))");
 				
-				formulae.add(PropsAndInvsPre + "not("+g1+" & "+ba+") & "+g2+"");
-				formulae.add(PropsAndInvsPre + "not("+g1+" & "+ba+") & not("+g2+")");
-				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") => "+g2+")");
-				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") => not("+g2+"))");
-//				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") <=> "+g2+")");
-//				formulae.add(PropsAndInvsPre + "(not("+g1+" & "+ba+") <=> not("+g2+"))");
+				formulae.add(PropsAndInvsPre + "not("+g1AndBa+") & "+g2+"");
+				formulae.add(PropsAndInvsPre + "not("+g1AndBa+") & not("+g2+")");
+				formulae.add(PropsAndInvsPre + "(not("+g1AndBa+") => "+g2+")");
+				formulae.add(PropsAndInvsPre + "(not("+g1AndBa+") => not("+g2+"))");
+//				formulae.add(PropsAndInvsPre + "(not("+g1AndBa+") <=> "+g2+")");
+//				formulae.add(PropsAndInvsPre + "(not("+g1AndBa+") <=> not("+g2+"))");
 				
 			}
 		}
@@ -386,13 +396,20 @@ public class FormulaGenerator {
 			Map<String, String> beforeAfter = predicateCollector.getBeforeAfterPredicates();
 			
 			for(String event : beforeAfter.keySet()){
-				String g = getStringConjunction(guards.get(event)); // the guard of the event
-				String ba = beforeAfter.get(event);
+				String g; // the guard of the event (may be empty)
+				
+				if(guards.containsKey(event)){
+					g = getStringConjunction(guards.get(event)) + " & ";
+				} else {
+					g = "";
+				}
+				
+				String gAndBa = g+beforeAfter.get(event);
 
-				formulae.add(PropsPre+unprimedInv+" & "+g+" & "+ba+" & "+primedInv);
-				formulae.add(PropsPre+"(not("+unprimedInv+" & "+g+" & "+ba+") => "+primedInv+")");
-				formulae.add(PropsPre+unprimedInv+" & "+g+" & "+ba+" & not("+primedInv+")");
-				formulae.add(PropsPre+"(not("+unprimedInv+" & "+g+" & "+ba+") => not("+primedInv+"))");
+				formulae.add(PropsPre+unprimedInv+" & "+gAndBa+" & "+primedInv);
+				formulae.add(PropsPre+"(not("+unprimedInv+" & "+gAndBa+") => "+primedInv+")");
+				formulae.add(PropsPre+unprimedInv+" & "+gAndBa+" & not("+primedInv+")");
+				formulae.add(PropsPre+"(not("+unprimedInv+" & "+gAndBa+") => not("+primedInv+"))");
 				
 			}
 		}
