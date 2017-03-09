@@ -1,47 +1,42 @@
-/**
- * 
- */
 package neurob.training.analysis;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author jannik
- *
- */
-public class RegressionAnalysis implements TrainingAnalysisData {
-	private int outputCount;
-	private double[] sumOfAllSamples; // used for mean computation at logging
-	private ArrayList<ArrayList<Double>> samples;
-	// file information
+public class PredicateDumpAnalysis implements TrainingAnalysisData {
+	private int samplesSeen;
 	private int filesSeen;
 	private int emptyFilesSeen;
-	private int samplesSeen;
-
-	private static final Logger log = LoggerFactory.getLogger(RegressionAnalysis.class);
 	
-	public RegressionAnalysis(int numberOfOutputs){
-		outputCount = numberOfOutputs;
-		
-		sumOfAllSamples = new double[numberOfOutputs];
-		
-		samples = new ArrayList<ArrayList<Double>>(numberOfOutputs);
-		for(int i=0; i<numberOfOutputs; i++){
-			samples.add(i, new ArrayList<Double>());
-		}
-		
+	// data over solvers
+	private double[] sampleSums;
+	private long[] negSamples;
+	private List<List<Double>> posSamples;
+	private int solversAccountedFor;
+	
+	// logger
+	private static final Logger log = LoggerFactory.getLogger(PredicateDumpAnalysis.class);
+	
+	public PredicateDumpAnalysis() {
+		samplesSeen=0;
 		filesSeen = 0;
 		emptyFilesSeen = 0;
-		samplesSeen = 0;
+		
+		// Note: using 4 values here, but generating only data for first three solvers
+		solversAccountedFor = 3;
+		sampleSums = new double[]{0.,0.,0.,0.};
+		negSamples = new long[]{0L,0L,0L,0L};
+		posSamples = new ArrayList<>(4);
+		for(int i=0; i<4; i++){
+			posSamples.add(new ArrayList<>());
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see neurob.training.analysis.TrainingAnalysisData#log()
-	 */
 	@Override
 	public void log() {
 		log.info("Analysis of training data");
@@ -54,14 +49,16 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 		}
 		
 		// log boxplot values
-		for(int i=0; i<outputCount; i++){
-			ArrayList<Double> samps = samples.get(i);
-			Collections.sort(samps);			
+		String[] solverNames = new String[]{"ProB", "KodKod", "Z3", "ProB+Z3"};
+		for(int i=0; i<solversAccountedFor; i++){
+			List<Double> samps = posSamples.get(i);
+			Collections.sort(samps);
 			
-			log.info("Overview for #{} regression value:", i);
+			log.info("# Overview for {}", i, solverNames[i]);
+			log.info("{} of {} samples could be decided:", samplesSeen-negSamples[i], samplesSeen);
 			log.info("\tMinimum: {}, Maximum: {}", samps.get(0), samps.get(samps.size()-1));
 			
-			double mean = sumOfAllSamples[i]/samps.size();
+			double mean = sampleSums[i]/samps.size();
 			
 			log.info("\tMean: {}", mean);
 			
@@ -92,63 +89,60 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 		log.info("*****************************");
 	}
 
-	/* (non-Javadoc)
-	 * @see neurob.training.analysis.TrainingAnalysisData#countFileSeen()
-	 */
 	@Override
 	public void countFileSeen() {
 		filesSeen++;
 	}
 
-	/* (non-Javadoc)
-	 * @see neurob.training.analysis.TrainingAnalysisData#getFilesCount()
-	 */
 	@Override
 	public int getFilesCount() {
 		return filesSeen;
 	}
 
-	/* (non-Javadoc)
-	 * @see neurob.training.analysis.TrainingAnalysisData#countEmptyFileSeen()
-	 */
 	@Override
 	public void countEmptyFileSeen() {
 		emptyFilesSeen++;
-
 	}
 
-	/* (non-Javadoc)
-	 * @see neurob.training.analysis.TrainingAnalysisData#getEmptyFilesCount()
-	 */
 	@Override
 	public int getEmptyFilesCount() {
 		return emptyFilesSeen;
 	}
 
-	/* (non-Javadoc)
-	 * @see neurob.training.analysis.TrainingAnalysisData#getSamplesCount()
-	 */
 	@Override
 	public int getSamplesCount() {
 		return samplesSeen;
 	}
 
-	/* (non-Javadoc)
-	 * @see neurob.training.analysis.TrainingAnalysisData#analyseSample(double[], double[])
-	 */
 	@Override
 	public void analyseSample(double[] features, double[] labels) {
-		samplesSeen++;
-		
-		for(int i=0; i<outputCount; i++){
+		// for each solver
+		for(int s=0; s<labels.length; s++){
+			double l=labels[s];
 			
-			// add to total sum
-			sumOfAllSamples[i] += labels[i];
+			/*
+			 * negative values are counted as negSamples.
+			 * Otherwise, the time the solver needed is added to sampleSums
+			 */
 			
-			// and add to sample collection
-			samples.get(i).add(labels[i]);
+			if(l<0){
+				negSamples[s]++;
+			}
+			else {
+				sampleSums[s]+=l;
+				posSamples.get(s).add(l);
+			}
 		}
-
+		
+		samplesSeen++; // count sample total
+		
+	}
+	
+	@Override
+	public void analyseTrainingDataSample(String sampleString) {
+		double[] labels = Arrays.stream(sampleString.split(":")[0].split(","))
+				.mapToDouble(Double::parseDouble).toArray();
+		analyseSample(null, labels);
 	}
 
 }

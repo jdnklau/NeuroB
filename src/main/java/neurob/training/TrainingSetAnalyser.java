@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import neurob.core.util.ProblemType;
 import neurob.training.analysis.ClassificationAnalysis;
+import neurob.training.analysis.PredicateDumpAnalysis;
 import neurob.training.analysis.RegressionAnalysis;
 import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
@@ -127,7 +128,20 @@ public class TrainingSetAnalyser {
 	 * @throws IOException
 	 */
 	public TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, TrainingAnalysisData data) throws IOException{
-		
+		return analyseTrainingDataFiles(sourceDirectory, data, "nbtrain");
+	}
+	
+	/**
+	 * Analyses training data files from the given directory with the given analyser, 
+	 * which have the given file extension.
+	 * @param sourceDirectory
+	 * @param data
+	 * @param fileExtension
+	 * @return
+	 * @throws IOException
+	 */
+	protected TrainingAnalysisData analyseTrainingDataFiles(Path sourceDirectory, 
+			TrainingAnalysisData data, String fileExtension) throws IOException{
 		// iterate over directory recursively
 		try (Stream<Path> stream = Files.walk(sourceDirectory)) {
 			stream
@@ -140,7 +154,7 @@ public class TrainingSetAnalyser {
 						String fileName = entry.getFileName().toString();
 						String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
 						
-						if(ext.equals("nbtrain")){
+						if(ext.equals(fileExtension)){
 						// save old data count to compare later on if we got an empty file
 						int oldDataCount = data.getSamplesCount();
 						
@@ -171,6 +185,10 @@ public class TrainingSetAnalyser {
 		}
 		
 		return data;
+	}
+	
+	public TrainingAnalysisData analysePredicateDumps(Path sourceDirectory) throws IOException{
+		return analyseTrainingDataFiles(sourceDirectory, new PredicateDumpAnalysis(), "pdump");
 	}
 
 }
