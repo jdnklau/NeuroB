@@ -1,17 +1,10 @@
 package neurob.training.generators.labelling;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.nd4j.linalg.util.ArrayUtil;
 
-import com.google.inject.Inject;
-
-import de.prob.Main;
 import de.prob.animator.domainobjects.IBEvalElement;
-import de.prob.scripting.Api;
-import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
@@ -52,13 +45,6 @@ import neurob.training.generators.util.PredicateEvaluator;
  *
  */
 public class SolverSelectionGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
-	private Api api;
-	
-	
-	@Inject
-	public SolverSelectionGenerator() {
-		api = Main.getInjector().getInstance(Api.class);
-	}
 
 	@Override
 	public int getClassCount() {
@@ -94,25 +80,25 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		
 	}
 
-	@Override
-	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
-		// setup up state space
-		StateSpace ss;
-		try {
-			ss = api.b_load(b_machine.toString());
-		} catch (IOException e) {
-			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
-		} catch (ModelTranslationError e) {
-			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
-		}
-		
-		// Use other method to calculate labelling
-		String labelling = generateLabelling(predicate, ss);
-		
-		ss.kill();
-		// return
-		return labelling;
-	}
+//	@Override
+//	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
+//		// setup up state space
+//		StateSpace ss;
+//		try {
+//			ss = api.b_load(b_machine.toString());
+//		} catch (IOException e) {
+//			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
+//		} catch (ModelTranslationError e) {
+//			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
+//		}
+//		
+//		// Use other method to calculate labelling
+//		String labelling = generateLabelling(predicate, ss);
+//		
+//		ss.kill();
+//		// return
+//		return labelling;
+//	}
 	
 	private String getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
 		// check if any solver could decide the formula
@@ -146,7 +132,7 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 	}
 
 	@Override
-	public String translateToCSVLabelString(ArrayList<Long> labellings) {
+	public String translateToCSVLabelString(List<Long> labellings) {
 		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
 	}
 

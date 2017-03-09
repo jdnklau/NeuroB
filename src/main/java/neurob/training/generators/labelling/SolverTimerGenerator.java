@@ -3,20 +3,13 @@
  */
 package neurob.training.generators.labelling;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
-import com.google.inject.Inject;
-
-import de.prob.Main;
 import de.prob.animator.domainobjects.IBEvalElement;
-import de.prob.scripting.Api;
-import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
@@ -32,7 +25,6 @@ import neurob.training.generators.util.PredicateEvaluator;
  */
 public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
 	private int samplingSize;
-	private Api api;
 	
 	/**
 	 * Default constructor. Sets sampling size to 1
@@ -49,13 +41,11 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 	 * and the measured times will be averaged out. 
 	 * @param samplingSize
 	 */
-	@Inject
 	public SolverTimerGenerator(int samplingSize){
 		if(samplingSize<1)
 			throw new IllegalArgumentException("samplingSize must be at least 1, but is "+samplingSize);
 		
 		this.samplingSize = samplingSize;
-		api = Main.getInjector().getInstance(Api.class);
 	}
 
 	/* (non-Javadoc)
@@ -92,22 +82,18 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 		long Z3Time = 0;
 		
 		for(int sample=0; sample<samplingSize; ++sample){
-			ProBTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.PROB, formula);
-			KodKodTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.KODKOD, formula);
-			Z3Time = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
+			ProBTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.PROB, formula);
+			KodKodTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.KODKOD, formula);
+			Z3Time += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
 		}
 		
 		// normalise times
 		// if a solver can not decide the predicate, it should be samplingSize*(-1)/samplingSize = -1
-		ProBTime /= samplingSize;
-		KodKodTime /= samplingSize;
-		Z3Time /= samplingSize;
-		
-		return getLabellingByTimes(ProBTime, KodKodTime, Z3Time);
+		return getLabellingByTimes(ProBTime/samplingSize, KodKodTime/samplingSize, Z3Time/samplingSize);
 		
 	}
 	
-	private String getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
+	private String getLabellingByTimes(double ProBTime, double KodKodTime, double Z3Time){
 		//return Long.toString(ProBTime)+","+Long.toString(KodKodTime)+","+Long.toString(Z3Time);
 		
 		// convert appropriately to milliseconds
@@ -124,25 +110,25 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 	/* (non-Javadoc)
 	 * @see neurob.training.generators.interfaces.LabelGenerator#generateLabelling(java.lang.String, java.nio.file.Path)
 	 */
-	@Override
-	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
-		// setup up state space
-		StateSpace ss;
-		try {
-			ss = api.b_load(b_machine.toString());
-		} catch (IOException e) {
-			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
-		} catch (ModelTranslationError e) {
-			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
-		}
-		
-		// Use other method to calculate labelling
-		String labelling = generateLabelling(predicate, ss);
-		
-		ss.kill();
-		// return
-		return labelling;
-	}
+//	@Override
+//	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
+//		// setup up state space
+//		StateSpace ss;
+//		try {
+//			ss = api.b_load(b_machine.toString());
+//		} catch (IOException e) {
+//			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
+//		} catch (ModelTranslationError e) {
+//			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
+//		}
+//		
+//		// Use other method to calculate labelling
+//		String labelling = generateLabelling(predicate, ss);
+//		
+//		ss.kill();
+//		// return
+//		return labelling;
+//	}
 	
 	@Override
 	public DataSetIterator getDataSetIterator(RecordReader recordReader, int batchSize, int featureDimension) {
@@ -158,7 +144,7 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 	}
 
 	@Override
-	public String translateToCSVLabelString(ArrayList<Long> labellings) {
+	public String translateToCSVLabelString(List<Long> labellings) {
 		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
 	}
 

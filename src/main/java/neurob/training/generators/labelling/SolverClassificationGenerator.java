@@ -1,15 +1,10 @@
 package neurob.training.generators.labelling;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.List;
 
 import com.google.inject.Inject;
 
-import de.prob.Main;
 import de.prob.animator.domainobjects.IBEvalElement;
-import de.prob.scripting.Api;
-import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
@@ -44,7 +39,6 @@ import neurob.training.generators.util.PredicateEvaluator;
  *
  */
 public class SolverClassificationGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
-	private Api api;
 	// what to classify
 	private SolverType solver;
 
@@ -54,8 +48,6 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 	 */
 	@Inject 
 	public SolverClassificationGenerator(SolverType solver){
-		api = Main.getInjector().getInstance(Api.class);
-		
 		this.solver = solver;
 	}
 	
@@ -93,29 +85,29 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 		
 	}
 
-	@Override
-	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
-		// setup up state space
-		StateSpace ss;
-		try {
-			ss = api.b_load(b_machine.toString());
-		} catch (IOException e) {
-			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
-		} catch (ModelTranslationError e) {
-			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
-		}
-		
-		// Use other method to calculate labelling
-		String labelling = generateLabelling(predicate, ss);
-		
-		ss.kill();
-		// return
-		return labelling;
-	}
+//	@Override
+//	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
+//		// setup up state space
+//		StateSpace ss;
+//		try {
+//			ss = api.b_load(b_machine.toString());
+//		} catch (IOException e) {
+//			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
+//		} catch (ModelTranslationError e) {
+//			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
+//		}
+//		
+//		// Use other method to calculate labelling
+//		String labelling = generateLabelling(predicate, ss);
+//		
+//		ss.kill();
+//		// return
+//		return labelling;
+//	}
 
 
 	@Override
-	public String translateToCSVLabelString(ArrayList<Long> labellings) {
+	public String translateToCSVLabelString(List<Long> labellings) {
 		// Label to be picked depends on solver type
 		Long label;
 		switch (solver) {

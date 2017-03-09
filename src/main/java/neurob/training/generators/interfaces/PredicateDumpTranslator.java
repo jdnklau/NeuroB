@@ -1,6 +1,6 @@
 package neurob.training.generators.interfaces;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
@@ -44,5 +44,5 @@ public interface PredicateDumpTranslator {
 	 * @param predicateDumpString
 	 * @return
 	 */
-	public String translateToCSVLabelString(ArrayList<Long> labellings);
+	public String translateToCSVLabelString(List<Long> labellings);
 }
