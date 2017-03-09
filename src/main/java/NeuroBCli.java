@@ -15,6 +15,7 @@ import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
+import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.PredicateDumpGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
@@ -107,6 +108,9 @@ public class NeuroBCli {
 					
 					+ "pdump -translate <directory> [-net <features> <labels>]\n"
 					+ "\tTranslates the given directory of pdump-files into a CSV to train the given neural network\n"
+					
+					+ "pdump -analyse <directory>\n"
+					+ "\tAnalyses the .pdump files in the given directory (recursively)\n"
 					
 					+ "trainnet -train <trainingfile> -test <testfile> [-net <features> <labels>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
@@ -247,6 +251,10 @@ public class NeuroBCli {
 				Path dir = Paths.get(ops.get("translate").get(0));
 				translatePDump(dir);
 			}
+			else if(ops.containsKey("analyse")){
+				Path dir = Paths.get(ops.get("analyse").get(0));
+				analysePDump(dir);
+			}
 			else {
 				System.out.println("pdump: expecting either -file, -dir, or -translate parameter");
 			}
@@ -317,6 +325,16 @@ public class NeuroBCli {
 			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName()).resolve("pdata.csv");
 			nb.getNeuroBNet().getTrainingSetGenerator().generateCSVFromPDumpFiles(dir, target);
 		} catch (NeuroBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private static void analysePDump(Path dir){
+		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
+		try {
+			tsa.analysePredicateDumps(dir).log();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
