@@ -14,16 +14,19 @@ import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.LabelGenerator;
+import neurob.training.generators.interfaces.PredicateLabelGenerator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
 
 public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 	// logger
 	private static final Logger log = LoggerFactory.getLogger(PredicateTrainingDataGenerator.class);
+	// Label generator
+	protected PredicateLabelGenerator lg;
 
-	public PredicateTrainingDataGenerator(FeatureGenerator fg, LabelGenerator lg) {
+	public PredicateTrainingDataGenerator(FeatureGenerator fg, PredicateLabelGenerator lg) {
 		super(fg, lg);
+		this.lg = lg;
 	}
 
 	@Override
