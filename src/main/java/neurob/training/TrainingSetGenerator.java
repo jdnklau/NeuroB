@@ -206,14 +206,6 @@ public class TrainingSetGenerator {
 			}
 		}
 		
-		Path targetDirectory = target.getParent();
-		// ensure existence of target directory
-		try {
-			Files.createDirectories(targetDirectory);
-		} catch (IOException e) {
-			log.error("\tCould not create or access directory {}: {}", targetDirectory, e.getMessage(), e);
-			return;
-		}
 		// create file
 		try {
 			tdg.collectTrainingDataFromFile(source, target);

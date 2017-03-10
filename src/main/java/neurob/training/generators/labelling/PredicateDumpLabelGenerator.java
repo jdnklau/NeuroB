@@ -50,7 +50,9 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 			Z3Time += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
 		}
 		
-		return Long.toString(ProBTime)+","+Long.toString(KodKodTime)+","+Long.toString(Z3Time);
+		return Long.toString(ProBTime/samplingSize)
+				+","+Long.toString(KodKodTime/samplingSize)
+				+","+Long.toString(Z3Time/samplingSize);
 	}
 
 	@Override

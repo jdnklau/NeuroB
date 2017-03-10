@@ -115,7 +115,9 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 			log.info("\tAt {}/{}...", curr++, count);
 			try {
 				// features:labeling vector:comment
-				results.add(generateOutput(formula, ss));
+				String output = generateOutput(formula, ss); 
+				results.add(output);
+				log.debug("\tGenerated training data: {}", output);
 				corruptionCounter = (corruptionCounter ==0 ? 0 : corruptionCounter-1); // could use new state space without corrupting it again
 			} catch (NeuroBException e) {
 				log.warn("\t{}", e.getMessage(), e);
@@ -136,6 +138,15 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		// otherwise write to targetFile
 		if(results.isEmpty()){
 			log.info("\tNo training data created");
+			return;
+		}
+		
+		Path targetDirectory = targetFile.getParent();
+		// ensure existence of target directory
+		try {
+			Files.createDirectories(targetDirectory);
+		} catch (IOException e) {
+			log.error("\tCould not create or access directory {}: {}", targetDirectory, e.getMessage(), e);
 			return;
 		}
 		
