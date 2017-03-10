@@ -16,7 +16,7 @@ unzip_examples : examples/prob_examples
 
 neurob :
 	@echo "***** Create NeuroB binary"
-	@./gradlew installDist
+	@./gradlew installDist --refresh-dependencies
 	@echo "*****/ Created binary"
 
 clean :
@@ -27,7 +27,7 @@ clean :
 dev :
 	@echo "***** Setting up eclipse project"
 	@./gradlew cleanEclipse
-	@./gradlew eclipse
+	@./gradlew eclipse --refresh-dependencies
 	@echo "*****/ Eclipse project set up"
 
 # how to run stuff

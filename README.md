@@ -10,7 +10,7 @@ constraint problems or alike.
 
 ## Requirements
 - Java 1.8+
-- Make sure to have [the Z3 Theorem Prover](https://github.com/Z3Prover/z3) installed.
+- Make sure to have [the Z3 Theorem Prover](https://github.com/Z3Prover/z3) version 4.5.0 installed.
 
 
 
