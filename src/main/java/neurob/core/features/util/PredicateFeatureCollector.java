@@ -1,4 +1,4 @@
-package neurob.core.features;
+package neurob.core.features.util;
 
 import java.util.LinkedList;
 

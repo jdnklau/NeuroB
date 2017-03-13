@@ -7,17 +7,24 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.core.features.util.PredicateFeatureData;
+import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
 
 public class PredicateFeatures implements FeatureGenerator {
 	
 	public static final int featureDimension = 17; // Dimension of feature vectors
 	private ArrayList<String> features; // The stored features
+	private MachineType machineType;
 	
 	
 	public PredicateFeatures() {
-		// Initialise fields
+		this(MachineType.CLASSICALB);
+	}
+	
+	public PredicateFeatures(MachineType mt){
 		features = new ArrayList<String>();
+		machineType = mt;
 	}
 
 	@Override

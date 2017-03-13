@@ -114,8 +114,11 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 		case KODKOD:
 			label = labellings.get(1);
 			break;
-		case SMT_SUPPORTED_INTERPRETER:
+		case Z3:
 			label = labellings.get(2);
+			break;
+		case SMT_SUPPORTED_INTERPRETER:
+			label = labellings.get(3);
 			break;
 		case PROB:
 		default: // defaulting to ProB

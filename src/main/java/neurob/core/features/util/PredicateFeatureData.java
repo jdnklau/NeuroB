@@ -1,4 +1,4 @@
-package neurob.core.features;
+package neurob.core.features.util;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -9,7 +9,6 @@ import org.nd4j.linalg.factory.Nd4j;
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.Start;
-import neurob.core.features.util.IdentifierRelationHandler;
 
 /**
  * This class is for data points in the feature space.
