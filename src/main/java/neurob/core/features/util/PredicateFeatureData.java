@@ -9,49 +9,41 @@ import org.nd4j.linalg.factory.Nd4j;
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.Start;
+import neurob.exceptions.NeuroBException;
 
 /**
  * This class is for data points in the feature space.
  * 
- * It is intended to apply an instance of {@link PredicateFeatureCollector} on an AST and
- * use the resulting object's {@link PredicateFeatureCollector#getFeatureData() getFeatureData} method.
+ * It is intended to apply an instance of {@link ClassicalBPredicateFeatureCollector} on an AST and
+ * use the resulting object's {@link ClassicalBPredicateFeatureCollector#getFeatureData() getFeatureData} method.
  * 
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public class PredicateFeatureData {
+public abstract class PredicateFeatureData {
 	// Dimensions
 	public static final int featureCount = 17;
 	// Helpers
-	private IdentifierRelationHandler ids;
+	protected IdentifierRelationHandler ids;
 	// Features
-//	private int fFormulaLength; // Length of formula (count of operators)
-	private int fExistsQuantifiersCount; // number of existential quantifiers
-	private int fForAllQuantifiersCount; // number of universal quantifiers
-	private int fArithmOperatorsCount; // number of arithmetic operators
-	private int fCompOperatorsCount; // number of comparison operators
-	private int fConjunctionsCount; // number of conjunctions
-	private int fDisjunctionsCount; // number of disjunctions
-	private int fNegationsCount; // number of negations
-//	private int fUniqueIdentifiersCount; // number of unique identifiers used
-//	private int fFiniteSizedDomainIdentifiersCount; // identifiers with finite domain
-//	private int fInfiniteSizedDomainIdentifiersCount; // identifiers with infinite domain
-//	private int fUnknownSizedDomainIdentifiersCount; // identifiers with unknown sized domain
-	private int fSetOperatorsCount; // number of set operators
-	private int fSetMemberCount; // number of memberships to sets
-	private int fFunctionsCount; // number of functions
-	private int fRelationOperatorsCount;
-	private int fImplicationsCount; // count implications used (=>)
-	private int fEquivalencesCount; // count equivalences used (<=>)
-	
-	public PredicateFeatureData(String predicate) throws BCompoundException{
-		this(BParser.parse(BParser.FORMULA_PREFIX+" "+predicate));
-		
-	}
-	public PredicateFeatureData(Start ast){
-		this();
-		ast.apply(new PredicateFeatureCollector(this));
-	}
+//	protected int fFormulaLength; // Length of formula (count of operators)
+	protected int fExistsQuantifiersCount; // number of existential quantifiers
+	protected int fForAllQuantifiersCount; // number of universal quantifiers
+	protected int fArithmOperatorsCount; // number of arithmetic operators
+	protected int fCompOperatorsCount; // number of comparison operators
+	protected int fConjunctionsCount; // number of conjunctions
+	protected int fDisjunctionsCount; // number of disjunctions
+	protected int fNegationsCount; // number of negations
+//	protected int fUniqueIdentifiersCount; // number of unique identifiers used
+//	protected int fFiniteSizedDomainIdentifiersCount; // identifiers with finite domain
+//	protected int fInfiniteSizedDomainIdentifiersCount; // identifiers with infinite domain
+//	protected int fUnknownSizedDomainIdentifiersCount; // identifiers with unknown sized domain
+	protected int fSetOperatorsCount; // number of set operators
+	protected int fSetMemberCount; // number of memberships to sets
+	protected int fFunctionsCount; // number of functions
+	protected int fRelationOperatorsCount;
+	protected int fImplicationsCount; // count implications used (=>)
+	protected int fEquivalencesCount; // count equivalences used (<=>)
 	
 	public PredicateFeatureData() {
 		ids = new IdentifierRelationHandler();
@@ -112,7 +104,9 @@ public class PredicateFeatureData {
 				.collect(Collectors.joining(","));
 	}
 	
-	public double[] toArray(){
+	public abstract void collectData(String predicate) throws NeuroBException;
+	
+	public final double[] toArray(){
 		double[] features = new double[]{
 				fArithmOperatorsCount,
 				fCompOperatorsCount,
@@ -135,7 +129,7 @@ public class PredicateFeatureData {
 		return features;
 	}
 	
-	public INDArray toNDArray(){
+	public final INDArray toNDArray(){
 		return Nd4j.create(toArray());
 	}
 	
@@ -143,61 +137,61 @@ public class PredicateFeatureData {
 	 * Following the get-methods for the feature values and their corresponding increment methods
 	 */
 
-	public int getExistsQuantifiersCount(){ return fExistsQuantifiersCount; }
-	public void incExistsQuantifiersCount(){ fExistsQuantifiersCount++; }
+	public final int getExistsQuantifiersCount(){ return fExistsQuantifiersCount; }
+	public  final void incExistsQuantifiersCount(){ fExistsQuantifiersCount++; }
 	
-	public int getForAllQuantifiersCount(){ return fForAllQuantifiersCount; }
-	public void incForAllQuantifiersCount(){ fForAllQuantifiersCount++; }
-	
-	public int getArithmOperatorsCount(){ return fArithmOperatorsCount; }
-	public void incArithmOperatorsCount(){ fArithmOperatorsCount++; }
-	
-	public int getCompOperatorsCount(){ return fCompOperatorsCount; }
-	public void incCompOperatorsCount(){ fCompOperatorsCount++; }
-	
-	public int getConjunctionsCount(){ return fConjunctionsCount; }
-	public void incConjunctionsCount(){ fConjunctionsCount++; }
+	public final int getForAllQuantifiersCount(){ return fForAllQuantifiersCount; }
+	public final void incForAllQuantifiersCount(){ fForAllQuantifiersCount++; }
 
-	public int getDisjunctionsCount(){ return fDisjunctionsCount; }
-	public void incDisjunctionsCount(){ fDisjunctionsCount++; }
+	public final int getArithmOperatorsCount(){ return fArithmOperatorsCount; }
+	public final void incArithmOperatorsCount(){ fArithmOperatorsCount++; }
 
-	public int getNegationsCount(){ return fNegationsCount; }
-	public void incNegationsCount(){ fNegationsCount++; }
-	
-	public int getSetOperatorsCount(){ return fSetOperatorsCount; }
-	public void incSetOperatorsCount(){ fSetOperatorsCount++; }
-	
-	public int getSetMemberCount(){ return fSetMemberCount; }
-	public void incSetMemberCount(){ fSetMemberCount++; }
-	
-	public int getFunctionsCount(){ return fFunctionsCount; }
-	public void incFunctionsCount(){ fFunctionsCount++; }
-	
-	public int getRelationOperatorsCount(){ return fRelationOperatorsCount; }
-	public void incRelationOperatorsCount(){ fRelationOperatorsCount++; }
-	
-	public int getUniqueIdentifiersCount(){ return ids.getUniqueIdentifierCount(); }
-	public void addIdentifier(String id){ ids.addIdentifier(id);}
+	public final int getCompOperatorsCount(){ return fCompOperatorsCount; }
+	public final void incCompOperatorsCount(){ fCompOperatorsCount++; }
 
-	public int getImplicationsCount(){ return fImplicationsCount; }
-	public void incImplicationsCount(){ fImplicationsCount++;}
-	
-	public int getEquivalencesCount(){ return fEquivalencesCount; }
-	public void incEquivalencesCount(){ fEquivalencesCount++;}
+	public final int getConjunctionsCount(){ return fConjunctionsCount; }
+	public final void incConjunctionsCount(){ fConjunctionsCount++; }
 
-	public void setIdentifierDomain(String id, boolean hasLowerBound, boolean hasUpperBound) {
+	public final int getDisjunctionsCount(){ return fDisjunctionsCount; }
+	public final void incDisjunctionsCount(){ fDisjunctionsCount++; }
+
+	public final int getNegationsCount(){ return fNegationsCount; }
+	public final void incNegationsCount(){ fNegationsCount++; }
+
+	public final int getSetOperatorsCount(){ return fSetOperatorsCount; }
+	public final void incSetOperatorsCount(){ fSetOperatorsCount++; }
+
+	public final int getSetMemberCount(){ return fSetMemberCount; }
+	public final void incSetMemberCount(){ fSetMemberCount++; }
+
+	public final int getFunctionsCount(){ return fFunctionsCount; }
+	public final void incFunctionsCount(){ fFunctionsCount++; }
+
+	public final int getRelationOperatorsCount(){ return fRelationOperatorsCount; }
+	public final void incRelationOperatorsCount(){ fRelationOperatorsCount++; }
+
+	public final int getUniqueIdentifiersCount(){ return ids.getUniqueIdentifierCount(); }
+	public final void addIdentifier(String id){ ids.addIdentifier(id);}
+
+	public final int getImplicationsCount(){ return fImplicationsCount; }
+	public final void incImplicationsCount(){ fImplicationsCount++;}
+
+	public final int getEquivalencesCount(){ return fEquivalencesCount; }
+	public final void incEquivalencesCount(){ fEquivalencesCount++;}
+
+	public final void setIdentifierDomain(String id, boolean hasLowerBound, boolean hasUpperBound) {
 		ids.addBoundariesToIdentifier(id, hasLowerBound, hasUpperBound);
 	}
-	public void setUpperBoundRelationToIdentifier(String id){
+	public final void setUpperBoundRelationToIdentifier(String id){
 		ids.addBoundariesToIdentifier(id, false, true);
 	}
-	public void setUpperBoundRelationToIdentifier(String id, String restrictingID){
+	public final void setUpperBoundRelationToIdentifier(String id, String restrictingID){
 		// TODO
 	}
-	public void setLowerBoundRelationToIdentifier(String id){
+	public final void setLowerBoundRelationToIdentifier(String id){
 		ids.addBoundariesToIdentifier(id, true, false);
 	}
-	public void setLowerBoundRelationToIdentifier(String id, String restrictingID){
+	public final void setLowerBoundRelationToIdentifier(String id, String restrictingID){
 		// TODO
 	}
 

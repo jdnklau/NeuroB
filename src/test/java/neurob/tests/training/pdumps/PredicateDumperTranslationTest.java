@@ -28,7 +28,7 @@ public class PredicateDumperTranslationTest {
 		assertEquals("Predicate dump translation for solver classification (ProB) does not match", expected, actual);
 		
 
-		pds = new SolverClassificationGenerator(SolverType.SMT_SUPPORTED_INTERPRETER);
+		pds = new SolverClassificationGenerator(SolverType.Z3);
 		
 		expected = "0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,1";
 		actual = pds.translateToCSVDataString(fg, predicateDump);

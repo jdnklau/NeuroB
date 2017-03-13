@@ -9,16 +9,16 @@ import de.be4.classicalb.core.parser.node.*;
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public class PredicateFeatureCollector extends DepthFirstAdapter {
+public class ClassicalBPredicateFeatureCollector extends DepthFirstAdapter {
 	private PredicateFeatureData fd;
 	private boolean linked;
 	private boolean inNegation;
 
-	public PredicateFeatureCollector() {
-		this(new PredicateFeatureData());
+	public ClassicalBPredicateFeatureCollector() {
+		this(new ClassicalBPredicateFeatureData());
 	}
 	
-	public PredicateFeatureCollector(PredicateFeatureData linkedFD) {
+	public ClassicalBPredicateFeatureCollector(PredicateFeatureData linkedFD) {
 		fd = linkedFD;
 		linked = true;
 		inNegation = false;
@@ -37,7 +37,7 @@ public class PredicateFeatureCollector extends DepthFirstAdapter {
 		// If not linked to a specific feature data object, create a new one
 		if(!linked){
 			// Just set feature counters to zero, so we can use the same collector over and over again for different predicates
-			fd = new PredicateFeatureData();
+			fd = new ClassicalBPredicateFeatureData();
 		} else {
 			linked = false; // If this is to be used again, the link is no longer valid
 		}

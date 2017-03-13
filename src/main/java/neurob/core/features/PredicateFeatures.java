@@ -7,6 +7,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.core.features.util.ClassicalBPredicateFeatureData;
 import neurob.core.features.util.PredicateFeatureData;
 import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
@@ -35,8 +36,12 @@ public class PredicateFeatures implements FeatureGenerator {
 	private PredicateFeatureData generatePredicateFeatureData(String predicate) throws NeuroBException{
 		PredicateFeatureData pfd;
 		try {
-			pfd = new PredicateFeatureData(predicate);
-		} catch (BCompoundException e) {
+			switch(machineType){
+			case CLASSICALB:
+			default: // defaulting to classical b
+				pfd = new ClassicalBPredicateFeatureData(predicate);
+			}
+		} catch (NeuroBException e) {
 			throw new NeuroBException("Could not generate feature string from predicate: "+predicate, e);
 		}
 		return pfd;

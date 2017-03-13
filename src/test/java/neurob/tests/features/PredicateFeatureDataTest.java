@@ -9,7 +9,8 @@ import org.junit.Test;
 
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.node.Start;
-import neurob.core.features.util.PredicateFeatureCollector;
+import neurob.core.features.util.ClassicalBPredicateFeatureCollector;
+import neurob.core.features.util.ClassicalBPredicateFeatureData;
 import neurob.core.features.util.PredicateFeatureData;
 
 public class PredicateFeatureDataTest {
@@ -23,7 +24,7 @@ public class PredicateFeatureDataTest {
 		resource = new ClassPathResource("features_check.mch").getFile();
 		ast = p.parseFile(resource, false);
 		
-		PredicateFeatureCollector fc = new PredicateFeatureCollector();
+		ClassicalBPredicateFeatureCollector fc = new ClassicalBPredicateFeatureCollector();
 		ast.apply(fc);
 		
 		fd = fc.getFeatureData();
@@ -33,18 +34,12 @@ public class PredicateFeatureDataTest {
 	public void uniqueIdentifiersCount() throws Exception{
 		assertEquals("Unique identifiers count does not match", 6, fd.getUniqueIdentifiersCount());		
 	}
-
-	@Test
-	public void featureDataByASTConstructorTest() throws Exception{
-		PredicateFeatureData fd2 = new PredicateFeatureData(ast);
-		assertEquals("Features do not match", fd.toString(), fd2.toString());
-	}
 	
 	@Test
 	public void featureDataByStringConstructorTest() throws Exception{
 		String pred = "x : NATURAL & y : INTEGER & z : NATURAL & z < 20 & a : NAT & b : NAT1 & a < 7 & c : INT"
 					+ " & # y . (y < x) & ! z . (z < 15 => x > 3)";
-		PredicateFeatureData fd2 = new PredicateFeatureData(pred);
+		PredicateFeatureData fd2 = new ClassicalBPredicateFeatureData(pred);
 		assertEquals("Features do not match", fd.toString(), fd2.toString());
 	}
 	
