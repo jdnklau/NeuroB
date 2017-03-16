@@ -9,32 +9,24 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 
 import de.be4.classicalb.core.parser.BParser;
 import neurob.core.features.interfaces.PredicateASTFeatures;
-import neurob.core.features.util.ClassicalBTheoryFeatureData;
 import neurob.core.features.util.TheoryFeatureData;
-import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
 
 public class TheoryFeatures implements PredicateASTFeatures {
 	
 	public static final int featureDimension = 17; // Dimension of feature vectors
 	private ArrayList<String> features; // The stored features
-	private MachineType machineType;
 	private BParser bParser;
 	private Path sourceFile;
 	
 	
 	public TheoryFeatures() {
-		this(MachineType.CLASSICALB);
+		reset();
 	}
 	
 	public TheoryFeatures(Path machineFile) throws NeuroBException{
 		reset();
 		setMachine(machineFile);
-	}
-	
-	public TheoryFeatures(MachineType mt){
-		reset();
-		machineType = mt;
 	}
 
 	@Override
@@ -56,9 +48,8 @@ public class TheoryFeatures implements PredicateASTFeatures {
 			} catch (Exception e) {
 				throw new NeuroBException("Could not parse source file "+machineFile, e);
 			}
-			machineType = MachineType.CLASSICALB;
 		} else if(fileName.endsWith(".bcm")){
-			machineType = MachineType.EVENTB;
+			bParser = new BParser();
 		}
 		sourceFile = machineFile;
 	}
@@ -71,11 +62,7 @@ public class TheoryFeatures implements PredicateASTFeatures {
 	private TheoryFeatureData generatePredicateFeatureData(String predicate) throws NeuroBException{
 		TheoryFeatureData pfd;
 		try {
-			switch(machineType){
-			case CLASSICALB:
-			default: // defaulting to classical b
-				pfd = new ClassicalBTheoryFeatureData(predicate, bParser);
-			}
+			pfd = new TheoryFeatureData(predicate, bParser);
 		} catch (NeuroBException e) {
 			throw new NeuroBException("Could not generate feature string from predicate: "+predicate, e);
 		}

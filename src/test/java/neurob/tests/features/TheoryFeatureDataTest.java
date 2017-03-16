@@ -9,8 +9,7 @@ import org.junit.Test;
 
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.node.Start;
-import neurob.core.features.util.ClassicalBTheoryFeatureCollector;
-import neurob.core.features.util.ClassicalBTheoryFeatureData;
+import neurob.core.features.util.TheoryFeatureCollector;
 import neurob.core.features.util.TheoryFeatureData;
 
 public class TheoryFeatureDataTest {
@@ -24,7 +23,7 @@ public class TheoryFeatureDataTest {
 		resource = new ClassPathResource("features_check.mch").getFile();
 		ast = p.parseFile(resource, false);
 		
-		ClassicalBTheoryFeatureCollector fc = new ClassicalBTheoryFeatureCollector();
+		TheoryFeatureCollector fc = new TheoryFeatureCollector();
 		ast.apply(fc);
 		
 		fd = fc.getFeatureData();
@@ -39,7 +38,7 @@ public class TheoryFeatureDataTest {
 	public void featureDataByStringConstructorTest() throws Exception{
 		String pred = "x : NATURAL & y : INTEGER & z : NATURAL & z < 20 & a : NAT & b : NAT1 & a < 7 & c : INT"
 					+ " & # y . (y < x) & ! z . (z < 15 => x > 3)";
-		TheoryFeatureData fd2 = new ClassicalBTheoryFeatureData(pred);
+		TheoryFeatureData fd2 = new TheoryFeatureData(pred);
 		assertEquals("Features do not match", fd.toString(), fd2.toString());
 	}
 	

@@ -1,6 +1,6 @@
 ### Project specific
 # minimal working examples to check for bugs
-src/MWEModelTranslationError.java
+src/main/java/RectifyPredicateDumps.java
 
 # training data directory
 training_data/

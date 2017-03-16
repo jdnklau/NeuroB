@@ -35,8 +35,8 @@ public class PredicateDumperTest {
 		
 //		assertEquals("Amount of dumped predicates does not match", 113, entries);
 		// FIXME: On different machines, the 114th formulae may or may not go through.
-		assertTrue("Amount of dumpef predicates does not match, expecting at least 136, but got "+entries, 
-				entries==136||entries==137);
+		assertTrue("Amount of dumpef predicates does not match, expecting at least 137, but got "+entries, 
+				entries>=137);
 	}
 
 }

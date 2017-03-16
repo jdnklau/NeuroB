@@ -6,18 +6,20 @@ import java.util.stream.Collectors;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import de.be4.classicalb.core.parser.BParser;
+import de.be4.classicalb.core.parser.node.Start;
 import neurob.exceptions.NeuroBException;
 
 /**
  * This class is for data points in the feature space.
  * 
- * It is intended to apply an instance of {@link ClassicalBTheoryFeatureCollector} on an AST and
- * use the resulting object's {@link ClassicalBTheoryFeatureCollector#getFeatureData() getFeatureData} method.
+ * It is intended to apply an instance of {@link TheoryFeatureCollector} on an AST and
+ * use the resulting object's {@link TheoryFeatureCollector#getFeatureData() getFeatureData} method.
  * 
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public abstract class TheoryFeatureData {
+public class TheoryFeatureData {
 	// Dimensions
 	public static final int featureCount = 17;
 	// Helpers
@@ -41,8 +43,25 @@ public abstract class TheoryFeatureData {
 	protected int fRelationOperatorsCount;
 	protected int fImplicationsCount; // count implications used (=>)
 	protected int fEquivalencesCount; // count equivalences used (<=>)
+	// parser
+	private BParser parser;
 	
-	public TheoryFeatureData() {
+	public TheoryFeatureData(String predicate, BParser parser) throws NeuroBException {
+		this(parser);
+		collectData(predicate);
+	}
+	
+	public TheoryFeatureData(String predicate) throws NeuroBException{
+		this(predicate, new BParser());
+	}
+	
+	public TheoryFeatureData(){
+		this(new BParser());
+	}
+	
+	public TheoryFeatureData(BParser parser) {
+		this.parser = parser;
+		
 		ids = new IdentifierRelationHandler();
 		
 		// set initial values
@@ -70,7 +89,6 @@ public abstract class TheoryFeatureData {
 		// functions
 		fFunctionsCount = 0;
 		fRelationOperatorsCount = 0;
-		
 	}
 	
 	@Override
@@ -101,7 +119,17 @@ public abstract class TheoryFeatureData {
 				.collect(Collectors.joining(","));
 	}
 	
-	public abstract void collectData(String predicate) throws NeuroBException;
+	public void collectData(String predicate) throws NeuroBException {
+		Start ast;
+		try {
+			ast = parser.parse(BParser.PREDICATE_PREFIX+" "+predicate, false, parser.getContentProvider());
+		} catch (Exception e) {
+			throw new NeuroBException("Could not collect feature data from predicate "+predicate, e);
+		}
+		
+		ast.apply(new TheoryFeatureCollector(this));
+		
+	}
 	
 	public final double[] toArray(){
 		double[] features = new double[]{

@@ -9,16 +9,16 @@ import de.be4.classicalb.core.parser.node.*;
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public class ClassicalBTheoryFeatureCollector extends DepthFirstAdapter {
+public class TheoryFeatureCollector extends DepthFirstAdapter {
 	private TheoryFeatureData fd;
 	private boolean linked;
 	private boolean inNegation;
 
-	public ClassicalBTheoryFeatureCollector() {
-		this(new ClassicalBTheoryFeatureData());
+	public TheoryFeatureCollector() {
+		this(new TheoryFeatureData());
 	}
 	
-	public ClassicalBTheoryFeatureCollector(TheoryFeatureData linkedFD) {
+	public TheoryFeatureCollector(TheoryFeatureData linkedFD) {
 		fd = linkedFD;
 		linked = true;
 		inNegation = false;
@@ -37,7 +37,7 @@ public class ClassicalBTheoryFeatureCollector extends DepthFirstAdapter {
 		// If not linked to a specific feature data object, create a new one
 		if(!linked){
 			// Just set feature counters to zero, so we can use the same collector over and over again for different predicates
-			fd = new ClassicalBTheoryFeatureData();
+			fd = new TheoryFeatureData();
 		} else {
 			linked = false; // If this is to be used again, the link is no longer valid
 		}
