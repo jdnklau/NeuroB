@@ -27,6 +27,11 @@ public class PredicateFeatures implements FeatureGenerator {
 		this(MachineType.CLASSICALB);
 	}
 	
+	public PredicateFeatures(Path machineFile) throws NeuroBException{
+		reset();
+		setMachine(machineFile);
+	}
+	
 	public PredicateFeatures(MachineType mt){
 		reset();
 		machineType = mt;
