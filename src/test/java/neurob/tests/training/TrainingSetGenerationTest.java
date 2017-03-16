@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
-import neurob.core.features.PredicateFeatures;
+import neurob.core.features.TheoryFeatures;
 import neurob.core.util.SolverType;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
@@ -31,7 +31,7 @@ public class TrainingSetGenerationTest {
 	@Test
 	public void trainingSetAnalysisForNBTrain() throws IOException{
 		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
-		TrainingSetGenerator tsg = new TrainingSetGenerator(lg.getTrainingDataGenerator(new PredicateFeatures()));
+		TrainingSetGenerator tsg = new TrainingSetGenerator(lg.getTrainingDataGenerator(new TheoryFeatures()));
 		
 		Files.deleteIfExists(formulaeGenNBTrain);
 		

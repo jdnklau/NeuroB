@@ -6,21 +6,18 @@ import java.util.stream.Collectors;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
-import de.be4.classicalb.core.parser.BParser;
-import de.be4.classicalb.core.parser.exceptions.BCompoundException;
-import de.be4.classicalb.core.parser.node.Start;
 import neurob.exceptions.NeuroBException;
 
 /**
  * This class is for data points in the feature space.
  * 
- * It is intended to apply an instance of {@link ClassicalBPredicateFeatureCollector} on an AST and
- * use the resulting object's {@link ClassicalBPredicateFeatureCollector#getFeatureData() getFeatureData} method.
+ * It is intended to apply an instance of {@link ClassicalBTheoryFeatureCollector} on an AST and
+ * use the resulting object's {@link ClassicalBTheoryFeatureCollector#getFeatureData() getFeatureData} method.
  * 
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public abstract class PredicateFeatureData {
+public abstract class TheoryFeatureData {
 	// Dimensions
 	public static final int featureCount = 17;
 	// Helpers
@@ -45,7 +42,7 @@ public abstract class PredicateFeatureData {
 	protected int fImplicationsCount; // count implications used (=>)
 	protected int fEquivalencesCount; // count equivalences used (<=>)
 	
-	public PredicateFeatureData() {
+	public TheoryFeatureData() {
 		ids = new IdentifierRelationHandler();
 		
 		// set initial values

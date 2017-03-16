@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 
-import neurob.core.features.PredicateFeatures;
+import neurob.core.features.TheoryFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
@@ -31,7 +31,7 @@ public class PredicateDumperTranslationTest {
 	@Test
 	public void SolverClassificationPredicateDumpTranslationTest() throws NeuroBException{
 		PredicateDumpTranslator pds = new SolverClassificationGenerator(SolverType.PROB);
-		FeatureGenerator fg = new PredicateFeatures();
+		FeatureGenerator fg = new TheoryFeatures();
 
 		
 		String expected = "0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,0";
@@ -51,7 +51,7 @@ public class PredicateDumperTranslationTest {
 	@Test
 	public void SolverSelectionPredicateDumpTranslationTest() throws NeuroBException{
 		PredicateDumpTranslator pds = new SolverSelectionGenerator();
-		FeatureGenerator fg = new PredicateFeatures();
+		FeatureGenerator fg = new TheoryFeatures();
 
 		
 		String expected = "0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,3";
@@ -64,7 +64,7 @@ public class PredicateDumperTranslationTest {
 	@Test
 	public void SolverTimerPredicateDumpTranslationTest() throws NeuroBException{
 		PredicateDumpTranslator pds = new SolverTimerGenerator(3);
-		FeatureGenerator fg = new PredicateFeatures();
+		FeatureGenerator fg = new TheoryFeatures();
 
 		
 		String expected = "0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,-1.0,-1.0," + 2525884156L/1e6;
@@ -74,9 +74,9 @@ public class PredicateDumperTranslationTest {
 	}
 	
 	@Test
-	public void TranslateToPredicateFeaturesWithParsedFileTest() throws NeuroBException, IOException{
+	public void TranslateToTheoryFeaturesWithParsedFileTest() throws NeuroBException, IOException{
 		PredicateDumpTranslator pdt = new SolverClassificationGenerator(SolverType.PROB);
-		FeatureGenerator fg = new PredicateFeatures(schleusenMch);
+		FeatureGenerator fg = new TheoryFeatures(schleusenMch);
 		
 		List<String> lines = Files.lines(schleusenPdump).collect(Collectors.toList());
 		
@@ -92,16 +92,16 @@ public class PredicateDumperTranslationTest {
 	}
 	
 	/**
-	 * This test is a sanity check of {@link #TranslateToPredicateFeaturesWithParsedFileTest()}.
+	 * This test is a sanity check of {@link #TranslateToTheoryFeaturesWithParsedFileTest()}.
 	 * <p>
 	 * It checks whether parsing the file or not leads to different results.
 	 * @throws NeuroBException
 	 * @throws IOException
 	 */
 	@Test
-	public void TranslateToPredicateFeaturesWithoutParsedFileTest() throws NeuroBException, IOException{
+	public void TranslateToTheoryFeaturesWithoutParsedFileTest() throws NeuroBException, IOException{
 		PredicateDumpTranslator pdt = new SolverClassificationGenerator(SolverType.PROB);
-		FeatureGenerator fg = new PredicateFeatures();
+		FeatureGenerator fg = new TheoryFeatures();
 		
 		List<String> lines = Files.lines(schleusenPdump).collect(Collectors.toList());
 		

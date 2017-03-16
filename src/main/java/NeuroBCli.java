@@ -10,7 +10,7 @@ import de.prob.exception.ProBError;
 import de.prob.scripting.ModelTranslationError;
 import neurob.core.NeuroB;
 import neurob.core.features.CodeImages;
-import neurob.core.features.PredicateFeatures;
+import neurob.core.features.TheoryFeatures;
 import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
@@ -395,7 +395,7 @@ public class NeuroBCli {
 			model = new NeuroBConvNet(hiddenLayers, learningrate, new CodeImages(s), labelling, seed);
 		}
 		else {//if(feats.equals("predf")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), labelling, seed);
+			model = new NeuroBNet(hiddenLayers, learningrate, new TheoryFeatures(), labelling, seed);
 		}
 		
 		nb = new NeuroB(model);
@@ -504,7 +504,7 @@ public class NeuroBCli {
 	
 	private static void exclude(Path excludefile, Path excl) {
 		TrainingSetGenerator tsg = new TrainingSetGenerator(
-				new SolverClassificationGenerator(SolverType.PROB).getTrainingDataGenerator(new PredicateFeatures()));
+				new SolverClassificationGenerator(SolverType.PROB).getTrainingDataGenerator(new TheoryFeatures()));
 		tsg.exclude(excludefile, excl);
 		
 	}

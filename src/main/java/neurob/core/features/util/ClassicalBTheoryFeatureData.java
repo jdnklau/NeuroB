@@ -4,24 +4,24 @@ import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.node.Start;
 import neurob.exceptions.NeuroBException;
 
-public class ClassicalBPredicateFeatureData extends PredicateFeatureData {
+public class ClassicalBTheoryFeatureData extends TheoryFeatureData {
 	private BParser parser;
 	
-	public ClassicalBPredicateFeatureData(String predicate, BParser parser) throws NeuroBException {
+	public ClassicalBTheoryFeatureData(String predicate, BParser parser) throws NeuroBException {
 		this(parser);
 		collectData(predicate);
 	}
 	
-	public ClassicalBPredicateFeatureData(String predicate) throws NeuroBException{
+	public ClassicalBTheoryFeatureData(String predicate) throws NeuroBException{
 		this(predicate, new BParser());
 	}
 	
-	public ClassicalBPredicateFeatureData(BParser parser) {
+	public ClassicalBTheoryFeatureData(BParser parser) {
 		super();
 		this.parser = parser;
 	}
 	
-	public ClassicalBPredicateFeatureData(){
+	public ClassicalBTheoryFeatureData(){
 		this(new BParser());
 	}
 	
@@ -34,7 +34,7 @@ public class ClassicalBPredicateFeatureData extends PredicateFeatureData {
 			throw new NeuroBException("Could not collect feature data from predicate "+predicate, e);
 		}
 		
-		ast.apply(new ClassicalBPredicateFeatureCollector(this));
+		ast.apply(new ClassicalBTheoryFeatureCollector(this));
 		
 	}
 }

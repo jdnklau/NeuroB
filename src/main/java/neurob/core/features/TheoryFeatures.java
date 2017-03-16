@@ -8,14 +8,13 @@ import java.util.List;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import de.be4.classicalb.core.parser.BParser;
-import de.be4.eventbalg.core.parser.EventBParser;
-import neurob.core.features.interfaces.FeatureGenerator;
-import neurob.core.features.util.ClassicalBPredicateFeatureData;
-import neurob.core.features.util.PredicateFeatureData;
+import neurob.core.features.interfaces.PredicateASTFeatures;
+import neurob.core.features.util.ClassicalBTheoryFeatureData;
+import neurob.core.features.util.TheoryFeatureData;
 import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
 
-public class PredicateFeatures implements FeatureGenerator {
+public class TheoryFeatures implements PredicateASTFeatures {
 	
 	public static final int featureDimension = 17; // Dimension of feature vectors
 	private ArrayList<String> features; // The stored features
@@ -23,16 +22,16 @@ public class PredicateFeatures implements FeatureGenerator {
 	private BParser bParser;
 	
 	
-	public PredicateFeatures() {
+	public TheoryFeatures() {
 		this(MachineType.CLASSICALB);
 	}
 	
-	public PredicateFeatures(Path machineFile) throws NeuroBException{
+	public TheoryFeatures(Path machineFile) throws NeuroBException{
 		reset();
 		setMachine(machineFile);
 	}
 	
-	public PredicateFeatures(MachineType mt){
+	public TheoryFeatures(MachineType mt){
 		reset();
 		machineType = mt;
 	}
@@ -43,6 +42,7 @@ public class PredicateFeatures implements FeatureGenerator {
 		bParser = new BParser();
 	}
 	
+	@Override
 	public void setMachine(Path machineFile) throws NeuroBException{
 		String fileName = machineFile.getFileName().toString();
 		if(fileName.endsWith(".mch")) {
@@ -60,13 +60,13 @@ public class PredicateFeatures implements FeatureGenerator {
 		}
 	}
 	
-	private PredicateFeatureData generatePredicateFeatureData(String predicate) throws NeuroBException{
-		PredicateFeatureData pfd;
+	private TheoryFeatureData generatePredicateFeatureData(String predicate) throws NeuroBException{
+		TheoryFeatureData pfd;
 		try {
 			switch(machineType){
 			case CLASSICALB:
 			default: // defaulting to classical b
-				pfd = new ClassicalBPredicateFeatureData(predicate, bParser);
+				pfd = new ClassicalBTheoryFeatureData(predicate, bParser);
 			}
 		} catch (NeuroBException e) {
 			throw new NeuroBException("Could not generate feature string from predicate: "+predicate, e);

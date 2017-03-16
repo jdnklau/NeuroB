@@ -16,17 +16,17 @@ import de.prob.Main;
 import de.prob.scripting.Api;
 import de.prob.scripting.ModelTranslationError;
 import de.prob.statespace.StateSpace;
-import neurob.core.features.PredicateFeatures;
+import neurob.core.features.TheoryFeatures;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.util.PredicateCollector;
 
-public class PredicateFeaturesTest {
+public class TheoryFeaturesTest {
 	private String testpred;
 	private File resource;
 	private Api api;
 	
 	@Inject
-	public PredicateFeaturesTest() throws FileNotFoundException {
+	public TheoryFeaturesTest() throws FileNotFoundException {
 		testpred = "x : NAT & y > x";
 		resource = new ClassPathResource("features_check.mch").getFile();
 		
@@ -46,7 +46,7 @@ public class PredicateFeaturesTest {
 		
 		String pred = String.join("&", invariants);
 		
-		PredicateFeatures f = new PredicateFeatures();
+		TheoryFeatures f = new TheoryFeatures();
 		
 		f.addData(pred);
 		
@@ -69,7 +69,7 @@ public class PredicateFeaturesTest {
 		
 		String pred = String.join("&", invariants);
 		
-		PredicateFeatures f = new PredicateFeatures();
+		TheoryFeatures f = new TheoryFeatures();
 		
 		double[] actual = f.generateFeatureArray(pred);
 		double[] expected = new double[]{0.,5.,1.,1.,9.,0.,0.,0.,6.,0.,0.,6.,4.,2.,0.,1.,0.}; 
@@ -84,7 +84,7 @@ public class PredicateFeaturesTest {
 	 */
 	@Test
 	public void featureDimensionTest() throws NeuroBException{
-		PredicateFeatures f = new PredicateFeatures();
+		TheoryFeatures f = new TheoryFeatures();
 		
 		String res = f.generateFeatureString(testpred);
 		

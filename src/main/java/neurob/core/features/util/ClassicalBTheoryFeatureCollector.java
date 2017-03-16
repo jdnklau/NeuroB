@@ -9,16 +9,16 @@ import de.be4.classicalb.core.parser.node.*;
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
-public class ClassicalBPredicateFeatureCollector extends DepthFirstAdapter {
-	private PredicateFeatureData fd;
+public class ClassicalBTheoryFeatureCollector extends DepthFirstAdapter {
+	private TheoryFeatureData fd;
 	private boolean linked;
 	private boolean inNegation;
 
-	public ClassicalBPredicateFeatureCollector() {
-		this(new ClassicalBPredicateFeatureData());
+	public ClassicalBTheoryFeatureCollector() {
+		this(new ClassicalBTheoryFeatureData());
 	}
 	
-	public ClassicalBPredicateFeatureCollector(PredicateFeatureData linkedFD) {
+	public ClassicalBTheoryFeatureCollector(TheoryFeatureData linkedFD) {
 		fd = linkedFD;
 		linked = true;
 		inNegation = false;
@@ -26,9 +26,9 @@ public class ClassicalBPredicateFeatureCollector extends DepthFirstAdapter {
 	
 	
 	/**
-	 * @return A {@link PredicateFeatureData} object, containing the collected data.
+	 * @return A {@link TheoryFeatureData} object, containing the collected data.
 	 */
-	public PredicateFeatureData getFeatureData() { 
+	public TheoryFeatureData getFeatureData() { 
 		return fd;
 	}
 	
@@ -37,7 +37,7 @@ public class ClassicalBPredicateFeatureCollector extends DepthFirstAdapter {
 		// If not linked to a specific feature data object, create a new one
 		if(!linked){
 			// Just set feature counters to zero, so we can use the same collector over and over again for different predicates
-			fd = new ClassicalBPredicateFeatureData();
+			fd = new ClassicalBTheoryFeatureData();
 		} else {
 			linked = false; // If this is to be used again, the link is no longer valid
 		}
