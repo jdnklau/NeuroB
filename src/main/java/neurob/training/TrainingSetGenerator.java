@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import de.prob.exception.ProBError;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.core.features.interfaces.PredicateASTFeatures;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
@@ -201,7 +202,7 @@ public class TrainingSetGenerator {
 			}
 			catch(IOException e){
 				log.error("Found {} and corresponding .{} file exists but could not access it or the source machine file: {}",
-						source, tdg.getPreferedFileExtension(), e.getMessage(), e);
+						source, tdg.getPreferredFileExtension(), e.getMessage(), e);
 				log.info("\tSkipping file.");
 			}
 		}
@@ -270,23 +271,27 @@ public class TrainingSetGenerator {
 		
 		PredicateDumpTranslator pdt = (PredicateDumpTranslator) lg;
 		
-		generateCSVOverFiles("pdump", sourceDirectory, csv, line -> {
-			
-			try {
-				return pdt.translateToCSVDataString(fg, line);
-			} catch (NeuroBException e) {
-				log.warn("\t{}", e.getMessage(), e);
-			}
-			
-			return "";
-		});
+		generateCSVOverFiles("pdump", sourceDirectory, csv, 
+			line -> {
+				try {
+					return pdt.translateToCSVDataString(fg, line);					
+				} catch (NeuroBException e) {
+					log.warn("\t{}", e.getMessage(), e);
+				}
+				
+				return "";
+			});
 	}
 	
 	/**
 	 * Use this to generate a CSV file from separate files in a directory, that all have a specified extension.
 	 * <p>
 	 * The specified translator may return the empty string. In this case, no line is written
-	 * to the CSV.
+	 * to the CSV and the corresponding line is skipped.
+	 * <p>
+	 * Also, lines starting with # will be skipped as commentary lines.
+	 * Small exception is a {@code #source:path/to/source/file} annotation line,
+	 * that attempts to make use of this information
 	 * 
 	 * @param withExtension Extension to check for; e.g. "nbtrain" will only check for .nbtrain files
 	 * @param sourceDirectory Directory in which the files recursively are searched in
@@ -332,24 +337,36 @@ public class TrainingSetGenerator {
 				// check if .nbtrain file
 				if(Files.isRegularFile(f)){
 					String fileName = f.getFileName().toString();
-					String ext = fileName.substring(fileName.lastIndexOf('.'));
-					if(ext.equals(extension)){
+					if(fileName.endsWith(extension)){
 						log.info("Found {}. Processing...", f);
-						// nbtrain file found!
+						// training file found!
+						
 						// read line wise
 						try (Stream<String> lines = Files.lines(f)){
 							lines.forEach(l -> {
-								try {
-									String result = transformation.apply(l);
-									if(!result.isEmpty()){
-										trainCsv.write(result);
-										trainCsv.newLine();
-										dataCounter.incrementAndGet();
+								if(l.startsWith("#")){
+									if(l.startsWith("source:", 1)){
+										try{
+											fg.setSourceFile(Paths.get(l.substring(8)));
+										} catch (NeuroBException e){
+											log.error("Could not set source file correctly", e);	
+										}
 									}
-								} catch (IOException e) {
-									log.error("Failed to write data vector to file: {}", e);
-								} catch (Exception e) {
-									log.error("Could not add a data vector: {}", f, e);
+								}
+								else {
+									
+									try {
+										String result = transformation.apply(l);
+										if(!result.isEmpty()){
+											trainCsv.write(result);
+											trainCsv.newLine();
+											dataCounter.incrementAndGet();
+										}
+									} catch (IOException e) {
+										log.error("Failed to write data vector to file: {}", e);
+									} catch (Exception e) {
+										log.error("Could not add a data vector: {}", f, e);
+									}
 								}
 							});
 							trainCsv.flush();

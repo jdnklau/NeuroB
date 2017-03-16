@@ -20,6 +20,7 @@ public class TheoryFeatures implements PredicateASTFeatures {
 	private ArrayList<String> features; // The stored features
 	private MachineType machineType;
 	private BParser bParser;
+	private Path sourceFile;
 	
 	
 	public TheoryFeatures() {
@@ -38,6 +39,7 @@ public class TheoryFeatures implements PredicateASTFeatures {
 
 	@Override
 	public void reset(){
+		sourceFile = null;
 		features = new ArrayList<String>();
 		bParser = new BParser();
 	}
@@ -58,6 +60,12 @@ public class TheoryFeatures implements PredicateASTFeatures {
 		} else if(fileName.endsWith(".bcm")){
 			machineType = MachineType.EVENTB;
 		}
+		sourceFile = machineFile;
+	}
+	
+	@Override
+	public Path getSourceFile() {
+		return sourceFile;
 	}
 	
 	private TheoryFeatureData generatePredicateFeatureData(String predicate) throws NeuroBException{

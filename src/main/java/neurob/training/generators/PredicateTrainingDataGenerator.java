@@ -152,8 +152,11 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		
 		// open target file
 		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
-			// write feature vector to stream
 			log.info("\tWriting training data...");
+			// write file name
+			out.write("#source:"+sourceFile.toString());
+			out.newLine();
+			// write feature vector to stream
 			for(String res : results){
 				out.write(res);
 				out.newLine();

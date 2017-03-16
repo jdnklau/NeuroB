@@ -47,7 +47,7 @@ public abstract class TrainingDataGenerator {
 	 * <p>
 	 * For {@code path/to/source/file} as source file and {@code target/directory/} as target directory,
 	 * the file will be created in {@code target/directory/path/to/source/file.ext} with {@code ext} being
-	 * the {@link #getPreferedFileExtension() prefered file extension}. 
+	 * the {@link #getPreferredFileExtension() preferred file extension}. 
 	 * This keeps the data generated dereferencable wrt the source file.
 	 * @param sourceFile
 	 * @param targetDir
@@ -94,6 +94,6 @@ public abstract class TrainingDataGenerator {
 	 * 
 	 * @return The preferred file extension to use on the generated training data files; <b>without</b> leading '.' (dot). 
 	 */
-	public String getPreferedFileExtension(){ return preferedFileExtension;}
+	public String getPreferredFileExtension(){ return preferedFileExtension;}
 	
 }

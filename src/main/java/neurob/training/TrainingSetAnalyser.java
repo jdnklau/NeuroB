@@ -161,13 +161,8 @@ public class TrainingSetAnalyser {
 						// check if targets are not all equal
 						try(Stream<String> filelines = Files.lines(entry)){
 							filelines.forEach(line -> {
-								data.analyseTrainingDataSample(line);
-//								String[] sample = line.split(":");
-//								double[] features = Arrays.stream(sample[0].split(","))
-//										.mapToDouble(Double::parseDouble).toArray();
-//								double[] labels = Arrays.stream(sample[1].split(","))
-//										.mapToDouble(Double::parseDouble).toArray();
-//								data.analyseSample(features, labels);
+								if(!line.startsWith("#"))
+									data.analyseTrainingDataSample(line);
 						
 							});
 						} catch (IOException e){

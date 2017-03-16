@@ -1,5 +1,6 @@
 package neurob.core.features.interfaces;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -120,6 +121,20 @@ public interface FeatureGenerator {
 	 * @return
 	 */
 	public int getFeatureDimension();
+	
+	/**
+	 * Sets the source file of the features to be generated next.
+	 * <p>
+	 * Some feature generators work can be enhanced by providing this information.
+	 * @param sourceFile
+	 */
+	public void setSourceFile(Path sourceFile) throws NeuroBException;
+	
+	/**
+	 * Returns the path to the source file over which the features are generated. May return null.
+	 * @return Path to source file or null.
+	 */
+	public Path getSourceFile();
 	
 	/**
 	 * Resets the input data

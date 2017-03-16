@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,6 +18,7 @@ import neurob.exceptions.NeuroBException;
 public class CodeImages implements ConvolutionFeatures {
 	private int dim;
 	private int pixels; // has to be dim*dim
+	private Path sourceFile;
 	// Features
 	private ArrayList<BufferedImage> features;
 	/**
@@ -180,6 +182,16 @@ public class CodeImages implements ConvolutionFeatures {
 	@Override
 	public List<BufferedImage> getFeatureImages() {
 		return features;
+	}
+
+	@Override
+	public void setSourceFile(Path sourceFile) throws NeuroBException {
+		this.sourceFile = sourceFile;
+	}
+
+	@Override
+	public Path getSourceFile() {
+		return sourceFile;
 	}
 
 }

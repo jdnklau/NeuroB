@@ -15,4 +15,9 @@ public interface PredicateASTFeatures extends FeatureGenerator {
 	 * @throws NeuroBException
 	 */
 	public void setMachine(Path machineFile) throws NeuroBException;
+	
+	@Override
+	default void setSourceFile(Path sourceFile) throws NeuroBException {
+		setMachine(sourceFile);
+	}
 }
