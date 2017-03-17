@@ -189,6 +189,9 @@ public class NeuroBCli {
 						System.out.println("trainingset -csvsplit: Missing at least one of those parameters: -first, -second, -ratio");
 					}
 				}
+				else {
+					System.out.println("trainingset -csvsplit: Missing -file parameter");
+				}
 			}
 			else if(ops.containsKey("csvtranslate")){
 				if(ops.containsKey("file")){
