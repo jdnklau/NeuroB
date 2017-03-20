@@ -12,6 +12,9 @@
     - more generic handling of data preprocessing if possible
         - add more preprocessing tools
             - PCA: whitening, feature reduction
+    - more output for evaluation
+    - show how often a class was predicted vs what the real class would have been
+        - generate confusion matrix
 - training set generation
     - add function to truncate data.csv to contain all classes more evenly
     - model check machines
