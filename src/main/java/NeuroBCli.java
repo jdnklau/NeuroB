@@ -350,7 +350,7 @@ public class NeuroBCli {
 	}
 	
 	private static void buildNet(int i){
-		buildNet(i, 0.006, new int[]{200});
+		buildNet(i, 0.006, new int[]{512, 256, 128, 128});
 	}
 	
 	private static void buildNet(int seed, double learningrate, int[] hiddenLayers){

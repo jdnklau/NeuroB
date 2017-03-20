@@ -10,12 +10,15 @@
         - after X iterations rather than just after each epoch
     - save files to disk by default
     - more generic handling of data preprocessing if possible
+        - add more preprocessing tools
+            - PCA: whitening, feature reduction
 - training set generation
     - add function to truncate data.csv to contain all classes more evenly
     - model check machines
         - generate 100 states per solver
         - give credit to fastest one
         - future work?
+    - shuffle data files
     - optimise
     - data augmentation for larger training sets
     - more distinct support for convolutional models

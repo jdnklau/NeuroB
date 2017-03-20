@@ -79,7 +79,7 @@ public class NeuroBConvNet extends NeuroBNet {
 			
 			int lastOut = features.getFeatureChannels();
 			
-			for(int i=0; i<hiddenLayers.length-1; i++){
+			for(int i=0; i<hiddenLayers.length; i++){
 				listBuilder = listBuilder.layer(i, new ConvolutionLayer.Builder(5,5)
 						.nIn(lastOut)
 						.stride(1,1)
