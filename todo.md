@@ -1,3 +1,19 @@
+# Necessary refactoring steps
+- PredicateDumpTranslator
+    - Create INDArray values instead of strings
+        - more generic
+        - INDArray values can be easily translated to string
+        - other way around not necessary for all applications
+            - no csv string needed if translating to e.g. image hierarchy
+    - 
+- convolutional training set
+    - no csv
+    - make image hierarchy instead
+        - simply put file names as img{id}_{labelling}.gif
+        - addresses regression problems too!
+- training set generator
+    - split training data method (more generic version of split csv)
+
 # To Do List
 - random predicate generator
     - tool to insert formal grammar and generate an amount of correct syntax snippets
