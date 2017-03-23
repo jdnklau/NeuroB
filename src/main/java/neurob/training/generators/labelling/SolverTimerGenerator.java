@@ -146,11 +146,8 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 	}
 
 	@Override
-	public String translateToCSVLabelString(List<Long> labellings) {
-		return String.join(",", 
-				Arrays.stream(getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2)))
-				.mapToObj(String::valueOf)
-				.collect(Collectors.toList()));
+	public double[] translateToLabelArray(List<Long> labellings) {
+		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
 	}
 
 }

@@ -132,8 +132,8 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 	}
 
 	@Override
-	public String translateToCSVLabelString(List<Long> labellings) {
-		return String.valueOf(getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2)));
+	public double[] translateToLabelArray(List<Long> labellings) {
+		return new double[]{getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2))};
 	}
 
 }

@@ -1,6 +1,8 @@
 package neurob.training.generators.interfaces;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
@@ -19,32 +21,46 @@ public interface PredicateDumpTranslator {
 	default
 	public String translateToCSVDataString(FeatureGenerator fg, String predicateDumpString) throws NeuroBException{
 		PredicateDumpData pdd = new PredicateDumpData(predicateDumpString);
-		return translateToCSVFeatureString(fg, pdd.getPredicate())
+		double[] features = translateToFeatureArray(fg, pdd.getPredicate());
+		double[] labels = translateToLabelArray(pdd.getLabellings());
+		
+		return translateToCSVDataString(features)
 				+ "," 
-				+ translateToCSVLabelString(pdd.getLabellings());
+				+ translateToCSVDataString(labels);
+	}
+	
+	/**
+	 * Translates the given array to a comma separated string.
+	 * @param data
+	 * @return
+	 * @throws NeuroBException
+	 */
+	default
+	public String translateToCSVDataString(double[] data) throws NeuroBException{
+		return String.join(",", 
+				Arrays.stream(data).mapToObj(Double::toString)
+				.collect(Collectors.toList()));
 	}
 	
 	/**
 	 * Expects the predicate of a given predicate dump entry, 
-	 * and returns its feature representation as comma separated String,
-	 * that can be used for CSV entries.
+	 * and returns its feature representation as array.
 	 * @param fg
 	 * @param predicate
 	 * @return
 	 * @throws NeuroBException
 	 */
 	default
-	public String translateToCSVFeatureString(FeatureGenerator fg, String predicate) throws NeuroBException{
-		return fg.generateFeatureString(predicate);
+	public double[] translateToFeatureArray(FeatureGenerator fg, String predicate) throws NeuroBException{
+		return fg.generateFeatureArray(predicate);
 	}
 	
 	/**
 	 * Expects the labelling of a given predicate dump entry, 
-	 * and returns its desired representation as comma separated String,
-	 * that can be used for CSV entries.
+	 * and returns its desired representation as array.
 	 * 
 	 * @param predicateDumpString
 	 * @return
 	 */
-	public String translateToCSVLabelString(List<Long> labellings);
+	public double[] translateToLabelArray(List<Long> labellings);
 }

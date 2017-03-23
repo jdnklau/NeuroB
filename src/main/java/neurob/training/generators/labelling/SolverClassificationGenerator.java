@@ -112,7 +112,7 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 
 
 	@Override
-	public String translateToCSVLabelString(List<Long> labellings) {
+	public double[] translateToLabelArray(List<Long> labellings) {
 		// Label to be picked depends on solver type
 		Long label;
 		switch (solver) {
@@ -130,8 +130,8 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 			label = labellings.get(0);
 			break;
 		}
-		
-		return (label >= 0) ? "1" : "0";
+		double val = (label >= 0) ? 1 : 0; 
+		return new double[]{val};
 	}
 
 }
