@@ -60,29 +60,38 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		}
 		
 		// For the formula and ProB command to use
-		List<String> formulae;
-		
-		// Get different formulas
-		PredicateCollector predc = new PredicateCollector(ss);
-		formulae = FormulaGenerator.extendedGuardFormulae(predc);
-		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
-		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
-		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
-		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
-		// TODO: this should be implemented for convolution features, but for predicates only
-		// This should be implemented after restructuring training set generation
-		// into a more general format, that is not restricted to predicates only
-//				// get shuffles for images
-//				if(fg instanceof ConvolutionFeatures){
-//					for(long i=0; i<3; i++){
-//						predc.shuffleConjunctions(i);
-//						formulae = FormulaGenerator.extendedGuardFormulae(predc);
-//						formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
-//					}
-//				}
+		List<String> formulae = generateFormulae(new PredicateCollector(ss));
 		
 		log.info("\tGenerated {} formulae to solve.", formulae.size());
 		
+		List<String> results = generateResults(formulae, ss, sourceFile, mt);
+		
+		// close StateSpace
+		ss.kill();
+		
+		// No training data to write? -> return from method
+		// otherwise write to targetFile
+		if(results.isEmpty()){
+			log.info("\tNo training data created");
+			return;
+		}
+		
+		createTrainingDataFile(sourceFile, targetFile, results);
+
+	}
+	
+	protected List<String> generateFormulae(PredicateCollector predicateCollector){
+		// Get different formulas
+		List<String> formulae = FormulaGenerator.extendedGuardFormulae(predicateCollector);
+		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predicateCollector));
+		formulae.addAll(FormulaGenerator.multiGuardFormulae(predicateCollector));
+		formulae.addAll(FormulaGenerator.enablingRelationships(predicateCollector));
+		formulae.addAll(FormulaGenerator.invariantPreservations(predicateCollector));
+		
+		return formulae;
+	}
+	
+	protected List<String> generateResults(List<String> formulae, StateSpace ss, Path sourceFile, MachineType mt){
 		// generate data per formula
 		List<String> results = new ArrayList<String>();
 		int count = formulae.size();
@@ -131,16 +140,10 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 			}
 		}
 		
-		// close StateSpace
-		ss.kill();
-		
-		// No training data to write? -> return from method
-		// otherwise write to targetFile
-		if(results.isEmpty()){
-			log.info("\tNo training data created");
-			return;
-		}
-		
+		return results;
+	}
+	
+	protected void createTrainingDataFile(Path sourceFile, Path targetFile, List<String> results) throws NeuroBException{
 		Path targetDirectory = targetFile.getParent();
 		// ensure existence of target directory
 		try {
@@ -166,7 +169,6 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		} catch (IOException e) {
 			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
 		}
-
 	}
 	
 	protected String generateOutput(String predicate, StateSpace ss) throws NeuroBException{
