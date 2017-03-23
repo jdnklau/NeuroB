@@ -17,7 +17,7 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	
 	@Override
 	protected String generateOutput(String predicate, StateSpace ss) throws NeuroBException {
-		return lg.generateLabelling(predicate, ss)+":"+predicate;
+		return lg.generateLabellingString(predicate, ss)+":"+predicate;
 	}
 
 }

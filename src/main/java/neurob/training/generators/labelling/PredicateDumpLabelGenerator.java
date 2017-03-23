@@ -36,7 +36,7 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 	}
 
 	@Override
-	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
+	public double[] generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
@@ -50,9 +50,9 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 			Z3Time += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
 		}
 		
-		return Long.toString(ProBTime/samplingSize)
-				+","+Long.toString(KodKodTime/samplingSize)
-				+","+Long.toString(Z3Time/samplingSize);
+		return new double[]{ProBTime/(double)samplingSize
+							, KodKodTime/(double)samplingSize
+							, Z3Time/(double)samplingSize};
 	}
 
 	@Override

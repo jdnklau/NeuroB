@@ -3,7 +3,9 @@
  */
 package neurob.training.generators.labelling;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
@@ -73,7 +75,7 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 	 * @see neurob.training.generators.interfaces.LabelGenerator#generateLabelling(java.lang.String, de.prob.statespace.StateSpace)
 	 */
 	@Override
-	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
+	public double[] generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
@@ -93,7 +95,7 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 		
 	}
 	
-	private String getLabellingByTimes(double ProBTime, double KodKodTime, double Z3Time){
+	private double[] getLabellingByTimes(double ProBTime, double KodKodTime, double Z3Time){
 		//return Long.toString(ProBTime)+","+Long.toString(KodKodTime)+","+Long.toString(Z3Time);
 		
 		// convert appropriately to milliseconds
@@ -104,7 +106,7 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 		double KodKodTimeMilliSeconds = (KodKodTime < 0) ? -1 : KodKodTime / 1e6;
 		double Z3TimeMilliSeconds = (Z3Time < 0) ? -1 : Z3Time / 1e6;
 		
-		return Double.toString(ProBTimeMilliSeconds)+","+Double.toString(KodKodTimeMilliSeconds)+","+Double.toString(Z3TimeMilliSeconds);
+		return new double[]{ProBTimeMilliSeconds, KodKodTimeMilliSeconds,Z3TimeMilliSeconds};
 	}
 
 	/* (non-Javadoc)
@@ -145,7 +147,10 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 
 	@Override
 	public String translateToCSVLabelString(List<Long> labellings) {
-		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
+		return String.join(",", 
+				Arrays.stream(getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2)))
+				.mapToObj(String::valueOf)
+				.collect(Collectors.toList()));
 	}
 
 }

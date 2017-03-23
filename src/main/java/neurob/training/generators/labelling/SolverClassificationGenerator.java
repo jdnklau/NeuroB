@@ -2,6 +2,9 @@ package neurob.training.generators.labelling;
 
 import java.util.List;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.cpu.nativecpu.NDArray;
+
 import com.google.inject.Inject;
 
 import de.prob.animator.domainobjects.IBEvalElement;
@@ -73,14 +76,16 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 	}
 
 	@Override
-	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
+	public double[] generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
 		boolean label;
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Use specific solver
 		label = PredicateEvaluator.isDecidableWithSolver(stateSpace, solver, formula);
 		
-		return (label) ? "1" : "0";
+		double val = (label) ? 1. : 0.; 
+		
+		return new double[]{val};
 		
 		
 	}

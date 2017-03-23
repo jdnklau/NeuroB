@@ -170,7 +170,7 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 	}
 	
 	protected String generateOutput(String predicate, StateSpace ss) throws NeuroBException{
-		return fg.generateFeatureString(predicate)+":"+lg.generateLabelling(predicate, ss)+":"+predicate;
+		return fg.generateFeatureString(predicate)+":"+lg.generateLabellingString(predicate, ss)+":"+predicate;
 	}
 
 }

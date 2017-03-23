@@ -1,5 +1,8 @@
 package neurob.training.generators.interfaces;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -51,10 +54,29 @@ public interface LabelGenerator {
 	 * Generates the labelling for the given predicate with respect to the given StateSpace.
 	 * @param predicate The predicate to calculate the labelling for
 	 * @param stateSpace The state space, that may be taken into account whilst label generation
-	 * @return The generated label vector as String
+	 * @return The generated label vector
+	 * @see #generateLabellingString(String, StateSpace)
 	 * @throws NeuroBException
 	 */
-	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException;
+	public double[] generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException;
+	
+	/**
+	 * Generates the labelling for the given predicate with respect to the given StateSpace
+	 * as String.
+	 * 
+	 * @param predicate The predicate to calculate the labelling for
+	 * @param stateSpace The state space, that may be taken into account whilst label generation
+	 * @return The generated label vector as comma separated string
+	 * @see #generateLabelling(String, StateSpace)
+	 * @throws NeuroBException
+	 */
+	default
+	public String generateLabellingString(String predicate, StateSpace stateSpace) throws NeuroBException {
+		return String.join(",", 
+					Arrays.stream(generateLabelling(predicate, stateSpace))
+					.mapToObj(String::valueOf)
+					.collect(Collectors.toList()));
+	}
 	
 	/**
 	 * Returns a DataSetIterator needed in training step of the neural network in use.

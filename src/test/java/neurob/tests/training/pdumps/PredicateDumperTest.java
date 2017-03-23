@@ -12,6 +12,8 @@ import org.junit.Test;
 
 import de.prob.scripting.ModelTranslationError;
 import neurob.exceptions.NeuroBException;
+import neurob.training.TrainingSetAnalyser;
+import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.PredicateDumpGenerator;
 
 public class PredicateDumperTest {
@@ -26,10 +28,11 @@ public class PredicateDumperTest {
 		
 		tpg.collectTrainingDataFromFile(formulaeGenTestFile, formulaeGenPDump);
 		
-		long entries = 0;
-		try(Stream<String> stream = Files.lines(formulaeGenPDump)){
-			entries = stream.count();
-		}
+		
+		// analyse
+		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
+		TrainingAnalysisData tad = tsa.analysePredicateDumps(formulaeGenPDump.getParent());
+		long entries = tad.getSamplesCount();
 		
 		Files.deleteIfExists(formulaeGenPDump);
 		

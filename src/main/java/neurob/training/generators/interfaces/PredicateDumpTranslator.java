@@ -19,7 +19,9 @@ public interface PredicateDumpTranslator {
 	default
 	public String translateToCSVDataString(FeatureGenerator fg, String predicateDumpString) throws NeuroBException{
 		PredicateDumpData pdd = new PredicateDumpData(predicateDumpString);
-		return translateToCSVFeatureString(fg, pdd.getPredicate()) + "," + translateToCSVLabelString(pdd.getLabellings());
+		return translateToCSVFeatureString(fg, pdd.getPredicate())
+				+ "," 
+				+ translateToCSVLabelString(pdd.getLabellings());
 	}
 	
 	/**

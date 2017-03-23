@@ -68,7 +68,7 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 	}
 
 	@Override
-	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
+	public double[] generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
@@ -76,7 +76,7 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		long KodKodTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.KODKOD, formula);
 		long Z3Time = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
 		
-		return getLabellingByTimes(ProBTime, KodKodTime, Z3Time);
+		return new double[]{getLabellingByTimes(ProBTime, KodKodTime, Z3Time)};
 		
 	}
 
@@ -100,11 +100,11 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 //		return labelling;
 //	}
 	
-	private String getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
+	private int getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
 		// check if any solver could decide the formula
 		if(0 == ArrayUtil.argMax(new long[]{0, ProBTime, KodKodTime, Z3Time})){
 			// this means all timers returned with -1, indicating that none could decide the formula
-			return "0";
+			return 0;
 		}
 		
 		// get fastest solver
@@ -121,19 +121,19 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		
 		// select biggest
 		if(proB >= kodKod && proB >= z3){
-			return "1";
+			return 1;
 		}
 		else if(kodKod >= z3){
-			return "2";
+			return 2;
 		}
 		else {
-			return "3";
+			return 3;
 		}
 	}
 
 	@Override
 	public String translateToCSVLabelString(List<Long> labellings) {
-		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
+		return String.valueOf(getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2)));
 	}
 
 }
