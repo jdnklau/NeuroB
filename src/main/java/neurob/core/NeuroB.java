@@ -213,7 +213,7 @@ public class NeuroB {
 		}
 		
 		// generate csv
-		tsg.generateCSVFromNBTrainFiles(fullTargetDirectory, fullTargetDirectory.resolve("data.csv"));
+		tsg.collectTrainingSetOverNBTrainFiles(fullTargetDirectory, fullTargetDirectory.resolve("data.csv"));
 //		tsg.generateTrainAndTestCSVfromNBTrainData(fullTargetDirectory, fullTargetDirectory.resolve("train_data.csv"), fullTargetDirectory.resolve("test_data.csv"), 0.65);
 	}
 

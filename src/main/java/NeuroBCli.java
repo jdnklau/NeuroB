@@ -324,7 +324,7 @@ public class NeuroBCli {
 	private static void translatePDump(Path dir) {
 		try {
 			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName()).resolve("pdata.csv");
-			nb.getNeuroBNet().getTrainingSetGenerator().generateCSVFromPDumpFiles(dir, target);
+			nb.getNeuroBNet().getTrainingSetGenerator().collectTrainingSetOverPDumpFiles(dir, target);
 		} catch (NeuroBException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -500,7 +500,7 @@ public class NeuroBCli {
 	
 	private static void csvgenerate(Path dir){
 		Path csv = dir.resolve("data.csv");
-		nb.getNeuroBNet().getTrainingSetGenerator().generateCSVFromNBTrainFiles(dir, csv);
+		nb.getNeuroBNet().getTrainingSetGenerator().collectTrainingSetOverNBTrainFiles(dir, csv);
 	}
 	
 	private static void exclude(Path excludefile, Path excl) {

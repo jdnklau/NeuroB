@@ -33,24 +33,6 @@ import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.interfaces.PredicateDumpTranslator;
 
-/**
- * Class to generate the training data for the neural net.
- * 
- * <p>
- * The constructor takes to parameters:
- * 		<ul>
- * 			<li>An object implementing {@link TrainingDataCollector}, to get desired features, and</li>
- * 			<li>An object implementing {@link TrainingOutputCollector}, to get corresponding output data, the neural net should be trained on.</li>
- * 		</ul>
- * </p>
- * <p>
- * Use {@link TrainingSetGenerator#generateTrainingSet(Path, Path) generateTrainingSet} to generate the test data from a given source directory,
- * that contains .mch files. They will be translated into .nbtrain files, containing the collected data.
- * </p>
- * 
- * @author Jannik Dunkelau
- *
- */
 public class TrainingSetGenerator {
 	// Training data handling
 	private FeatureGenerator fg; // Feature generator in use
@@ -77,7 +59,7 @@ public class TrainingSetGenerator {
 	 */
 	public void logStatistics(){
 		log.info("Summary of training set generation:");
-		log.info("Seen:\t{} .mch-files", fileCounter);
+		log.info("Seen:\t{} files", fileCounter);
 		log.info("\t{} caused problems and could not be properly processed", fileProblemsCounter);
 		log.info("*****************************");
 	}
@@ -227,7 +209,7 @@ public class TrainingSetGenerator {
 	 * @param sourceDirectory
 	 * @param csv
 	 */
-	public void generateCSVFromNBTrainFiles(Path sourceDirectory, Path csv){
+	public void collectTrainingSetOverNBTrainFiles(Path sourceDirectory, Path csv){
 		int featureDim = fg.getFeatureDimension();
 		int labelDim;
 		switch(lg.getProblemType()){
@@ -241,7 +223,7 @@ public class TrainingSetGenerator {
 			break;
 		}
 		
-		generateCSVOverFiles("nbtrain", sourceDirectory, csv, line -> {
+		collectTrainingSetOverDataFiles("nbtrain", sourceDirectory, csv, line -> {
 			String[] data = line.split(":");
 			String[] features = data[0].split(",");
 			String[] labels = data[1].split(",");
@@ -262,7 +244,7 @@ public class TrainingSetGenerator {
 	 * @param csv
 	 * @throws NeuroBException
 	 */
-	public void generateCSVFromPDumpFiles(Path sourceDirectory, Path csv) throws NeuroBException{
+	public void collectTrainingSetOverPDumpFiles(Path sourceDirectory, Path csv) throws NeuroBException{
 		if(!(lg instanceof PredicateDumpTranslator)){
 			throw new NeuroBException("Trying to generate a CSV from predicate dumps, but "
 									+ "TrainingSetGenerator was not initialised with a LabelGenerator "
@@ -271,7 +253,7 @@ public class TrainingSetGenerator {
 		
 		PredicateDumpTranslator pdt = (PredicateDumpTranslator) lg;
 		
-		generateCSVOverFiles("pdump", sourceDirectory, csv, 
+		collectTrainingSetOverDataFiles("pdump", sourceDirectory, csv, 
 			line -> {
 				try {
 					return pdt.translateToCSVDataString(fg, line);					
@@ -298,7 +280,7 @@ public class TrainingSetGenerator {
 	 * @param csv File to save data to
 	 * @param transformation Transformation function to convert a line of the found file into a line of CSV
 	 */
-	private void generateCSVOverFiles(String withExtension, Path sourceDirectory, Path csv, Function<String, String> transformation){
+	private void collectTrainingSetOverDataFiles(String withExtension, Path sourceDirectory, Path csv, Function<String, String> transformation){
 		// ensure the dot at beginning of extension
 		String extension = (withExtension.charAt(0) == '.') ? withExtension : "."+withExtension;
 		
