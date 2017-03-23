@@ -1,11 +1,4 @@
 # Necessary refactoring steps
-- PredicateDumpTranslator
-    - Create INDArray values instead of strings
-        - more generic
-        - INDArray values can be easily translated to string
-        - other way around not necessary for all applications
-            - no csv string needed if translating to e.g. image hierarchy
-    - 
 - convolutional training set
     - no csv
     - make image hierarchy instead
