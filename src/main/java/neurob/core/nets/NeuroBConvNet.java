@@ -92,6 +92,7 @@ public class NeuroBConvNet extends NeuroBNet {
 			
 			// Fully connected layer
 			listBuilder = listBuilder.layer(hiddenLayers.length, new DenseLayer.Builder()
+					.nIn(lastOut*25) // filters * filter size
 					.nOut(hiddenLayers[hiddenLayers.length-1])
 					.activation(Activation.RELU)
 					.weightInit(WeightInit.XAVIER)

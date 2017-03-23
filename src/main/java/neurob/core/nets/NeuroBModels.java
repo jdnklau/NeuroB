@@ -319,7 +319,7 @@ public class NeuroBModels {
 			}
 			// the layer itself
 			listBuilder = listBuilder.layer(convLayers.length+1, new OutputLayer.Builder(lossFunction)
-					.nIn(lastOut)
+					.nIn(lastOut * filterSize * filterSize)
 					.nOut(labelling.getLabelDimension())
 					.activation(activationFunction)
 					.weightInit(WeightInit.XAVIER)

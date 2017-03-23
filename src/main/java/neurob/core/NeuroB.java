@@ -109,6 +109,7 @@ public class NeuroB {
 		DataSetIterator iterator = nbn.getDataSetIterator(trainCSV, batchSize);
 		
 		// set up normaliser
+		log.info("Setting up normaliser...");
 		while(iterator.hasNext()){
 			DataSet batch = iterator.next();
         	nbn.fitNormalizer(batch);
@@ -123,6 +124,8 @@ public class NeuroB {
 			uiServer.attach(statsStorage);
 			
 			listeners.add(new StatsListener(statsStorage));
+			
+			log.info("DL4J UI is available at http://localhost:9000/train/");
 		}
 		listeners.add(new PerformanceListener(75, true));
 		nbn.setListeners(listeners);
