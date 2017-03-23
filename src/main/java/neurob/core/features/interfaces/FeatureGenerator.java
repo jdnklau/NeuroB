@@ -1,7 +1,9 @@
 package neurob.core.features.interfaces;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 
@@ -82,7 +84,7 @@ public interface FeatureGenerator {
 	 * without adding it to the intern feature list.
 	 * 
 	 * @param predicate
-	 * @return The generated feature string
+	 * @return The generated feature string as comma separated list
 	 * @throws NeuroBException
 	 * @see #addData(String)
 	 * @see #getFeatureStrings()
@@ -90,7 +92,13 @@ public interface FeatureGenerator {
 	 * @see #generateFeatureNDArray(String)
 	 * 
 	 */
-	public String generateFeatureString(String predicate) throws NeuroBException;
+	default
+	public String generateFeatureString(String predicate) throws NeuroBException{
+		return String.join(",", 
+				Arrays.stream(generateFeatureArray(predicate))
+				.mapToObj(Double::toString)
+				.collect(Collectors.toList()));
+	}
 	
 	/**
 	 * Input a given string and add its features as data to this feature object.
@@ -125,7 +133,7 @@ public interface FeatureGenerator {
 	/**
 	 * Sets the source file of the features to be generated next.
 	 * <p>
-	 * Some feature generators work can be enhanced by providing this information.
+	 * Some feature generators' work can be enhanced by providing this information.
 	 * @param sourceFile
 	 */
 	public void setSourceFile(Path sourceFile) throws NeuroBException;
