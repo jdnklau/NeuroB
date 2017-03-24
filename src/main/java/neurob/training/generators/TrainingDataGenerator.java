@@ -138,6 +138,8 @@ public abstract class TrainingDataGenerator {
 			}
 		} catch(ModelTranslationError e){
 			throw new NeuroBException("Unable to load state space due to model translation error.", e);
+		} catch(Exception e){
+			throw new NeuroBException("Unexpected exception encountered: "+e.getMessage(), e);
 		}
 	}
 	
