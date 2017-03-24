@@ -17,6 +17,7 @@ import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
+import neurob.training.generators.util.TrainingData;
 
 public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 	// logger
@@ -28,56 +29,62 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		super(fg, lg);
 		this.lg = lg;
 	}
+	
+	@Override
+	public List<TrainingData> collectTrainingDataFromFile(Path sourceFile, StateSpace ss)
+			throws NeuroBException {
+		// load formulae from predicate collector
+		List<String> formulae = generateFormulae(new PredicateCollector(ss));
+		log.info("\tGenerated {} formulae to solve.", formulae.size());
+
+		// set up results
+		List<TrainingData> data = generateResults(formulae, ss, sourceFile);
+		
+		return data;
+	}
 
 	@Override
-	public void collectTrainingDataFromFile(Path sourceFile, Path targetFile) throws NeuroBException {
-		// determine machine type
-		MachineType mt;
-		String fileName = sourceFile.getFileName().toString();
-		String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-		if(ext.equals("bcm")){
-			mt = MachineType.EVENTB;
-			log.debug("EventB machine detected: {}", sourceFile);
-		} else if(ext.equals("mch")) {
-			mt = MachineType.CLASSICALB;
-			log.debug("ClassicalB machine detected: {}", sourceFile);
-		} else {
-			log.debug("Not a machine file. Skipping: {}", sourceFile);
-			return;
-		}
-
-		log.info("Generating: {} > {}", sourceFile, targetFile);
+	public void writeTrainingDataToDirectory(List<TrainingData> trainingData, Path targetDir) throws NeuroBException {
 		
-		// Access source file/loading state space
-		StateSpace ss = null;
-		log.info("\tLoading machine file {} ...", sourceFile);
-		try{
-			ss = loadStateSpace(sourceFile, mt);
-		} catch(IOException | NeuroBException e){
-			throw new NeuroBException("Could not load machine correctly: "+e.getMessage(), e);
-		} catch(Exception e) {
-			throw new NeuroBException("Unexpected exception encountered: "+e.getMessage(), e);
+		Path sourceFile = trainingData.get(0).getSource();
+		Path targetFile = generateTargetFilePath(sourceFile, targetDir);
+		
+		// ensure existence of target directory
+		try {
+			Files.createDirectories(targetFile.getParent());
+		} catch (IOException e) {
+//			log.error("\tCould not create or access directory {}: {}", targetDir, e.getMessage(), e);
+//			return;
+			throw new NeuroBException("Could not create or access directory "+targetDir, e);
 		}
 		
-		// For the formula and ProB command to use
-		List<String> formulae = generateFormulae(new PredicateCollector(ss));
-		
-		log.info("\tGenerated {} formulae to solve.", formulae.size());
-		
-		List<String> results = generateResults(formulae, ss, sourceFile, mt);
-		
-		// close StateSpace
-		ss.kill();
-		
-		// No training data to write? -> return from method
-		// otherwise write to targetFile
-		if(results.isEmpty()){
-			log.info("\tNo training data created");
-			return;
+		// Check if file creation is really necessary
+		try {
+			if(isTargetFileUpToDate(sourceFile, targetFile)){
+				log.info("Target file {} already present and seems to be up to date. Skipping.", targetFile);
+			}
+		} catch (IOException e) {
+			throw new NeuroBException("Could not correctly access source file "+sourceFile+" or target file "+targetFile, e);
 		}
 		
-		createTrainingDataFile(sourceFile, targetFile, results);
-
+		// open target file
+		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
+			log.info("\tWriting training data...");
+			// write file name
+			out.write("#source:"+sourceFile.toString());
+			out.newLine();
+			// write feature vector to stream
+			for(TrainingData d : trainingData){
+				out.write(generateOutput(d));
+				out.newLine();
+				out.flush();
+			}
+			log.info("\tDone: {}", targetFile);
+		} catch (IOException e) {
+			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
+		}
+		
+		
 	}
 	
 	protected List<String> generateFormulae(PredicateCollector predicateCollector){
@@ -91,12 +98,15 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		return formulae;
 	}
 	
-	protected List<String> generateResults(List<String> formulae, StateSpace ss, Path sourceFile, MachineType mt){
+	protected List<TrainingData> generateResults(List<String> formulae, StateSpace ss, Path sourceFile){
+		// get machine type
+		MachineType mt = MachineType.getTypeFromStateSpace(ss);
+		
 		// generate data per formula
-		List<String> results = new ArrayList<String>();
+		List<TrainingData> results = new ArrayList<>();
 		int count = formulae.size();
 		int curr = 1;
-		boolean isStateSpaceCorrupted = false; // if in the solvers at label generation something goes wrong, we might want to reload the state space
+		boolean isStateSpaceCorrupted = false; // if something goes wrong inside the solvers at label generation, we might want to reload the state space
 		int corruptionCounter = 0; // count sequential corruptions. To stop if state space corrupts to often 
 		for( String formula : formulae) {
 			// check state space corruption
@@ -124,7 +134,7 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 			log.info("\tAt {}/{}...", curr++, count);
 			try {
 				// features:labeling vector:comment
-				String output = generateOutput(formula, ss); 
+				TrainingData output = setUpTrainingData(formula, sourceFile, ss); 
 				results.add(output);
 				log.debug("\tGenerated training data: {}", output);
 				corruptionCounter = (corruptionCounter ==0 ? 0 : corruptionCounter-1); // could use new state space without corrupting it again
@@ -171,8 +181,12 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		}
 	}
 	
-	protected String generateOutput(String predicate, StateSpace ss) throws NeuroBException{
-		return fg.generateFeatureString(predicate)+":"+lg.generateLabellingString(predicate, ss)+":"+predicate;
+	protected TrainingData setUpTrainingData(String predicate, Path source, StateSpace ss) throws NeuroBException{
+		return new TrainingData(fg.generateFeatureArray(predicate), lg.generateLabelling(predicate, ss), source, predicate);
+	}
+	
+	protected String generateOutput(TrainingData td){
+		return td.getFeatureString()+":"+td.getLabelString()+":"+td.getComment();
 	}
 
 }

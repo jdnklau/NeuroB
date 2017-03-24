@@ -34,7 +34,7 @@ public class PredicateDumperTranslationTest {
 		FeatureGenerator fg = new TheoryFeatures();
 
 		
-		String expected = "0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,0";
+		String expected = pds.translateToCSVDataString(new double[]{0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,0});
 		String actual = pds.translateToCSVDataString(fg, predicateDump);
 		
 		assertEquals("Predicate dump translation for solver classification (ProB) does not match", expected, actual);
@@ -42,7 +42,7 @@ public class PredicateDumperTranslationTest {
 
 		pds = new SolverClassificationGenerator(SolverType.Z3);
 		
-		expected = "0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,1";
+		expected = pds.translateToCSVDataString(new double[]{0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,1});
 		actual = pds.translateToCSVDataString(fg, predicateDump);
 		
 		assertEquals("Predicate dump translation for solver classification (ProB+Z3) does not match", expected, actual);
@@ -54,7 +54,7 @@ public class PredicateDumperTranslationTest {
 		FeatureGenerator fg = new TheoryFeatures();
 
 		
-		String expected = "0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,3";
+		String expected = pds.translateToCSVDataString(new double[]{0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,3});
 		String actual = pds.translateToCSVDataString(fg, predicateDump);
 		
 		assertEquals("Predicate dump translation for solver selection does not match", expected, actual);
@@ -67,7 +67,7 @@ public class PredicateDumperTranslationTest {
 		FeatureGenerator fg = new TheoryFeatures();
 
 		
-		String expected = "0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,-1.0,-1.0," + 2525884156L/1e6;
+		String expected = pds.translateToCSVDataString(new double[]{0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,-1.0,-1.0,2525884156L/1e6});
 		String actual = pds.translateToCSVDataString(fg, predicateDump);
 		
 		assertEquals("Predicate dump translation for solver selection does not match", expected, actual);
@@ -80,7 +80,7 @@ public class PredicateDumperTranslationTest {
 		
 		List<String> lines = Files.lines(schleusenPdump).collect(Collectors.toList());
 		
-		String expected = "0,2,1,0,3,0,0,0,2,1,0,8,0,0,8,1,0,1";
+		String expected = pdt.translateToCSVDataString(new double[]{0,2,1,0,3,0,0,0,2,1,0,8,0,0,8,1,0,1});
 		String actual;
 		try{
 			actual = pdt.translateToCSVDataString(fg, lines.get(0));

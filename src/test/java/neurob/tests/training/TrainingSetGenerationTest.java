@@ -20,7 +20,8 @@ import neurob.training.generators.labelling.SolverClassificationGenerator;
 
 public class TrainingSetGenerationTest {
 	private final Path formulaeGenTestFile = Paths.get("src/test/resources/training/formulae_generation.mch");
-	private final Path formulaeGenNBTrain = Paths.get("src/test/resources/training/nbtrain/formulae_generation.nbtrain");
+	private final Path formulaeGenNBTrainDir = Paths.get("src/test/resources/training/nbtrain/");
+	private final Path formulaeGenNBTrain = formulaeGenNBTrainDir.resolve("src/test/resources/training/formulae_generation.nbtrain");
 	
 	/**
 	 * Test if the collector runs properly or exits with an error
@@ -36,7 +37,7 @@ public class TrainingSetGenerationTest {
 		Files.deleteIfExists(formulaeGenNBTrain);
 		
 		// generate
-		tsg.generateTrainingDataFromFile(formulaeGenTestFile, formulaeGenNBTrain);
+		tsg.generateTrainingDataFromFile(formulaeGenTestFile, formulaeGenNBTrainDir);
 		
 		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		

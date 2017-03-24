@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -27,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import de.prob.exception.ProBError;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
-import neurob.core.features.interfaces.PredicateASTFeatures;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
@@ -170,28 +168,10 @@ public class TrainingSetGenerator {
 	 * @param target
 	 */
 	public void generateTrainingDataFromFile(Path source, Path target){
-		// check necessity of file creation:
-		// if a train file already exists and is newer than the machine file, 
-		// then the data should be up to date
-		if(Files.exists(target, LinkOption.NOFOLLOW_LINKS)){
-			try{
-				if(Files.getLastModifiedTime(source, LinkOption.NOFOLLOW_LINKS)
-						.compareTo(Files.getLastModifiedTime(target, LinkOption.NOFOLLOW_LINKS))
-					<= 0){ // last edit source file <= last edit target file -> nothing to do here
-					log.info("Found {}, but target file {} is already present and seems to be up to date. Doing nothing.", source, target);
-					return;
-				}
-			}
-			catch(IOException e){
-				log.error("Found {} and corresponding .{} file exists but could not access it or the source machine file: {}",
-						source, tdg.getPreferredFileExtension(), e.getMessage(), e);
-				log.info("\tSkipping file.");
-			}
-		}
 		
 		// create file
 		try {
-			tdg.collectTrainingDataFromFile(source, target);
+			tdg.generateTrainingDataFromFile(source, target);
 			return;
 		} catch (ProBError e) {
 			log.error("\tProBError on {}: {}", source, e.getMessage(), e);
@@ -199,6 +179,8 @@ public class TrainingSetGenerator {
 			log.error("\tReached illegal state while processing: {}", e.getMessage(), e);
 		} catch (NeuroBException e) {
 			log.error("\t{}", e.getMessage(), e);
+		} catch (IOException e) {
+			log.error("\tCould not access source file {} correctly: {}", source, e.getMessage(), e);
 		}
 		log.info("\tStopped with errors: {}", target);
 		++fileProblemsCounter;

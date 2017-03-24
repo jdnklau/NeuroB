@@ -18,7 +18,8 @@ import neurob.training.generators.PredicateDumpGenerator;
 
 public class PredicateDumperTest {
 	private final Path formulaeGenTestFile = Paths.get("src/test/resources/training/formulae_generation.mch");
-	private final Path formulaeGenPDump = Paths.get("src/test/resources/training/pdump/formulae_generation.pdump");
+	private final Path formulaeGenPDumpDir = Paths.get("src/test/resources/training/pdump/");
+	private final Path formulaeGenPDump = formulaeGenPDumpDir.resolve("src/test/resources/training/formulae_generation.pdump");
 	
 	@Test
 	public void DumpFromFileTest() throws IOException, ModelTranslationError, NeuroBException {
@@ -26,7 +27,7 @@ public class PredicateDumperTest {
 		
 		Files.deleteIfExists(formulaeGenPDump);
 		
-		tpg.collectTrainingDataFromFile(formulaeGenTestFile, formulaeGenPDump);
+		tpg.generateTrainingDataFromFile(formulaeGenTestFile, formulaeGenPDumpDir);
 		
 		
 		// analyse

@@ -309,8 +309,8 @@ public class NeuroBCli {
 		
 		try {
 			Path targetFile = tpg.generateTargetFilePath(file, Paths.get("training_data/PredicateDump/"));
-			tpg.collectTrainingDataFromFile(file, targetFile);
-		} catch (NeuroBException e) {
+			tpg.generateTrainingDataFromFile(file, targetFile);
+		} catch (NeuroBException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

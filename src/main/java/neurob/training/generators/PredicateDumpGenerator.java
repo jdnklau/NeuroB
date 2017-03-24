@@ -1,8 +1,11 @@
 package neurob.training.generators;
 
+import java.nio.file.Path;
+
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
+import neurob.training.generators.util.TrainingData;
 
 public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 
@@ -16,8 +19,13 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	}
 	
 	@Override
-	protected String generateOutput(String predicate, StateSpace ss) throws NeuroBException {
-		return lg.generateLabellingString(predicate, ss)+":"+predicate;
+	protected String generateOutput(TrainingData td){
+		return td.getLabelString()+":"+td.getComment();
+	}
+	
+	@Override
+	protected TrainingData setUpTrainingData(String predicate, Path source, StateSpace ss) throws NeuroBException {
+		return new TrainingData(null, lg.generateLabelling(predicate, ss), source, predicate);
 	}
 
 }
