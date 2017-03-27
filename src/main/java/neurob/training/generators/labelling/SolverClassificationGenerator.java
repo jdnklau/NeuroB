@@ -12,7 +12,7 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.PredicateDumpTranslator;
+import neurob.training.generators.interfaces.PredicateDumpLabelTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
@@ -41,7 +41,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @See {@link #SolverClassificationGenerator(boolean, boolean, boolean)}
  *
  */
-public class SolverClassificationGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
+public class SolverClassificationGenerator implements PredicateLabelGenerator, PredicateDumpLabelTranslator {
 	// what to classify
 	private SolverType solver;
 

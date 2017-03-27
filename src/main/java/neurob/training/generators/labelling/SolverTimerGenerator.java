@@ -16,7 +16,7 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.PredicateDumpTranslator;
+import neurob.training.generators.interfaces.PredicateDumpLabelTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
@@ -25,7 +25,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @author jannik
  *
  */
-public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
+public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateDumpLabelTranslator {
 	private int samplingSize;
 	
 	/**

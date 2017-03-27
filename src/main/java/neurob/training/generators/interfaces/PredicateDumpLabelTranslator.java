@@ -4,11 +4,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonFactory.Feature;
+
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.util.PredicateDumpData;
 
-public interface PredicateDumpTranslator {
+/**
+ * Interface class to ensure utility to translate data from predicate dumps into
+ * a desired label representation.
+ * <p>
+ * Can further make use of a {@link FeatureGenerator} to create full training samples.
+ *  
+ * @author jannik
+ *
+ */
+public interface PredicateDumpLabelTranslator {
 	
 	/**
 	 * Translates the given entry from a predicate dump to a string
