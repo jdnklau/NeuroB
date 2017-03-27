@@ -6,10 +6,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 import org.junit.Test;
 
@@ -19,7 +17,6 @@ import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.DataDumpTranslator;
 import neurob.training.generators.interfaces.LabelGenerator;
-import neurob.training.generators.interfaces.PredicateDumpLabelTranslator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
 import neurob.training.generators.labelling.SolverSelectionGenerator;
 import neurob.training.generators.labelling.SolverTimerGenerator;
@@ -94,7 +91,7 @@ public class PredicateDataDumpTranslationTests {
 		double[] expected = {0,2,1,0,3,0,0,0,2,1,0,8,0,0,8,1,0,1};
 		double[] actual;
 		try{
-			actual = ddt.translateDataDumpEntry(lines.get(0)).getTrainingVector();
+			actual = ddt.translateDataDumpEntry(lines.get(1)).getTrainingVector();
 			assertArrayEquals("Feature representation does not match", expected, actual, 0.01);
 		} catch(NeuroBException e){
 			assertTrue(e.getMessage(), false);
@@ -117,11 +114,29 @@ public class PredicateDataDumpTranslationTests {
 		List<String> lines = Files.lines(schleusenPdump).collect(Collectors.toList());
 		
 		try{
-			ddt.translateDataDumpEntry(lines.get(0)).getTrainingVector();
+			ddt.translateDataDumpEntry(lines.get(1)).getTrainingVector();
 			assertTrue("Could unexpectedly parse the predicate given.", false);
 		} catch(NeuroBException e){
 			// desired behaviour
 		}
+	}
+	
+	@Test
+	public void DirectoryHierarchyTest() throws IOException{
+		FeatureGenerator fg = new TheoryFeatures();
+		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
+		DataDumpTranslator ddt = new DataDumpTranslator(lg.getTrainingDataGenerator(fg));
+		
+		final Path targetDir = Paths.get("src/test/resources/tmp/pdumptranslation");
+		final Path targetFile = targetDir.resolve("src/test/resources/Schleusen.nbtrain");
+		
+		Files.deleteIfExists(targetFile);
+		
+		ddt.translateDumpFile(schleusenPdump, targetDir);
+		
+		assertTrue("File was not properly created.", Files.exists(targetFile));
+		Files.deleteIfExists(targetFile);
+		
 	}
 
 }

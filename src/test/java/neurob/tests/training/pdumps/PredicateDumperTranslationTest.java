@@ -83,7 +83,7 @@ public class PredicateDumperTranslationTest {
 		String expected = pdt.translateToCSVDataString(new double[]{0,2,1,0,3,0,0,0,2,1,0,8,0,0,8,1,0,1});
 		String actual;
 		try{
-			actual = pdt.translateToCSVDataString(fg, lines.get(0));
+			actual = pdt.translateToCSVDataString(fg, lines.get(1));
 			assertEquals("Feature representation does not match", expected, actual);
 		} catch(NeuroBException e){
 			assertTrue(e.getMessage(), false);
@@ -106,7 +106,7 @@ public class PredicateDumperTranslationTest {
 		List<String> lines = Files.lines(schleusenPdump).collect(Collectors.toList());
 		
 		try{
-			pdt.translateToCSVDataString(fg, lines.get(0));
+			pdt.translateToCSVDataString(fg, lines.get(1));
 			assertTrue("Could unexpectedly parse the predicate given.", false);
 		} catch(NeuroBException e){
 			// nothing
