@@ -1,41 +1,25 @@
 package neurob.training.generators.util;
 
-import java.util.ArrayList;
-
 /**
  * Class used to translate entries of predicate dumps into Java Objects
  * @author jannik
  *
  */
-public class PredicateDumpData {
-	private ArrayList<Long> labellings;
-	private String predicate;
+public class PredicateDumpData extends DumpData {
 	
 	public PredicateDumpData(String predicateDumpString){
-		int splitAt = predicateDumpString.indexOf(':');
-		
-		// split string into labels and predicate
-		String labelStr = predicateDumpString.substring(0, splitAt);
-		predicate = predicateDumpString.substring(splitAt+1); // +1 to skip the first :
-		
-		// generate list of solver times
-		labellings = new ArrayList<>();
-		for(String entry : labelStr.split(",")){
-			labellings.add(Long.parseLong(entry));
-		}
+		super(predicateDumpString);
 		
 	}
 	
 	/**
-	 * Returns the labellings from the predicate dump entry.
-	 * <p>
-	 * Labels are returned for each solver in the order stated for {@link TrainingPredicateDumper}.
-	 * @return
-	 */
-	public ArrayList<Long> getLabellings(){ return labellings; }
-	/**
 	 * Returns the predicate from the predicate dump entry.
 	 * @return
+	 * @deprecated 
+	 * 		Use {@link #getSource()} instead. This method
+	 * 		remains from legacy code, of a time before 
+	 * 		the {@link DumpData} class existed.
 	 */
-	public String getPredicate(){ return predicate; }
+	@Deprecated
+	public String getPredicate(){ return getSource(); }
 }

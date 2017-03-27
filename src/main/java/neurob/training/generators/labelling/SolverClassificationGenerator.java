@@ -14,6 +14,7 @@ import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.PredicateDumpLabelTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
+import neurob.training.generators.util.DumpData;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
@@ -110,7 +111,7 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 //		return labelling;
 //	}
 
-
+		
 	@Override
 	public double[] translateToLabelArray(List<Long> labellings) {
 		// Label to be picked depends on solver type
@@ -132,6 +133,11 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 		}
 		double val = (label >= 0) ? 1 : 0; 
 		return new double[]{val};
+	}
+	
+	@Override
+	public double[] translateLabelling(DumpData dumpData) {
+		return translateToLabelArray(dumpData.getLabellings());
 	}
 
 }

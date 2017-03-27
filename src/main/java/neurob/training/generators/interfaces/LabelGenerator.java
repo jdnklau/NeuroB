@@ -12,6 +12,7 @@ import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.TrainingDataGenerator;
+import neurob.training.generators.util.DumpData;
 
 public interface LabelGenerator {
 	
@@ -76,6 +77,30 @@ public interface LabelGenerator {
 					Arrays.stream(generateLabelling(predicate, stateSpace))
 					.mapToObj(String::valueOf)
 					.collect(Collectors.toList()));
+	}
+	
+	/**
+	 * Translates the labelling captured by the dump data
+	 * to the format produced by this class.
+	 * <p>
+	 * Output should be identical with {@link #generateLabelling(String, StateSpace)}
+	 * @param dumpData
+	 * @return
+	 */
+	public double[] translateLabelling(DumpData dumpData);
+	
+	/**
+	 * Translates the labelling captured by the dump data
+	 * to the format produced by this class as comma separated string.
+	 * @param dumpData
+	 * @return
+	 */
+	default
+	public String translateLabellingString(DumpData dumpData){
+		return String.join(",", 
+				Arrays.stream(translateLabelling(dumpData))
+				.mapToObj(String::valueOf)
+				.collect(Collectors.toList()));
 	}
 	
 	/**

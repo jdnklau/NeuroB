@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonFactory.Feature;
-
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.util.PredicateDumpData;
@@ -32,7 +30,7 @@ public interface PredicateDumpLabelTranslator {
 	default
 	public String translateToCSVDataString(FeatureGenerator fg, String predicateDumpString) throws NeuroBException{
 		PredicateDumpData pdd = new PredicateDumpData(predicateDumpString);
-		double[] features = translateToFeatureArray(fg, pdd.getPredicate());
+		double[] features = translateToFeatureArray(fg, pdd.getSource());
 		double[] labels = translateToLabelArray(pdd.getLabellings());
 		
 		return translateToCSVDataString(features)

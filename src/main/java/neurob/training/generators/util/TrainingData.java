@@ -3,6 +3,7 @@ package neurob.training.generators.util;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /**
  * Wrapper class for training data, consisting of a pairing of feature and labelling data
@@ -46,5 +47,13 @@ public class TrainingData {
 				Arrays.stream(data)
 				.mapToObj(Double::toString)
 				.collect(Collectors.toList()));
+	}
+	
+	/**
+	 * Returns a concatenated version of features and labels as one vector
+	 * @return
+	 */
+	public double[] getTrainingVector(){
+		return DoubleStream.concat(Arrays.stream(features), Arrays.stream(labels)).toArray();
 	}
 }

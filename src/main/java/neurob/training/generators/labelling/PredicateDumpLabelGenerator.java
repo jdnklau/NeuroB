@@ -1,5 +1,7 @@
 package neurob.training.generators.labelling;
 
+import java.util.stream.Collectors;
+
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.FeatureGenerator;
@@ -9,6 +11,7 @@ import neurob.exceptions.NeuroBException;
 import neurob.training.generators.PredicateDumpGenerator;
 import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
+import neurob.training.generators.util.DumpData;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
@@ -58,6 +61,11 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 	@Override
 	public TrainingDataGenerator getTrainingDataGenerator(FeatureGenerator fg) {
 		return new PredicateDumpGenerator();
+	}
+
+	@Override
+	public double[] translateLabelling(DumpData dumpData) {
+		return dumpData.getLabellings().stream().mapToDouble(Long::doubleValue).toArray();
 	}
 
 }
