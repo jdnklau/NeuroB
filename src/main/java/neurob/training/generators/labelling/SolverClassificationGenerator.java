@@ -2,9 +2,6 @@ package neurob.training.generators.labelling;
 
 import java.util.List;
 
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.cpu.nativecpu.NDArray;
-
 import com.google.inject.Inject;
 
 import de.prob.animator.domainobjects.IBEvalElement;
@@ -12,7 +9,6 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.PredicateDumpLabelTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
 import neurob.training.generators.util.DumpData;
 import neurob.training.generators.util.FormulaGenerator;
@@ -42,7 +38,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @See {@link #SolverClassificationGenerator(boolean, boolean, boolean)}
  *
  */
-public class SolverClassificationGenerator implements PredicateLabelGenerator, PredicateDumpLabelTranslator {
+public class SolverClassificationGenerator implements PredicateLabelGenerator {
 	// what to classify
 	private SolverType solver;
 
@@ -90,30 +86,10 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 		
 		
 	}
-
-//	@Override
-//	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
-//		// setup up state space
-//		StateSpace ss;
-//		try {
-//			ss = api.b_load(b_machine.toString());
-//		} catch (IOException e) {
-//			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
-//		} catch (ModelTranslationError e) {
-//			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
-//		}
-//		
-//		// Use other method to calculate labelling
-//		String labelling = generateLabelling(predicate, ss);
-//		
-//		ss.kill();
-//		// return
-//		return labelling;
-//	}
-
-		
+	
 	@Override
-	public double[] translateToLabelArray(List<Long> labellings) {
+	public double[] translateLabelling(DumpData dumpData) {
+		List<Long> labellings = dumpData.getLabellings();
 		// Label to be picked depends on solver type
 		Long label;
 		switch (solver) {
@@ -133,11 +109,6 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator, P
 		}
 		double val = (label >= 0) ? 1 : 0; 
 		return new double[]{val};
-	}
-	
-	@Override
-	public double[] translateLabelling(DumpData dumpData) {
-		return translateToLabelArray(dumpData.getLabellings());
 	}
 
 }

@@ -1,4 +1,4 @@
-package neurob.tests.training.pdumps;
+package neurob.tests.training.datadumps;
 
 import static org.junit.Assert.*;
 

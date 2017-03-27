@@ -56,4 +56,13 @@ public class TrainingData {
 	public double[] getTrainingVector(){
 		return DoubleStream.concat(Arrays.stream(features), Arrays.stream(labels)).toArray();
 	}
+	
+	/**
+	 * Returns a concatenated version of features and labels as
+	 * comma separated string.
+	 * @return
+	 */
+	public String getTrainingVectorString(){
+		return getCSVString(getTrainingVector());
+	}
 }

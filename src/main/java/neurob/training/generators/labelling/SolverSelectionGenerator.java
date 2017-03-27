@@ -9,7 +9,6 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.PredicateDumpLabelTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
 import neurob.training.generators.util.DumpData;
 import neurob.training.generators.util.FormulaGenerator;
@@ -45,7 +44,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @see SolverClassificationGenerator
  *
  */
-public class SolverSelectionGenerator implements PredicateLabelGenerator, PredicateDumpLabelTranslator {
+public class SolverSelectionGenerator implements PredicateLabelGenerator {
 
 	@Override
 	public int getClassCount() {
@@ -80,26 +79,6 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		return new double[]{getLabellingByTimes(ProBTime, KodKodTime, Z3Time)};
 		
 	}
-
-//	@Override
-//	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
-//		// setup up state space
-//		StateSpace ss;
-//		try {
-//			ss = api.b_load(b_machine.toString());
-//		} catch (IOException e) {
-//			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
-//		} catch (ModelTranslationError e) {
-//			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
-//		}
-//		
-//		// Use other method to calculate labelling
-//		String labelling = generateLabelling(predicate, ss);
-//		
-//		ss.kill();
-//		// return
-//		return labelling;
-//	}
 	
 	private int getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
 		// check if any solver could decide the formula
@@ -131,15 +110,11 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 			return 3;
 		}
 	}
-
-	@Override
-	public double[] translateToLabelArray(List<Long> labellings) {
-		return new double[]{getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2))};
-	}
 	
 	@Override
 	public double[] translateLabelling(DumpData dumpData) {
-		return translateToLabelArray(dumpData.getLabellings());
+		List<Long> labellings = dumpData.getLabellings();
+		return new double[]{getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2))};
 	}
 
 }

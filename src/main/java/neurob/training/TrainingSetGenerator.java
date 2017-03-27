@@ -29,7 +29,6 @@ import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
-import neurob.training.generators.interfaces.PredicateDumpLabelTranslator;
 
 public class TrainingSetGenerator {
 	// Training data handling
@@ -227,18 +226,13 @@ public class TrainingSetGenerator {
 	 * @throws NeuroBException
 	 */
 	public void collectTrainingSetOverPDumpFiles(Path sourceDirectory, Path csv) throws NeuroBException{
-		if(!(lg instanceof PredicateDumpLabelTranslator)){
-			throw new NeuroBException("Trying to generate a CSV from predicate dumps, but "
-									+ "TrainingSetGenerator was not initialised with a LabelGenerator "
-									+ "implementing also the PredicateDumpLabelTranslator interface.");
-		}
-		
-		PredicateDumpLabelTranslator pdt = (PredicateDumpLabelTranslator) lg;
 		
 		collectTrainingSetOverDataFiles("pdump", sourceDirectory, csv, 
 			line -> {
 				try {
-					return pdt.translateToCSVDataString(fg, line);					
+//					return pdt.translateToCSVDataString(fg, line);
+					DataDumpTranslator ddt = new DataDumpTranslator(tdg);
+					return ddt.translateDataDumpEntry(line).getTrainingVectorString();
 				} catch (NeuroBException e) {
 					log.warn("\t{}", e.getMessage(), e);
 				}
