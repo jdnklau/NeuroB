@@ -7,7 +7,6 @@ import java.awt.image.WritableRaster;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -75,6 +74,10 @@ public class CodeImages implements ConvolutionFeatures {
 			}
 		}
 		
+		return scaleImage(img);
+	}
+	
+	private BufferedImage scaleImage(BufferedImage img){
 		// resize image
 		Image tmp = img.getScaledInstance(dim, dim, Image.SCALE_SMOOTH);
 		BufferedImage scaled = new BufferedImage(dim, dim, BufferedImage.TYPE_BYTE_GRAY);
@@ -87,7 +90,8 @@ public class CodeImages implements ConvolutionFeatures {
 		return scaled;
 	}
 	
-	private double[] translateImageFeatureToArray(BufferedImage image){
+	@Override
+	public double[] translateImageFeatureToArray(BufferedImage image){
 		// return a double[]
 		double[] data = new double[pixels];
 		
@@ -100,6 +104,21 @@ public class CodeImages implements ConvolutionFeatures {
 		}
 		
 		return data;
+	}
+	
+	@Override
+	public BufferedImage translateArrayFeatureToImage(double[] features) {
+		BufferedImage img = new BufferedImage(dim, dim, BufferedImage.TYPE_BYTE_GRAY);
+		WritableRaster raster = img.getRaster();
+		
+		for(int y = 0; y < dim; y++){
+			for(int x = 0; x < dim; x++){
+				int px = (int)features[x+y*dim];
+				raster.setPixel(x, y, new int[]{px});
+			}
+		}
+		
+		return scaleImage(img);
 	}
 	
 	@Override
