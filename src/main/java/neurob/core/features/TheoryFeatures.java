@@ -15,25 +15,18 @@ import neurob.exceptions.NeuroBException;
 public class TheoryFeatures implements PredicateASTFeatures {
 	
 	public static final int featureDimension = 17; // Dimension of feature vectors
-	private ArrayList<String> features; // The stored features
 	private BParser bParser;
 	private Path sourceFile;
 	
 	
 	public TheoryFeatures() {
-		reset();
+		sourceFile = null;
+		bParser = new BParser();
 	}
 	
 	public TheoryFeatures(Path machineFile) throws NeuroBException{
-		reset();
+		this();
 		setMachine(machineFile);
-	}
-
-	@Override
-	public void reset(){
-		sourceFile = null;
-		features = new ArrayList<String>();
-		bParser = new BParser();
 	}
 	
 	@Override
@@ -83,16 +76,6 @@ public class TheoryFeatures implements PredicateASTFeatures {
 	@Override
 	public String generateFeatureString(String predicate) throws NeuroBException {
 		return generatePredicateFeatureData(predicate).toString();
-	}
-	
-	@Override
-	public void addData(String predicate) throws NeuroBException {
-		features.add(generateFeatureString(predicate));
-	}
-
-	@Override
-	public List<String> getFeatureStrings() {
-		return features;
 	}
 	
 	@Override

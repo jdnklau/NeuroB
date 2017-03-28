@@ -19,8 +19,7 @@ public class CodeImages implements ConvolutionFeatures {
 	private int dim;
 	private int pixels; // has to be dim*dim
 	private Path sourceFile;
-	// Features
-	private ArrayList<BufferedImage> features;
+	
 	/**
 	 * The image size generated will be of size {@code dimension * dimension}
 	 * @param dimension 
@@ -28,7 +27,6 @@ public class CodeImages implements ConvolutionFeatures {
 	public CodeImages(int dimension) {
 		this.dim = dimension;
 		pixels = dim*dim;
-		features = new ArrayList<BufferedImage>();
 	}
 	
 	@Override
@@ -139,22 +137,6 @@ public class CodeImages implements ConvolutionFeatures {
 	}
 
 	@Override
-	public void addData(String code) throws NeuroBException {
-		features.add(generateFeatureImage(code));
-	}
-
-	@Override
-	public List<String> getFeatureStrings() {
-		ArrayList<String> strfeatures = new ArrayList<String>();
-		
-		for(BufferedImage img : getFeatureImages()){
-			strfeatures.add(translateImageFeatureToString(img));
-		}
-		
-		return strfeatures;
-	}
-
-	@Override
 	public int getFeatureDimension() {
 		return pixels;
 	}
@@ -172,16 +154,6 @@ public class CodeImages implements ConvolutionFeatures {
 	@Override
 	public int getFeatureChannels() {
 		return 1;
-	}
-
-	@Override
-	public void reset() {
-		features.clear();
-	}
-
-	@Override
-	public List<BufferedImage> getFeatureImages() {
-		return features;
 	}
 
 	@Override

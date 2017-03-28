@@ -48,9 +48,7 @@ public class TheoryFeaturesTest {
 		
 		TheoryFeatures f = new TheoryFeatures();
 		
-		f.addData(pred);
-		
-		String actual = f.getFeatureStrings().get(0);
+		String actual = f.generateFeatureString(pred);
 		String expected = "0,5,1,1,9,0,0,0,6,0,0,6,4,2,0,1,0";
 		
 		assertEquals("Generated features do not match",expected, actual);
