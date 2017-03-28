@@ -1,6 +1,7 @@
 package neurob.training.generators.util;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -30,12 +31,18 @@ public class TrainingData {
 	public TrainingData(double[] features, double[] labels, Path source, String comment) {
 		this.features = features;
 		this.labels = labels;
-		this.source = source;
-		this.comment = comment;
+		
+		this.source = (source == null) ? Paths.get("nosource.nsrc") : source;
+		
+		this.comment = (comment == null) ? "" : comment;
 	}
 	
 	public double[] getFeatures(){return features;}
 	public double[] getLabels(){return labels;}
+	/**
+	 * 
+	 * @return The connotated path to the source or a path to nosource.nsrc file.
+	 */
 	public Path getSource(){return source;}
 	public String getComment(){return comment;}
 

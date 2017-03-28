@@ -182,6 +182,12 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		return new TrainingData(fg.generateFeatureArray(predicate), lg.generateLabelling(predicate, ss), source, predicate);
 	}
 	
+	/**
+	 * Generates a output string from a {@link TrainingData single sample}.
+	 * This string will be written as line to the training file.
+	 * @param td
+	 * @return
+	 */
 	protected String generateOutput(TrainingData td){
 		return td.getFeatureString()+":"+td.getLabelString()+":"+td.getComment();
 	}
