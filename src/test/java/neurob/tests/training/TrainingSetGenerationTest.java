@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import org.junit.Test;
 
 import neurob.core.features.TheoryFeatures;
+import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.util.SolverType;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
@@ -32,7 +33,8 @@ public class TrainingSetGenerationTest {
 	@Test
 	public void trainingSetAnalysisForNBTrain() throws IOException{
 		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
-		TrainingSetGenerator tsg = new TrainingSetGenerator(lg.getTrainingDataGenerator(new TheoryFeatures()));
+		FeatureGenerator fg = new TheoryFeatures();
+		TrainingSetGenerator tsg = new TrainingSetGenerator(fg.getTrainingDataGenerator(lg));
 		
 		Files.deleteIfExists(formulaeGenNBTrain);
 		

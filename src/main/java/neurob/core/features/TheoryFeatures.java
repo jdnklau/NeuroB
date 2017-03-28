@@ -2,8 +2,6 @@ package neurob.core.features;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 
@@ -11,6 +9,9 @@ import de.be4.classicalb.core.parser.BParser;
 import neurob.core.features.interfaces.PredicateASTFeatures;
 import neurob.core.features.util.TheoryFeatureData;
 import neurob.exceptions.NeuroBException;
+import neurob.training.generators.PredicateTrainingDataGenerator;
+import neurob.training.generators.TrainingDataGenerator;
+import neurob.training.generators.interfaces.LabelGenerator;
 
 public class TheoryFeatures implements PredicateASTFeatures {
 	
@@ -81,6 +82,11 @@ public class TheoryFeatures implements PredicateASTFeatures {
 	@Override
 	public int getFeatureDimension() {
 		return featureDimension;
+	}
+	
+	@Override
+	public TrainingDataGenerator getTrainingDataGenerator(LabelGenerator lg) {
+		return new PredicateTrainingDataGenerator(this, lg);
 	}
 
 }

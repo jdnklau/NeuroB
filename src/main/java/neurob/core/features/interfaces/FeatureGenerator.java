@@ -2,13 +2,13 @@ package neurob.core.features.interfaces;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 
-import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
+import neurob.training.generators.TrainingDataGenerator;
+import neurob.training.generators.interfaces.LabelGenerator;
 
 /**
  * Generates the features of a predicate.
@@ -117,5 +117,14 @@ public interface FeatureGenerator {
 	 * @return Path to source file or null.
 	 */
 	public Path getSourceFile();
+	
+
+	
+	/**
+	 * Couples this feature generator with an arbitrary label generator to
+	 * a fitting {@link TrainingDataGenerator}
+	 * @return
+	 */
+	public TrainingDataGenerator getTrainingDataGenerator(LabelGenerator lg);
 	
 }

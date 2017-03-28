@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
-
 import org.junit.Test;
 
 import de.prob.scripting.ModelTranslationError;
@@ -39,7 +37,7 @@ public class PredicateDumperTest {
 		
 //		assertEquals("Amount of dumped predicates does not match", 113, entries);
 		// FIXME: On different machines, the 114th formulae may or may not go through.
-		assertTrue("Amount of dumpef predicates does not match, expecting at least 137, but got "+entries, 
+		assertTrue("Amount of dumped predicates does not match, expecting at least 137, but got "+entries, 
 				entries>=137);
 	}
 

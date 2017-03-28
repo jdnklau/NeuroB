@@ -14,9 +14,14 @@ public interface PredicateLabelGenerator extends LabelGenerator {
 	 * 
 	 * @see neurob.training.generators.interfaces.LabelGenerator#getTrainingDataGenerator(neurob.core.features.interfaces.FeatureGenerator)
 	 */
-	@Override
-	default TrainingDataGenerator getTrainingDataGenerator(FeatureGenerator fg) {
-		return new PredicateTrainingDataGenerator(fg, this);
-	}
+	/*
+	 * NOTE:
+	 * This logic was moved to the feature generators. PredicateLabelgenerator is now an interface, that
+	 * ... contains no code on its own. Bummer.
+	 */
+//	@Override
+//	default TrainingDataGenerator getTrainingDataGenerator(FeatureGenerator fg) {
+//		return new PredicateTrainingDataGenerator(fg, this);
+//	}
 
 }

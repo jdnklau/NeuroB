@@ -32,7 +32,7 @@ public class PredicateDataDumpTranslationTests {
 	public void SolverClassificationProBTranslationTest() throws NeuroBException {
 		FeatureGenerator fg = new TheoryFeatures();
 		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
-		DataDumpTranslator ddt = new DataDumpTranslator(lg.getTrainingDataGenerator(fg));
+		DataDumpTranslator ddt = new DataDumpTranslator(fg.getTrainingDataGenerator(lg));
 		TrainingData dd = ddt.translateDataDumpEntry(predicateDump);
 		
 		double[] expected = {0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,0};
@@ -46,7 +46,7 @@ public class PredicateDataDumpTranslationTests {
 	public void SolverClassificationZ3TranslationTest() throws NeuroBException {
 		FeatureGenerator fg = new TheoryFeatures();
 		LabelGenerator lg = new SolverClassificationGenerator(SolverType.Z3);
-		DataDumpTranslator ddt = new DataDumpTranslator(lg.getTrainingDataGenerator(fg));
+		DataDumpTranslator ddt = new DataDumpTranslator(fg.getTrainingDataGenerator(lg));
 		
 		double[] expected = {0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,1};
 		double[] actual = ddt.translateDataDumpEntry(predicateDump).getTrainingVector();
@@ -58,7 +58,7 @@ public class PredicateDataDumpTranslationTests {
 	public void SolverSelectionTranslationTest() throws NeuroBException {
 		FeatureGenerator fg = new TheoryFeatures();
 		LabelGenerator lg = new SolverSelectionGenerator();
-		DataDumpTranslator ddt = new DataDumpTranslator(lg.getTrainingDataGenerator(fg));
+		DataDumpTranslator ddt = new DataDumpTranslator(fg.getTrainingDataGenerator(lg));
 		
 		double[] expected = {0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,3};
 		double[] actual = ddt.translateDataDumpEntry(predicateDump).getTrainingVector();
@@ -70,7 +70,7 @@ public class PredicateDataDumpTranslationTests {
 	public void SolverTimerTranslationTest() throws NeuroBException {
 		FeatureGenerator fg = new TheoryFeatures();
 		LabelGenerator lg = new SolverTimerGenerator(3);
-		DataDumpTranslator ddt = new DataDumpTranslator(lg.getTrainingDataGenerator(fg));
+		DataDumpTranslator ddt = new DataDumpTranslator(fg.getTrainingDataGenerator(lg));
 		
 		double[] expected = {0,3,0,0,4,0,0,0,3,0,0,3,0,3,0,0,1,-1.0,-1.0,2525884156L/1e6};
 		double[] actual = ddt.translateDataDumpEntry(predicateDump).getTrainingVector();
@@ -84,7 +84,7 @@ public class PredicateDataDumpTranslationTests {
 	public void TranslateToTheoryFeaturesWithParsedFileTest() throws NeuroBException, IOException{
 		FeatureGenerator fg = new TheoryFeatures(schleusenMch);
 		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
-		DataDumpTranslator ddt = new DataDumpTranslator(lg.getTrainingDataGenerator(fg));
+		DataDumpTranslator ddt = new DataDumpTranslator(fg.getTrainingDataGenerator(lg));
 		
 		List<String> lines = Files.lines(schleusenPdump).collect(Collectors.toList());
 		
@@ -109,7 +109,7 @@ public class PredicateDataDumpTranslationTests {
 	public void TranslateToTheoryFeaturesWithoutParsedFileTest() throws NeuroBException, IOException{
 		FeatureGenerator fg = new TheoryFeatures();
 		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
-		DataDumpTranslator ddt = new DataDumpTranslator(lg.getTrainingDataGenerator(fg));
+		DataDumpTranslator ddt = new DataDumpTranslator(fg.getTrainingDataGenerator(lg));
 		
 		List<String> lines = Files.lines(schleusenPdump).collect(Collectors.toList());
 		
@@ -125,7 +125,7 @@ public class PredicateDataDumpTranslationTests {
 	public void DirectoryHierarchyTest() throws IOException{
 		FeatureGenerator fg = new TheoryFeatures();
 		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
-		DataDumpTranslator ddt = new DataDumpTranslator(lg.getTrainingDataGenerator(fg));
+		DataDumpTranslator ddt = new DataDumpTranslator(fg.getTrainingDataGenerator(lg));
 		
 		final Path targetDir = Paths.get("src/test/resources/tmp/pdumptranslation");
 		final Path targetFile = targetDir.resolve("src/test/resources/Schleusen.nbtrain");
