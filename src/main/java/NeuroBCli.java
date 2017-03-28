@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.stream.Stream;
 
 import neurob.core.NeuroB;
-import neurob.core.features.CodeImages;
+import neurob.core.features.PredicateImages;
 import neurob.core.features.TheoryFeatures;
 import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
@@ -393,7 +393,7 @@ public class NeuroBCli {
 			if(ops.containsKey("size")){
 				s = Integer.parseInt(ops.get("size").get(0));
 			}
-			model = new NeuroBConvNet(hiddenLayers, learningrate, new CodeImages(s), labelling, seed);
+			model = new NeuroBConvNet(hiddenLayers, learningrate, new PredicateImages(s), labelling, seed);
 		}
 		else {//if(feats.equals("predf")){
 			model = new NeuroBNet(hiddenLayers, learningrate, new TheoryFeatures(), labelling, seed);

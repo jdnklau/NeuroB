@@ -14,7 +14,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.exceptions.NeuroBException;
 
-public class CodeImages implements ConvolutionFeatures {
+public abstract class CodeImages implements ConvolutionFeatures {
 	private int dim;
 	private int pixels; // has to be dim*dim
 	private Path sourceFile;
@@ -77,7 +77,13 @@ public class CodeImages implements ConvolutionFeatures {
 		return scaleImage(img);
 	}
 	
-	private BufferedImage scaleImage(BufferedImage img){
+	/**
+	 * Scales the given image to the dimensions defined by 
+	 * {@link #CodeImages(int) instance construction}.
+	 * @param img
+	 * @return
+	 */
+	protected BufferedImage scaleImage(BufferedImage img){
 		// resize image
 		Image tmp = img.getScaledInstance(dim, dim, Image.SCALE_SMOOTH);
 		BufferedImage scaled = new BufferedImage(dim, dim, BufferedImage.TYPE_BYTE_GRAY);
