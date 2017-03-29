@@ -225,6 +225,7 @@ public class TrainingSetGenerator {
 	 * @param csv
 	 * @throws NeuroBException
 	 */
+	@Deprecated
 	public void collectTrainingSetOverPDumpFiles(Path sourceDirectory, Path csv) throws NeuroBException{
 		
 		collectTrainingSetOverDataFiles("pdump", sourceDirectory, csv, 
@@ -239,6 +240,12 @@ public class TrainingSetGenerator {
 				
 				return "";
 			});
+	}
+	
+	public void translateDataDumpFiles(Path sourceDirectory, Path targetDirectory) {
+		log.info("Translating data dumps from {} to {}", sourceDirectory, targetDirectory);
+		DataDumpTranslator ddt = new DataDumpTranslator(tdg);
+		ddt.translateDumpDirectory(sourceDirectory, targetDirectory);
 	}
 	
 	/**

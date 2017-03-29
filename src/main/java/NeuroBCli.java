@@ -13,6 +13,7 @@ import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
+import neurob.training.DataDumpTranslator;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.PredicateDumpGenerator;
@@ -322,13 +323,13 @@ public class NeuroBCli {
 	}
 	
 	private static void translatePDump(Path dir) {
-		try {
-			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName()).resolve("pdata.csv");
-			nb.getNeuroBNet().getTrainingSetGenerator().collectTrainingSetOverPDumpFiles(dir, target);
-		} catch (NeuroBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName());
+			nb.getNeuroBNet().getTrainingSetGenerator().translateDataDumpFiles(dir, target);
+//		} catch (NeuroBException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	
 	private static void analysePDump(Path dir){
