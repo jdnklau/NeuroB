@@ -22,40 +22,43 @@ import neurob.training.generators.labelling.SolverClassificationGenerator;
 public class TrainingSetGenerationTest {
 	private final Path formulaeGenTestFile = Paths.get("src/test/resources/training/formulae_generation.mch");
 	private final Path formulaeGenNBTrainDir = Paths.get("src/test/resources/training/nbtrain/");
-	private final Path formulaeGenNBTrain = formulaeGenNBTrainDir.resolve("src/test/resources/training/formulae_generation.nbtrain");
+	private final Path formulaeGenNBTrain = formulaeGenNBTrainDir.resolve("src/test/resources/training/formulae_generation.csv");
 	
-	/**
-	 * Test if the collector runs properly or exits with an error
-	 * @throws IllegalStateException
-	 * @throws IOException
-	 * @throws BException
+	/*
+	 * Test no longer needed as csv files will be created instead of nbtrain files
 	 */
-	@Test
-	public void trainingSetAnalysisForNBTrain() throws IOException{
-		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
-		FeatureGenerator fg = new TheoryFeatures();
-		TrainingSetGenerator tsg = new TrainingSetGenerator(fg.getTrainingDataGenerator(lg));
-		
-		Files.deleteIfExists(formulaeGenNBTrain);
-		
-		// generate
-		tsg.generateTrainingDataFromFile(formulaeGenTestFile, formulaeGenNBTrainDir);
-		
-		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
-		
-		// analyse
-		ClassificationAnalysis analysis = new ClassificationAnalysis(4); 
-		tsa.analyseNBTrainSet(Paths.get("src/test/resources/training/nbtrain/"), analysis);
-
-		assertEquals("File counter does not match", 1, analysis.getFilesCount());
-		assertEquals("Empty files counter does not match", 0, analysis.getEmptyFilesCount());
-		
-		ArrayList<Integer> trueLabels = analysis.getTrueLabelCounters();
-		assertEquals("Class 0 counter does not match", 0, trueLabels.get(0).intValue());
-		assertEquals("Class 1 counter does not match", 137, trueLabels.get(1).intValue());
-		
-		Files.deleteIfExists(formulaeGenNBTrain);
-	}
+//	/**
+//	 * Test if the collector runs properly or exits with an error
+//	 * @throws IllegalStateException
+//	 * @throws IOException
+//	 * @throws BException
+//	 */
+//	@Test
+//	public void trainingSetAnalysisForNBTrain() throws IOException{
+//		LabelGenerator lg = new SolverClassificationGenerator(SolverType.PROB);
+//		FeatureGenerator fg = new TheoryFeatures();
+//		TrainingSetGenerator tsg = new TrainingSetGenerator(fg.getTrainingDataGenerator(lg));
+//		
+//		Files.deleteIfExists(formulaeGenNBTrain);
+//		
+//		// generate
+//		tsg.generateTrainingDataFromFile(formulaeGenTestFile, formulaeGenNBTrainDir);
+//		
+//		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
+//		
+//		// analyse
+//		ClassificationAnalysis analysis = new ClassificationAnalysis(4); 
+//		tsa.analyseNBTrainSet(formulaeGenNBTrainDir, analysis);
+//
+//		assertEquals("File counter does not match", 1, analysis.getFilesCount());
+//		assertEquals("Empty files counter does not match", 0, analysis.getEmptyFilesCount());
+//		
+//		ArrayList<Integer> trueLabels = analysis.getTrueLabelCounters();
+//		assertEquals("Class 0 counter does not match", 0, trueLabels.get(0).intValue());
+//		assertEquals("Class 1 counter does not match", 137, trueLabels.get(1).intValue());
+//		
+//		Files.deleteIfExists(formulaeGenNBTrain);
+//	}
 
 	@Test
 	public void trainingSetAnalysisForCSV() throws IOException{

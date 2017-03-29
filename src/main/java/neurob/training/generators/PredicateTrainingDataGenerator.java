@@ -1,8 +1,5 @@
 package neurob.training.generators;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +16,7 @@ import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
 import neurob.training.generators.util.TrainingData;
 
-public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
+public abstract class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 	// logger
 	private static final Logger log = LoggerFactory.getLogger(PredicateTrainingDataGenerator.class);
 
@@ -39,51 +36,12 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		
 		return data;
 	}
-
-	@Override
-	public void writeTrainingDataToDirectory(List<TrainingData> trainingData, Path targetDir) throws NeuroBException {
-		
-		Path sourceFile = trainingData.get(0).getSource();
-		Path targetFile = generateTargetFilePath(sourceFile, targetDir);
-		
-		// ensure existence of target directory
-		try {
-			Files.createDirectories(targetFile.getParent());
-		} catch (IOException e) {
-//			log.error("\tCould not create or access directory {}: {}", targetDir, e.getMessage(), e);
-//			return;
-			throw new NeuroBException("Could not create or access directory "+targetDir, e);
-		}
-		
-		// Check if file creation is really necessary
-		try {
-			if(isTargetFileUpToDate(sourceFile, targetFile)){
-				log.info("Target file {} already present and seems to be up to date. Skipping.", targetFile);
-			}
-		} catch (IOException e) {
-			throw new NeuroBException("Could not correctly access source file "+sourceFile+" or target file "+targetFile, e);
-		}
-		
-		// open target file
-		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
-			log.info("\tWriting training data...");
-			// write file name
-			out.write("#source:"+sourceFile.toString());
-			out.newLine();
-			// write feature vector to stream
-			for(TrainingData d : trainingData){
-				out.write(generateOutput(d));
-				out.newLine();
-				out.flush();
-			}
-			log.info("\tDone: {}", targetFile);
-		} catch (IOException e) {
-			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
-		}
-		
-		
-	}
 	
+	/**
+	 * Generates a list of formulae for training from a given predicate collector.
+	 * @param predicateCollector Holds base formulae (invariants, guards) from a machine file.
+	 * @return List of formulae created.
+	 */
 	protected List<String> generateFormulae(PredicateCollector predicateCollector){
 		// Get different formulas
 		List<String> formulae = FormulaGenerator.extendedGuardFormulae(predicateCollector);
@@ -95,6 +53,15 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		return formulae;
 	}
 	
+	/**
+	 * Takes a list of formulae and calculates the respective labelling and feature representation.
+	 * Returns a list of {@link TrainingData}.
+	 * 
+	 * @param formulae List of formulae to solve
+	 * @param ss StateSpace that has the corresponding machine loaded
+	 * @param sourceFile Corresponding machine
+	 * @return List of Features and Labels as {@link TrainingData}, built from the formulae
+	 */
 	protected List<TrainingData> generateResults(List<String> formulae, StateSpace ss, Path sourceFile){
 		// get machine type
 		MachineType mt = MachineType.getTypeFromStateSpace(ss);
@@ -150,46 +117,18 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 		return results;
 	}
 	
-	protected void createTrainingDataFile(Path sourceFile, Path targetFile, List<String> results) throws NeuroBException{
-		Path targetDirectory = targetFile.getParent();
-		// ensure existence of target directory
-		try {
-			Files.createDirectories(targetDirectory);
-		} catch (IOException e) {
-			log.error("\tCould not create or access directory {}: {}", targetDirectory, e.getMessage(), e);
-			return;
-		}
-		
-		// open target file
-		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
-			log.info("\tWriting training data...");
-			// write file name
-			out.write("#source:"+sourceFile.toString());
-			out.newLine();
-			// write feature vector to stream
-			for(String res : results){
-				out.write(res);
-				out.newLine();
-				out.flush();
-			}
-			log.info("\tDone: {}", targetFile);
-		} catch (IOException e) {
-			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
-		}
-	}
-	
 	protected TrainingData setUpTrainingData(String predicate, Path source, StateSpace ss) throws NeuroBException{
 		return new TrainingData(fg.generateFeatureArray(predicate), lg.generateLabelling(predicate, ss), source, predicate);
 	}
 	
-	/**
-	 * Generates a output string from a {@link TrainingData single sample}.
-	 * This string will be written as line to the training file.
-	 * @param td
-	 * @return
-	 */
-	protected String generateOutput(TrainingData td){
-		return td.getFeatureString()+":"+td.getLabelString()+":"+td.getComment();
-	}
+//	/**
+//	 * Generates a output string from a {@link TrainingData single sample}.
+//	 * This string will be written as line to the training file.
+//	 * @param td
+//	 * @return
+//	 */
+//	protected String generateOutput(TrainingData td){
+//		return td.getFeatureString()+":"+td.getLabelString()+":"+td.getComment();
+//	}
 
 }

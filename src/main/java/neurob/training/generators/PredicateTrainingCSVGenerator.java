@@ -9,23 +9,33 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.prob.statespace.StateSpace;
+import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
+import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.TrainingData;
 
-public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
-	private static final Logger log = LoggerFactory.getLogger(PredicateDumpGenerator.class);
+public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerator {
+	private static final Logger log = LoggerFactory.getLogger(PredicateTrainingCSVGenerator.class);
+	private final String csvHeader;
 
-	public PredicateDumpGenerator() {
-		this(3);
+	public PredicateTrainingCSVGenerator(FeatureGenerator fg, LabelGenerator lg) {
+		super(fg, lg);
+		preferedFileExtension = "csv";
+		
+		
+		// set up CSV header
+		StringBuilder header = new StringBuilder();
+		// set features
+		for(int i=0; i<fg.getFeatureDimension(); i++){
+			header.append("Feature"+i);
+		}
+		// set labels
+		for(int j=0; j<lg.getTrainingLabelDimension(); j++){
+			header.append("Label"+j);
+		}
+		csvHeader = header.toString();
 	}
-	
-	public PredicateDumpGenerator(int samplingSize) {
-		super(null, new PredicateDumpLabelGenerator(samplingSize));
-		preferedFileExtension = "pdump";
-	}
-	
+
 	@Override
 	public void writeTrainingDataToDirectory(List<TrainingData> trainingData, Path targetDir) throws NeuroBException {
 		
@@ -51,12 +61,12 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 		// open target file
 		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
 			log.info("\tWriting training data...");
-			// write file name
-			out.write("#source:"+sourceFile.toString());
+			// write csv header
+			out.write(getCSVHeader());
 			out.newLine();
 			// write feature vector to stream
 			for(TrainingData d : trainingData){
-				out.write(generateOutput(d));
+				out.write(d.getTrainingVectorString());
 				out.newLine();
 				out.flush();
 			}
@@ -64,17 +74,16 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 		} catch (IOException e) {
 			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
 		}
-		
-		
-	}
-	
-	protected String generateOutput(TrainingData td){
-		return td.getLabelString()+":"+td.getComment();
-	}
-	
-	@Override
-	protected TrainingData setUpTrainingData(String predicate, Path source, StateSpace ss) throws NeuroBException {
-		return new TrainingData(null, lg.generateLabelling(predicate, ss), source, predicate);
-	}
 
+	}
+	
+	/**
+	 * Returns the header of the csv file that will be generated.
+	 * <p>
+	 * The header helps distinguishing the columns, whether they are features or labels.
+	 * @return
+	 */
+	public String getCSVHeader(){
+		return csvHeader;
+	}
 }

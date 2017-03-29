@@ -128,7 +128,7 @@ public class PredicateDataDumpTranslationTests {
 		DataDumpTranslator ddt = new DataDumpTranslator(fg.getTrainingDataGenerator(lg));
 		
 		final Path targetDir = Paths.get("src/test/resources/tmp/pdumptranslation");
-		final Path targetFile = targetDir.resolve("src/test/resources/Schleusen.nbtrain");
+		final Path targetFile = targetDir.resolve("src/test/resources/Schleusen.csv");
 		
 		Files.deleteIfExists(targetFile);
 		

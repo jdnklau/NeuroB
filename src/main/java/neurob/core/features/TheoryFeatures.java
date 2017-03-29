@@ -9,7 +9,7 @@ import de.be4.classicalb.core.parser.BParser;
 import neurob.core.features.interfaces.PredicateASTFeatures;
 import neurob.core.features.util.TheoryFeatureData;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.PredicateTrainingDataGenerator;
+import neurob.training.generators.PredicateTrainingCSVGenerator;
 import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
 
@@ -86,7 +86,7 @@ public class TheoryFeatures implements PredicateASTFeatures {
 	
 	@Override
 	public TrainingDataGenerator getTrainingDataGenerator(LabelGenerator lg) {
-		return new PredicateTrainingDataGenerator(this, lg);
+		return new PredicateTrainingCSVGenerator(this, lg);
 	}
 
 }
