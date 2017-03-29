@@ -1,15 +1,13 @@
 # Necessary refactoring steps
 - convolutional training set
-    - no csv
-    - make image hierarchy instead
-        - simply put file names as img{id}_{labelling}.gif
-        - addresses regression problems too!
+    - simply put file names as img{id}_{labelling}.gif
 - training set generator
     - split training data method (more generic version of split csv)
+- rename PredicateDump and similar classes and phrasings to NBTrain
 
 # To Do List
-- random predicate generator
-    - tool to insert formal grammar and generate an amount of correct syntax snippets
+- ~~random predicate generator~~
+    - ~~tool to insert formal grammar and generate an amount of correct syntax snippets~~
 - find and read papers
     - rnn for code/text classification
 - model handling
@@ -17,13 +15,12 @@
 - training
     - calculate training error thus far
         - after X iterations rather than just after each epoch
-    - save files to disk by default
+    - save trained models to disk by default
     - more generic handling of data preprocessing if possible
         - add more preprocessing tools
             - PCA: whitening, feature reduction
     - more output for evaluation
-    - show how often a class was predicted vs what the real class would have been
-        - generate confusion matrix
+        - log confusion matrix
 - training set generation
     - add function to truncate data.csv to contain all classes more evenly
     - model check machines
@@ -33,12 +30,7 @@
     - shuffle data files
     - optimise
     - data augmentation for larger training sets
-    - more distinct support for convolutional models
-    - store training data in binary option, instead of csv or directory hierarchy
-        - this means hand crafted data pipeline
-        - benefits:
-            - images as binary objects rather than their feature string representation
-            - still regression is part of the deal as no directory hierarchy is necessary but only the data pack
+    - ~~store training data in binary option, instead of csv or directory hierarchy~~
 - training set analysis
     - add fancy stuff for classification
         - t-SNE
