@@ -20,12 +20,17 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 	
 	@Override
 	public int getClassCount() {
-		return 4;
+		return -1;
 	}
 
 	@Override
 	public int getLabelDimension() {
-		return 4;
+		return 3;
+	}
+	
+	@Override
+	public int getTrainingLabelDimension() {
+		return 3;
 	}
 
 	@Override

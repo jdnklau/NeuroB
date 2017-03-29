@@ -68,6 +68,11 @@ public class SolverClassificationGenerator implements PredicateLabelGenerator {
 	}
 	
 	@Override
+	public int getTrainingLabelDimension() {
+		return 1;
+	}
+	
+	@Override
 	public ProblemType getProblemType(){
 		return ProblemType.CLASSIFICATION;
 	}

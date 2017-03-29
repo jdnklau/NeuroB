@@ -67,6 +67,11 @@ public class SolverTimerGenerator implements PredicateLabelGenerator {
 	}
 	
 	@Override
+	public int getTrainingLabelDimension() {
+		return 3;
+	}
+	
+	@Override
 	public ProblemType getProblemType(){
 		return ProblemType.REGRESSION;
 	}
