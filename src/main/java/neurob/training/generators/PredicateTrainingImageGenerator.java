@@ -35,6 +35,8 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		Path sourceFile;
 		Path targetFile;
 		
+		log.info("Writing training images...");
+		int c = 0;
 		for(TrainingData td : trainingData){
 			/*
 			 * Set up training data path.
@@ -45,19 +47,30 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 			sourceFile = td.getSource();
 			targetFile = generateTargetFilePath(sourceFile, targetDir.resolve(td.getLabelString()));
 			
-			createTrainingImage(td, targetFile);
+			if(createTrainingImage(td, targetFile)){
+				c++;
+				/*
+				 * count created images for final log output.
+				 * Can not use difference of imageCounter as parallelism may influence
+				 * the imageCounter, thus using private variable.
+				 */
+			}
 		}
+		log.info("\tDone: {} training images.", c);
 	}
 	
-	private void createTrainingImage(TrainingData td, Path targetFile) {
+	private boolean createTrainingImage(TrainingData td, Path targetFile) {
 		BufferedImage img = fg.translateArrayFeatureToImage(td.getFeatures());
 		
 		try {
 			Files.createDirectories(targetFile.getParent());
+			log.debug("\tWriting image {}", targetFile);
 			ImageIO.write(img, "gif", targetFile.toFile());
+			return true;
 		} catch (IOException e) {
-			log.error("Unable to write {}.", targetFile, e);
+			log.error("\tUnable to write {}.", targetFile, e);
 		}
+		return false;
 	}
 
 	@Override

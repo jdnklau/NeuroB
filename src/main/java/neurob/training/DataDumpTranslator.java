@@ -48,6 +48,7 @@ public class DataDumpTranslator {
 	 * @param target Target directory to write the training set to
 	 */
 	public void translateDumpDirectory(Path source, Path target){
+		log.info("Translating data dumps from {} to {}", source, target);
 		try(Stream<Path> stream = Files.walk(source)){
 			/*
 			 * Check if found Path object is a file
@@ -71,6 +72,7 @@ public class DataDumpTranslator {
 	 * @param targetDir
 	 */
 	public void translateDumpFile(Path sourceFile, Path targetDir){
+		log.info("\tTranslating dump file {}", sourceFile);
 		List<TrainingData> data;
 		try {
 			data = collectTrainingDataFromDumpFile(sourceFile);

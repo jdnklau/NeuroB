@@ -61,6 +61,9 @@ public abstract class TrainingDataGenerator {
 			return;
 		}
 		
+
+		log.info("Generating training data from {}...", sourceFile);
+		
 		// over the state space, the training data will be created
 		StateSpace ss = loadStateSpace(sourceFile, mt);
 		

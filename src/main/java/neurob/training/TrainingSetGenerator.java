@@ -147,8 +147,7 @@ public class TrainingSetGenerator {
 				.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
 				.forEach(entry -> {
 	            	if(Files.isRegularFile(entry)){
-						Path targetFile = tdg.generateTargetFilePath(entry, targetDirectory);
-						generateTrainingDataFromFile(entry, targetFile);
+						generateTrainingDataFromFile(entry, targetDirectory);
 		            }
 				});
 			log.info("Finished training set generation");
@@ -181,7 +180,7 @@ public class TrainingSetGenerator {
 		} catch (IOException e) {
 			log.error("\tCould not access source file {} correctly: {}", source, e.getMessage(), e);
 		}
-		log.info("\tStopped with errors: {}", target);
+		log.info("\tStopped with errors: {}", source);
 		++fileProblemsCounter;
 	}
 	
@@ -243,7 +242,6 @@ public class TrainingSetGenerator {
 	}
 	
 	public void translateDataDumpFiles(Path sourceDirectory, Path targetDirectory) {
-		log.info("Translating data dumps from {} to {}", sourceDirectory, targetDirectory);
 		DataDumpTranslator ddt = new DataDumpTranslator(tdg);
 		ddt.translateDumpDirectory(sourceDirectory, targetDirectory);
 	}
