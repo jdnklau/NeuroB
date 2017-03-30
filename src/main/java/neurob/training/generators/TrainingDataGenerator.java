@@ -62,7 +62,18 @@ public abstract class TrainingDataGenerator {
 		}
 		
 
-		log.info("Generating training data from {}...", sourceFile);
+		Path trainingDataLocation = generateTrainingDataPath(sourceFile, targetDir);
+		log.info("Generating training data: {} -> {}...", sourceFile, trainingDataLocation);
+		
+		try {
+			if(isTrainingDataUpToDate(sourceFile, trainingDataLocation)){
+				log.info("\tTraining data {} seems already up to date, skipping.", trainingDataLocation);
+				return;
+			}
+		} catch (IOException e) {
+			throw new NeuroBException("Could not correctly access source file "+sourceFile
+					+ " or training data location "+trainingDataLocation, e);
+		}
 		
 		// over the state space, the training data will be created
 		StateSpace ss = loadStateSpace(sourceFile, mt);
@@ -192,7 +203,7 @@ public abstract class TrainingDataGenerator {
 				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 	
 }

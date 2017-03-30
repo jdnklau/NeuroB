@@ -50,15 +50,6 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 			throw new NeuroBException("Could not create or access directory "+targetDir, e);
 		}
 		
-		// Check if file creation is really necessary
-		try {
-			if(isTrainingDataUpToDate(sourceFile, targetFile)){
-				log.info("Target file {} already present and seems to be up to date. Skipping.", targetFile);
-			}
-		} catch (IOException e) {
-			throw new NeuroBException("Could not correctly access source file "+sourceFile+" or target file "+targetFile, e);
-		}
-		
 		// open target file
 		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
 			log.info("\tWriting training data...");
