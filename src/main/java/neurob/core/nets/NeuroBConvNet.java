@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Random;
 
-import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.split.FileSplit;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
@@ -24,6 +23,7 @@ import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.ConvolutionFeatures;
+import neurob.core.nets.util.ImageNameLabelGenerator;
 import neurob.core.util.ProblemType;
 import neurob.training.generators.interfaces.LabelGenerator;
 
@@ -138,7 +138,7 @@ public class NeuroBConvNet extends NeuroBNet {
 	public DataSetIterator getDataSetIterator(Path datapath, int batchSize) throws IOException, InterruptedException {
 		ConvolutionFeatures features = (ConvolutionFeatures) this.features;
 		ImageRecordReader rr = new ImageRecordReader(features.getImageHeight(), features.getImageWidth(), 
-				features.getFeatureChannels(), new ParentPathLabelGenerator());
+				features.getFeatureChannels(), new ImageNameLabelGenerator());
 		FileSplit fileSplit = new FileSplit(datapath.toFile(), NativeImageLoader.ALLOWED_FORMATS, new Random(123));
 		rr.initialize(fileSplit);
 		

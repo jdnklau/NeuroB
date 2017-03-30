@@ -30,9 +30,9 @@ public abstract class TrainingDataGenerator {
 	
 	protected Api api;
 	/**
-	 * The prefered file extension to use for created training files.
+	 * The preferred file extension to use for created training files.
 	 */
-	protected String preferedFileExtension;
+	protected String preferredFileExtension;
 	
 	@Inject
 	public TrainingDataGenerator(FeatureGenerator fg, LabelGenerator lg) {
@@ -41,7 +41,7 @@ public abstract class TrainingDataGenerator {
 		
 		api = Main.getInjector().getInstance(Api.class);
 		
-		preferedFileExtension = "nbtrain";
+		preferredFileExtension = "nbtrain";
 	}
 	
 	/**
@@ -88,11 +88,12 @@ public abstract class TrainingDataGenerator {
 	 * @return
 	 * @throws NeuroBException
 	 */
-	public abstract List<TrainingData> collectTrainingDataFromFile(Path sourceFile, StateSpace stateSpace) throws NeuroBException;
+	public abstract List<TrainingData> collectTrainingDataFromFile(Path sourceFile, StateSpace stateSpace) 
+			throws NeuroBException;
 	
 	/**
 	 * Writes the training data collected to training data files in the given target directory.
-	 * @param trainingData List of {@link TrainingData} instances, that are preferably collected via the same source file
+	 * @param trainingData List of {@link TrainingData} instances, preferably collected via the same source file
 	 * @param targetDir
 	 * @throws NeuroBException
 	 */
@@ -100,19 +101,16 @@ public abstract class TrainingDataGenerator {
 			throws NeuroBException;
 	
 	/**
-	 * Creates a path to locate the a target file to be created in.
+	 * Creates a path locating the training data for the given file after creation.
 	 * <p>
-	 * For {@code path/to/source/file} as source file and {@code target/directory/} as target directory,
-	 * the file will be created in {@code target/directory/path/to/source/file.ext} with {@code ext} being
-	 * the {@link #getPreferredFileExtension() preferred file extension}. 
-	 * This keeps the data generated dereferencable wrt the source file.
+	 * This path may be one that is not existent, if the training data was not created in the first place.
 	 * @param sourceFile
 	 * @param targetDir
 	 * @return
 	 */
-	public Path generateTargetFilePath(Path sourceFile, Path targetDir){		
+	public Path generateTrainingDataPath(Path sourceFile, Path targetDir){		
 		String sourceFileName = sourceFile.getFileName().toString();
-		String targetFileName = sourceFileName.substring(0, sourceFileName.lastIndexOf('.')+1)+preferedFileExtension;
+		String targetFileName = sourceFileName.substring(0, sourceFileName.lastIndexOf('.')+1)+preferredFileExtension;
 		
 		return targetDir.resolve(sourceFile.getParent()).resolve(targetFileName);
 	}
@@ -172,21 +170,21 @@ public abstract class TrainingDataGenerator {
 	
 	/**
 	 * 
-	 * @return The preferred file extension to use on the generated training data files; <b>without</b> leading '.' (dot). 
+	 * @return The preferred file extension to use on the generated training data files; <b>without</b> leading . (dot) 
 	 */
-	public String getPreferredFileExtension(){ return preferedFileExtension;}
+	public String getPreferredFileExtension(){ return preferredFileExtension;}
 	
 	/**
 	 * Checks necessity of file creation.
 	 * <p>
-	 * If the target file already exists and is newer than the source file,
+	 * If training data for a file already exists and is newer than the source file,
 	 * then the data should be up to date (probably approximately correct).
 	 * @param source
 	 * @param target
-	 * @return
+	 * @return true if training data exists, that is newer than the source file, false otherwise
 	 * @throws IOException 
 	 */
-	protected boolean isTargetFileUpToDate(Path source, Path target) throws IOException{
+	protected boolean isTrainingDataUpToDate(Path source, Path target) throws IOException{
 		if(Files.exists(target, LinkOption.NOFOLLOW_LINKS)){
 			if(Files.getLastModifiedTime(source, LinkOption.NOFOLLOW_LINKS)
 					.compareTo(Files.getLastModifiedTime(target, LinkOption.NOFOLLOW_LINKS))

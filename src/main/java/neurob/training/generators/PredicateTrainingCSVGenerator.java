@@ -21,7 +21,7 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 
 	public PredicateTrainingCSVGenerator(FeatureGenerator fg, LabelGenerator lg) {
 		super(fg, lg);
-		preferedFileExtension = "csv";
+		preferredFileExtension = "csv";
 		
 		
 		// set up CSV header
@@ -41,7 +41,7 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 	public void writeTrainingDataToDirectory(List<TrainingData> trainingData, Path targetDir) throws NeuroBException {
 		
 		Path sourceFile = trainingData.get(0).getSource();
-		Path targetFile = generateTargetFilePath(sourceFile, targetDir);
+		Path targetFile = generateTrainingDataPath(sourceFile, targetDir);
 		
 		// ensure existence of target directory
 		try {
@@ -52,7 +52,7 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 		
 		// Check if file creation is really necessary
 		try {
-			if(isTargetFileUpToDate(sourceFile, targetFile)){
+			if(isTrainingDataUpToDate(sourceFile, targetFile)){
 				log.info("Target file {} already present and seems to be up to date. Skipping.", targetFile);
 			}
 		} catch (IOException e) {

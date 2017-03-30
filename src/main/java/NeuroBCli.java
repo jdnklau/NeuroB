@@ -309,7 +309,7 @@ public class NeuroBCli {
 		PredicateDumpGenerator tpg = new PredicateDumpGenerator();
 		
 		try {
-			Path targetFile = tpg.generateTargetFilePath(file, Paths.get("training_data/PredicateDump/"));
+			Path targetFile = tpg.generateTrainingDataPath(file, Paths.get("training_data/PredicateDump/"));
 			tpg.generateTrainingDataFromFile(file, targetFile);
 		} catch (NeuroBException | IOException e) {
 			// TODO Auto-generated catch block

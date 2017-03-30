@@ -25,7 +25,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		super(fg, lg);
 		this.fg = fg;
 		
-		preferedFileExtension = "gif";
+		preferredFileExtension = "gif";
 		imageCounter = 0;
 	}
 	
@@ -36,27 +36,23 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		imageCounter = 0; // set to zero as we probably are looking at a new file
 		
 		log.info("Writing training images...");
-		int c = 0;
 		for(TrainingData td : trainingData){
 			/*
 			 * Set up training data path.
-			 * The target directory is appended by the label string,
-			 * as the data set iterator for convolutional neural networks
-			 * uses a parent path label generator to get the correct labelling. 
+			 * The images will be located in a directory given by #generateTrainingDataPath
+			 * and are named by this pattern: id_labelling.gif
+			 * with id being a counter of images created thus far
+			 * and labelling being the label string in CSV format.
 			 */
 			sourceFile = td.getSource();
-			targetFile = generateTargetFilePath(sourceFile, targetDir.resolve(td.getLabelString(lg.getProblemType())));
+			Path targetFileDir = generateTrainingDataPath(sourceFile, targetDir);
+			targetFile = targetFileDir.resolve(
+					imageCounter 
+					+ "_" + td.getLabelString(lg.getProblemType()) +  "." + getPreferredFileExtension());
 			
-			if(createTrainingImage(td, targetFile)){
-				c++;
-				/*
-				 * count created images for final log output.
-				 * Can not use difference of imageCounter as parallelism may influence
-				 * the imageCounter, thus using private variable.
-				 */
-			}
+			createTrainingImage(td, targetFile);
 		}
-		log.info("\tDone: {} training images.", c);
+		log.info("\tDone: {} training images.", imageCounter);
 	}
 	
 	private boolean createTrainingImage(TrainingData td, Path targetFile) {
@@ -66,6 +62,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 			Files.createDirectories(targetFile.getParent());
 			log.debug("\tWriting image {}", targetFile);
 			ImageIO.write(img, "gif", targetFile.toFile());
+			imageCounter++;
 			return true;
 		} catch (IOException e) {
 			log.error("\tUnable to write {}.", targetFile, e);
@@ -74,14 +71,9 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 	}
 
 	@Override
-	public Path generateTargetFilePath(Path sourceFile, Path targetDir) {
+	public Path generateTrainingDataPath(Path sourceFile, Path targetDir) {
 		// get source file name without file extension
-		String sourceFileName = sourceFile.getFileName().toString();
-		int p = sourceFileName.lastIndexOf(".");
-		String strippedSourceName = (p >=0) ? sourceFileName.substring(0, p) : sourceFileName;
-		
-		
-		return targetDir.resolve( strippedSourceName + "_" + (imageCounter++) + "." + getPreferredFileExtension() );
+		return targetDir.resolve(sourceFile.toString()+".image_dir");
 	}
 
 }
