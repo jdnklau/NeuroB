@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.imageio.ImageIO;
 
@@ -18,7 +17,7 @@ import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.TrainingData;
 
 public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenerator {
-	private AtomicInteger imageCounter; // counts number of images written
+	private int imageCounter; // counts number of images written
 	private ConvolutionFeatures fg;
 	private static final Logger log = LoggerFactory.getLogger(PredicateTrainingImageGenerator.class);
 
@@ -27,13 +26,14 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		this.fg = fg;
 		
 		preferedFileExtension = "gif";
-		imageCounter = new AtomicInteger(0);
+		imageCounter = 0;
 	}
 	
 	@Override
 	public void writeTrainingDataToDirectory(List<TrainingData> trainingData, Path targetDir) throws NeuroBException {
 		Path sourceFile;
 		Path targetFile;
+		imageCounter = 0; // set to zero as we probably are looking at a new file
 		
 		log.info("Writing training images...");
 		int c = 0;
@@ -45,7 +45,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 			 * uses a parent path label generator to get the correct labelling. 
 			 */
 			sourceFile = td.getSource();
-			targetFile = generateTargetFilePath(sourceFile, targetDir.resolve(td.getLabelString()));
+			targetFile = generateTargetFilePath(sourceFile, targetDir.resolve(td.getLabelString(lg.getProblemType())));
 			
 			if(createTrainingImage(td, targetFile)){
 				c++;
@@ -75,15 +75,13 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 
 	@Override
 	public Path generateTargetFilePath(Path sourceFile, Path targetDir) {
+		// get source file name without file extension
 		String sourceFileName = sourceFile.getFileName().toString();
-		
 		int p = sourceFileName.lastIndexOf(".");
-		String strippedSourceFileName = (p >=0) ? sourceFileName.substring(0, p) : sourceFileName;
+		String strippedSourceName = (p >=0) ? sourceFileName.substring(0, p) : sourceFileName;
 		
-		String targetFileName = imageCounter.getAndIncrement()
-				+ "_" + strippedSourceFileName + "." + getPreferredFileExtension(); 
 		
-		return targetDir.resolve(targetFileName);
+		return targetDir.resolve( strippedSourceName + "_" + (imageCounter++) + "." + getPreferredFileExtension() );
 	}
 
 }

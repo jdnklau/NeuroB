@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import neurob.core.features.PredicateImages;
 import neurob.core.features.TheoryFeatures;
+import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.PredicateTrainingCSVGenerator;
 import neurob.training.generators.PredicateTrainingImageGenerator;
@@ -28,9 +29,9 @@ public class PredicateTrainingDataGeneratorTests {
 		
 		TrainingData td = new TrainingData(null, new double[]{1., 2.}, nosource);
 		
-		String expected = "tmp/1.0,2.0/0_nosource.gif";
+		String expected = "tmp/1,2/nosource_0.gif";
 		String actual = gen.generateTargetFilePath(td.getSource(), 
-				Paths.get("tmp/").resolve(td.getLabelString()))
+				Paths.get("tmp/").resolve(td.getLabelString(ProblemType.CLASSIFICATION)))
 				.toString();
 		
 		assertEquals("Generated image file name is incorrect.", expected, actual);
@@ -38,10 +39,12 @@ public class PredicateTrainingDataGeneratorTests {
 	
 	@Test
 	public void PredicateImageNameByCreationTest() throws IOException, NeuroBException{
-		Path target = Paths.get("tmp/1.0,2.0/0_nosource.gif"); // where the file should be located afterwards
+		Path target = Paths.get("tmp/1,2/nosource_0.gif"); // where the file should be located afterwards
 		Files.deleteIfExists(target);
 		
-		PredicateTrainingImageGenerator gen = new PredicateTrainingImageGenerator(new PredicateImages(1), null);		
+		PredicateTrainingImageGenerator gen = new PredicateTrainingImageGenerator(
+				new PredicateImages(1), 
+				new SolverSelectionGenerator());		
 		List<TrainingData> trainingData = new ArrayList<>();
 		trainingData.add(new TrainingData(new double[]{1.}, new double[]{1., 2.}, nosource));
 		
