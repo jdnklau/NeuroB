@@ -80,33 +80,33 @@ public class NeuroB {
 	}
 	
 	/**
-	 * Trains the neural net with a CSV file.
+	 * Trains the neural net with a training set located at the given source.
 	 * <p>
-	 * The test CSV is then used to evaluate the trained network.
-	 * @param trainCSV
-	 * @param testCSV
+	 * The test source is then used to evaluate the trained network.
+	 * @param trainSource
+	 * @param testSource
 	 * @param epochs Number of epochs used in training
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainCSV, Path testCSV, int epochs) throws IOException, InterruptedException{
-		train(trainCSV, epochs);
-		test(testCSV);
+	public void train(Path trainSource, Path testSource, int epochs) throws IOException, InterruptedException{
+		train(trainSource, epochs);
+		test(testSource);
 	}
 	
 	/**
-	 * Trains the neural net with a CSV file.
-	 * @param trainCSV
+	 * Trains the neural net with a training set located at the given source.
+	 * @param trainSource
 	 * @param numEpochs Number of times the training data will be fit into the network
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainCSV, int numEpochs) throws IOException, InterruptedException{
+	public void train(Path trainSource, int numEpochs) throws IOException, InterruptedException{
 		int batchSize = 250;
-		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainCSV, numEpochs, batchSize);
+		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
 		
 		// set up training data
-		DataSetIterator iterator = nbn.getDataSetIterator(trainCSV, batchSize);
+		DataSetIterator iterator = nbn.getDataSetIterator(trainSource, batchSize);
 		
 		// set up normaliser
 		log.info("Setting up normaliser...");
@@ -144,13 +144,14 @@ public class NeuroB {
 		log.info("******************************");
 	}
 	
-	public void test(Path testCSV) throws IOException, InterruptedException{
+	public void test(Path testSource) throws IOException, InterruptedException{
 		log.info("Evaluating the training results");
 		
 		int batchSize = 100;
-		DataSetIterator iterator = nbn.getDataSetIterator(testCSV, batchSize);
+		DataSetIterator iterator = nbn.getDataSetIterator(testSource, batchSize);
 		
 		// Evaluate on test set
+		// TODO: decide between regression and classification
 		Evaluation eval = new Evaluation(nbn.getClassificationSize());
 		
 		while(iterator.hasNext()){

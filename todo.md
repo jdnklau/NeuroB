@@ -21,6 +21,7 @@
             - PCA: whitening, feature reduction
     - more output for evaluation
         - log confusion matrix
+        - distinction between classification and regression
 - training set generation
     - add function to truncate data.csv to contain all classes more evenly
     - model check machines
