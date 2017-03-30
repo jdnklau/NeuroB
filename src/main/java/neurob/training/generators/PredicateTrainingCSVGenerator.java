@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -24,16 +25,16 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 		
 		
 		// set up CSV header
-		StringBuilder header = new StringBuilder();
+		List<String> header = new ArrayList<>();
 		// set features
 		for(int i=0; i<fg.getFeatureDimension(); i++){
-			header.append("Feature"+i);
+			header.add("Feature"+i);
 		}
 		// set labels
 		for(int j=0; j<lg.getTrainingLabelDimension(); j++){
-			header.append("Label"+j);
+			header.add("Label"+j);
 		}
-		csvHeader = header.toString();
+		csvHeader = String.join(",", header);
 	}
 
 	@Override
