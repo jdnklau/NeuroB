@@ -67,7 +67,7 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 			out.newLine();
 			// write feature vector to stream
 			for(TrainingData d : trainingData){
-				out.write(d.getTrainingVectorString());
+				out.write(d.getTrainingVectorString(lg.getProblemType()));
 				out.newLine();
 				out.flush();
 			}
