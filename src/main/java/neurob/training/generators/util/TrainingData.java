@@ -45,14 +45,43 @@ public class TrainingData {
 	}
 	
 	/**
-	 * 
-	 * @return The connotated path to the source or a path to nosource.nsrc file.
+	 * @return The path to the connotated source.
 	 */
 	public Path getSource(){return source;}
+	
+	/**
+	 * @return Connotated comment to this training sample. May be an empty string, if no comment is present.
+	 */
 	public String getComment(){return comment;}
 
+	/**
+	 * The feature vector as comma separated string
+	 * @return
+	 */
 	public String getFeatureString(){return getCSVString(features);}
-	public String getLabelString(){return getCSVString(labels);}
+	
+	/**
+	 * @return The label vector as comma separated string
+	 */
+	public String getLabelString(){return getLabelString(ProblemType.REGRESSION);}
+	
+	/**
+	 * Returns the label vector as comma separated string.
+	 * <p>
+	 * For classification problems, the entries are integers. Otherwise,
+	 * they are double values and thus have decimal places.
+	 * @param p
+	 * @return The label vector as comma separated string
+	 */
+	public String getLabelString(ProblemType p){
+		switch (p) {
+		case CLASSIFICATION:
+			return getCSVString(getIntLabels());
+		case REGRESSION:
+		default:
+			return getCSVString(getLabels());
+		}
+	}
 
 	protected String getCSVString(int[] data){
 		return String.join(",", 
@@ -91,12 +120,6 @@ public class TrainingData {
 	 * @return
 	 */
 	public String getTrainingVectorString(ProblemType p){
-		switch(p){
-		case CLASSIFICATION:
-			return getCSVString(getFeatures())+","+getCSVString(getIntLabels());
-		case REGRESSION:
-		default:
-			return getCSVString(getFeatures())+","+getCSVString(getLabels());
-		}
+		return getFeatureString()+","+getLabelString(p);
 	}
 }
