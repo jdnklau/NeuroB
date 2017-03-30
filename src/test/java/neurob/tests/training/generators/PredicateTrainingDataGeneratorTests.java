@@ -20,12 +20,13 @@ import neurob.training.generators.labelling.SolverSelectionGenerator;
 import neurob.training.generators.util.TrainingData;
 
 public class PredicateTrainingDataGeneratorTests {
+	private final Path nosource = Paths.get("nosource.nscr");
 
 	@Test
 	public void PredicateImageNameTest() {
 		PredicateTrainingImageGenerator gen = new PredicateTrainingImageGenerator(null, null);
 		
-		TrainingData td = new TrainingData(null, new double[]{1., 2.});
+		TrainingData td = new TrainingData(null, new double[]{1., 2.}, nosource);
 		
 		String expected = "tmp/1.0,2.0/0_nosource.gif";
 		String actual = gen.generateTargetFilePath(td.getSource(), 
@@ -42,7 +43,7 @@ public class PredicateTrainingDataGeneratorTests {
 		
 		PredicateTrainingImageGenerator gen = new PredicateTrainingImageGenerator(new PredicateImages(1), null);		
 		List<TrainingData> trainingData = new ArrayList<>();
-		trainingData.add(new TrainingData(new double[]{1.}, new double[]{1., 2.}));
+		trainingData.add(new TrainingData(new double[]{1.}, new double[]{1., 2.}, nosource));
 		
 		gen.writeTrainingDataToDirectory(trainingData, Paths.get("tmp"));
 		

@@ -18,23 +18,15 @@ public class TrainingData {
 	private Path source;
 	private String comment;
 	
-	public TrainingData(double[] features, double[] labels) {
-		this(features, labels, null, "");
-	}
-	
 	public TrainingData(double[] features, double[] labels, Path source) {
 		this(features, labels, source, "");
-	}
-	
-	public TrainingData(double[] features, double[] labels, String comment) {
-		this(features, labels, null, comment);
 	}
 	
 	public TrainingData(double[] features, double[] labels, Path source, String comment) {
 		this.features = features;
 		this.labels = labels;
 		
-		this.source = (source == null) ? Paths.get("nosource.nsrc") : source;
+		this.source = source;
 		
 		this.comment = (comment == null) ? "" : comment;
 	}
