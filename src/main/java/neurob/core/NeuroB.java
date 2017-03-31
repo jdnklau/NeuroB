@@ -215,10 +215,6 @@ public class NeuroB {
 		} catch (IOException e) {
 			log.error("Could not access target directory {} for training data analysis: {}", targetDirectory, e.getMessage(), e);
 		}
-		
-		// generate csv
-		tsg.collectTrainingSetOverNBTrainFiles(fullTargetDirectory, fullTargetDirectory.resolve("data.csv"));
-//		tsg.generateTrainAndTestCSVfromNBTrainData(fullTargetDirectory, fullTargetDirectory.resolve("train_data.csv"), fullTargetDirectory.resolve("test_data.csv"), 0.65);
 	}
 
 }

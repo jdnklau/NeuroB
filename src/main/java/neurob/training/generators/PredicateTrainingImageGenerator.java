@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -15,6 +16,7 @@ import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.TrainingData;
+import neurob.training.splitting.TrainingSetSplitter;
 
 public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenerator {
 	private int imageCounter; // counts number of images written
@@ -75,5 +77,10 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		// get source file name without file extension
 		return targetDir.resolve(sourceFile.toString()+".image_dir");
 	}
-
+	
+	@Override
+	public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
+			throws NeuroBException {
+		TrainingSetSplitter.splitFilewise(source, first, second, ratio, rng, "."+preferredFileExtension);
+	}
 }

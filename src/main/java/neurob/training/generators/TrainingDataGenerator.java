@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +26,8 @@ public abstract class TrainingDataGenerator {
 	// logger
 	private static final Logger log = LoggerFactory.getLogger(TrainingDataGenerator.class);
 	
-	protected FeatureGenerator fg;
-	protected LabelGenerator lg;
+	protected final FeatureGenerator fg;
+	protected final LabelGenerator lg;
 	
 	protected Api api;
 	/**
@@ -205,5 +206,23 @@ public abstract class TrainingDataGenerator {
 		}
 		return false;
 	}
+	
+	/**
+	 * Splits the training data directory given into two parts.
+	 * <p>
+	 * A part approximately of the size of {@code ratio} will be written to {@code first}, the rest to {@code second}.
+	 * E.g. if {@code ratio==0.6}, ~60% of data will be located in {@code first}.
+	 * <p>
+	 * The original data in {@code source} will not be altered nor deleted.
+	 * 
+	 * @param source Directory containing the training data to be split
+	 * @param first Target directory to contain ~{@code ratio * source_data_count} samples
+	 * @param second Target directory to contain ~{@code (1-ratio) * source_data_count} samples
+	 * @param ratio A number in the interval [0,1]
+	 * @param rng A random number generator to use for splitting
+	 * @throws NeuroBException
+	 */
+	abstract public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
+			throws NeuroBException;
 	
 }

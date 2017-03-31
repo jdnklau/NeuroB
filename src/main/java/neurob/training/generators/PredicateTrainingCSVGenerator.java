@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.TrainingData;
+import neurob.training.splitting.TrainingSetSplitter;
 
 public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerator {
 	private static final Logger log = LoggerFactory.getLogger(PredicateTrainingCSVGenerator.class);
@@ -77,5 +79,11 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 	 */
 	public String getCSVHeader(){
 		return csvHeader;
+	}
+	
+	@Override
+	public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
+			throws NeuroBException {
+		TrainingSetSplitter.splitCSV(source, first, second, ratio, rng);
 	}
 }
