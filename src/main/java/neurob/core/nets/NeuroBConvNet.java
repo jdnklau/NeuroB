@@ -11,6 +11,7 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
 import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
@@ -92,7 +93,6 @@ public class NeuroBConvNet extends NeuroBNet {
 			
 			// Fully connected layer
 			listBuilder = listBuilder.layer(hiddenLayers.length, new DenseLayer.Builder()
-					.nIn(lastOut*25) // filters * filter size
 					.nOut(hiddenLayers[hiddenLayers.length-1])
 					.activation(Activation.RELU)
 					.weightInit(WeightInit.XAVIER)
@@ -115,13 +115,17 @@ public class NeuroBConvNet extends NeuroBNet {
 					.nOut(labelling.getLabelDimension())
 					.activation(activationFunction)
 					.weightInit(WeightInit.XAVIER)
-					.build())
-			.pretrain(false).backprop(true);
+					.build());
 		}
         
 		setUpNormalizer();
 		
-		this.model = new MultiLayerNetwork(listBuilder.build());
+		this.model = new MultiLayerNetwork(
+				listBuilder
+				.setInputType(InputType.convolutional(features.getImageHeight(), 
+						features.getImageWidth(), features.getFeatureChannels()))
+				.pretrain(false).backprop(true)
+				.build());
 	}
 
 	public NeuroBConvNet(Path modelFile, ConvolutionFeatures features, LabelGenerator labelling) throws IOException {

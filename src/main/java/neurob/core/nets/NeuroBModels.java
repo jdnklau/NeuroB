@@ -6,6 +6,7 @@ import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
+import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
@@ -298,7 +299,6 @@ public class NeuroBModels {
 			// Fully connected layer
 			for(int i=0; i<fcLayers.length; i++){
 				listBuilder = listBuilder.layer(i+convLayers.length, new DenseLayer.Builder()
-						.nIn(lastOut)
 						.nOut(fcLayers[i])
 						.activation(Activation.RELU)
 						.weightInit(WeightInit.XAVIER)
@@ -319,15 +319,17 @@ public class NeuroBModels {
 			}
 			// the layer itself
 			listBuilder = listBuilder.layer(convLayers.length+1, new OutputLayer.Builder(lossFunction)
-					.nIn(lastOut * filterSize * filterSize)
 					.nOut(labelling.getLabelDimension())
 					.activation(activationFunction)
 					.weightInit(WeightInit.XAVIER)
-					.build())
-			.pretrain(false).backprop(true);
+					.build());
 		}
 		
-		model = new MultiLayerNetwork(listBuilder.build());
+		model = new MultiLayerNetwork(listBuilder
+				.setInputType(InputType.convolutional(features.getImageHeight(), 
+						features.getImageWidth(), features.getFeatureChannels()))
+				.pretrain(false).backprop(true)
+				.build());
 		model.init();
 		
 		return new NeuroBConvNet(model, features, labelling);
