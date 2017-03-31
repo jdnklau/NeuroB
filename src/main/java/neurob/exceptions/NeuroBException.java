@@ -2,6 +2,8 @@ package neurob.exceptions;
 
 public class NeuroBException extends Exception {
 
+	private static final long serialVersionUID = 4283311279589496169L;
+
 	public NeuroBException() {
 		// TODO Auto-generated constructor stub
 	}
