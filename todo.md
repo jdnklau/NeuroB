@@ -1,10 +1,3 @@
-# Necessary refactoring steps
-- convolutional training set
-    - simply put file names as img{id}_{labelling}.gif
-- training set generator
-    - split training data method (more generic version of split csv)
-- rename PredicateDump and similar classes and phrasings to NBTrain
-
 # To Do List
 - ~~random predicate generator~~
     - ~~tool to insert formal grammar and generate an amount of correct syntax snippets~~
