@@ -318,9 +318,8 @@ public class NeuroBCli {
 	}
 	
 	private static void analysePDump(Path dir){
-		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		try {
-			tsa.analysePredicateDumps(dir).log();
+			TrainingSetAnalyser.analysePredicateDumps(dir).log();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

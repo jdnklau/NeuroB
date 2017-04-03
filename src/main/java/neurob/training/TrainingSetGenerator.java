@@ -52,13 +52,11 @@ public class TrainingSetGenerator {
 	}
 	
 	public void logTrainingSetAnalysis(Path dir) throws IOException{
-		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
-		tsa.analyseNBTrainSet(dir, lg).log();
+		TrainingSetAnalyser.analyseNBTrainSet(dir, lg).log();
 	}
 	
 	public void logTrainingCSVAnalysis(Path csv) throws IOException{
-		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
-		tsa.analyseTrainingCSV(csv, lg).log();
+		TrainingSetAnalyser.analyseTrainingCSV(csv, lg).log();
 	}
 	
 	/**

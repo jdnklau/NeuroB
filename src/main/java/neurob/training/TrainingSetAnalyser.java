@@ -19,7 +19,7 @@ import neurob.training.generators.interfaces.LabelGenerator;
 public class TrainingSetAnalyser {
 	private static final Logger log = LoggerFactory.getLogger(TrainingSetAnalyser.class);
 	
-	public void logTrainingAnalysis(TrainingAnalysisData analysis){
+	public static void logTrainingAnalysis(TrainingAnalysisData analysis){
 		if(analysis == null){
 			log.warn("No training analysis data to log");
 			return;
@@ -40,7 +40,7 @@ public class TrainingSetAnalyser {
 	 * @throws IOException
 	 * @see {@link #analyseTrainingCSV(Path, TrainingAnalysisData)}
 	 */
-	public TrainingAnalysisData analyseTrainingCSV(Path csv, LabelGenerator labelgen) throws IOException{
+	public static TrainingAnalysisData analyseTrainingCSV(Path csv, LabelGenerator labelgen) throws IOException{
 		TrainingAnalysisData data;
 		
 		if(labelgen.getProblemType() == ProblemType.REGRESSION){
@@ -71,7 +71,7 @@ public class TrainingSetAnalyser {
 	 * @throws IOException
 	 * @see {@link #analyseTrainingCSV(Path, LabelGenerator)}
 	 */
-	public TrainingAnalysisData analyseTrainingCSV(Path csv, TrainingAnalysisData data, int labelSize) throws IOException{		
+	public static TrainingAnalysisData analyseTrainingCSV(Path csv, TrainingAnalysisData data, int labelSize) throws IOException{		
 		try(Stream<String> stream = Files.lines(csv)){
 			stream
 				.skip(1) // skip first line
@@ -105,7 +105,7 @@ public class TrainingSetAnalyser {
 	 * @return A {@link ClassificationAnalysis} object or {@code null} in case of errors.
 	 * @see #analyseNBTrainSet(Path, TrainingAnalysisData)
 	 */
-	public TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen) throws IOException{
+	public static TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen) throws IOException{
 		TrainingAnalysisData data;
 		
 		if(labelgen.getProblemType() == ProblemType.REGRESSION){
@@ -127,7 +127,7 @@ public class TrainingSetAnalyser {
 	 * @return
 	 * @throws IOException
 	 */
-	public TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, TrainingAnalysisData data) throws IOException{
+	public static TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, TrainingAnalysisData data) throws IOException{
 		return analyseTrainingDataFiles(sourceDirectory, data, "nbtrain");
 	}
 	
@@ -140,7 +140,7 @@ public class TrainingSetAnalyser {
 	 * @return
 	 * @throws IOException
 	 */
-	protected TrainingAnalysisData analyseTrainingDataFiles(Path sourceDirectory, 
+	protected static TrainingAnalysisData analyseTrainingDataFiles(Path sourceDirectory, 
 			TrainingAnalysisData data, String fileExtension) throws IOException{
 		// iterate over directory recursively
 		try (Stream<Path> stream = Files.walk(sourceDirectory)) {
@@ -182,7 +182,7 @@ public class TrainingSetAnalyser {
 		return data;
 	}
 	
-	public TrainingAnalysisData analysePredicateDumps(Path sourceDirectory) throws IOException{
+	public static TrainingAnalysisData analysePredicateDumps(Path sourceDirectory) throws IOException{
 		return analyseTrainingDataFiles(sourceDirectory, new PredicateDumpAnalysis(), "pdump");
 	}
 

@@ -13,7 +13,6 @@ import org.junit.Test;
 
 import neurob.core.features.PredicateImages;
 import neurob.core.features.TheoryFeatures;
-import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.PredicateTrainingCSVGenerator;
 import neurob.training.generators.PredicateTrainingImageGenerator;
