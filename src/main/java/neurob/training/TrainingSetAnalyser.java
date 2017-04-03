@@ -145,16 +145,16 @@ public class TrainingSetAnalyser {
 		// iterate over directory recursively
 		try (Stream<Path> stream = Files.walk(sourceDirectory)) {
 			stream
-				.parallel()
-				.forEachOrdered(entry -> {
-					if(Files.isRegularFile(entry)){
-						data.countFileSeen(); // found a file, did it not?
-			
-						// check file extension
-						String fileName = entry.getFileName().toString();
-						String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-						
-						if(ext.equals(fileExtension)){
+			.parallel()
+			.forEachOrdered(entry -> {
+				if(Files.isRegularFile(entry)){
+					data.countFileSeen(); // found a file, did it not?
+		
+					// check file extension
+					String fileName = entry.getFileName().toString();
+					String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
+					
+					if(ext.equals(fileExtension)){
 						// save old data count to compare later on if we got an empty file
 						int oldDataCount = data.getSamplesCount();
 						
@@ -184,6 +184,20 @@ public class TrainingSetAnalyser {
 	
 	public static TrainingAnalysisData analysePredicateDumps(Path sourceDirectory) throws IOException{
 		return analyseTrainingDataFiles(sourceDirectory, new PredicateDumpAnalysis(), "pdump");
+	}
+	
+	/**
+	 * For a given label generator, return a fitting {@link TrainingAnalysisData} object.
+	 * @param labelgen
+	 * @return
+	 */
+	public static TrainingAnalysisData getAnalysisTypeByProblem(LabelGenerator labelgen){
+		if(labelgen.getProblemType() == ProblemType.REGRESSION){
+			return new RegressionAnalysis(labelgen.getLabelDimension());
+		}
+		else {
+			return new ClassificationAnalysis(labelgen.getClassCount());
+		}
 	}
 
 }

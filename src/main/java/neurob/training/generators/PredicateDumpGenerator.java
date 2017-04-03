@@ -6,12 +6,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
+import neurob.training.analysis.PredicateDumpAnalysis;
+import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
 import neurob.training.generators.util.TrainingData;
 import neurob.training.splitting.TrainingSetSplitter;
@@ -74,5 +77,22 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
 			throws NeuroBException {
 		TrainingSetSplitter.splitLinewise(source, first, second, ratio, rng, false, "."+preferredFileExtension);
+	}
+	
+	@Override
+	protected void analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
+		try(Stream<String> lines = Files.lines(file)){
+			lines
+			.filter(l->!l.startsWith("#"))
+			.forEach(analysisData::analyseTrainingDataSample);
+
+		} catch (IOException e){
+			log.error("Could not analyse {}", file, e);
+		}
+	}
+	
+	@Override
+	protected TrainingAnalysisData getAnalysisData() {
+		return new PredicateDumpAnalysis();
 	}
 }

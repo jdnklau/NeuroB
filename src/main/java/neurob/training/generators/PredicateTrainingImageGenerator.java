@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -13,7 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import neurob.core.features.interfaces.ConvolutionFeatures;
+import neurob.core.nets.util.ImageNameLabelGenerator;
 import neurob.exceptions.NeuroBException;
+import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.TrainingData;
 import neurob.training.splitting.TrainingSetSplitter;
@@ -82,5 +85,25 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 	public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
 			throws NeuroBException {
 		TrainingSetSplitter.splitFilewise(source, first, second, ratio, rng, "."+preferredFileExtension);
+	}
+	
+	@Override
+	protected void analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
+		// load features and labels
+		String labelString = ImageNameLabelGenerator.labelStringForImage(file);
+		
+		BufferedImage img;
+		try {
+			img = ImageIO.read(file.toFile());
+		} catch (IOException e) {
+			log.error("Could not read {}", file, e);
+			return;
+		}
+		
+		// translate features
+		double[] features = fg.translateImageFeatureToArray(img);
+		double[] labels = Arrays.stream(labelString.split(",")).mapToDouble(Double::valueOf).toArray();
+		
+		analysisData.analyseSample(features, labels);
 	}
 }

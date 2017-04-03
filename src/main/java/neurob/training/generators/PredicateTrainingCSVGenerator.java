@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
+import neurob.training.TrainingSetAnalyser;
+import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.TrainingData;
 import neurob.training.splitting.TrainingSetSplitter;
@@ -20,12 +22,13 @@ import neurob.training.splitting.TrainingSetSplitter;
 public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerator {
 	private static final Logger log = LoggerFactory.getLogger(PredicateTrainingCSVGenerator.class);
 	private final String csvHeader;
+	private final int labelSize;
 
 	public PredicateTrainingCSVGenerator(FeatureGenerator fg, LabelGenerator lg) {
 		super(fg, lg);
 		preferredFileExtension = "csv";
 		
-		
+		labelSize = lg.getLabelDimension();
 		// set up CSV header
 		List<String> header = new ArrayList<>();
 		// set features
@@ -85,5 +88,14 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 	public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
 			throws NeuroBException {
 		TrainingSetSplitter.splitCSV(source, first, second, ratio, rng);
+	}
+	
+	@Override
+	protected void analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
+		try {
+			TrainingSetAnalyser.analyseTrainingCSV(file, analysisData, labelSize);
+		} catch (IOException e) {
+			log.error("Could not analyse training csv {}", file, e);
+		}
 	}
 }
