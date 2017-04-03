@@ -51,8 +51,8 @@ public class TrainingSetGenerator {
 		log.info("*****************************");
 	}
 	
-	public void logTrainingSetAnalysis(Path dir) throws IOException{
-		TrainingSetAnalyser.analyseNBTrainSet(dir, lg).log();
+	public void logTrainingSetAnalysis(Path dir) throws IOException, NeuroBException{
+		tdg.analyseTrainingSet(dir).log();
 	}
 	
 	public void logTrainingCSVAnalysis(Path csv) throws IOException{

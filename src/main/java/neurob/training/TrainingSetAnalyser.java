@@ -71,64 +71,37 @@ public class TrainingSetAnalyser {
 	 * @throws IOException
 	 * @see {@link #analyseTrainingCSV(Path, LabelGenerator)}
 	 */
-	public static TrainingAnalysisData analyseTrainingCSV(Path csv, TrainingAnalysisData data, int labelSize) throws IOException{		
+	public static TrainingAnalysisData analyseTrainingCSV(Path csv, TrainingAnalysisData data, int labelSize) throws IOException{
+		// to compare later on if file was empty
+		data.countFileSeen();
+		int samplesBefore = data.getSamplesCount();
+		
+		// iterate over file
 		try(Stream<String> stream = Files.lines(csv)){
 			stream
-				.skip(1) // skip first line
-				.forEachOrdered(line -> {
-					double[] values = Arrays.stream(line.split(","))
-										.mapToDouble(Double::parseDouble)
-										.toArray();
-					int firstLabelIndex = values.length-labelSize;
-					
-					double[] features = new double[firstLabelIndex];
-					for(int i=0; i<firstLabelIndex; i++)
-						features[i] = values[i];
-					double[] labels = new double[labelSize];
-					for(int i=0; i<labelSize; i++)
-						labels[i] = values[i + firstLabelIndex];
-					data.analyseSample(features, labels);
-				});
+			.skip(1) // skip first line
+			.forEachOrdered(line -> {
+				double[] values = Arrays.stream(line.split(","))
+									.mapToDouble(Double::parseDouble)
+									.toArray();
+				int firstLabelIndex = values.length-labelSize;
+				
+				double[] features = new double[firstLabelIndex];
+				for(int i=0; i<firstLabelIndex; i++)
+					features[i] = values[i];
+				double[] labels = new double[labelSize];
+				for(int i=0; i<labelSize; i++)
+					labels[i] = values[i + firstLabelIndex];
+				data.analyseSample(features, labels);
+			});
+		}
+		
+		// found an empty file
+		if(data.getSamplesCount() == samplesBefore){
+			data.countEmptyFileSeen();
 		}
 		
 		return data;
-	}
-	
-	/**
-	 * Analyses the .nbtrain files in the given directory with respect to the given {@link LabelGenerator}.
-	 * <p>
-	 * The LabelGenerator is used for deciding whether the data represent classification or regression, 
-	 * and to know the number of different classes before hand. 
-	 * Alternatively use {@link #analyseNBTrainSet(Path, TrainingAnalysisData)} to use a custom analysis data class.
-	 * @param sourceDirectory A directory full of nbtrain files
-	 * @param labelgen A LabelGenerator used to create the nbtrain files
-	 * @return A {@link ClassificationAnalysis} object or {@code null} in case of errors.
-	 * @see #analyseNBTrainSet(Path, TrainingAnalysisData)
-	 */
-	public static TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, LabelGenerator labelgen) throws IOException{
-		TrainingAnalysisData data;
-		
-		if(labelgen.getProblemType() == ProblemType.REGRESSION){
-			data = new RegressionAnalysis(labelgen.getLabelDimension());
-		}
-		else {
-			data = new ClassificationAnalysis(labelgen.getClassCount());
-		}
-		
-		return analyseNBTrainSet(sourceDirectory, data);
-	}
-	
-	/**
-	 * Analyses the .nbtrain files in the given directory with respect to the given {@link TrainingAnalysisData} object.
-	 * <p>
-	 * The data object gets modified and is returned in the end.
-	 * @param sourceDirectory
-	 * @param data Object implementing {@link TrainingAnalysisData} interface used for the analysis
-	 * @return
-	 * @throws IOException
-	 */
-	public static TrainingAnalysisData analyseNBTrainSet(Path sourceDirectory, TrainingAnalysisData data) throws IOException{
-		return analyseTrainingDataFiles(sourceDirectory, data, "nbtrain");
 	}
 	
 	/**
@@ -140,50 +113,41 @@ public class TrainingSetAnalyser {
 	 * @return
 	 * @throws IOException
 	 */
-	protected static TrainingAnalysisData analyseTrainingDataFiles(Path sourceDirectory, 
+	public static TrainingAnalysisData analyseTrainingDataFiles(Path sourceDirectory, 
 			TrainingAnalysisData data, String fileExtension) throws IOException{
 		// iterate over directory recursively
 		try (Stream<Path> stream = Files.walk(sourceDirectory)) {
 			stream
-			.parallel()
-			.forEachOrdered(entry -> {
-				if(Files.isRegularFile(entry)){
-					data.countFileSeen(); // found a file, did it not?
-		
-					// check file extension
-					String fileName = entry.getFileName().toString();
-					String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-					
-					if(ext.equals(fileExtension)){
-						// save old data count to compare later on if we got an empty file
-						int oldDataCount = data.getSamplesCount();
-						
-						// check if targets are not all equal
-						try(Stream<String> filelines = Files.lines(entry)){
-							filelines.forEach(line -> {
-								if(!line.startsWith("#"))
-									data.analyseTrainingDataSample(line);
-						
-							});
-						} catch (IOException e){
-							log.warn("Could not access {}: {}", entry, e.getMessage(), e);
-						}
-			
-						// no new data found
-						if (data.getSamplesCount() == oldDataCount){
-							data.countEmptyFileSeen();
-						}
-					}
-				}
-			
-			});
+			.filter(Files::isRegularFile)
+			.filter(p->p.toString().endsWith(fileExtension))
+			.forEach(p->analyseTrainingDataFile(p, data));
 		}
 		
 		return data;
 	}
 	
+	public static void analyseTrainingDataFile(Path file, TrainingAnalysisData data){
+		// to compare later on if file was empty
+		data.countFileSeen();
+		int samplesBefore = data.getSamplesCount();
+		
+		// iterate over file
+		try(Stream<String> lines = Files.lines(file)){
+			lines
+			.filter(l->!l.startsWith("#"))
+			.forEach(data::analyseTrainingDataSample);
+		} catch (IOException e){
+			log.error("Could not analyse {}", file, e);
+		}
+		
+		// found an empty file
+		if(data.getSamplesCount() == samplesBefore){
+			data.countEmptyFileSeen();
+		}
+	}
+	
 	public static TrainingAnalysisData analysePredicateDumps(Path sourceDirectory) throws IOException{
-		return analyseTrainingDataFiles(sourceDirectory, new PredicateDumpAnalysis(), "pdump");
+		return analyseTrainingDataFiles(sourceDirectory, new PredicateDumpAnalysis(), ".pdump");
 	}
 	
 	/**

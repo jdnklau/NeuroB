@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import neurob.core.nets.NeuroBNet;
+import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetGenerator;
 
 /**
@@ -197,9 +198,10 @@ public class NeuroB {
 	 * @param sourceDirectory Directory from which the machine files are read
 	 * @param targetDirectory Directory in which the *.nbtrain files will be put 
 	 * @param excludeFile {@code null} or path to excludes file
+	 * @throws NeuroBException 
 	 * 
 	 */
-	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile) {
+	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile) throws NeuroBException {
 		// set up generator
 		TrainingSetGenerator tsg = nbn.getTrainingSetGenerator();
 		// set up training data directory

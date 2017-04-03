@@ -12,13 +12,14 @@ import org.junit.Test;
 import neurob.core.NeuroB;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.nets.predefined.OldModels;
+import neurob.exceptions.NeuroBException;
 
 public class OldModelPredefinedNetsTests {
 	Path trainingDirectory = Paths.get("src/test/resources/training/");
 	Path tmpDirectory = Paths.get("src/test/resources/tmp/training_data/");
 
 	
-	private void checkTrainingSetGeneration(NeuroBNet net)  throws IOException, InterruptedException {
+	private void checkTrainingSetGeneration(NeuroBNet net)  throws IOException, InterruptedException, NeuroBException {
 		NeuroB nb = new NeuroB(net);
 
 		Path data = tmpDirectory.resolve(net.getDataPathName()).resolve("data.csv");
@@ -35,37 +36,37 @@ public class OldModelPredefinedNetsTests {
 	}
 	
 	@Test
-	public void ProBPredictionTrainingTest() throws IOException, InterruptedException {
+	public void ProBPredictionTrainingTest() throws IOException, InterruptedException, NeuroBException {
 		NeuroBNet net = OldModels.getProBPredictionNet(0);
 		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
-	public void ProBPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
+	public void ProBPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException, NeuroBException {
 		NeuroBNet net = OldModels.getProBPredictionWithCodePortfolioNet(0,64);
 		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
-	public void KodKodPredictionTrainingTest() throws IOException, InterruptedException {
+	public void KodKodPredictionTrainingTest() throws IOException, InterruptedException, NeuroBException {
 		NeuroBNet net = OldModels.getKodKodPredictionNet(0);
 		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
-	public void KodKodPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
+	public void KodKodPredictionWithCodePortfolioTrainingTest() throws IOException, InterruptedException, NeuroBException {
 		NeuroBNet net = OldModels.getKodKodPredictionWithCodePortfolioNet(0,64);
 		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
-	public void PredicateSolverSelectionTrainingTest() throws IOException, InterruptedException {
+	public void PredicateSolverSelectionTrainingTest() throws IOException, InterruptedException, NeuroBException {
 		NeuroBNet net = OldModels.getPredicateSolverSelectionNet(0);
 		checkTrainingSetGeneration(net);
 	}
 	
 	@Test
-	public void PredicateSolverSelectionWithCodePortfolioTrainingTest() throws IOException, InterruptedException {
+	public void PredicateSolverSelectionWithCodePortfolioTrainingTest() throws IOException, InterruptedException, NeuroBException {
 		NeuroBNet net = OldModels.getPredicateSolverSelectionWithCodePortfolioNet(0,64);
 		checkTrainingSetGeneration(net);
 	}

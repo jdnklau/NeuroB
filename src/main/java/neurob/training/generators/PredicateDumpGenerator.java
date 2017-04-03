@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import de.prob.statespace.StateSpace;
 import neurob.exceptions.NeuroBException;
+import neurob.training.TrainingSetAnalyser;
 import neurob.training.analysis.PredicateDumpAnalysis;
 import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
@@ -81,14 +82,7 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	
 	@Override
 	protected void analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
-		try(Stream<String> lines = Files.lines(file)){
-			lines
-			.filter(l->!l.startsWith("#"))
-			.forEach(analysisData::analyseTrainingDataSample);
-
-		} catch (IOException e){
-			log.error("Could not analyse {}", file, e);
-		}
+		TrainingSetAnalyser.analyseTrainingDataFile(file, analysisData);
 	}
 	
 	@Override

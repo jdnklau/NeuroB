@@ -87,10 +87,6 @@ public class NeuroBCli {
 					+ "\tAnalyse the generated training data in <directory>\n"
 					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
 					
-					+ "trainingset -analyse -file <file> [-net <features> <labels>]\n"
-					+ "\tAnalyse the generated training data in <file>\n"
-					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
-					
 					+ "trainingset -split -source <source> -first <first> -second <second> -ratio <ratio> [-net <features> <labels>]\n"
 					+ "\tSplit the training set located in <source> into two distinct subsets, <first> and <second>\n"
 					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
@@ -473,13 +469,18 @@ public class NeuroBCli {
 	
 	private static void trainingSetGeneration(Path sourceDir){
 		Path targetDir = Paths.get("training_data/");
-		nb.generateTrainingSet(sourceDir, targetDir, excludefile);
+		try {
+			nb.generateTrainingSet(sourceDir, targetDir, excludefile);
+		} catch (NeuroBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private static void analyseTrainingSet(Path dir, TrainingSetGenerator tsg) {
 		try {
 			tsg.logTrainingSetAnalysis(dir);
-		} catch (IOException e) {
+		} catch (IOException | NeuroBException e) {
 			System.out.println("Could not access target directory "+dir);
 			e.printStackTrace();
 		}
