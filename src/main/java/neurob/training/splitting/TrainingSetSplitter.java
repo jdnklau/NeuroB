@@ -95,6 +95,8 @@ public class TrainingSetSplitter {
 			double ratio, Random rng, boolean copyHeader, String extension){
 		checkRatio(ratio);
 		
+		log.info("Splitting training set {} to {} and {}, by ratio of {}", source, first, second, ratio);
+		
 		try(Stream<Path> stream = Files.walk(source)){
 			
 			stream
@@ -126,6 +128,8 @@ public class TrainingSetSplitter {
 
 	private static void splitFileLinewise(Path sourceDir, Path sourceFile, Path first, Path second, 
 			double ratio, boolean copyHeader, Random rng) {
+		log.debug("Splitting {}", sourceFile);
+		
 		// for path/to/source/subdir/file with path/to/source as source dir, get subdir/
 		Path sourceSubDir = sourceDir.relativize(sourceFile).getParent();
 		
@@ -133,6 +137,8 @@ public class TrainingSetSplitter {
 		Path sourceFileName = sourceFile.getFileName();
 		Path fstFile = first.resolve(sourceSubDir).resolve(sourceFileName);
 		Path sndFile = second.resolve(sourceSubDir).resolve(sourceFileName);
+		
+		log.debug("\tSplitting {} to {} and {}", sourceFile, fstFile,sndFile);
 		
 		// create target files
 		BufferedWriter wrFst;
@@ -240,6 +246,10 @@ public class TrainingSetSplitter {
 	 * @param extension Only files ending with this string will be taken into account
 	 */
 	public static void splitFilewise(Path source, Path first, Path second, double ratio, Random rng, String extension){
+		checkRatio(ratio);
+		
+		log.info("Splitting training set {} to {} and {}, by ratio of {}", source, first, second, ratio);
+		
 		try(Stream<Path> stream = Files.walk(source)){
 			stream
 			.filter(Files::isRegularFile)
@@ -253,6 +263,8 @@ public class TrainingSetSplitter {
 	}
 
 	private static void copyFileToTarget(Path sourceDir, Path sourceFile, Path targetDir) {
+		log.debug("Splitting {}", sourceFile);
+		
 		// for path/to/source/subdir/file with path/to/source as source dir, get subdir/
 		Path sourceSubDir = sourceDir.relativize(sourceFile).getParent();
 		
@@ -262,6 +274,7 @@ public class TrainingSetSplitter {
 		
 		try{
 			Files.createDirectories(targetFile.getParent());
+			log.debug("\tCopying {} to {}", sourceFile, targetFile);
 			Files.copy(sourceFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			log.error("Could not set up target file {}", targetFile, e);

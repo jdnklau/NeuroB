@@ -91,6 +91,11 @@ public class NeuroBCli {
 					+ "\tAnalyse the generated training data in <file>\n"
 					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
 					
+					+ "trainingset -split -source <source> -first <first> -second <second> -ratio <ratio> [-net <features> <labels>]\n"
+					+ "\tSplit the training set located in <source> into two distinct subsets, <first> and <second>\n"
+					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
+					+ "\twith <ratio> being a number from the interval [0,1]\n"
+					
 					+ "pdump -dir <directory> [-excludefile <excludefile]\n"
 					+ "\tCreates predicate dump files from the (Event)B machines in <directory>\n"
 					
@@ -171,7 +176,7 @@ public class NeuroBCli {
 			else if(ops.containsKey("split")){
 				if(ops.containsKey("source")){
 					if(ops.containsKey("first") && ops.containsKey("second") && ops.containsKey("ratio")){
-						Path csv = Paths.get(ops.get("file").get(0));
+						Path csv = Paths.get(ops.get("source").get(0));
 						Path first = Paths.get(ops.get("first").get(0));
 						Path second = Paths.get(ops.get("second").get(0));
 						double ratio = Double.parseDouble(ops.get("ratio").get(0));
