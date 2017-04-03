@@ -114,12 +114,11 @@ public class TrainingSetGenerator {
 		// prepare exclude data
 		List<Path> excludes = new ArrayList<Path>();
 		if(excludeFile != null){
-//			Path excludeFileDirectory = excludeFile.getParent();
 			try(Stream<String> exc = Files.lines(excludeFile)){
-				excludes.addAll(
-						(List<Path>) exc
-							.filter(s -> !s.isEmpty())
-							.map(s -> Paths.get(s)).collect(Collectors.toList()));
+				exc
+				.filter(s->!s.isEmpty())
+				.map(Paths::get)
+				.forEach(excludes::add);
 			} catch (IOException e) {
 				log.error("Could not access exclude file: {}", e.getMessage(), e);
 			}
@@ -131,13 +130,11 @@ public class TrainingSetGenerator {
 			Files.createDirectories(targetDirectory);
 			
 			stream
-				.parallel() // parallel computation
-				.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
-				.forEach(entry -> {
-	            	if(Files.isRegularFile(entry)){
-						generateTrainingDataFromFile(entry, targetDirectory);
-		            }
-				});
+			.parallel() // parallel computation
+			.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
+			.filter(Files::isRegularFile)
+			.forEach(entry -> generateTrainingDataFromFile(entry, targetDirectory));
+			
 			log.info("Finished training set generation");
 			log.info("******************************");
 	    }
