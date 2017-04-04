@@ -147,7 +147,7 @@ public class TrainingSetAnalyser {
 	}
 	
 	public static TrainingAnalysisData analysePredicateDumps(Path sourceDirectory) throws IOException{
-		return analyseTrainingDataFiles(sourceDirectory, new PredicateDumpAnalysis(), ".pdump");
+		return analyseTrainingDataFiles(sourceDirectory, new PredicateDumpAnalysis(), ".pdump").evaluateAllSamples();
 	}
 	
 	/**

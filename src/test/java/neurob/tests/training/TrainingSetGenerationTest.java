@@ -68,15 +68,15 @@ public class TrainingSetGenerationTest {
 		ClassificationAnalysis analysis = new ClassificationAnalysis(4); 
 		tsa.analyseTrainingCSV(Paths.get("src/test/resources/training_analysis_testset.csv"), analysis, 1);
 		
-		ArrayList<Integer> trueLabels = analysis.getTrueLabelCounters();
-		assertEquals("Class 0 counter does not match", 3, trueLabels.get(0).intValue());
-		assertEquals("Class 1 counter does not match", 989, trueLabels.get(1).intValue());
-		assertEquals("Class 2 counter does not match", 3, trueLabels.get(2).intValue());
-		assertEquals("Class 3 counter does not match", 3, trueLabels.get(3).intValue());
+		int[] trueLabels = analysis.getTrueLabelCounters();
+		assertEquals("Class 0 counter does not match", 3, trueLabels[0]);
+		assertEquals("Class 1 counter does not match", 989, trueLabels[1]);
+		assertEquals("Class 2 counter does not match", 3, trueLabels[2]);
+		assertEquals("Class 3 counter does not match", 3, trueLabels[3]);
 		
 		int samples = 0;
 		for(int i = 0; i<4; i++){
-			samples += trueLabels.get(i);
+			samples += trueLabels[i];
 		}
 		
 		assertEquals("Number of samples seen in total does not match", 998, samples);

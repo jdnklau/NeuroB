@@ -246,6 +246,7 @@ public abstract class TrainingDataGenerator {
 			new NeuroBException("Could not analyse training set in "+source+" correctly.", e);
 		}
 		
+		data.evaluateAllSamples();
 		return data;
 	}
 	

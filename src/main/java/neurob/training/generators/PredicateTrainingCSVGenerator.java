@@ -28,7 +28,7 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 		super(fg, lg);
 		preferredFileExtension = "csv";
 		
-		labelSize = lg.getLabelDimension();
+		labelSize = lg.getTrainingLabelDimension();
 		// set up CSV header
 		List<String> header = new ArrayList<>();
 		// set features

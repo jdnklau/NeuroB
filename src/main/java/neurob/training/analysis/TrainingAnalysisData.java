@@ -6,8 +6,17 @@ public interface TrainingAnalysisData {
 	
 	/**
 	 * Logs the stored results of the analysis.
+	 * <p>
+	 * Note that, depending on implementation, you want to call {@link #evaluateAllSamples()} first.
 	 */
 	public void log();
+	
+	/**
+	 * Evaluates the seen samples. This processes some measurements which can not be processed while seeing the data,
+	 * but can only be measured after seeing the whole data set.
+	 * @return Reference to this instance.
+	 */
+	public TrainingAnalysisData evaluateAllSamples();
 	
 	/**
 	 * Increases the counter of files seen by one.

@@ -1,32 +1,32 @@
 package neurob.training.analysis;
 
-import java.util.ArrayList;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 public class ClassificationAnalysis implements TrainingAnalysisData {
-	private ArrayList<Integer> trueLabelCounters; // For each class, have counter how many times it would be called
+	private int[] trueLabelCounters; // For each class, have counter how many times it would be called
 	private int filesSeen; // Counter for files seen in total
 	private int emptyFilesSeen; // Counter for empty files
 	private int samples; // Number of samples seen
+	public final int classCount;
+	private double[] classDist;
 
 	private static final Logger log = LoggerFactory.getLogger(ClassificationAnalysis.class);
 	
 	/**
 	 * 
-	 * @param classes Number of classes to classify with training data
+	 * @param classCount Number of classCount to classify with training data
 	 */
 	public ClassificationAnalysis(int classes){
-		trueLabelCounters = new ArrayList<Integer>(0);
 		filesSeen = 0;
 		emptyFilesSeen = 0;
 		samples = 0;
 		
-		for(int i=0; i < classes; i++){
-			trueLabelCounters.add(0);
-		}
+		this.classCount=classes;
+		
+		trueLabelCounters = new int[classes];
+		classDist = new double[classes];
 	}
 
 	@Override
@@ -34,18 +34,16 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 		log.info("Analysis of training data");
 		
 		if(filesSeen > 0){
-			int relevantFiles = filesSeen-emptyFilesSeen;
 			log.info("Files found: {}", filesSeen);
 			log.info("Of these were {} seemingly empty", emptyFilesSeen);
-			log.info("\t=> {} relevant files", relevantFiles);
 		}
 		// list classification mappings
 		log.info("Overview of class representation:");
 		int dataCount = 0;
-		for(int i = 0; i < trueLabelCounters.size(); i++){
-			int classSamples = trueLabelCounters.get(i);
+		for(int i = 0; i < classCount; i++){
+			int classSamples = trueLabelCounters[i];
 			dataCount += classSamples;
-			log.info("\tClass {} is represented by {} samples", i, classSamples);
+			log.info("\tClass {} is represented by {} samples ({} of all samples)", i, classSamples, classDist[i]);
 		}
 		log.info("{} samples in total", dataCount);
 		
@@ -57,8 +55,7 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 	 * @param clss Class of true label.
 	 */
 	public void countEntryForClass(int clss){
-		int c = trueLabelCounters.get(clss);
-		trueLabelCounters.set(clss, c+1);
+		trueLabelCounters[clss]++;
 	}
 	
 	@Override
@@ -75,9 +72,9 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 	}
 	
 	/**
-	 * @return An {@link ArrayList} of Integer counters how often each class (being the index) is represented. 
+	 * @return An Array of Integer counters how often each class (being the index) is represented. 
 	 */
-	public ArrayList<Integer> getTrueLabelCounters(){
+	public int[] getTrueLabelCounters(){
 		return trueLabelCounters;
 	}
 	
@@ -99,6 +96,24 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 	@Override
 	public int getEmptyFilesCount(){
 		return emptyFilesSeen;
+	}
+	
+	/**
+	 * @return Probability distribution of the different classes.
+	 */
+	public double[] getClassDistribution(){
+		return classDist;
+	}
+	
+	@Override
+	public TrainingAnalysisData evaluateAllSamples() {
+		// calculate class distribution
+		classDist = new double[classCount];
+		for(int i=0; i<classCount; i++){
+			classDist[i] = trueLabelCounters[i]/(double)samples;
+		}
+		
+		return this;
 	}
 	
 }
