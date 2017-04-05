@@ -261,7 +261,8 @@ public abstract class TrainingDataGenerator {
 	 * Analyses the training file and adds its data to the analysis data object.
 	 * @param file
 	 * @param analysisData
+	 * @return Reference to the analysisData
 	 */
-	abstract protected void analyseTrainingFile(Path file, TrainingAnalysisData analysisData);
+	abstract protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData);
 	
 }

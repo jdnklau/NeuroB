@@ -88,7 +88,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 	}
 	
 	@Override
-	protected void analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
+	protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
 		// load features and labels
 		String labelString = ImageNameLabelGenerator.labelStringForImage(file);
 		
@@ -105,5 +105,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		double[] labels = Arrays.stream(labelString.split(",")).mapToDouble(Double::valueOf).toArray();
 		
 		analysisData.analyseSample(features, labels);
+		
+		return analysisData;
 	}
 }

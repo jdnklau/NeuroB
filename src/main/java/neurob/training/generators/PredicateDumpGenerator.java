@@ -81,8 +81,9 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	}
 	
 	@Override
-	protected void analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
+	protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
 		TrainingSetAnalyser.analyseTrainingDataFile(file, analysisData);
+		return analysisData;
 	}
 	
 	@Override

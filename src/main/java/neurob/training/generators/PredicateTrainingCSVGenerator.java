@@ -91,11 +91,13 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 	}
 	
 	@Override
-	protected void analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
+	protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
 		try {
 			TrainingSetAnalyser.analyseTrainingCSV(file, analysisData, labelSize);
 		} catch (IOException e) {
 			log.error("Could not analyse training csv {}", file, e);
 		}
+		
+		return analysisData;
 	}
 }
