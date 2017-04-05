@@ -105,8 +105,7 @@ public class TrainingSetSplitter {
 				.forEach(p->splitFileLinewise(source, p,first,second,ratio,copyHeader,rng));
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Could not split training set correctly.", e);
 		}
 	}
 	
