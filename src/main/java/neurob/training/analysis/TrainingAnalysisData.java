@@ -2,6 +2,8 @@ package neurob.training.analysis;
 
 import java.util.Arrays;
 
+import neurob.training.generators.interfaces.LabelGenerator;
+
 public interface TrainingAnalysisData {
 	
 	/**
@@ -76,4 +78,19 @@ public interface TrainingAnalysisData {
 				.mapToDouble(Double::parseDouble).toArray();
 		this.analyseSample(features, labels);
 	}
+	
+	/**
+	 * After analysing the data and calling {@link #evaluateAllSamples()}, decides for a given labelling
+	 * whether it should be kept in the data set or can be truncated.
+	 * <p>
+	 * This may be a probabilistic approach, deciding the keepability of a sample by chance. However, promise is to
+	 * behave deterministically iff run over the same data twice with no parallelisation.
+	 * 
+	 * @param trainingLabels 
+	 * 			Labels on which to decide the trimming.
+	 * 			Those are training labels, in regards to {@link LabelGenerator#getTrainingLabelDimension()}.
+	 * 			I.e. for classification problems, this array only contains a single value: the class.
+	 * @return true iff sample can be disregarded.
+	 */
+	public boolean canSampleBeTrimmed(double[] trainingLabels);
 }

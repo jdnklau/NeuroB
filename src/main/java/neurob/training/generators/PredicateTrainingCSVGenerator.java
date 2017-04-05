@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -18,6 +19,7 @@ import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.TrainingData;
 import neurob.training.splitting.TrainingSetSplitter;
+import neurob.training.splitting.TrainingSetTrimmer;
 
 public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerator {
 	private static final Logger log = LoggerFactory.getLogger(PredicateTrainingCSVGenerator.class);
@@ -99,5 +101,21 @@ public class PredicateTrainingCSVGenerator extends PredicateTrainingDataGenerato
 		}
 		
 		return analysisData;
+	}
+	
+	@Override
+	public void trimTrainingData(Path sourceDirectory, Path targetDirectory) throws NeuroBException {
+		// Analyse data before hand
+		TrainingAnalysisData analysisData = analyseTrainingSet(sourceDirectory);
+		TrainingSetTrimmer.trimLineWise(sourceDirectory, targetDirectory, analysisData, this, true,
+				"."+preferredFileExtension);
+	}
+	
+	@Override
+	public double[] labellingFromSample(String sample) {
+		return Arrays.stream(sample.split(",")) // split up csv entrie
+				.skip(fg.getFeatureDimension()) // first entries are features
+				.mapToDouble(Double::valueOf)
+				.toArray();
 	}
 }

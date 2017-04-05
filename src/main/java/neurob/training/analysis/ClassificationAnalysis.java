@@ -1,5 +1,7 @@
 package neurob.training.analysis;
 
+import java.util.Random;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +13,9 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 	private int samples; // Number of samples seen
 	public final int classCount;
 	private double[] classDist;
+	private double[] classTrimChance;
+	
+	private final Random rng = new Random(123);
 
 	private static final Logger log = LoggerFactory.getLogger(ClassificationAnalysis.class);
 	
@@ -27,6 +32,7 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 		
 		trueLabelCounters = new int[classes];
 		classDist = new double[classes];
+		classTrimChance = new double[classes];
 	}
 
 	@Override
@@ -109,11 +115,28 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 	public TrainingAnalysisData evaluateAllSamples() {
 		// calculate class distribution
 		classDist = new double[classCount];
+		double smallestClass = 2; // as probabilities should always in [0,1], 2 is definitely not the minimum
 		for(int i=0; i<classCount; i++){
 			classDist[i] = trueLabelCounters[i]/(double)samples;
+			if(smallestClass > classDist[i])
+				smallestClass = classDist[i];
+		}
+		
+		// set probabilities for disregarding samples
+		for(int i=0; i<classCount; i++){
+			classTrimChance[i] = 1-smallestClass/classDist[i];
 		}
 		
 		return this;
+	}
+	
+	@Override
+	public boolean canSampleBeTrimmed(double[] trainingLabels) {
+		int clss = (int) trainingLabels[0];
+		
+		double chance = rng.nextDouble();
+		
+		return classTrimChance[clss] < chance;
 	}
 	
 }

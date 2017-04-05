@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -20,6 +21,7 @@ import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.TrainingData;
 import neurob.training.splitting.TrainingSetSplitter;
+import neurob.training.splitting.TrainingSetTrimmer;
 
 public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenerator {
 	private int imageCounter; // counts number of images written
@@ -107,5 +109,18 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		analysisData.analyseSample(features, labels);
 		
 		return analysisData;
+	}
+
+	@Override
+	public void trimTrainingData(Path source, Path target) throws NeuroBException {
+		TrainingAnalysisData analysisData = analyseTrainingSet(source);
+		TrainingSetTrimmer.trimFilewise(source, target, analysisData, this, "."+preferredFileExtension);
+	}
+
+	@Override
+	public double[] labellingFromSample(String sample) {
+		String labelStr = ImageNameLabelGenerator.labelStringForImage(Paths.get(sample));
+		
+		return Arrays.stream(labelStr.split(",")).mapToDouble(Double::valueOf).toArray();
 	}
 }

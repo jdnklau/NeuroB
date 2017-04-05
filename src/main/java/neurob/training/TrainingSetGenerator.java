@@ -225,6 +225,10 @@ public class TrainingSetGenerator {
 		}
 	}
 	
+	public void trimTrainingData(Path source, Path target) throws NeuroBException{
+		tdg.trimTrainingData(source, target);
+	}
+	
 	
 	
 }

@@ -203,5 +203,11 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 		final int i = output;
 		return new double[]{minimum[i], firstQuartile[i], median[i], thirdQuartile[i], maximum[i]};
 	}
+	
+	@Override
+	public boolean canSampleBeTrimmed(double[] trainingLabels) {
+		// NOTE: In regression we do not need trimming.
+		return false;
+	}
 
 }

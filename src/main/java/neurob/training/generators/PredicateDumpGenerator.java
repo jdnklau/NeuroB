@@ -17,8 +17,10 @@ import neurob.training.TrainingSetAnalyser;
 import neurob.training.analysis.PredicateDumpAnalysis;
 import neurob.training.analysis.TrainingAnalysisData;
 import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
+import neurob.training.generators.util.DumpData;
 import neurob.training.generators.util.TrainingData;
 import neurob.training.splitting.TrainingSetSplitter;
+import neurob.training.splitting.TrainingSetTrimmer;
 
 public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	private static final Logger log = LoggerFactory.getLogger(PredicateDumpGenerator.class);
@@ -89,5 +91,18 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	@Override
 	protected TrainingAnalysisData getAnalysisData() {
 		return new PredicateDumpAnalysis();
+	}
+
+	@Override
+	public void trimTrainingData(Path source, Path target) throws NeuroBException {
+		// Analyse data before hand
+		TrainingAnalysisData analysisData = analyseTrainingSet(source);
+		TrainingSetTrimmer.trimLineWise(source, target, analysisData, this, true,
+				"."+preferredFileExtension);
+	}
+
+	@Override
+	public double[] labellingFromSample(String sample) {
+		return new DumpData(sample).getLabellings().stream().mapToDouble(l->l.doubleValue()).toArray();
 	}
 }
