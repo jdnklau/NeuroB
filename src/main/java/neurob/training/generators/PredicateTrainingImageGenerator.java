@@ -97,7 +97,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 			img = ImageIO.read(file.toFile());
 		} catch (IOException e) {
 			log.error("Could not read {}", file, e);
-			return;
+			return analysisData;
 		}
 		
 		// translate features
