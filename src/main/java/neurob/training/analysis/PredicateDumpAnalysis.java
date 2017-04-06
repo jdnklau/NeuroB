@@ -138,9 +138,17 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 
 	@Override
 	public void analyseTrainingDataSample(String sampleString) {
+		if(sampleString.startsWith("#"))
+			return; // ignore commented lines
 		double[] labels = Arrays.stream(sampleString.split(":")[0].split(","))
 				.mapToDouble(Double::parseDouble).toArray();
 		analyseSample(null, labels);
+	}
+	
+	@Override
+	public boolean canSampleBeTrimmed(double[] trainingLabels) {
+		// NOTE: In regression we do not need trimming.
+		return false;
 	}
 
 }
