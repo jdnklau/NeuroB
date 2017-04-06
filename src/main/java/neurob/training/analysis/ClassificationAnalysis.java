@@ -136,7 +136,7 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 		
 		double chance = rng.nextDouble();
 		
-		return classTrimChance[clss] < chance;
+		return chance < classTrimChance[clss];
 	}
 	
 }
