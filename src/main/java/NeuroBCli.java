@@ -92,7 +92,11 @@ public class NeuroBCli {
 					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
 					+ "\twith <ratio> being a number from the interval [0,1]\n"
 					
-					+ "pdump -dir <directory> [-excludefile <excludefile]\n"
+					+ "trainingset -trim -source <source> -target <target> [-net <features> <labels>]\n"
+					+ "\tTrims the training set located in <source> after a beforehand analysis\n"
+					+ "\tThe trimmed version of the training set will be located in <target> afterwards.\n"
+					
+					+ "pdump -dir <directory> [-excludefile <excludefile>]\n"
 					+ "\tCreates predicate dump files from the (Event)B machines in <directory>\n"
 					
 					+ "pdump -file <file>\n"
@@ -187,6 +191,16 @@ public class NeuroBCli {
 					System.out.println("trainingset -split: Missing -source parameter");
 				}
 			}
+			else if(ops.containsKey("trim")){
+				if(ops.containsKey("source") && ops.containsKey("target")){
+					Path source = Paths.get(ops.get("source").get(0));
+					Path target = Paths.get(ops.get("target").get(0));
+					trimTrainingSet(source, target);
+				} else {
+					System.out.println("trainingset -trim: -source and -target arguments need to be set");
+				}
+			}
+			
 			else if(ops.containsKey("dir")){// generate training set
 				buildNet();
 				trainingSetGeneration(dir);
@@ -272,6 +286,19 @@ public class NeuroBCli {
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 	
+	private static void trimTrainingSet(Path source, Path target) {
+		FeatureGenerator fg = getFeatureGenerator();
+		LabelGenerator lg = getLabelGenerator();
+		
+		TrainingDataGenerator tdg = fg.getTrainingDataGenerator(lg);
+		
+		try {
+			tdg.trimTrainingData(source, target);
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static void splitTrainingset(Path source, Path first, Path second, double ratio) {
 		FeatureGenerator fg = getFeatureGenerator();
 		LabelGenerator lg = getLabelGenerator();
@@ -281,7 +308,6 @@ public class NeuroBCli {
 		try {
 			tdg.splitTrainingData(source, first, second, ratio, new Random(123));
 		} catch (NeuroBException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -293,7 +319,6 @@ public class NeuroBCli {
 			Path targetFile = tpg.generateTrainingDataPath(file, Paths.get("training_data/PredicateDump/"));
 			tpg.generateTrainingDataFromFile(file, targetFile);
 		} catch (NeuroBException | IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -308,7 +333,6 @@ public class NeuroBCli {
 			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName());
 			nb.getNeuroBNet().getTrainingSetGenerator().translateDataDumpFiles(dir, target);
 //		} catch (NeuroBException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 	}
@@ -317,7 +341,6 @@ public class NeuroBCli {
 		try {
 			TrainingSetAnalyser.analysePredicateDumps(dir).log();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -472,7 +495,6 @@ public class NeuroBCli {
 		try {
 			nb.generateTrainingSet(sourceDir, targetDir, excludefile);
 		} catch (NeuroBException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -536,10 +558,8 @@ public class NeuroBCli {
 					try {
 						nb.train(traincsv, testcsv, epochs);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
