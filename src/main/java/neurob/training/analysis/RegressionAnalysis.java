@@ -206,8 +206,8 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 	
 	@Override
 	public boolean canSampleBeTrimmed(double[] trainingLabels) {
-		// NOTE: In regression we do not need trimming.
-		return false;
+		// NOTE: In regression we do not need trimming, thus we trim everthing to not generate a direct copy of the data
+		return true;
 	}
 
 }
