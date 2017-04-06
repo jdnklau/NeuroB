@@ -17,17 +17,68 @@ import neurob.training.generators.TrainingDataGenerator;
 
 public class TrainingSetTrimmer {
 	private static Logger log = LoggerFactory.getLogger(TrainingSetTrimmer.class);
-	
+
+	/**
+	 * Trims the training set located in {@code sourceDirectory} on a line-by-line basis, by the ruling of
+	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
+	 * <p>
+	 * The original files are not altered by this, instead the trimmed version of the data will be located in
+	 * {@code targetDirectory}.  
+	 * @param sourceDirectory Directory containing training data created by {@code generator}
+	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * @param analysisData
+	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
+	 * @see #trimLineWise(Path, Path, TrainingAnalysisData, TrainingDataGenerator, boolean)
+	 * @see #trimLineWise(Path, Path, TrainingAnalysisData, TrainingDataGenerator, boolean, String)
+	 */
 	public static void trimLineWise(Path sourceDirectory, Path targetDirectory, TrainingAnalysisData analysisData,
 			TrainingDataGenerator generator){
 		trimLineWise(sourceDirectory, targetDirectory, analysisData, generator, false);
 	}
-
+	
+	/**
+	 * Trims the training set located in {@code sourceDirectory} on a line-by-line basis, by the ruling of
+	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
+	 * <p>
+	 * If desired, the first line of each training file can be treated as header line. Then it will be copied as
+	 * first line as well to the corresponding, trimmed file.
+	 * <p>
+	 * The original files are not altered by this, instead the trimmed version of the data will be located in
+	 * {@code targetDirectory}.  
+	 * @param sourceDirectory Directory containing training data created by {@code generator}
+	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * @param analysisData
+	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
+	 * @param copyHeader Whether the first line of training files should be treated as header line or not
+	 * @see #trimLineWise(Path, Path, TrainingAnalysisData, TrainingDataGenerator, boolean, String)
+	 */
 	public static void trimLineWise(Path sourceDirectory, Path targetDirectory, TrainingAnalysisData analysisData,
 			TrainingDataGenerator generator, boolean copyHeader){
 		trimLineWise(sourceDirectory, targetDirectory, analysisData, generator, copyHeader, "");
 	}
 	
+	/**
+	 * Trims the training set located in {@code sourceDirectory} on a line-by-line basis, by the ruling of
+	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
+	 * <p>
+	 * If desired, the first line of each training file can be treated as header line. Then it will be copied as
+	 * first line as well to the corresponding, trimmed file.
+	 * <p>
+	 * The original files are not altered by this, instead the trimmed version of the data will be located in
+	 * {@code targetDirectory}.  
+	 * @param sourceDirectory Directory containing training data created by {@code generator}
+	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * @param analysisData
+	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
+	 * @param copyHeader Whether the first line of training files should be treated as header line or not
+	 * @param suffix Only files with names ending with this suffix are accounted for; empty suffix accounts for all
+	 */
 	public static void trimLineWise(Path sourceDirectory, Path targetDirectory, TrainingAnalysisData analysisData,
 			TrainingDataGenerator generator, boolean copyHeader, String suffix){
 		log.info("Trimming training set {} to {}", sourceDirectory, targetDirectory);
@@ -106,12 +157,44 @@ public class TrainingSetTrimmer {
 	}
 	
 	
+
 	
+	/**
+	 * Trims the training set located in {@code sourceDirectory} on a by-file basis, by the ruling of
+	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
+	 * <p>
+	 * Each file is interpreted as an individual sample.
+	 * <p>
+	 * The original files are not altered by this, instead the trimmed version of the data will be located in
+	 * {@code targetDirectory}.  
+	 * @param sourceDirectory Directory containing training data created by {@code generator}
+	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * @param analysisData
+	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
+	 */
 	public static void trimFilewise(Path source, Path target, TrainingAnalysisData analysisData,
 			TrainingDataGenerator generator){
 		trimFilewise(source, target, analysisData, generator, "");
 	}
 	
+	/**
+	 * Trims the training set located in {@code sourceDirectory} on a by-file basis, by the ruling of
+	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
+	 * <p>
+	 * Each file is interpreted as an individual sample.
+	 * <p>
+	 * The original files are not altered by this, instead the trimmed version of the data will be located in
+	 * {@code targetDirectory}.  
+	 * @param sourceDirectory Directory containing training data created by {@code generator}
+	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * @param analysisData
+	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
+	 * @param suffix Only files with names ending with this suffix are accounted for; empty suffix accounts for all
+	 */
 	public static void trimFilewise(Path source, Path target, TrainingAnalysisData analysisData,
 			TrainingDataGenerator generator, String suffix){
 		log.info("Trimming training set {} to {}", source, target);
