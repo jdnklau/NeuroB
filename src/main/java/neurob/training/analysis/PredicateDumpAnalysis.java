@@ -6,8 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PredicateDumpAnalysis extends RegressionAnalysis {
-	private int samplesSeen;
-	
 	// data over solvers
 	private long[] negSamples;
 	private final static int solversAccountedFor = 3;
