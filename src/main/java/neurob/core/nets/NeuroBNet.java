@@ -1,6 +1,9 @@
 package neurob.core.nets;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Random;
@@ -24,6 +27,7 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
+import org.nd4j.linalg.dataset.api.preprocessor.serializer.NormalizerSerializer;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.FeatureGenerator;
@@ -37,6 +41,7 @@ public class NeuroBNet {
 	protected MultiLayerNetwork model; // Model in use
 	protected FeatureGenerator features; // Features in use
 	protected LabelGenerator labelgen; // Label generator in use of training set generation
+	protected int seed;
 	// Preprocessing
 	protected DataNormalization normalizer; // Normalizer used 
 	protected boolean useNormalizer;
@@ -102,6 +107,9 @@ public class NeuroBNet {
 	public NeuroBNet(int[] hiddenLayers, double learningRate, FeatureGenerator features, LabelGenerator labelling, int seed) {
 		this(features, labelling);
 		
+		// save seed
+		this.seed = seed;
+		
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
         .seed(seed)
         .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -164,19 +172,73 @@ public class NeuroBNet {
 	 * @param modelFile Path to the model file
 	 * @param features
 	 * @param labelling
+	 * @throws NeuroBException 
+	 */
+	public NeuroBNet(Path modelDirectory, FeatureGenerator features, LabelGenerator labelling) throws NeuroBException{
+		this(features, labelling);
+		try {
+			this.model = ModelSerializer
+					.restoreMultiLayerNetwork(modelDirectory.resolve("model.zip").toFile());
+			this.normalizer = NormalizerSerializer.getDefault()
+					.restore(modelDirectory.resolve("normalizer").toFile());
+			// read seed
+			BufferedReader seedReader = 
+					Files.newBufferedReader(modelDirectory.resolve("seed.txt"));
+			this.seed = Integer.valueOf(seedReader.readLine());
+		} catch (Exception e) {
+			throw new NeuroBException("Could not correctly load model located in "
+				+ modelDirectory, e);
+		}
+	}
+	
+	/**
+	 * Saves the NeuroBNet to disc.
+	 * <p>
+	 * In the given target directory, up to three files will be created.
+	 * <ul>
+	 * <li><b>model.zip</b> hold the model
+	 * <li><b>normalizer</b> hold the normalizer; only created if {@link #isNormalizerUsed()}
+	 * <li><b>seed.txt</b> holds the seed the model was initialised with
+	 * </ul>
+	 * <p>
+	 * After reloading, the model can further be trained
+	 * @param targetDirectory Directory to save the files to
 	 * @throws IOException
 	 */
-	public NeuroBNet(Path modelFile, FeatureGenerator features, LabelGenerator labelling) throws IOException{
-		this(features, labelling);
-		this.model = ModelSerializer.restoreMultiLayerNetwork(modelFile.toFile());
+	public void saveModel(Path targetDirectory) throws IOException{
+		saveModel(targetDirectory, true);
 	}
 	
-	public void saveModel(Path modelFile) throws IOException{
-		saveModel(modelFile, true);
-	}
-	
-	public void saveModel(Path modelFile, boolean saveUpdater) throws IOException{
-		ModelSerializer.writeModel(model, modelFile.toFile(), saveUpdater);
+	/**
+	 * Saves the NeuroBNet to disc.
+	 * <p>
+	 * In the given target directory, up to three files will be created.
+	 * <ul>
+	 * <li><b>model.zip</b> hold the model
+	 * <li><b>normalizer</b> hold the normalizer; only created if {@link #isNormalizerUsed()}
+	 * <li><b>seed.txt</b> holds the seed the model was initialised with
+	 * </ul>
+	 * @param targetDirectory Directory to save the files to
+	 * @param saveUpdater set to true if you may want to continue training the model
+	 * @throws IOException
+	 */
+	public void saveModel(Path targetDirectory, boolean saveUpdater) throws IOException{
+		// make sure the directory exists
+		Files.createDirectories(targetDirectory);
+		// save normalizer
+		if(useNormalizer){
+			NormalizerSerializer normserializer = NormalizerSerializer.getDefault();
+			normserializer.write(normalizer, 
+					targetDirectory.resolve("normalizer").toFile());
+		}
+		// save model
+		ModelSerializer.writeModel(model,
+				targetDirectory.resolve("model.zip").toFile(), saveUpdater);
+		// save seed
+		BufferedWriter seedWr = Files.newBufferedWriter(targetDirectory.resolve("seed.txt"));
+		seedWr.write(seed);
+		seedWr.newLine();
+		seedWr.close();
 	}
 	
 	protected void setUpNormalizer(){
@@ -297,5 +359,7 @@ public class NeuroBNet {
 	public void setListeners(Collection<IterationListener> listeners){
 		model.setListeners(listeners);
 	}
+	
+	public boolean isNormalizerUsed(){return useNormalizer;}
 
 }

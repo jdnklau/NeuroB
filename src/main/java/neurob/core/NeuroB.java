@@ -164,7 +164,7 @@ public class NeuroB {
 		log.info("******************************");
 		
 		log.info("Saving model to {}", savePath);
-		nbn.saveModel(savePath.resolve("model.zip"));
+		nbn.saveModel(savePath);
 	}
 	
 	public void test(Path testSource) throws IOException, InterruptedException{

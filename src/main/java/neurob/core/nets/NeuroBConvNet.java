@@ -26,6 +26,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.nets.util.ImageNameLabelGenerator;
 import neurob.core.util.ProblemType;
+import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
 
 public class NeuroBConvNet extends NeuroBNet {
@@ -60,6 +61,8 @@ public class NeuroBConvNet extends NeuroBNet {
 	 */
 	public NeuroBConvNet(int[] hiddenLayers, double learningRate, ConvolutionFeatures features, LabelGenerator labelling, int seed) {
 		super(features, labelling);
+		
+		this.seed = seed;
 		
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
 		        .seed(seed)
@@ -128,7 +131,7 @@ public class NeuroBConvNet extends NeuroBNet {
 				.build());
 	}
 
-	public NeuroBConvNet(Path modelFile, ConvolutionFeatures features, LabelGenerator labelling) throws IOException {
+	public NeuroBConvNet(Path modelFile, ConvolutionFeatures features, LabelGenerator labelling) throws IOException, NeuroBException {
 		super(modelFile, features, labelling);
 		// Necessary to restrict the feature generator to ConvolutionFeatures
 	}
