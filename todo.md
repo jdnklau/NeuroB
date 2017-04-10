@@ -3,7 +3,6 @@
 - model handling
     - have list of preprocessing utilities that is managed by responsible class
 - training
-    - save trained models to disk by default
     - more generic handling of data preprocessing if possible
         - add more preprocessing tools
             - PCA: whitening, feature reduction

@@ -6,6 +6,7 @@ NeuroB
 
 # training data directory
 training_data/
+trained_models/
 
 ### ProB specific
 prob_log.txt

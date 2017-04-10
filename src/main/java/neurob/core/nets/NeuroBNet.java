@@ -171,6 +171,14 @@ public class NeuroBNet {
 		this.model = ModelSerializer.restoreMultiLayerNetwork(modelFile.toFile());
 	}
 	
+	public void saveModel(Path modelFile) throws IOException{
+		saveModel(modelFile, true);
+	}
+	
+	public void saveModel(Path modelFile, boolean saveUpdater) throws IOException{
+		ModelSerializer.writeModel(model, modelFile.toFile(), saveUpdater);
+	}
+	
 	protected void setUpNormalizer(){
 		normalizer = new NormalizerStandardize();
 	}

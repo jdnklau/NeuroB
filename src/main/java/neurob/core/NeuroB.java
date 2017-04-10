@@ -1,7 +1,11 @@
 package neurob.core;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -10,6 +14,7 @@ import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
+import org.deeplearning4j.ui.storage.FileStatsStorage;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -69,11 +74,19 @@ public class NeuroB {
 	private NeuroBNet nbn;
 
 	private boolean dl4jUIEnabled;
+	
+	/**
+	 * Path to which the NeuroB data will be saved
+	 */
+	private final Path savePath;
 
 	public NeuroB(NeuroBNet neuroBNet) {
 		// link neural net
 		nbn = neuroBNet;
 		dl4jUIEnabled = false;
+		
+		savePath = Paths.get("trained_models/").resolve(nbn.getDataPathName())
+				.resolve(ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
 	}
 	
 	public NeuroBNet getNeuroBNet(){
@@ -103,6 +116,9 @@ public class NeuroB {
 	 * @throws IOException 
 	 */
 	public void train(Path trainSource, int numEpochs) throws IOException, InterruptedException{
+		log.info("Setting up target directory {}", savePath);
+		Files.createDirectories(savePath);
+		
 		int batchSize = 250;
 		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
 		
@@ -126,8 +142,11 @@ public class NeuroB {
 			
 			listeners.add(new StatsListener(statsStorage));
 			
-			log.info("DL4J UI is available at http://localhost:9000/train/");
+			log.info("DL4J UI is available at http://localhost:9000/");
 		}
+		// - save stats for later use
+		StatsStorage statsStorage = new FileStatsStorage(savePath.resolve("training_stats.dl4j").toFile());
+		listeners.add(new StatsListener(statsStorage));
 		listeners.add(new PerformanceListener(75, true));
 		nbn.setListeners(listeners);
 		
@@ -143,6 +162,9 @@ public class NeuroB {
 		
 		log.info("Done with training {} epochs", numEpochs);
 		log.info("******************************");
+		
+		log.info("Saving model to {}", savePath);
+		nbn.saveModel(savePath.resolve("model.zip"));
 	}
 	
 	public void test(Path testSource) throws IOException, InterruptedException{
