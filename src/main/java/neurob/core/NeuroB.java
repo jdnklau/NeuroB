@@ -108,23 +108,11 @@ public class NeuroB {
 	 * The test source is then used to evaluate the trained network.
 	 * @param trainSource
 	 * @param testSource
-	 * @param epochs Number of epochs used in training
+	 * @param numEpochs Number of epochs used in training
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainSource, Path testSource, int epochs) throws IOException, InterruptedException{
-		train(trainSource, epochs);
-		test(testSource);
-	}
-	
-	/**
-	 * Trains the neural net with a training set located at the given source.
-	 * @param trainSource
-	 * @param numEpochs Number of times the training data will be fit into the network
-	 * @throws InterruptedException 
-	 * @throws IOException 
-	 */
-	public void train(Path trainSource, int numEpochs) throws IOException, InterruptedException{
+	public void train(Path trainSource, Path testSource, int numEpochs) throws IOException, InterruptedException{
 		log.info("Setting up target directory {}", savePath);
 		Files.createDirectories(savePath);
 		
@@ -167,6 +155,16 @@ public class NeuroB {
 				DataSet trainingData = iterator.next(); 
 	        	nbn.fit(trainingData);
 			}
+			
+			// evaluate after each epoch
+//			Evaluation trainEval = evaluateModel(trainSource);
+			Evaluation testEval = evaluateModel(testSource);
+			log.info("Done with epoch {}", i+1);
+			log.info("\tAccuracy: {}; Precision: {}; Recall: {}; F1 score: {}",
+					testEval.accuracy(),
+					testEval.precision(),
+					testEval.recall(),
+					testEval.f1());
 		}
 		
 		log.info("Done with training {} epochs", numEpochs);
@@ -174,24 +172,15 @@ public class NeuroB {
 		
 		log.info("Saving model to {}", savePath);
 		nbn.saveModel(savePath);
+
+		// evaluate whole model
+		test(testSource);
 	}
 	
 	public void test(Path testSource) throws IOException, InterruptedException{
-		log.info("Evaluating the training results");
+		log.info("Evaluating the trained model...");
 		
-		int batchSize = 100;
-		DataSetIterator iterator = nbn.getDataSetIterator(testSource, batchSize);
-		
-		// Evaluate on test set
-		// TODO: decide between regression and classification
-		Evaluation eval = new Evaluation(nbn.getClassificationSize());
-		
-		while(iterator.hasNext()){
-			DataSet testData = iterator.next();
-            nbn.applyNormalizer(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
-        	INDArray output = nbn.output(testData.getFeatureMatrix());        	
-        	eval.eval(testData.getLabels(), output);
-		}
+		Evaluation eval = evaluateModel(testSource);
 		
 		// log evaluation results
 		log.info("\tAccuracy: {}", eval.accuracy());
@@ -210,6 +199,31 @@ public class NeuroB {
 		}
 		
 		log.info("******************************");
+	}
+	
+	/**
+	 * Evaluates the network upon the given test set
+	 * @param testSource
+	 * @return
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	protected Evaluation evaluateModel(Path testSource) throws IOException, InterruptedException{
+		int batchSize = 100;
+		DataSetIterator iterator = nbn.getDataSetIterator(testSource, batchSize);
+		
+		// Evaluate on test set
+		// TODO: decide between regression and classification
+		Evaluation eval = new Evaluation(nbn.getClassificationSize());
+		
+		while(iterator.hasNext()){
+			DataSet testData = iterator.next();
+            nbn.applyNormalizer(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
+        	INDArray output = nbn.output(testData.getFeatureMatrix());        	
+        	eval.eval(testData.getLabels(), output);
+		}
+		
+		return eval;
 	}
 	
 	/**
