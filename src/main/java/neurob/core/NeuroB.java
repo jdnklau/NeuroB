@@ -1,5 +1,6 @@
 package neurob.core;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -114,8 +115,47 @@ public class NeuroB {
 	 * @throws IOException 
 	 */
 	public void train(Path trainSource, Path testSource, int numEpochs) throws IOException, InterruptedException{
+		train(trainSource, testSource, numEpochs, false);
+	}
+		
+	/**
+	 * Trains the neural net with a training set located at the given source.
+	 * <p>
+	 * The test source is then used to evaluate the trained network.
+	 * @param trainSource
+	 * @param testSource
+	 * @param numEpochs Number of epochs used in training
+	 * @param saveEpochStats Whether or not to save the evaluation results generated after each epoch to a csv file
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	public void train(Path trainSource, Path testSource, int numEpochs, boolean saveEpochStats) throws IOException, InterruptedException{
 		log.info("Setting up target directory {}", savePath);
 		Files.createDirectories(savePath);
+		
+		BufferedWriter epochCSV = null;
+		if(saveEpochStats){
+			// set up csv
+			epochCSV = Files.newBufferedWriter(savePath.resolve("epochs.csv"));
+			
+			// set up header
+			List<String> columns = new ArrayList<>();
+			columns.add("Epoch");
+			// training set stats
+			columns.add("Training Accuracy");
+			columns.add("Training Precision");
+			columns.add("Training Recall");
+			columns.add("Training F1 Score");
+			// test set stats
+			columns.add("Test Accuracy");
+			columns.add("Test Precision");
+			columns.add("Test Recall");
+			columns.add("Test F1 Score");
+			
+			epochCSV.write(String.join(",", columns));
+			epochCSV.newLine();
+			epochCSV.flush();
+		}
 		
 		int batchSize = 250;
 		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
@@ -171,7 +211,34 @@ public class NeuroB {
 					testEval.precision(),
 					testEval.recall(),
 					testEval.f1());
+			
+			// save to csv
+			if(saveEpochStats && epochCSV != null){
+				List<String> columns = new ArrayList<>();
+				columns.add(Integer.toString(i+1));
+				// training set stats
+				columns.add(Double.toString(trainEval.accuracy()));
+				columns.add(Double.toString(trainEval.precision()));
+				columns.add(Double.toString(trainEval.recall()));
+				columns.add(Double.toString(trainEval.f1()));
+				// test set stats
+				columns.add(Double.toString(testEval.accuracy()));
+				columns.add(Double.toString(testEval.precision()));
+				columns.add(Double.toString(testEval.recall()));
+				columns.add(Double.toString(testEval.f1()));
+				
+				try {
+					epochCSV.write(String.join(",", columns));
+					epochCSV.newLine();
+					epochCSV.flush();
+				} catch (Exception e) {
+					log.warn("\tCould not add evaluation results of current epoch to csv");
+				}
+			}
 		}
+		
+		if(epochCSV != null)
+			epochCSV.close();
 		
 		log.info("Done with training {} epochs", numEpochs);
 		log.info("******************************");

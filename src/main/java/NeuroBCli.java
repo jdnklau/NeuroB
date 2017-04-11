@@ -583,7 +583,7 @@ public class NeuroBCli {
 					buildNet(seed, lr, hidden);
 					
 					try {
-						nb.train(traincsv, testcsv, epochs);
+						nb.train(traincsv, testcsv, epochs, true);
 					} catch (IOException e) {
 						e.printStackTrace();
 					} catch (InterruptedException e) {
