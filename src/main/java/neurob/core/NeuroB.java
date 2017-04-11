@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.eval.ConfusionMatrix;
@@ -130,7 +131,7 @@ public class NeuroB {
 		}
 		
 		// Set up listeners
-		ArrayList<IterationListener> listeners = new ArrayList<>();
+		List<IterationListener> listeners = new ArrayList<>();
 		if(dl4jUIEnabled){
 			UIServer uiServer = UIServer.getInstance();
 			
@@ -157,10 +158,15 @@ public class NeuroB {
 			}
 			
 			// evaluate after each epoch
-//			Evaluation trainEval = evaluateModel(trainSource);
+			Evaluation trainEval = evaluateModel(trainSource);
 			Evaluation testEval = evaluateModel(testSource);
 			log.info("Done with epoch {}", i+1);
-			log.info("\tAccuracy: {}; Precision: {}; Recall: {}; F1 score: {}",
+			log.info("\tTraining stats - Accuracy: {}; Precision: {}; Recall: {}; F1 score: {}",
+					trainEval.accuracy(),
+					trainEval.precision(),
+					trainEval.recall(),
+					trainEval.f1());
+			log.info("\tTesting stats - Accuracy: {}; Precision: {}; Recall: {}; F1 score: {}",
 					testEval.accuracy(),
 					testEval.precision(),
 					testEval.recall(),
