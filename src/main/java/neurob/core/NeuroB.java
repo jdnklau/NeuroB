@@ -81,12 +81,20 @@ public class NeuroB {
 	private final Path savePath;
 
 	public NeuroB(NeuroBNet neuroBNet) {
+		// set up with default target directory 
+		this(neuroBNet, 
+				Paths.get("trained_models/")
+				.resolve(neuroBNet.getDataPathName())
+				.resolve(ZonedDateTime.now()
+						.format(DateTimeFormatter.ISO_INSTANT)));
+	}
+	
+	public NeuroB(NeuroBNet neuroBNet, Path modelDirectory){
 		// link neural net
 		nbn = neuroBNet;
 		dl4jUIEnabled = false;
 		
-		savePath = Paths.get("trained_models/").resolve(nbn.getDataPathName())
-				.resolve(ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+		savePath = modelDirectory; 
 	}
 	
 	public NeuroBNet getNeuroBNet(){
