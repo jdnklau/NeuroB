@@ -1,23 +1,29 @@
 # To Do List
-- update java doc
+- documentation
+    - [ ] update java doc
+    - [ ] add examples
 - model handling
-    - have list of preprocessing utilities that is managed by responsible class
-- training
+    - [ ] have list of preprocessing utilities managed by NeuroBNet
+- model training
     - more generic handling of data preprocessing if possible
-        - add more preprocessing tools
-            - PCA: whitening, feature reduction
-    - distinction between classification and regression
-        - log confusion matrix
+        - [ ] add more preprocessing tools
+            - [ ] PCA: whitening
+            - [ ] feature reduction
+    - [ ] enhance training evaluation
+        - [ ] distinction between classification and regression
+        - [x] log confusion matrix
+    - [ ] early stopping
 - training set generation
-    - utility to truncate data sets with a highly uneven class distribution
-    - shuffle data files
-    - optimise
-        - generation pipeline flushing samples directly to files instead of 
-          holding everything in memory first
-    - data augmentation for larger training sets
+    - [ ] shuffle data files
+    - [ ] generation pipeline; flushing samples directly to files instead of 
+        holding everything in memory first
+    - [ ] data augmentation for larger training sets
+    - [ ] dimensionality reduction methods
+        - [ ] via RBM
+        - [ ] via PCA
 - training set analysis
-    - t-SNE
-    - PCA
+    - [ ] t-SNE
+    - [ ] PCA
 
 # Future Work
 - model check machines
