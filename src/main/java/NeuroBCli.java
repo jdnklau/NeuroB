@@ -7,6 +7,10 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import org.deeplearning4j.api.storage.StatsStorage;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.storage.FileStatsStorage;
+
 import neurob.core.NeuroB;
 import neurob.core.features.PredicateImages;
 import neurob.core.features.TheoryFeatures;
@@ -121,6 +125,9 @@ public class NeuroBCli {
 					+ "\t\tNote: One can set multiple values for the hyper parameters seed, epochs, and lr, resulting in training each possible combination\n"
 					+ "\t\t      so be carefull with how many you query\n"
 					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007\n"
+					
+					+ "loadnet -dl4jdata <modeldirectory> [-net <features> <labels>]\n"
+					+ "\tLoad stats of an already trained model into the DL4J UI"
 					
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
@@ -259,6 +266,15 @@ public class NeuroBCli {
 				System.out.println("trainnet: missing -train parameter");
 			}
 		}
+		else if(cmd.equals("loadnet")){
+			if(ops.containsKey("dl4jdata")){
+				Path dl4jData = Paths.get(ops.get("dl4jdata").get(0));
+				loadDL4JData(dl4jData);
+			}
+			else {
+				System.out.println("loadnet: missing -dl4jdata parameter");
+			}
+		}
 		else if(cmd.equals("trainmultiplenets")){
 		}
 		// distribute library file
@@ -286,6 +302,17 @@ public class NeuroBCli {
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 	
+	private static void loadDL4JData(Path dl4jData) {
+		StatsStorage stats = new FileStatsStorage(dl4jData.toFile());
+		UIServer ui = UIServer.getInstance();
+		ui.attach(stats);
+		System.out.println("DL4J UI is available at http://localhost:9000/");
+		System.out.println("To stop the server, kill this process (CTRL+C)");
+		while(true){
+			// FIXME: find better way to keep server running
+		}
+	}
+
 	private static void trimTrainingSet(Path source, Path target) {
 		FeatureGenerator fg = getFeatureGenerator();
 		LabelGenerator lg = getLabelGenerator();
