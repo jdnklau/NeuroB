@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import org.deeplearning4j.api.storage.StatsStorage;
+import org.deeplearning4j.eval.ConfusionMatrix;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
@@ -197,6 +198,17 @@ public class NeuroB {
 		log.info("\tPrecision: {}", eval.precision());
 		log.info("\tRecall: {}", eval.recall());
 		log.info("\tF1 score: {}", eval.f1());
+
+		// log confusion matrix
+		ConfusionMatrix<Integer> matrix = eval.getConfusionMatrix();
+		log.info("Confusion Matrix:");
+		for(int i=0; i<nbn.getClassificationSize(); i++){
+			for(int j=0; j<nbn.getClassificationSize(); j++){
+				log.info("\tClass {} predicted as {} a total of {} times", i, j,
+						matrix.getCount(i, j));
+			}
+		}
+		
 		log.info("******************************");
 	}
 	
