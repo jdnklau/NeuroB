@@ -248,15 +248,43 @@ public class NeuroBNet {
 	/**
 	 * Model your normaliser on the training set
 	 * @param data
+	 * @deprecated use {@link #fitNormalizer(DataSetIterator)} instead
 	 */
+	@Deprecated
 	public void fitNormalizer(DataSet data){
 		if(useNormalizer)
 			normalizer.fit(data);
 	}
 	
+	/**
+	 * Fits the normalizer over the data set iterator and sets it as preprocessor.
+	 * Does nothing if no normalizer is used.
+	 * @param iterator
+	 */
+	public void fitNormalizer(DataSetIterator iterator){
+		if(useNormalizer){
+			normalizer.fit(iterator);
+			iterator.setPreProcessor(normalizer);
+		}
+			
+	}
+	
+	/**
+	 * Normalises the data with the trained normalizer, or does nothing if no normalizer is used.
+	 */
 	public void applyNormalizer(DataSet data){
 		if(useNormalizer)
 			normalizer.transform(data);
+	}
+	
+	/**
+	 * Sets the normalizer trained for this model as preprocessor to the given data set iterator.
+	 * If no normalizer is used, does nothing.
+	 * @param iterator
+	 */
+	public void applyNormalizer(DataSetIterator iterator){
+		if(useNormalizer)
+			iterator.setPreProcessor(normalizer);
 	}
 	
 	public DataNormalization getNormalizer(){
@@ -266,12 +294,22 @@ public class NeuroBNet {
 	/**
 	 * Insert data to train your network on
 	 * @param data
+	 * @see #fit(DataSetIterator)
 	 */
 	public void fit(DataSet data){
 		// normalize data
 		if(useNormalizer)
 			normalizer.transform(data);
 		model.fit(data);
+	}
+	
+	/**
+	 * Trains for one epoch over the data set.
+	 * @param iterator
+	 * @see #fit(DataSet)
+	 */
+	public void fit(DataSetIterator iterator){
+		model.fit(iterator);
 	}
 	
 	/**

@@ -165,10 +165,7 @@ public class NeuroB {
 		
 		// set up normaliser
 		log.info("Setting up normaliser...");
-		while(iterator.hasNext()){
-			DataSet batch = iterator.next();
-        	nbn.fitNormalizer(batch);
-		}
+		nbn.fitNormalizer(iterator);
 		
 		// Set up listeners
 		List<IterationListener> listeners = new ArrayList<>();
@@ -192,10 +189,7 @@ public class NeuroB {
 		for(int i=0; i<numEpochs; i++){
 			log.info("Training epoch {}", i+1);
         	iterator.reset();
-			while(iterator.hasNext()){
-				DataSet trainingData = iterator.next(); 
-	        	nbn.fit(trainingData);
-			}
+			nbn.fit(iterator);
 			
 			// evaluate after each epoch
 			Evaluation trainEval = evaluateModel(trainSource);
@@ -284,14 +278,13 @@ public class NeuroB {
 	protected Evaluation evaluateModel(Path testSource) throws IOException, InterruptedException{
 		int batchSize = 100;
 		DataSetIterator iterator = nbn.getDataSetIterator(testSource, batchSize);
-		
+		nbn.applyNormalizer(iterator); //Apply normalization to the test data. This is using statistics calculated from the *training* set
 		// Evaluate on test set
 		// TODO: decide between regression and classification
 		Evaluation eval = new Evaluation(nbn.getClassificationSize());
 		
 		while(iterator.hasNext()){
 			DataSet testData = iterator.next();
-            nbn.applyNormalizer(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
         	INDArray output = nbn.output(testData.getFeatureMatrix());        	
         	eval.eval(testData.getLabels(), output);
 		}
