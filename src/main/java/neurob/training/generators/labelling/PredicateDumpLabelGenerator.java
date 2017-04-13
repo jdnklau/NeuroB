@@ -11,6 +11,11 @@ import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
 public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
+
+	/**
+	 * Number of solvers the predicate dump considers and generates labellings for
+	 */
+	public static final int solversAccountedFor = 4;
 	
 	private int samplingSize;
 
@@ -46,16 +51,21 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 		long ProBTime = 0;
 		long KodKodTime = 0;
 		long Z3Time = 0;
+		long SMTSupportedTime = 0;
 		
 		for(int sample=0; sample<samplingSize; ++sample){
 			ProBTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.PROB, formula);
 			KodKodTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.KODKOD, formula);
 			Z3Time += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
+			SMTSupportedTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace,
+					SolverType.SMT_SUPPORTED_INTERPRETER, formula);
 		}
 		
 		return new double[]{ProBTime/(double)samplingSize
 							, KodKodTime/(double)samplingSize
-							, Z3Time/(double)samplingSize};
+							, Z3Time/(double)samplingSize
+							, SMTSupportedTime/(double)samplingSize
+							};
 	}
 
 //	@Override

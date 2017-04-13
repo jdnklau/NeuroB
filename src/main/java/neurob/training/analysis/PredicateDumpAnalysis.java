@@ -5,10 +5,12 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
+
 public class PredicateDumpAnalysis extends RegressionAnalysis {
 	// data over solvers
 	private long[] negSamples;
-	private final static int solversAccountedFor = 3;
+	private final static int solversAccountedFor = PredicateDumpLabelGenerator.solversAccountedFor;
 	private double[] decidabilityDist; // Distribution of decidability of samples between solvers
 	
 
