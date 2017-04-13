@@ -11,8 +11,8 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
-import neurob.core.features.CodeImages;
-import neurob.core.features.PredicateFeatures;
+import neurob.core.features.PredicateImages;
+import neurob.core.features.TheoryFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
@@ -56,28 +56,28 @@ public class OldModels {
 
 	public static NeuroBNet getProBPredictionNet(int seed) {
 		return getOldModel(
-				new PredicateFeatures(),
+				new TheoryFeatures(),
 				new SolverClassificationGenerator(SolverType.PROB),
 				seed);
 	}
 	
 	public static NeuroBNet getProBPredictionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodeImages(size),
+				new PredicateImages(size),
 				new SolverClassificationGenerator(SolverType.PROB),
 				seed);
 	}
 	
 	public static NeuroBNet getKodKodPredictionNet(int seed){
 		return getOldModel(
-				new PredicateFeatures(),
+				new TheoryFeatures(),
 				new SolverClassificationGenerator(SolverType.KODKOD),
 				seed);
 	}
 	
 	public static NeuroBNet getKodKodPredictionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodeImages(size),
+				new PredicateImages(size),
 				new SolverClassificationGenerator(SolverType.KODKOD),
 				seed);
 	}
@@ -85,7 +85,7 @@ public class OldModels {
 //	NOTE: No longer supported
 //	public static NeuroBNet getPredicateSolverPredictionNet(int seed){
 //		return getOldModel(
-//				new PredicateFeatures(),
+//				new TheoryFeatures(),
 //				new SolverClassificationGenerator(true, true, true),
 //				seed);
 //	}
@@ -99,14 +99,14 @@ public class OldModels {
 	
 	public static NeuroBNet getPredicateSolverSelectionNet(int seed){
 		return getOldModel(
-				new PredicateFeatures(),
+				new TheoryFeatures(),
 				new SolverSelectionGenerator(),
 				seed);
 	}
 	
 	public static NeuroBNet getPredicateSolverSelectionWithCodePortfolioNet(int seed, int size){
 		return getOldModel(
-				new CodeImages(size),
+				new PredicateImages(size),
 				new SolverSelectionGenerator(),
 				seed);
 	}

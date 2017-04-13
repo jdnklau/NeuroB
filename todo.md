@@ -1,31 +1,28 @@
 # To Do List
-- random predicate generator
-    - tool to insert formal grammar and generate an amount of correct syntax snippets
-- find and read papers
-    - rnn for code/text classification
+- update java doc
 - model handling
     - have list of preprocessing utilities that is managed by responsible class
 - training
-    - calculate training error thus far
-        - after X iterations rather than just after each epoch
-    - save files to disk by default
+    - save trained models to disk by default
     - more generic handling of data preprocessing if possible
+        - add more preprocessing tools
+            - PCA: whitening, feature reduction
+    - distinction between classification and regression
+        - log confusion matrix
 - training set generation
-    - add function to truncate data.csv to contain all classes more evenly
-    - model check machines
-        - generate 100 states per solver
-        - give credit to fastest one
-        - future work?
+    - utility to truncate data sets with a highly uneven class distribution
+    - shuffle data files
     - optimise
+        - generation pipeline flushing samples directly to files instead of 
+          holding everything in memory first
     - data augmentation for larger training sets
-    - more distinct support for convolutional models
-    - store training data in binary option, instead of csv or directory hierarchy
-        - this means hand crafted data pipeline
-        - benefits:
-            - images as binary objects rather than their feature string representation
-            - still regression is part of the deal as no directory hierarchy is necessary but only the data pack
 - training set analysis
-    - add fancy stuff for classification
-        - t-SNE
-        - PCA
-- update java doc
+    - t-SNE
+    - PCA
+
+# Future Work
+- model check machines
+    - generate 100 states per solver
+        - give credit to fastest one
+    - or: state space exploration over a fixed time
+        - give credit to the one with the most states generated

@@ -4,20 +4,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.stream.Stream;
 
-import de.prob.exception.ProBError;
-import de.prob.scripting.ModelTranslationError;
 import neurob.core.NeuroB;
-import neurob.core.features.CodeImages;
-import neurob.core.features.PredicateFeatures;
+import neurob.core.features.PredicateImages;
+import neurob.core.features.TheoryFeatures;
+import neurob.core.features.interfaces.ConvolutionFeatures;
+import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
+import neurob.training.DataDumpTranslator;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.PredicateDumpGenerator;
+import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.SolverClassificationGenerator;
 import neurob.training.generators.labelling.SolverSelectionGenerator;
@@ -84,23 +87,16 @@ public class NeuroBCli {
 					+ "\tAnalyse the generated training data in <directory>\n"
 					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
 					
-					+ "trainingset -analyse -file <file> [-net <features> <labels>]\n"
-					+ "\tAnalyse the generated training data in <file>\n"
-					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
-
-					+ "trainingset -csvsplit -file <file> -first <first> -second <second> -ratio <ratio>\n"
-					+ "\tSplit a given CSV file into <first> and <second>, both being CSV files again\n"
-					+ "\tFor this, the given <ratio> is used, a number in the interval [0,1]\n"
+					+ "trainingset -split -source <source> -first <first> -second <second> -ratio <ratio> [-net <features> <labels>]\n"
+					+ "\tSplit the training set located in <source> into two distinct subsets, <first> and <second>\n"
+					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
+					+ "\twith <ratio> being a number from the interval [0,1]\n"
 					
-					+ "trainingset -csvtranslate -file <csv> -dir <directory> [-net <features> <labels>]\n"
-					+ "\tFor models with convolutional features, this translates the data.csv from training set generation into\n"
-					+ "\ta directory structure in <directory>, that contains the classes as subdirectories and places all\n"
-					+ "\tsamples as image files accordingly inside one of them\n"
+					+ "trainingset -trim -source <source> -target <target> [-net <features> <labels>]\n"
+					+ "\tTrims the training set located in <source> after a beforehand analysis\n"
+					+ "\tThe trimmed version of the training set will be located in <target> afterwards.\n"
 					
-					+ "trainingset -csvgenerate -dir <directory> [-net <features> <labels>]\n"
-					+ "\tCreates a data.csv from found .nbtrain files in the given <directory>\n"
-					
-					+ "pdump -dir <directory> [-excludefile <excludefile]\n"
+					+ "pdump -dir <directory> [-excludefile <excludefile>]\n"
 					+ "\tCreates predicate dump files from the (Event)B machines in <directory>\n"
 					
 					+ "pdump -file <file>\n"
@@ -177,47 +173,34 @@ public class NeuroBCli {
 				
 				
 			}
-			else if(ops.containsKey("csvsplit")){
-				if(ops.containsKey("file")){
+			else if(ops.containsKey("split")){
+				if(ops.containsKey("source")){
 					if(ops.containsKey("first") && ops.containsKey("second") && ops.containsKey("ratio")){
-						Path csv = Paths.get(ops.get("file").get(0));
+						Path csv = Paths.get(ops.get("source").get(0));
 						Path first = Paths.get(ops.get("first").get(0));
 						Path second = Paths.get(ops.get("second").get(0));
 						double ratio = Double.parseDouble(ops.get("ratio").get(0));
-						csvsplit(csv, first, second, ratio);
+						splitTrainingset(csv, first, second, ratio);
 						
 					}
 					else {
-						System.out.println("trainingset -csvsplit: Missing at least one of those parameters: -first, -second, -ratio");
-					}
-				}
-			}
-			else if(ops.containsKey("csvtranslate")){
-				if(ops.containsKey("file")){
-					if(ops.containsKey("dir")){
-						Path csv = Paths.get(ops.get("file").get(0));
-						Path dir = Paths.get(ops.get("dir").get(0));
-						buildNet();
-						translateCsv(csv, dir);
-						
-					}
-					else {
-						System.out.println("trainingset -csvtranslate: Missing parameter: -dir");
+						System.out.println("trainingset -split: Missing at least one of those parameters: -first, -second, -ratio");
 					}
 				}
 				else {
-					System.out.println("trainingset -csvtranslate: Missing parameter: -file");
+					System.out.println("trainingset -split: Missing -source parameter");
 				}
 			}
-			else if(ops.containsKey("csvgenerate")){
-				if(ops.containsKey("dir")){
-					buildNet();
-					csvgenerate(dir);
-				} 
-				else {
-					System.out.println("trainingset -csvgenerate: Missing -dir parameter");
+			else if(ops.containsKey("trim")){
+				if(ops.containsKey("source") && ops.containsKey("target")){
+					Path source = Paths.get(ops.get("source").get(0));
+					Path target = Paths.get(ops.get("target").get(0));
+					trimTrainingSet(source, target);
+				} else {
+					System.out.println("trainingset -trim: -source and -target arguments need to be set");
 				}
-			} 
+			}
+			
 			else if(ops.containsKey("dir")){// generate training set
 				buildNet();
 				trainingSetGeneration(dir);
@@ -303,14 +286,39 @@ public class NeuroBCli {
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 	
+	private static void trimTrainingSet(Path source, Path target) {
+		FeatureGenerator fg = getFeatureGenerator();
+		LabelGenerator lg = getLabelGenerator();
+		
+		TrainingDataGenerator tdg = fg.getTrainingDataGenerator(lg);
+		
+		try {
+			tdg.trimTrainingData(source, target);
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void splitTrainingset(Path source, Path first, Path second, double ratio) {
+		FeatureGenerator fg = getFeatureGenerator();
+		LabelGenerator lg = getLabelGenerator();
+		
+		TrainingDataGenerator tdg = fg.getTrainingDataGenerator(lg);
+		
+		try {
+			tdg.splitTrainingData(source, first, second, ratio, new Random(123));
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static void generatePDumpFromFile(Path file) {
 		PredicateDumpGenerator tpg = new PredicateDumpGenerator();
 		
 		try {
-			Path targetFile = tpg.generateTargetFilePath(file, Paths.get("training_data/PredicateDump/"));
-			tpg.collectTrainingDataFromFile(file, targetFile);
-		} catch (NeuroBException e) {
-			// TODO Auto-generated catch block
+			Path targetFile = tpg.generateTrainingDataPath(file, Paths.get("training_data/PredicateDump/"));
+			tpg.generateTrainingDataFromFile(file, targetFile);
+		} catch (NeuroBException | IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -321,27 +329,20 @@ public class NeuroBCli {
 	}
 	
 	private static void translatePDump(Path dir) {
-		try {
-			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName()).resolve("pdata.csv");
-			nb.getNeuroBNet().getTrainingSetGenerator().generateCSVFromPDumpFiles(dir, target);
-		} catch (NeuroBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName());
+			nb.getNeuroBNet().getTrainingSetGenerator().translateDataDumpFiles(dir, target);
+//		} catch (NeuroBException e) {
+//			e.printStackTrace();
+//		}
 	}
 	
 	private static void analysePDump(Path dir){
-		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
 		try {
-			tsa.analysePredicateDumps(dir).log();
+			TrainingSetAnalyser.analysePredicateDumps(dir).log();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	private static void translateCsv(Path csv, Path dir) {
-		nb.getNeuroBNet().getTrainingSetGenerator().translateCSVToImages(csv, dir);
 	}
 
 	private static void buildNet(){
@@ -349,14 +350,29 @@ public class NeuroBCli {
 	}
 	
 	private static void buildNet(int i){
-		buildNet(i, 0.006, new int[]{200});
+		buildNet(i, 0.006, new int[]{512, 256, 128, 128});
 	}
 	
 	private static void buildNet(int seed, double learningrate, int[] hiddenLayers){
 		NeuroBNet model;
+		LabelGenerator labelling = getLabelGenerator();
+		FeatureGenerator features = getFeatureGenerator();
+		
+		// FeatureGenerator features;
+		if(features instanceof ConvolutionFeatures){
+			model = new NeuroBConvNet(hiddenLayers, learningrate, (ConvolutionFeatures) features, labelling, seed);
+		}
+		else {//if(feats.equals("predf")){
+			model = new NeuroBNet(hiddenLayers, learningrate, features, labelling, seed);
+		}
+		
+		nb = new NeuroB(model);
+		nb.enableDL4JUI(true);
+	}
+	
+	private static FeatureGenerator getFeatureGenerator(){
 		// get net type
 		String feats = "predf";
-		String label = "solclass";
 		if(ops.containsKey("net")){
 			ArrayList<String> net = ops.get("net");
 			if(net.size() != 2){
@@ -364,6 +380,28 @@ public class NeuroBCli {
 				System.exit(10);
 			}
 			feats = net.get(0);
+		}
+		
+		if(feats.equals("predi")){
+			int s = 32;
+			if(ops.containsKey("size")){
+				s = Integer.parseInt(ops.get("size").get(0));
+			}
+			return new PredicateImages(s);
+		}
+		else {
+			return new TheoryFeatures();
+		}
+	}
+	
+	private static LabelGenerator getLabelGenerator(){
+		String label = "solclass";
+		if(ops.containsKey("net")){
+			ArrayList<String> net = ops.get("net");
+			if(net.size() != 2){
+				System.out.println("-net expects two parameters: <features> and <labels>");
+				System.exit(10);
+			}
 			label = net.get(1);
 		}
 		
@@ -386,20 +424,7 @@ public class NeuroBCli {
 			labelling = new SolverClassificationGenerator(solver);
 		}
 		
-		// FeatureGenerator features;
-		if(feats.equals("predi")){
-			int s = 32;
-			if(ops.containsKey("size")){
-				s = Integer.parseInt(ops.get("size").get(0));
-			}
-			model = new NeuroBConvNet(hiddenLayers, learningrate, new CodeImages(s), labelling, seed);
-		}
-		else {//if(feats.equals("predf")){
-			model = new NeuroBNet(hiddenLayers, learningrate, new PredicateFeatures(), labelling, seed);
-		}
-		
-		nb = new NeuroB(model);
-		nb.enableDL4JUI(true);
+		return labelling;
 	}
 
 	private static void parseCommandLineOptions(HashMap<String, ArrayList<String>> ops) {
@@ -467,13 +492,17 @@ public class NeuroBCli {
 	
 	private static void trainingSetGeneration(Path sourceDir){
 		Path targetDir = Paths.get("training_data/");
-		nb.generateTrainingSet(sourceDir, targetDir, excludefile);
+		try {
+			nb.generateTrainingSet(sourceDir, targetDir, excludefile);
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static void analyseTrainingSet(Path dir, TrainingSetGenerator tsg) {
 		try {
 			tsg.logTrainingSetAnalysis(dir);
-		} catch (IOException e) {
+		} catch (IOException | NeuroBException e) {
 			System.out.println("Could not access target directory "+dir);
 			e.printStackTrace();
 		}
@@ -488,23 +517,9 @@ public class NeuroBCli {
 		}
 	}
 	
-	private static void csvsplit(Path csv, Path first, Path second, double ratio){
-		
-		try {
-			TrainingSetGenerator.splitCSV(csv, first, second, ratio, true);
-		} catch (NeuroBException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private static void csvgenerate(Path dir){
-		Path csv = dir.resolve("data.csv");
-		nb.getNeuroBNet().getTrainingSetGenerator().generateCSVFromNBTrainFiles(dir, csv);
-	}
-	
 	private static void exclude(Path excludefile, Path excl) {
 		TrainingSetGenerator tsg = new TrainingSetGenerator(
-				new SolverClassificationGenerator(SolverType.PROB).getTrainingDataGenerator(new PredicateFeatures()));
+				new TheoryFeatures().getTrainingDataGenerator(new SolverClassificationGenerator(SolverType.PROB)));
 		tsg.exclude(excludefile, excl);
 		
 	}
@@ -543,10 +558,8 @@ public class NeuroBCli {
 					try {
 						nb.train(traincsv, testcsv, epochs);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}

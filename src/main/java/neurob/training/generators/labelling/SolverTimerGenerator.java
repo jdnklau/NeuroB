@@ -3,7 +3,9 @@
  */
 package neurob.training.generators.labelling;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
@@ -14,8 +16,8 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
+import neurob.training.generators.util.DumpData;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
@@ -23,7 +25,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @author jannik
  *
  */
-public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
+public class SolverTimerGenerator implements PredicateLabelGenerator {
 	private int samplingSize;
 	
 	/**
@@ -65,6 +67,11 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 	}
 	
 	@Override
+	public int getTrainingLabelDimension() {
+		return 3;
+	}
+	
+	@Override
 	public ProblemType getProblemType(){
 		return ProblemType.REGRESSION;
 	}
@@ -73,7 +80,7 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 	 * @see neurob.training.generators.interfaces.LabelGenerator#generateLabelling(java.lang.String, de.prob.statespace.StateSpace)
 	 */
 	@Override
-	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
+	public double[] generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
@@ -93,7 +100,7 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 		
 	}
 	
-	private String getLabellingByTimes(double ProBTime, double KodKodTime, double Z3Time){
+	private double[] getLabellingByTimes(double ProBTime, double KodKodTime, double Z3Time){
 		//return Long.toString(ProBTime)+","+Long.toString(KodKodTime)+","+Long.toString(Z3Time);
 		
 		// convert appropriately to milliseconds
@@ -104,31 +111,8 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 		double KodKodTimeMilliSeconds = (KodKodTime < 0) ? -1 : KodKodTime / 1e6;
 		double Z3TimeMilliSeconds = (Z3Time < 0) ? -1 : Z3Time / 1e6;
 		
-		return Double.toString(ProBTimeMilliSeconds)+","+Double.toString(KodKodTimeMilliSeconds)+","+Double.toString(Z3TimeMilliSeconds);
+		return new double[]{ProBTimeMilliSeconds, KodKodTimeMilliSeconds,Z3TimeMilliSeconds};
 	}
-
-	/* (non-Javadoc)
-	 * @see neurob.training.generators.interfaces.LabelGenerator#generateLabelling(java.lang.String, java.nio.file.Path)
-	 */
-//	@Override
-//	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
-//		// setup up state space
-//		StateSpace ss;
-//		try {
-//			ss = api.b_load(b_machine.toString());
-//		} catch (IOException e) {
-//			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
-//		} catch (ModelTranslationError e) {
-//			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
-//		}
-//		
-//		// Use other method to calculate labelling
-//		String labelling = generateLabelling(predicate, ss);
-//		
-//		ss.kill();
-//		// return
-//		return labelling;
-//	}
 	
 	@Override
 	public DataSetIterator getDataSetIterator(RecordReader recordReader, int batchSize, int featureDimension) {
@@ -142,9 +126,10 @@ public class SolverTimerGenerator implements PredicateLabelGenerator, PredicateD
 	
 		return iterator;
 	}
-
+	
 	@Override
-	public String translateToCSVLabelString(List<Long> labellings) {
+	public double[] translateLabelling(DumpData dumpData) {
+		List<Long> labellings = dumpData.getLabellings();
 		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
 	}
 

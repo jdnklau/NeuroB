@@ -9,8 +9,8 @@ import de.prob.statespace.StateSpace;
 import neurob.core.util.ProblemType;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.PredicateDumpTranslator;
 import neurob.training.generators.interfaces.PredicateLabelGenerator;
+import neurob.training.generators.util.DumpData;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 
@@ -44,7 +44,7 @@ import neurob.training.generators.util.PredicateEvaluator;
  * @see SolverClassificationGenerator
  *
  */
-public class SolverSelectionGenerator implements PredicateLabelGenerator, PredicateDumpTranslator {
+public class SolverSelectionGenerator implements PredicateLabelGenerator {
 
 	@Override
 	public int getClassCount() {
@@ -63,12 +63,17 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 	}
 	
 	@Override
+	public int getTrainingLabelDimension() {
+		return 1;
+	}
+	
+	@Override
 	public ProblemType getProblemType(){
 		return ProblemType.CLASSIFICATION;
 	}
 
 	@Override
-	public String generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
+	public double[] generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
 		
 		// Check for solvers if they can decide the predicate + get the time they need
@@ -76,35 +81,15 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		long KodKodTime = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.KODKOD, formula);
 		long Z3Time = PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.Z3, formula);
 		
-		return getLabellingByTimes(ProBTime, KodKodTime, Z3Time);
+		return new double[]{getLabellingByTimes(ProBTime, KodKodTime, Z3Time)};
 		
 	}
-
-//	@Override
-//	public String generateLabelling(String predicate, Path b_machine) throws NeuroBException {
-//		// setup up state space
-//		StateSpace ss;
-//		try {
-//			ss = api.b_load(b_machine.toString());
-//		} catch (IOException e) {
-//			throw new NeuroBException("Could not access file: "+b_machine.toString(), e);
-//		} catch (ModelTranslationError e) {
-//			throw new NeuroBException("Could not translate model: "+b_machine.toString(), e);
-//		}
-//		
-//		// Use other method to calculate labelling
-//		String labelling = generateLabelling(predicate, ss);
-//		
-//		ss.kill();
-//		// return
-//		return labelling;
-//	}
 	
-	private String getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
+	private int getLabellingByTimes(long ProBTime, long KodKodTime, long Z3Time){
 		// check if any solver could decide the formula
 		if(0 == ArrayUtil.argMax(new long[]{0, ProBTime, KodKodTime, Z3Time})){
 			// this means all timers returned with -1, indicating that none could decide the formula
-			return "0";
+			return 0;
 		}
 		
 		// get fastest solver
@@ -121,19 +106,20 @@ public class SolverSelectionGenerator implements PredicateLabelGenerator, Predic
 		
 		// select biggest
 		if(proB >= kodKod && proB >= z3){
-			return "1";
+			return 1;
 		}
 		else if(kodKod >= z3){
-			return "2";
+			return 2;
 		}
 		else {
-			return "3";
+			return 3;
 		}
 	}
-
+	
 	@Override
-	public String translateToCSVLabelString(List<Long> labellings) {
-		return getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2));
+	public double[] translateLabelling(DumpData dumpData) {
+		List<Long> labellings = dumpData.getLabellings();
+		return new double[]{getLabellingByTimes(labellings.get(0), labellings.get(1), labellings.get(2))};
 	}
 
 }

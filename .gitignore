@@ -1,6 +1,8 @@
 ### Project specific
 # minimal working examples to check for bugs
-src/MWEModelTranslationError.java
+src/main/java/RectifyPredicateDumps.java
+# symbolic link for NeuroB cli script
+NeuroB
 
 # training data directory
 training_data/

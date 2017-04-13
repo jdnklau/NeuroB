@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import neurob.core.nets.NeuroBNet;
+import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetGenerator;
 
 /**
@@ -80,35 +81,36 @@ public class NeuroB {
 	}
 	
 	/**
-	 * Trains the neural net with a CSV file.
+	 * Trains the neural net with a training set located at the given source.
 	 * <p>
-	 * The test CSV is then used to evaluate the trained network.
-	 * @param trainCSV
-	 * @param testCSV
+	 * The test source is then used to evaluate the trained network.
+	 * @param trainSource
+	 * @param testSource
 	 * @param epochs Number of epochs used in training
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainCSV, Path testCSV, int epochs) throws IOException, InterruptedException{
-		train(trainCSV, epochs);
-		test(testCSV);
+	public void train(Path trainSource, Path testSource, int epochs) throws IOException, InterruptedException{
+		train(trainSource, epochs);
+		test(testSource);
 	}
 	
 	/**
-	 * Trains the neural net with a CSV file.
-	 * @param trainCSV
+	 * Trains the neural net with a training set located at the given source.
+	 * @param trainSource
 	 * @param numEpochs Number of times the training data will be fit into the network
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainCSV, int numEpochs) throws IOException, InterruptedException{
+	public void train(Path trainSource, int numEpochs) throws IOException, InterruptedException{
 		int batchSize = 250;
-		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainCSV, numEpochs, batchSize);
+		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
 		
 		// set up training data
-		DataSetIterator iterator = nbn.getDataSetIterator(trainCSV, batchSize);
+		DataSetIterator iterator = nbn.getDataSetIterator(trainSource, batchSize);
 		
 		// set up normaliser
+		log.info("Setting up normaliser...");
 		while(iterator.hasNext()){
 			DataSet batch = iterator.next();
         	nbn.fitNormalizer(batch);
@@ -123,6 +125,8 @@ public class NeuroB {
 			uiServer.attach(statsStorage);
 			
 			listeners.add(new StatsListener(statsStorage));
+			
+			log.info("DL4J UI is available at http://localhost:9000/train/");
 		}
 		listeners.add(new PerformanceListener(75, true));
 		nbn.setListeners(listeners);
@@ -141,13 +145,14 @@ public class NeuroB {
 		log.info("******************************");
 	}
 	
-	public void test(Path testCSV) throws IOException, InterruptedException{
+	public void test(Path testSource) throws IOException, InterruptedException{
 		log.info("Evaluating the training results");
 		
 		int batchSize = 100;
-		DataSetIterator iterator = nbn.getDataSetIterator(testCSV, batchSize);
+		DataSetIterator iterator = nbn.getDataSetIterator(testSource, batchSize);
 		
 		// Evaluate on test set
+		// TODO: decide between regression and classification
 		Evaluation eval = new Evaluation(nbn.getClassificationSize());
 		
 		while(iterator.hasNext()){
@@ -193,9 +198,10 @@ public class NeuroB {
 	 * @param sourceDirectory Directory from which the machine files are read
 	 * @param targetDirectory Directory in which the *.nbtrain files will be put 
 	 * @param excludeFile {@code null} or path to excludes file
+	 * @throws NeuroBException 
 	 * 
 	 */
-	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile) {
+	public void generateTrainingSet(Path sourceDirectory, Path targetDirectory, Path excludeFile) throws NeuroBException {
 		// set up generator
 		TrainingSetGenerator tsg = nbn.getTrainingSetGenerator();
 		// set up training data directory
@@ -211,10 +217,6 @@ public class NeuroB {
 		} catch (IOException e) {
 			log.error("Could not access target directory {} for training data analysis: {}", targetDirectory, e.getMessage(), e);
 		}
-		
-		// generate csv
-		tsg.generateCSVFromNBTrainFiles(fullTargetDirectory, fullTargetDirectory.resolve("data.csv"));
-//		tsg.generateTrainAndTestCSVfromNBTrainData(fullTargetDirectory, fullTargetDirectory.resolve("train_data.csv"), fullTargetDirectory.resolve("test_data.csv"), 0.65);
 	}
 
 }

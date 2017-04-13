@@ -4,9 +4,9 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -14,11 +14,11 @@ import org.nd4j.linalg.factory.Nd4j;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.exceptions.NeuroBException;
 
-public class CodeImages implements ConvolutionFeatures {
+public abstract class CodeImages implements ConvolutionFeatures {
 	private int dim;
 	private int pixels; // has to be dim*dim
-	// Features
-	private ArrayList<BufferedImage> features;
+	private Path sourceFile;
+	
 	/**
 	 * The image size generated will be of size {@code dimension * dimension}
 	 * @param dimension 
@@ -26,7 +26,6 @@ public class CodeImages implements ConvolutionFeatures {
 	public CodeImages(int dimension) {
 		this.dim = dimension;
 		pixels = dim*dim;
-		features = new ArrayList<BufferedImage>();
 	}
 	
 	@Override
@@ -75,6 +74,16 @@ public class CodeImages implements ConvolutionFeatures {
 			}
 		}
 		
+		return scaleImage(img);
+	}
+	
+	/**
+	 * Scales the given image to the dimensions defined by 
+	 * {@link #CodeImages(int) instance construction}.
+	 * @param img
+	 * @return
+	 */
+	protected BufferedImage scaleImage(BufferedImage img){
 		// resize image
 		Image tmp = img.getScaledInstance(dim, dim, Image.SCALE_SMOOTH);
 		BufferedImage scaled = new BufferedImage(dim, dim, BufferedImage.TYPE_BYTE_GRAY);
@@ -87,7 +96,8 @@ public class CodeImages implements ConvolutionFeatures {
 		return scaled;
 	}
 	
-	private double[] translateImageFeatureToArray(BufferedImage image){
+	@Override
+	public double[] translateImageFeatureToArray(BufferedImage image){
 		// return a double[]
 		double[] data = new double[pixels];
 		
@@ -100,6 +110,21 @@ public class CodeImages implements ConvolutionFeatures {
 		}
 		
 		return data;
+	}
+	
+	@Override
+	public BufferedImage translateArrayFeatureToImage(double[] features) {
+		BufferedImage img = new BufferedImage(dim, dim, BufferedImage.TYPE_BYTE_GRAY);
+		WritableRaster raster = img.getRaster();
+		
+		for(int y = 0; y < dim; y++){
+			for(int x = 0; x < dim; x++){
+				int px = (int)features[x+y*dim];
+				raster.setPixel(x, y, new int[]{px});
+			}
+		}
+		
+		return scaleImage(img);
 	}
 	
 	@Override
@@ -137,22 +162,6 @@ public class CodeImages implements ConvolutionFeatures {
 	}
 
 	@Override
-	public void addData(String code) throws NeuroBException {
-		features.add(generateFeatureImage(code));
-	}
-
-	@Override
-	public List<String> getFeatureStrings() {
-		ArrayList<String> strfeatures = new ArrayList<String>();
-		
-		for(BufferedImage img : getFeatureImages()){
-			strfeatures.add(translateImageFeatureToString(img));
-		}
-		
-		return strfeatures;
-	}
-
-	@Override
 	public int getFeatureDimension() {
 		return pixels;
 	}
@@ -173,13 +182,13 @@ public class CodeImages implements ConvolutionFeatures {
 	}
 
 	@Override
-	public void reset() {
-		features.clear();
+	public void setSourceFile(Path sourceFile) throws NeuroBException {
+		this.sourceFile = sourceFile;
 	}
 
 	@Override
-	public List<BufferedImage> getFeatureImages() {
-		return features;
+	public Path getSourceFile() {
+		return sourceFile;
 	}
 
 }

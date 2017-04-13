@@ -1,55 +1,25 @@
 package neurob.training;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.prob.exception.ProBError;
-import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.TrainingDataGenerator;
 import neurob.training.generators.interfaces.LabelGenerator;
-import neurob.training.generators.interfaces.PredicateDumpTranslator;
 
-/**
- * Class to generate the training data for the neural net.
- * 
- * <p>
- * The constructor takes to parameters:
- * 		<ul>
- * 			<li>An object implementing {@link TrainingDataCollector}, to get desired features, and</li>
- * 			<li>An object implementing {@link TrainingOutputCollector}, to get corresponding output data, the neural net should be trained on.</li>
- * 		</ul>
- * </p>
- * <p>
- * Use {@link TrainingSetGenerator#generateTrainingSet(Path, Path) generateTrainingSet} to generate the test data from a given source directory,
- * that contains .mch files. They will be translated into .nbtrain files, containing the collected data.
- * </p>
- * 
- * @author Jannik Dunkelau
- *
- */
 public class TrainingSetGenerator {
 	// Training data handling
 	private FeatureGenerator fg; // Feature generator in use
@@ -76,19 +46,17 @@ public class TrainingSetGenerator {
 	 */
 	public void logStatistics(){
 		log.info("Summary of training set generation:");
-		log.info("Seen:\t{} .mch-files", fileCounter);
+		log.info("Seen:\t{} files", fileCounter);
 		log.info("\t{} caused problems and could not be properly processed", fileProblemsCounter);
 		log.info("*****************************");
 	}
 	
-	public void logTrainingSetAnalysis(Path dir) throws IOException{
-		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
-		tsa.analyseNBTrainSet(dir, lg).log();
+	public void logTrainingSetAnalysis(Path dir) throws IOException, NeuroBException{
+		tdg.analyseTrainingSet(dir).log();
 	}
 	
 	public void logTrainingCSVAnalysis(Path csv) throws IOException{
-		TrainingSetAnalyser tsa = new TrainingSetAnalyser();
-		tsa.analyseTrainingCSV(csv, lg).log();
+		TrainingSetAnalyser.analyseTrainingCSV(csv, lg).log();
 	}
 	
 	/**
@@ -146,12 +114,11 @@ public class TrainingSetGenerator {
 		// prepare exclude data
 		List<Path> excludes = new ArrayList<Path>();
 		if(excludeFile != null){
-//			Path excludeFileDirectory = excludeFile.getParent();
 			try(Stream<String> exc = Files.lines(excludeFile)){
-				excludes.addAll(
-						(List<Path>) exc
-							.filter(s -> !s.isEmpty())
-							.map(s -> Paths.get(s)).collect(Collectors.toList()));
+				exc
+				.filter(s->!s.isEmpty())
+				.map(Paths::get)
+				.forEach(excludes::add);
 			} catch (IOException e) {
 				log.error("Could not access exclude file: {}", e.getMessage(), e);
 			}
@@ -163,14 +130,11 @@ public class TrainingSetGenerator {
 			Files.createDirectories(targetDirectory);
 			
 			stream
-				.parallel() // parallel computation
-				.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
-				.forEach(entry -> {
-	            	if(Files.isRegularFile(entry)){
-						Path targetFile = tdg.generateTargetFilePath(entry, targetDirectory);
-						generateTrainingDataFromFile(entry, targetFile);
-		            }
-				});
+			.parallel() // parallel computation
+			.filter(p -> !excludes.stream().anyMatch(ex -> p.startsWith(ex))) // no excluded files or directories
+			.filter(Files::isRegularFile)
+			.forEach(entry -> generateTrainingDataFromFile(entry, targetDirectory));
+			
 			log.info("Finished training set generation");
 			log.info("******************************");
 	    }
@@ -187,28 +151,10 @@ public class TrainingSetGenerator {
 	 * @param target
 	 */
 	public void generateTrainingDataFromFile(Path source, Path target){
-		// check necessity of file creation:
-		// if a train file already exists and is newer than the machine file, 
-		// then the data should be up to date
-		if(Files.exists(target, LinkOption.NOFOLLOW_LINKS)){
-			try{
-				if(Files.getLastModifiedTime(source, LinkOption.NOFOLLOW_LINKS)
-						.compareTo(Files.getLastModifiedTime(target, LinkOption.NOFOLLOW_LINKS))
-					<= 0){ // last edit source file <= last edit target file -> nothing to do here
-					log.info("Found {}, but target file {} is already present and seems to be up to date. Doing nothing.", source, target);
-					return;
-				}
-			}
-			catch(IOException e){
-				log.error("Found {} and corresponding .{} file exists but could not access it or the source machine file: {}",
-						source, tdg.getPreferedFileExtension(), e.getMessage(), e);
-				log.info("\tSkipping file.");
-			}
-		}
 		
 		// create file
 		try {
-			tdg.collectTrainingDataFromFile(source, target);
+			tdg.generateTrainingDataFromFile(source, target);
 			return;
 		} catch (ProBError e) {
 			log.error("\tProBError on {}: {}", source, e.getMessage(), e);
@@ -216,196 +162,25 @@ public class TrainingSetGenerator {
 			log.error("\tReached illegal state while processing: {}", e.getMessage(), e);
 		} catch (NeuroBException e) {
 			log.error("\t{}", e.getMessage(), e);
+		} catch (IOException e) {
+			log.error("\tCould not access source file {} correctly: {}", source, e.getMessage(), e);
 		}
-		log.info("\tStopped with errors: {}", target);
+		log.info("\tStopped with errors: {}", source);
 		++fileProblemsCounter;
 	}
 	
-	/**
-	 * Collects data from all nbtrain files in the given directory and writes them into the specified csv file.
-	 * @param sourceDirectory
-	 * @param csv
-	 */
-	public void generateCSVFromNBTrainFiles(Path sourceDirectory, Path csv){
-		int featureDim = fg.getFeatureDimension();
-		int labelDim;
-		switch(lg.getProblemType()){
-		case REGRESSION:
-			labelDim = lg.getLabelDimension();
-			break;
-		default:
-			log.warn("\tProblem type of label generator unknown, defaulting to classification");
-		case CLASSIFICATION:
-			labelDim = 1;
-			break;
-		}
-		
-		generateCSVOverFiles("nbtrain", sourceDirectory, csv, line -> {
-			String[] data = line.split(":");
-			String[] features = data[0].split(",");
-			String[] labels = data[1].split(",");
-			if(features.length+labels.length < featureDim+labelDim){
-				log.warn("Size of training vector does not match, "
-						+ "expecting "+ featureDim+" features and " + labelDim+" labels, "
-						+ "but got " +features.length + " and " + labels.length + " respectively");
-				return "";
-			}
-			// write to chosen file
-			return String.join(",", features)+","+String.join(",", labels);
-		});
+	public void translateDataDumpFiles(Path sourceDirectory, Path targetDirectory) {
+		DataDumpTranslator ddt = new DataDumpTranslator(tdg);
+		ddt.translateDumpDirectory(sourceDirectory, targetDirectory);
 	}
 	
-	/**
-	 * Collects data from all pdump files in the given directory and writes them into the specified csv file.
-	 * @param sourceDirectory
-	 * @param csv
-	 * @throws NeuroBException
-	 */
-	public void generateCSVFromPDumpFiles(Path sourceDirectory, Path csv) throws NeuroBException{
-		if(!(lg instanceof PredicateDumpTranslator)){
-			throw new NeuroBException("Trying to generate a CSV from predicate dumps, but "
-									+ "TrainingSetGenerator was not initialised with a LabelGenerator "
-									+ "implementing also the PredicateDumpTranslator interface.");
-		}
-		
-		PredicateDumpTranslator pdt = (PredicateDumpTranslator) lg;
-		
-		generateCSVOverFiles("pdump", sourceDirectory, csv, line -> {
-			
-			try {
-				return pdt.translateToCSVDataString(fg, line);
-			} catch (NeuroBException e) {
-				log.warn("\t{}", e.getMessage(), e);
-			}
-			
-			return "";
-		});
+	
+	public void splitTrainingData(Path source, Path first, Path second, double ratio) throws NeuroBException{
+		splitTrainingData(source, first, second, ratio, false);
 	}
 	
-	/**
-	 * Use this to generate a CSV file from separate files in a directory, that all have a specified extension.
-	 * <p>
-	 * The specified translator may return the empty string. In this case, no line is written
-	 * to the CSV.
-	 * 
-	 * @param withExtension Extension to check for; e.g. "nbtrain" will only check for .nbtrain files
-	 * @param sourceDirectory Directory in which the files recursively are searched in
-	 * @param csv File to save data to
-	 * @param transformation Transformation function to convert a line of the found file into a line of CSV
-	 */
-	private void generateCSVOverFiles(String withExtension, Path sourceDirectory, Path csv, Function<String, String> transformation){
-		// ensure the dot at beginning of extension
-		String extension = (withExtension.charAt(0) == '.') ? withExtension : "."+withExtension;
-		
-		log.info("Generating csv-file {} from {} data in {}", csv, extension, sourceDirectory);
-		try (Stream<Path> stream = Files.walk(sourceDirectory)){
-			// Create CSV files
-			Files.createDirectories(csv.getParent());
-			BufferedWriter trainCsv = Files.newBufferedWriter(csv);
-			
-			// set headers
-			int featureDim = fg.getFeatureDimension();
-			for(int i=0; i<featureDim; i++){
-				trainCsv.write("Feature"+i+",");
-			}
-			
-			int labelDim;
-			switch(lg.getProblemType()){
-			case REGRESSION:
-				labelDim = lg.getLabelDimension();
-				break;
-			default:
-				log.warn("\tProblem type of label generator unknown, defaulting to classification");
-			case CLASSIFICATION:
-				labelDim = 1;
-				break;
-			}
-			for(int i=0; i< labelDim; i++){
-				trainCsv.write("Label"+i+",");
-			}
-			
-			trainCsv.newLine();
-			trainCsv.flush();
-			AtomicInteger dataCounter = new AtomicInteger(0);
-			
-			stream.forEach(f -> {
-				// check if .nbtrain file
-				if(Files.isRegularFile(f)){
-					String fileName = f.getFileName().toString();
-					String ext = fileName.substring(fileName.lastIndexOf('.'));
-					if(ext.equals(extension)){
-						log.debug("Found {}. Processing...", f);
-						// nbtrain file found!
-						// read line wise
-						try (Stream<String> lines = Files.lines(f)){
-							lines.forEach(l -> {
-								try {
-									String result = transformation.apply(l);
-									if(!result.isEmpty()){
-										trainCsv.write(result);
-										trainCsv.newLine();
-										dataCounter.incrementAndGet();
-									}
-								} catch (IOException e) {
-									log.error("Failed to write data vector to file: {}", e);
-								} catch (Exception e) {
-									log.error("Could not add a data vector: {}", f, e);
-								}
-							});
-							trainCsv.flush();
-						} catch(IOException e) {
-							log.error("Could not add data from {}", f, e);
-						}
-						log.debug("Done with {}", f);
-					}
-					
-				}
-			});
-			log.info("Found {} entries and wrote them into {}", dataCounter.get(), csv);
-			
-		} catch (IOException e) {
-			log.error("Failed to setup CSV correctly: {}", e.getMessage(), e);
-		}
-	}
-	
-	/**
-	 * Split a training CSV file into two, aiming for a given ratio.
-	 * <p>
-	 * The ratio is a number r in [0,1]. For n samples in the original file, the
-	 * train file will have ~r*n, the test file ~(1-r)*n samples.
-	 * <p>
-	 * The splitting is random, so calling it multiple times on the same file yields different results.
-	 * This is intended behaviour, to use it e.g. for cross-validation.
-	 * <p>
-	 * This method calls {@link #splitCSV(Path, Path, Path, double, boolean)}, so if determinism is required,
-	 * use that method instead.
-	 * @param csv
-	 * @param train
-	 * @param test
-	 * @param ratio
-	 * @throws NeuroBException 
-	 * @see #splitCSV(Path, Path, Path, double, boolean)
-	 */
-	public static void splitCSV(Path csv, Path train, Path test, double ratio) throws NeuroBException{
-		splitCSV(csv, train, test, ratio, false);
-	}
-	
-	/**
-	 * Split a training CSV file into two, aiming for a given ratio.
-	 * <p>
-	 * The ratio is a number r in [0,1]. For n samples in the original file, the
-	 * train file will have ~r*n, the test file ~(1-r)*n samples.
-	 * <p>
-	 * The {@code deterministic} parameter influences the choice of RNG used internally. If set to true, the 
-	 * RNG will always be initialised with the same seed, resulting in deterministic behaviour.
-	 * @param csv Original CSV file, containing training set data generated
-	 * @param train Targeted file to split to, having {@code ratio*samples} from the original file
-	 * @param test Targeted file to split to, having {@code (1-ratio)*samples} from the original file
-	 * @param ratio A number in [0,1]
-	 * @param deterministic Whether to use a specific seed for RNG or not
-	 * @throws NeuroBException 
-	 */
-	public static void splitCSV(Path csv, Path train, Path test, double ratio, boolean deterministic) throws NeuroBException{
+	public void splitTrainingData(Path source, Path first, Path second, double ratio, boolean deterministic) 
+			throws NeuroBException{
 		Random rng;
 		if(deterministic)
 			rng = new Random(123);
@@ -416,107 +191,7 @@ public class TrainingSetGenerator {
 			throw new IllegalArgumentException("Parameter ratio has to be a value in the interval [0,1].");
 		}
 		
-		// open CSV
-		// step 1: extract header
-		BufferedReader br;
-		String header;
-		try {
-			br = new BufferedReader(new FileReader(csv.toFile()));
-			header = br.readLine();
-			br.close();		
-		} catch (FileNotFoundException e) {
-			throw new NeuroBException("Could not find the source CSV: " + e.getMessage(), e);
-		} catch (IOException e) {
-			throw new NeuroBException("Could not access the source CSV: " + e.getMessage(), e);
-		}
-		
-		try(Stream<String> stream = Files.lines(csv)){
-			// Set up CSV files
-			Files.createDirectories(train.getParent());
-			Files.createDirectories(test.getParent());
-			BufferedWriter trainCsv = Files.newBufferedWriter(train);
-			BufferedWriter testCsv = Files.newBufferedWriter(test);
-			//headers
-			trainCsv.write(header);
-			trainCsv.newLine();
-			trainCsv.flush();
-			testCsv.write(header);
-			testCsv.newLine();
-			testCsv.flush();
-			
-			// write data
-			stream
-				.skip(1)
-				.forEachOrdered(line -> {
-					double coinflip = rng.nextDouble();
-					BufferedWriter target; // will be switching between train or test
-					
-					if(coinflip <= ratio){
-						target = trainCsv;
-					}
-					else {
-						target = testCsv;
-					}
-					
-					// simply write the line to the target
-					try {
-						target.write(line);
-						target.newLine();
-					} catch (Exception e) {
-						log.error("Could not write data to target csv: {}", e.getMessage(), e);
-					}
-				});
-			
-			trainCsv.flush();
-			testCsv.flush();
-
-			trainCsv.close();
-			testCsv.close();
-			
-		} catch (IOException e) {
-			log.error("Could not access target files correctly: {}", e.getMessage(), e);
-		}
-	}
-	
-	public void translateCSVToImages(Path csv, Path imageDir){
-		if(!(fg instanceof ConvolutionFeatures)){
-			throw new IllegalArgumentException("translateCSVToImages requires to instantiate TrainingSetGenerator with ConvolutionFeatures");
-		}
-		
-		// generate directory an subdirectories
-		try {
-			for(int i=0; i<lg.getClassCount(); i++){
-				Files.createDirectories(imageDir.resolve(Integer.toString(i)));
-			}
-		} catch (IOException e) {
-			log.error("Could not create all subdirectories correctly: {}", e.getMessage(), e);
-		}
-		
-		try(Stream<String> stream = Files.lines(csv)){
-			AtomicInteger counter = new AtomicInteger(0);
-			stream
-				.skip(1)
-				.forEach(line -> {
-					int indexOfLabel = line.lastIndexOf(',')+1;
-					
-					Path target = 	imageDir.resolve(line.substring(indexOfLabel))
-									.resolve("image"+counter.getAndIncrement()+".gif"); // TODO: Different names
-					
-					// features
-					String features = line.substring(0, indexOfLabel-1);
-					BufferedImage img = ((ConvolutionFeatures) fg).translateStringFeatureToImage(features);
-					
-					
-					try {
-						ImageIO.write(img, "gif", target.toFile());
-					} catch (Exception e) {
-						log.error("Could not create image from features {}", features);
-					}
-					
-				});
-		} catch (IOException e) {
-			log.error("Could not access CSV properly: {}", e.getMessage(), e);
-		}
+		tdg.splitTrainingData(source, first, second, ratio, rng);
 	}
 	
 	/**
@@ -548,6 +223,10 @@ public class TrainingSetGenerator {
 				log.error("Could not append the exclude properly: "+e.getMessage(), e);
 			}
 		}
+	}
+	
+	public void trimTrainingData(Path source, Path target) throws NeuroBException{
+		tdg.trimTrainingData(source, target);
 	}
 	
 	

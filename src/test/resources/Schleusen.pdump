@@ -1,0 +1,2 @@
+#source:src/test/resources/Schleusen.mch
+226769899,1109592055,-1:(correct_level(wlevel)) & (dstate:GATES-->GATE_STATE) & (!dd2.(dd2:GATES&dstate(dd2)=opened => wlevel(left_sector(dd2))=wlevel(right_sector(dd2))))

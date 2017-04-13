@@ -1,8 +1,5 @@
 package neurob.training.generators;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,80 +11,66 @@ import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.generators.interfaces.PredicateLabelGenerator;
+import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.util.FormulaGenerator;
 import neurob.training.generators.util.PredicateCollector;
+import neurob.training.generators.util.TrainingData;
 
-public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
+public abstract class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 	// logger
 	private static final Logger log = LoggerFactory.getLogger(PredicateTrainingDataGenerator.class);
-	// Label generator
-	protected PredicateLabelGenerator lg;
 
-	public PredicateTrainingDataGenerator(FeatureGenerator fg, PredicateLabelGenerator lg) {
+	public PredicateTrainingDataGenerator(FeatureGenerator fg, LabelGenerator lg) {
 		super(fg, lg);
-		this.lg = lg;
 	}
-
+	
 	@Override
-	public void collectTrainingDataFromFile(Path sourceFile, Path targetFile) throws NeuroBException {
-		// determine machine type
-		MachineType mt;
-		String fileName = sourceFile.getFileName().toString();
-		String ext = fileName.substring(fileName.lastIndexOf('.') + 1);
-		if(ext.equals("bcm")){
-			mt = MachineType.EVENTB;
-			log.debug("EventB machine detected: {}", sourceFile);
-		} else if(ext.equals("mch")) {
-			mt = MachineType.CLASSICALB;
-			log.debug("ClassicalB machine detected: {}", sourceFile);
-		} else {
-			log.debug("Not a machine file. Skipping: {}", sourceFile);
-			return;
-		}
-
-		log.info("Generating: {} > {}", sourceFile, targetFile);
-		
-		// Access source file/loading state space
-		StateSpace ss = null;
-		log.info("\tLoading machine file {} ...", sourceFile);
-		try{
-			ss = loadStateSpace(sourceFile, mt);
-		} catch(IOException | NeuroBException e){
-			throw new NeuroBException("Could not load machine correctly: "+e.getMessage(), e);
-		} catch(Exception e) {
-			throw new NeuroBException("Unexpected exception encountered: "+e.getMessage(), e);
-		}
-		
-		// For the formula and ProB command to use
-		List<String> formulae;
-		
-		// Get different formulas
-		PredicateCollector predc = new PredicateCollector(ss);
-		formulae = FormulaGenerator.extendedGuardFormulae(predc);
-		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predc));
-		formulae.addAll(FormulaGenerator.multiGuardFormulae(predc));
-		formulae.addAll(FormulaGenerator.enablingRelationships(predc));
-		formulae.addAll(FormulaGenerator.invariantPreservations(predc));
-		// TODO: this should be implemented for convolution features, but for predicates only
-		// This should be implemented after restructuring training set generation
-		// into a more general format, that is not restricted to predicates only
-//				// get shuffles for images
-//				if(fg instanceof ConvolutionFeatures){
-//					for(long i=0; i<3; i++){
-//						predc.shuffleConjunctions(i);
-//						formulae = FormulaGenerator.extendedGuardFormulae(predc);
-//						formulae.addAll(FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(predc));
-//					}
-//				}
-		
+	public List<TrainingData> collectTrainingDataFromFile(Path sourceFile, StateSpace ss)
+			throws NeuroBException {
+		// load formulae from predicate collector
+		List<String> formulae = generateFormulae(new PredicateCollector(ss));
 		log.info("\tGenerated {} formulae to solve.", formulae.size());
+
+		// set up results
+		List<TrainingData> data = generateResults(formulae, ss, sourceFile);
+		
+		return data;
+	}
+	
+	/**
+	 * Generates a list of formulae for training from a given predicate collector.
+	 * @param predicateCollector Holds base formulae (invariants, guards) from a machine file.
+	 * @return List of formulae created.
+	 */
+	protected List<String> generateFormulae(PredicateCollector predicateCollector){
+		// Get different formulas
+		List<String> formulae = FormulaGenerator.extendedGuardFormulae(predicateCollector);
+		formulae.addAll(FormulaGenerator.assertionsAndTheorems(predicateCollector));
+		formulae.addAll(FormulaGenerator.multiGuardFormulae(predicateCollector));
+		formulae.addAll(FormulaGenerator.enablingRelationships(predicateCollector));
+		formulae.addAll(FormulaGenerator.invariantPreservations(predicateCollector));
+		
+		return formulae;
+	}
+	
+	/**
+	 * Takes a list of formulae and calculates the respective labelling and feature representation.
+	 * Returns a list of {@link TrainingData}.
+	 * 
+	 * @param formulae List of formulae to solve
+	 * @param ss StateSpace that has the corresponding machine loaded
+	 * @param sourceFile Corresponding machine
+	 * @return List of Features and Labels as {@link TrainingData}, built from the formulae
+	 */
+	protected List<TrainingData> generateResults(List<String> formulae, StateSpace ss, Path sourceFile){
+		// get machine type
+		MachineType mt = MachineType.getTypeFromStateSpace(ss);
 		
 		// generate data per formula
-		List<String> results = new ArrayList<String>();
+		List<TrainingData> results = new ArrayList<>();
 		int count = formulae.size();
 		int curr = 1;
-		boolean isStateSpaceCorrupted = false; // if in the solvers at label generation something goes wrong, we might want to reload the state space
+		boolean isStateSpaceCorrupted = false; // if something goes wrong inside the solvers at label generation, we might want to reload the state space
 		int corruptionCounter = 0; // count sequential corruptions. To stop if state space corrupts to often 
 		for( String formula : formulae) {
 			// check state space corruption
@@ -115,7 +98,7 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 			log.info("\tAt {}/{}...", curr++, count);
 			try {
 				// features:labeling vector:comment
-				String output = generateOutput(formula, ss); 
+				TrainingData output = setUpTrainingData(formula, sourceFile, ss); 
 				results.add(output);
 				log.debug("\tGenerated training data: {}", output);
 				corruptionCounter = (corruptionCounter ==0 ? 0 : corruptionCounter-1); // could use new state space without corrupting it again
@@ -131,43 +114,21 @@ public class PredicateTrainingDataGenerator extends TrainingDataGenerator {
 			}
 		}
 		
-		// close StateSpace
-		ss.kill();
-		
-		// No training data to write? -> return from method
-		// otherwise write to targetFile
-		if(results.isEmpty()){
-			log.info("\tNo training data created");
-			return;
-		}
-		
-		Path targetDirectory = targetFile.getParent();
-		// ensure existence of target directory
-		try {
-			Files.createDirectories(targetDirectory);
-		} catch (IOException e) {
-			log.error("\tCould not create or access directory {}: {}", targetDirectory, e.getMessage(), e);
-			return;
-		}
-		
-		// open target file
-		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
-			// write feature vector to stream
-			log.info("\tWriting training data...");
-			for(String res : results){
-				out.write(res);
-				out.newLine();
-				out.flush();
-			}
-			log.info("\tDone: {}", targetFile);
-		} catch (IOException e) {
-			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
-		}
-
+		return results;
 	}
 	
-	protected String generateOutput(String predicate, StateSpace ss) throws NeuroBException{
-		return fg.generateFeatureString(predicate)+":"+lg.generateLabelling(predicate, ss)+":"+predicate;
+	protected TrainingData setUpTrainingData(String predicate, Path source, StateSpace ss) throws NeuroBException{
+		return new TrainingData(fg.generateFeatureArray(predicate), lg.generateLabelling(predicate, ss), source, predicate);
 	}
+	
+//	/**
+//	 * Generates a output string from a {@link TrainingData single sample}.
+//	 * This string will be written as line to the training file.
+//	 * @param td
+//	 * @return
+//	 */
+//	protected String generateOutput(TrainingData td){
+//		return td.getFeatureString()+":"+td.getLabelString()+":"+td.getComment();
+//	}
 
 }

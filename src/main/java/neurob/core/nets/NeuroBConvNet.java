@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Random;
 
-import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.split.FileSplit;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
@@ -12,6 +11,7 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
 import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
@@ -24,6 +24,7 @@ import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.ConvolutionFeatures;
+import neurob.core.nets.util.ImageNameLabelGenerator;
 import neurob.core.util.ProblemType;
 import neurob.training.generators.interfaces.LabelGenerator;
 
@@ -79,7 +80,7 @@ public class NeuroBConvNet extends NeuroBNet {
 			
 			int lastOut = features.getFeatureChannels();
 			
-			for(int i=0; i<hiddenLayers.length-1; i++){
+			for(int i=0; i<hiddenLayers.length; i++){
 				listBuilder = listBuilder.layer(i, new ConvolutionLayer.Builder(5,5)
 						.nIn(lastOut)
 						.stride(1,1)
@@ -114,13 +115,17 @@ public class NeuroBConvNet extends NeuroBNet {
 					.nOut(labelling.getLabelDimension())
 					.activation(activationFunction)
 					.weightInit(WeightInit.XAVIER)
-					.build())
-			.pretrain(false).backprop(true);
+					.build());
 		}
         
 		setUpNormalizer();
 		
-		this.model = new MultiLayerNetwork(listBuilder.build());
+		this.model = new MultiLayerNetwork(
+				listBuilder
+				.setInputType(InputType.convolutional(features.getImageHeight(), 
+						features.getImageWidth(), features.getFeatureChannels()))
+				.pretrain(false).backprop(true)
+				.build());
 	}
 
 	public NeuroBConvNet(Path modelFile, ConvolutionFeatures features, LabelGenerator labelling) throws IOException {
@@ -137,7 +142,7 @@ public class NeuroBConvNet extends NeuroBNet {
 	public DataSetIterator getDataSetIterator(Path datapath, int batchSize) throws IOException, InterruptedException {
 		ConvolutionFeatures features = (ConvolutionFeatures) this.features;
 		ImageRecordReader rr = new ImageRecordReader(features.getImageHeight(), features.getImageWidth(), 
-				features.getFeatureChannels(), new ParentPathLabelGenerator());
+				features.getFeatureChannels(), new ImageNameLabelGenerator());
 		FileSplit fileSplit = new FileSplit(datapath.toFile(), NativeImageLoader.ALLOWED_FORMATS, new Random(123));
 		rr.initialize(fileSplit);
 		
