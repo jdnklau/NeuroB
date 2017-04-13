@@ -146,7 +146,7 @@ public class NeuroBConvNet extends NeuroBNet {
 		ConvolutionFeatures features = (ConvolutionFeatures) this.features;
 		ImageRecordReader rr = new ImageRecordReader(features.getImageHeight(), features.getImageWidth(), 
 				features.getFeatureChannels(), new ImageNameLabelGenerator());
-		FileSplit fileSplit = new FileSplit(datapath.toFile(), NativeImageLoader.ALLOWED_FORMATS, new Random(123));
+		FileSplit fileSplit = new FileSplit(datapath.toFile(), new String[]{"png", "PNG"}, new Random(123));
 		rr.initialize(fileSplit);
 		
 		DataSetIterator iter = new RecordReaderDataSetIterator(rr, batchSize, 1, labelgen.getClassCount());
