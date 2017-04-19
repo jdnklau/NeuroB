@@ -528,8 +528,8 @@ public class NeuroBCli {
 	
 	private static void analyseTrainingSet(Path dir, TrainingSetGenerator tsg) {
 		try {
-			tsg.logTrainingSetAnalysis(dir);
-		} catch (IOException | NeuroBException e) {
+			TrainingSetAnalyser.logTrainingAnalysis(tsg.analyseTrainingSet(dir));
+		} catch (NeuroBException e) {
 			System.out.println("Could not access target directory "+dir);
 			e.printStackTrace();
 		}
@@ -537,7 +537,7 @@ public class NeuroBCli {
 	
 	private static void analyseTrainingSetCSV(Path csv, TrainingSetGenerator tsg) {
 		try {
-			tsg.logTrainingCSVAnalysis(csv);
+			TrainingSetAnalyser.logTrainingAnalysis(TrainingSetAnalyser.analyseTrainingCSV(csv, getLabelGenerator()));
 		} catch (IOException e) {
 			System.out.println("Could not access target file "+csv);
 			e.printStackTrace();

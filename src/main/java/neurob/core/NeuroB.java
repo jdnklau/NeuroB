@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import neurob.core.nets.NeuroBNet;
 import neurob.exceptions.NeuroBException;
+import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
 
 /**
@@ -335,8 +336,8 @@ public class NeuroB {
 		tsg.logStatistics();
 		
 		try {
-			tsg.logTrainingSetAnalysis(fullTargetDirectory);
-		} catch (IOException e) {
+			TrainingSetAnalyser.logTrainingAnalysis(tsg.analyseTrainingSet(fullTargetDirectory));
+		} catch (NeuroBException e) {
 			log.error("Could not access target directory {} for training data analysis: {}", targetDirectory, e.getMessage(), e);
 		}
 	}
