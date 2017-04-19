@@ -37,7 +37,10 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 
 	@Override
 	public void log() {
-		final String[] solverNames = new String[]{"ProB", "KodKod", "Z3", "SMT_SUPPORTED_INTERPRETER"};
+		final String[] solverNames = new String[solversAccountedFor];
+		for(int i=0; i<solversAccountedFor; i++){
+			solverNames[i] = PredicateDumpLabelGenerator.solverOrder[i].toString();
+		}
 		
 		log.info("Analysis of training data");
 		

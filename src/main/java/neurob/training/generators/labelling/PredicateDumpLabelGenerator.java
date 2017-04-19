@@ -16,6 +16,12 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 	 * Number of solvers the predicate dump considers and generates labellings for
 	 */
 	public static final int solversAccountedFor = 4;
+	/**
+	 * Array indexing the order of solvers used. The {@code i}-th entry in the label vector
+	 * corresponds to the solver stated in {@code solverOrder[i]}.
+	 */
+	public static final SolverType[] solverOrder =
+		{SolverType.PROB, SolverType.KODKOD, SolverType.Z3, SolverType.SMT_SUPPORTED_INTERPRETER};
 	
 	private int samplingSize;
 
