@@ -29,6 +29,7 @@ import neurob.core.nets.NeuroBNet;
 import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
+import neurob.training.analysis.TrainingAnalysisData;
 
 /**
  * <p>Main class of NeuroB to use</p>
@@ -336,9 +337,13 @@ public class NeuroB {
 		tsg.logStatistics();
 		
 		try {
-			TrainingSetAnalyser.logTrainingAnalysis(tsg.analyseTrainingSet(fullTargetDirectory));
+			TrainingAnalysisData analysis = tsg.analyseTrainingSet(fullTargetDirectory);
+			TrainingSetAnalyser.logTrainingAnalysis(analysis);
+			TrainingSetAnalyser.writeTrainingAnalysis(analysis, fullTargetDirectory);
 		} catch (NeuroBException e) {
 			log.error("Could not access target directory {} for training data analysis: {}", targetDirectory, e.getMessage(), e);
+		} catch (IOException e) {
+			log.error("Could not write analysis results to disk.", e);
 		}
 	}
 
