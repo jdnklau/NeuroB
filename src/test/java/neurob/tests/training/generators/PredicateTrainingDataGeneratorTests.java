@@ -39,7 +39,7 @@ public class PredicateTrainingDataGeneratorTests {
 	@Test
 	public void PredicateImageNameByCreationTest() throws IOException, NeuroBException{
 		// where the file should be located afterwards
-		Path target = Paths.get("src/test/resources/tmp/nosource.nsrc.image_dir/0_1,2.gif");
+		Path target = Paths.get("src/test/resources/tmp/nosource.nsrc.image_dir/0_1,2.png");
 		Files.deleteIfExists(target);
 		
 		PredicateTrainingImageGenerator gen = new PredicateTrainingImageGenerator(
