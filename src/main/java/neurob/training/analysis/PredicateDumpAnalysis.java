@@ -2,9 +2,6 @@ package neurob.training.analysis;
 
 import java.util.Arrays;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
 
 public class PredicateDumpAnalysis extends RegressionAnalysis {
@@ -21,9 +18,6 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 	 */
 	private int[][] decidabilityMatrix;
 	
-	// logger
-	private static final Logger log = LoggerFactory.getLogger(PredicateDumpAnalysis.class);
-	
 	public PredicateDumpAnalysis() {
 		super(solversAccountedFor);
 		samplesSeen=0;
@@ -34,50 +28,54 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 		// Note: using 4 values here, but generating only data for first three solvers
 		negSamples = new long[]{0L,0L,0L,0L};
 	}
-
+	
 	@Override
-	public void log() {
+	public String getStatistics() {
+		// set up names of solvers
 		final String[] solverNames = new String[solversAccountedFor];
 		for(int i=0; i<solversAccountedFor; i++){
 			solverNames[i] = PredicateDumpLabelGenerator.solverOrder[i].toString();
 		}
-		
-		log.info("Analysis of training data");
-		
+
+		StringBuilder res = new StringBuilder();
+
 		if(filesSeen > 0){
-			int relevantFiles = filesSeen-emptyFilesSeen;
-			log.info("Files found: {}", filesSeen);
-			log.info("Of these were {} seemingly empty", emptyFilesSeen);
-			log.info("\t=> {} relevant files", relevantFiles);
+		    res.append("Files found: ").append(filesSeen);
+		    res.append("\nOf these were ").append(emptyFilesSeen).append(" seemingly empty\n");
 		}
-		log.info("Samples total: {}", samplesSeen);
+		res.append("Samples seen: ").append(samplesSeen);
 		
-		// log ifo per solver
+		// info per solver
 		for(int i=0; i<solversAccountedFor; i++){
-			log.info("# Overview for {}", solverNames[i]);
-			log.info("{} of {} samples could be decided ({} of all samples):",
-					decidabilityMatrix[i][i], samplesSeen, decidabilityDist[i]);
-			
-			// cross solver information
-			for(int j=0; j<solversAccountedFor; j++){
-				if(i!=j){
-					log.info("\t{} could also be decided by {} ({} of decided samples)",
-							decidabilityMatrix[i][j], solverNames[j],
-							decidabilityMatrix[i][j]/(double)decidabilityMatrix[i][i]);
-				}
-			}
-			// boxplot values
-			log.info("Boxplot values:");
-			log.info("\tMinimum: {}, Maximum: {}", minimum[i], maximum[i]);
-			log.info("\tMean: {}", mean[i]);
-			log.info("\tVariance: {}", variance[i]);
-			log.info("\tStandard deviation: {}", stddev[i]);
-			log.info("\tMedian: {}", median[i]);
-			log.info("\tFirst Quartile: {}, Third Quartile: {}", firstQuartile[i], thirdQuartile[i]);
-			
+		    res.append("# Overview for ").append(solverNames[i]).append("\n");
+
+		    res.append(decidabilityMatrix[i][i]).append(" of ").append(samplesSeen)
+		        .append(" samples could be decided (")
+		        .append(decidabilityDist[i]).append(" of all samples):\n");
+
+		    // cross solver information
+		    for(int j=0; j<solversAccountedFor; j++){
+		        if(i!=j){
+		            res.append("\t").append(decidabilityMatrix[i][j])
+		                .append(" could also be decided by ").append(solverNames[j])
+		                .append(" (")
+		                    .append(decidabilityMatrix[i][j]/(double)decidabilityMatrix[i][i])
+		                .append(" of decided samples)\n");
+		        }
+		    }
+		    
+		    // Boxplot values
+		    res.append("\n\tMinimum: ").append(minimum[i])
+		            .append(", Maximum: ").append(maximum[i])
+		        .append("\n\tMean: ").append(mean[i])
+		        .append("\n\tVariance: ").append(variance[i])
+		        .append("\n\tStandard deviation: ").append(stddev[i])
+		        .append("\n\tMedian: ").append(median[i])
+		        .append("\n\tFirst Quartile: ").append(firstQuartile[i])
+		            .append(", Third Quartile: ").append(thirdQuartile[i]);
 		}
 		
-		log.info("*****************************");
+		return res.toString();
 	}
 	
 	@Override

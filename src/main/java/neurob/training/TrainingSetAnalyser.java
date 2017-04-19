@@ -24,7 +24,9 @@ public class TrainingSetAnalyser {
 			log.warn("No training analysis data to log");
 			return;
 		}
-		analysis.log();
+		log.info("Training set analysis");
+		log.info(analysis.getStatistics());
+		log.info("******************************");
 	}
 	
 	/**

@@ -366,7 +366,7 @@ public class NeuroBCli {
 	
 	private static void analysePDump(Path dir){
 		try {
-			TrainingSetAnalyser.analysePredicateDumps(dir).log();
+			TrainingSetAnalyser.logTrainingAnalysis(TrainingSetAnalyser.analysePredicateDumps(dir));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

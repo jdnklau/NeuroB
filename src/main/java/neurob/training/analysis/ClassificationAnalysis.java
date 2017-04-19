@@ -2,9 +2,6 @@ package neurob.training.analysis;
 
 import java.util.Random;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class ClassificationAnalysis implements TrainingAnalysisData {
 	private int[] trueLabelCounters; // For each class, have counter how many times it would be called
@@ -16,8 +13,6 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 	private double[] classTrimChance;
 	
 	private final Random rng = new Random(123);
-
-	private static final Logger log = LoggerFactory.getLogger(ClassificationAnalysis.class);
 	
 	/**
 	 * 
@@ -34,26 +29,28 @@ public class ClassificationAnalysis implements TrainingAnalysisData {
 		classDist = new double[classes];
 		classTrimChance = new double[classes];
 	}
-
+	
 	@Override
-	public void log(){
-		log.info("Analysis of training data");
+	public String getStatistics() {
+		StringBuilder res = new StringBuilder();
 		
 		if(filesSeen > 0){
-			log.info("Files found: {}", filesSeen);
-			log.info("Of these were {} seemingly empty", emptyFilesSeen);
+			res.append("Files found: ").append(filesSeen);
+			res.append("\nOf these were ").append(emptyFilesSeen).append("seemingly empty\n");
 		}
 		// list classification mappings
-		log.info("Overview of class representation:");
+		res.append("Overview of class representation:\n");
 		int dataCount = 0;
 		for(int i = 0; i < classCount; i++){
 			int classSamples = trueLabelCounters[i];
 			dataCount += classSamples;
-			log.info("\tClass {} is represented by {} samples ({} of all samples)", i, classSamples, classDist[i]);
+			res.append("\tClass ").append(i)
+				.append(" is represented by ").append(classSamples)
+				.append(" samples (").append(classDist[i]).append(" of all samples)\n");
 		}
-		log.info("{} samples in total", dataCount);
+		res.append(dataCount).append(" samples in total");
 		
-		log.info("*****************************");
+		return res.toString();
 	}
 	
 	/**

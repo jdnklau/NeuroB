@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author jannik
  *
@@ -31,9 +28,6 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 	protected double[] mean;
 	protected double[] variance;
 	protected double[] stddev;
-	
-
-	private static final Logger log = LoggerFactory.getLogger(RegressionAnalysis.class);
 	
 	public RegressionAnalysis(int numberOfOutputs){
 		outputCount = numberOfOutputs;
@@ -64,33 +58,30 @@ public class RegressionAnalysis implements TrainingAnalysisData {
 			maximum[i] = Integer.MIN_VALUE;// any first sample will be greater, defining the new maximum
 		}
 	}
-
-	/* (non-Javadoc)
-	 * @see neurob.training.analysis.TrainingAnalysisData#log()
-	 */
+	
 	@Override
-	public void log() {
-		log.info("Analysis of training data");
-		
+	public String getStatistics() {
+		StringBuilder res = new StringBuilder();
+
 		if(filesSeen > 0){
-			int relevantFiles = filesSeen-emptyFilesSeen;
-			log.info("Files found: {}", filesSeen);
-			log.info("Of these were {} seemingly empty", emptyFilesSeen);
-			log.info("\t=> {} relevant files", relevantFiles);
+		    res.append("Files found: ").append(filesSeen);
+		    res.append("\nOf these were ").append(emptyFilesSeen).append(" seemingly empty\n");
 		}
-		log.info("Samples seen: {}", samplesSeen);
-		// log boxplot values
+		res.append("Samples seen: ").append(samplesSeen);
+		// boxplot values
 		for(int i=0; i<outputCount; i++){
-			log.info("Overview for #{} regression value:", i);
-			log.info("\tMinimum: {}, Maximum: {}", minimum[i], maximum[i]);
-			log.info("\tMean: {}", mean[i]);
-			log.info("\tVariance: {}", variance[i]);
-			log.info("\tStandard deviation: {}", stddev[i]);
-			log.info("\tMedian: {}", median[i]);
-			log.info("\tFirst Quartile: {}, Third Quartile: {}", firstQuartile[i], thirdQuartile[i]);
+		    res.append("\nOverview for #").append(i).append(" regression value:")
+		        .append("\n\tMinimum: ").append(minimum[i])
+		            .append(", Maximum: ").append(maximum[i])
+		        .append("\n\tMean: ").append(mean[i])
+		        .append("\n\tVariance: ").append(variance[i])
+		        .append("\n\tStandard deviation: ").append(stddev[i])
+		        .append("\n\tMedian: ").append(median[i])
+		        .append("\n\tFirst Quartile: ").append(firstQuartile[i])
+		            .append(", Third Quartile: ").append(thirdQuartile[i]);
 		}
 		
-		log.info("*****************************");
+		return res.toString();
 	}
 	
 	@Override

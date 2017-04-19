@@ -8,7 +8,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -52,11 +51,11 @@ public class TrainingSetGenerator {
 	}
 	
 	public void logTrainingSetAnalysis(Path dir) throws IOException, NeuroBException{
-		tdg.analyseTrainingSet(dir).log();
+		TrainingSetAnalyser.logTrainingAnalysis(tdg.analyseTrainingSet(dir));
 	}
 	
 	public void logTrainingCSVAnalysis(Path csv) throws IOException{
-		TrainingSetAnalyser.analyseTrainingCSV(csv, lg).log();
+		TrainingSetAnalyser.logTrainingAnalysis(TrainingSetAnalyser.analyseTrainingCSV(csv, lg));
 	}
 	
 	/**

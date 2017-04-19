@@ -7,11 +7,10 @@ import neurob.training.generators.interfaces.LabelGenerator;
 public interface TrainingAnalysisData {
 	
 	/**
-	 * Logs the stored results of the analysis.
-	 * <p>
-	 * Note that, depending on implementation, you want to call {@link #evaluateAllSamples()} first.
+	 * Returns the evaluation of the seen training data as string message.
+	 * @return The analysis results in string representation
 	 */
-	public void log();
+	public String getStatistics();
 	
 	/**
 	 * Evaluates the seen samples. This processes some measurements which can not be processed while seeing the data,
