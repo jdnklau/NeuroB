@@ -126,4 +126,26 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		return evaluateModel(testSet, eval);
 	}
 
+	@Override
+	public RegressionEvaluation evaluateAfterTraining(Path testSet) throws NeuroBException {
+		RegressionEvaluation eval;
+		try {
+			eval = evaluateModel(testSet);
+		} catch (IOException | InterruptedException e) {
+			throw new NeuroBException("Could not evaluate test set", e);
+		}
+		
+		// log values for each column
+		for(int c=0; c<numColumns; c++){
+			log.info("Regression performances for column #{}:", c);
+			log.info("\tMean squared error: {}", eval.meanSquaredError(c));
+			log.info("\tMean absolute error: {}", eval.meanAbsoluteError(c));
+			log.info("\tRoot mean squared error: {}", eval.rootMeanSquaredError(c));
+			log.info("\tRelative squared error: {}", eval.relativeSquaredError(c));
+			log.info("\tCorrelation coefficient (R2): {}", eval.correlationR2(c));
+		}
+		
+		return eval;
+	}
+
 }

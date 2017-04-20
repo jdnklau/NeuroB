@@ -43,8 +43,8 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	public int getBestEpochSeen(){return bestEpochSeen;}
 	
 	/**
-	 * Increases internal epoch counter by 1, evaluates the model on the test set
-	 * and checks whether the new epoch reached the best performance on the model or not.
+	 * Increases internal epoch counter by 1, evaluates the model on the training and test set
+	 * and checks whether the new epoch reached the best performance on the test set or not.
 	 * <p>
 	 * Saves the generated results as a line to the csv file.
 	 * @param trainingSet Location of training set, to calculate training error
@@ -52,6 +52,14 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	 * @throws NeuroBException
 	 */
 	public abstract void evaluateAfterEpoch(Path trainingSet, Path testSet) throws NeuroBException;
+	
+	/**
+	 * Like {@link #evaluateModel(Path)}, but also adds detailed information to log.
+	 * @param testSet
+	 * @return Eval object that evaluated the given model
+	 * @throws NeuroBException
+	 */
+	public abstract T evaluateAfterTraining(Path testSet) throws NeuroBException;
 	
 	/**
 	 * Evaluates the model on the given test set.

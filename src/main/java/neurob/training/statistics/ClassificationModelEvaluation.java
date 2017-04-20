@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.deeplearning4j.eval.ConfusionMatrix;
 import org.deeplearning4j.eval.Evaluation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,6 +107,34 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 	public Evaluation evaluateModel(Path testSet) throws IOException, InterruptedException {
 		Evaluation eval = new Evaluation(nbn.getClassificationSize());
 		return evaluateModel(testSet, eval);
+	}
+
+	@Override
+	public Evaluation evaluateAfterTraining(Path testSet) throws NeuroBException {
+		Evaluation eval;
+		try {
+			eval = evaluateModel(testSet);
+		} catch (IOException | InterruptedException e) {
+			throw new NeuroBException("Could not evaluate test set", e);
+		}
+		
+		// log evaluation results
+		log.info("\tAccuracy: {}", eval.accuracy());
+		log.info("\tPrecision: {}", eval.precision());
+		log.info("\tRecall: {}", eval.recall());
+		log.info("\tF1 score: {}", eval.f1());
+
+		// log confusion matrix
+		ConfusionMatrix<Integer> matrix = eval.getConfusionMatrix();
+		log.info("Confusion Matrix:");
+		for(int i=0; i<nbn.getClassificationSize(); i++){
+			for(int j=0; j<nbn.getClassificationSize(); j++){
+				log.info("\tClass {} predicted as {} a total of {} times", i, j,
+						matrix.getCount(i, j));
+			}
+		}
+		
+		return eval;
 	}
 
 }
