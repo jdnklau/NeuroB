@@ -19,12 +19,24 @@ import neurob.training.statistics.interfaces.ModelEvaluation;
 public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluation> {
 	protected BufferedWriter epochCSV;
 	protected int numColumns;
+	private boolean saveToDisk;
 	
 	private static final Logger log = LoggerFactory.getLogger(RegressionModelEvaluation.class); 
 
-	public RegressionModelEvaluation(NeuroBNet model, Path csvFile) throws IOException {
-		super(model, csvFile);
+	public RegressionModelEvaluation(NeuroBNet model) {
+		super(model);
 		numColumns = nbn.getOutputSize();
+	}
+	
+	@Override
+	public void enableSavingToDisk(Path csv) throws IOException {
+		saveToDisk = true;
+		setup(csv);
+	}
+
+	@Override
+	public boolean isSavingToDiskEnabled() {
+		return saveToDisk;
 	}
 
 	@Override
@@ -73,6 +85,15 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		// log results
 		logEvaluation("Training", trainEval);
 		logEvaluation("Testing", testEval);
+
+		// evaluate best epoch
+		// TODO: actually implement a metric to check if new evaluation performed better.
+		bestEpochSeen = epochsSeen; 
+		log.info("\tBest epoch thus far: #{}", bestEpochSeen);
+		
+		// if saving to disk is enabled, do so, otherwise terminate method
+		if(!saveToDisk)
+			return;
 		
 		// set up line of csv
 		List<String> columns = new ArrayList<>();
@@ -86,11 +107,6 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		} catch (IOException e) {
 			throw new NeuroBException("Unable to write statistics for epoch "+epochsSeen+" to csv", e);
 		}
-		
-		// evaluate best epoch
-		// TODO: actually implement a metric to check if new evaluation performed better.
-		bestEpochSeen = epochsSeen; 
-		log.info("\tBest epoch thus far: #{}", bestEpochSeen);
 		
 	}
 	

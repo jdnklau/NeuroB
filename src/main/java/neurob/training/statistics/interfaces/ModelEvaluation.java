@@ -25,12 +25,26 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	 */
 	protected int bestEpochSeen;
 	
-	public ModelEvaluation(NeuroBNet model, Path csvFile) throws IOException {
+	public ModelEvaluation(NeuroBNet model) {
 		this.nbn = model;
 		epochsSeen = 0;
 		bestEpochSeen = -1;
-		setup(csvFile);
 	}
+	
+	/**
+	 * If not already done so, sets this evaluation to a mode in which
+	 * the statistics generated per epoch are saved line wise to the specified
+	 * CSV file.
+	 * <p>
+	 * The file will be created or overriden, if it already exists.
+	 * @param csv CSV the data will be written to
+	 */
+	abstract public void enableSavingToDisk(Path csv) throws IOException;
+	
+	/**
+	 * @return True iff {@link #enableSavingToDisk(Path)} was called at least once.
+	 */
+	abstract public boolean isSavingToDiskEnabled();
 	
 	/**
 	 * Sets up the statistics file as CSV with header line. 
