@@ -48,6 +48,8 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 
 	@Override
 	public void evaluateAfterEpoch(Path trainingSet, Path testSet) throws NeuroBException {
+		epochsSeen++; // new epoch seen
+		
 		Evaluation trainEval;
 		Evaluation testEval;
 		try {
@@ -63,9 +65,16 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		
 		// set up line of csv
 		List<String> columns = new ArrayList<>();
-		columns.add(Integer.toString(++epochsSeen)); // NOTE: increasing number of seen epochs here
+		columns.add(Integer.toString(epochsSeen));
 		columns.addAll(partialCSVEntries(trainEval));
 		columns.addAll(partialCSVEntries(testEval));
+		
+		try {
+			epochCSV.write(String.join(",", columns));
+			epochCSV.flush();
+		} catch (IOException e) {
+			throw new NeuroBException("Unable to write statistics for epoch "+epochsSeen+" to csv", e);
+		}
 		
 		// evaluate best epoch
 		// TODO: actually implement a metric to check if new evaluation performed better.
