@@ -20,10 +20,15 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 	protected BufferedWriter epochCSV;
 	private static final Logger log = LoggerFactory.getLogger(ClassificationModelEvaluation.class);
 	private boolean saveToDisk;
+	private double bestAccuracy;
+	private double bestF1;
 
 	public ClassificationModelEvaluation(NeuroBNet model) {
 		super(model);
 		saveToDisk = false;
+		// accuracy and f1 scoe are values in [0,1], so -1 will always be inferior.
+		bestAccuracy = -1;
+		bestF1 = -1;
 	}
 	
 	@Override
@@ -78,9 +83,14 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		logEvaluation("Testing", testEval);
 		
 		// evaluate best epoch
-		// TODO: actually implement a metric to check if new evaluation performed better.
-		bestEpochSeen = epochsSeen; 
-		log.info("\tBest epoch thus far: #{}", bestEpochSeen);
+		if(testEval.f1() >= bestF1 || testEval.accuracy() >= bestAccuracy){		
+			// found new best epoch
+			bestEpochSeen = epochsSeen;
+			log.info("\tImproved on epoch {}: Accuracy {}->{}, F1 Score {}->{}",
+					epochsSeen, bestAccuracy, testEval.accuracy(), bestF1, testEval.f1());
+		} else {
+			log.info("\tBest epoch thus far: #{}", bestEpochSeen);
+		}
 		
 		// if saving to disk is enabled, do so, otherwise terminate method
 		if(saveToDisk){

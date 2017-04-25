@@ -20,12 +20,14 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 	protected BufferedWriter epochCSV;
 	protected int numColumns;
 	private boolean saveToDisk;
+	private double bestR2;
 	
 	private static final Logger log = LoggerFactory.getLogger(RegressionModelEvaluation.class); 
 
 	public RegressionModelEvaluation(NeuroBNet model) {
 		super(model);
 		numColumns = nbn.getOutputSize();
+		bestR2 = -1; // value between 0 and 1, so -1 will always be outperformed
 	}
 	
 	@Override
@@ -87,9 +89,19 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		logEvaluation("Testing", testEval);
 
 		// evaluate best epoch
-		// TODO: actually implement a metric to check if new evaluation performed better.
-		bestEpochSeen = epochsSeen; 
-		log.info("\tBest epoch thus far: #{}", bestEpochSeen);
+		double r2sum = 0;
+		for(int i=0; i<numColumns; i++){
+			r2sum = testEval.correlationR2(i);
+		}
+		double r2mean = r2sum/numColumns;
+		if(r2mean >= bestR2){		
+			// found new best epoch
+			bestEpochSeen = epochsSeen;
+			log.info("\tImproved on epoch {}: Mean correlation coefficient (R2) {}->{}",
+					epochsSeen, bestR2, r2mean);
+		} else {
+			log.info("\tBest epoch thus far: #{}", bestEpochSeen);
+		}
 		
 		// if saving to disk is enabled, do so, otherwise terminate method
 		if(saveToDisk){
