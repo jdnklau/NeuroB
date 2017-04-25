@@ -399,5 +399,7 @@ public class NeuroBNet {
 	}
 	
 	public boolean isNormalizerUsed(){return useNormalizer;}
+	
+	public ProblemType getProblemType(){ return labelgen.getProblemType();}
 
 }
