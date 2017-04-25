@@ -3,9 +3,12 @@
 src/main/java/RectifyPredicateDumps.java
 # symbolic link for NeuroB cli script
 NeuroB
+# developer's personal todo list
+mytodo.md
 
 # training data directory
 training_data/
+trained_models/
 
 ### ProB specific
 prob_log.txt

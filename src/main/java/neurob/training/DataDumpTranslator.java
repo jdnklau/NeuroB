@@ -56,7 +56,7 @@ public class DataDumpTranslator {
 			 * translate it
 			 */
 			stream
-				.parallel()
+//				.parallel()
 				.filter(p->Files.isRegularFile(p))
 				.filter(p->p.toString().endsWith("dump"))
 				.forEach(p->translateDumpFile(p, target));

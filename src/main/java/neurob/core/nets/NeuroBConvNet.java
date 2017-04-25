@@ -26,6 +26,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.nets.util.ImageNameLabelGenerator;
 import neurob.core.util.ProblemType;
+import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
 
 public class NeuroBConvNet extends NeuroBNet {
@@ -60,6 +61,8 @@ public class NeuroBConvNet extends NeuroBNet {
 	 */
 	public NeuroBConvNet(int[] hiddenLayers, double learningRate, ConvolutionFeatures features, LabelGenerator labelling, int seed) {
 		super(features, labelling);
+		
+		this.seed = seed;
 		
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
 		        .seed(seed)
@@ -128,7 +131,7 @@ public class NeuroBConvNet extends NeuroBNet {
 				.build());
 	}
 
-	public NeuroBConvNet(Path modelFile, ConvolutionFeatures features, LabelGenerator labelling) throws IOException {
+	public NeuroBConvNet(Path modelFile, ConvolutionFeatures features, LabelGenerator labelling) throws IOException, NeuroBException {
 		super(modelFile, features, labelling);
 		// Necessary to restrict the feature generator to ConvolutionFeatures
 	}
@@ -143,7 +146,7 @@ public class NeuroBConvNet extends NeuroBNet {
 		ConvolutionFeatures features = (ConvolutionFeatures) this.features;
 		ImageRecordReader rr = new ImageRecordReader(features.getImageHeight(), features.getImageWidth(), 
 				features.getFeatureChannels(), new ImageNameLabelGenerator());
-		FileSplit fileSplit = new FileSplit(datapath.toFile(), NativeImageLoader.ALLOWED_FORMATS, new Random(123));
+		FileSplit fileSplit = new FileSplit(datapath.toFile(), new String[]{"png", "PNG"}, new Random(123));
 		rr.initialize(fileSplit);
 		
 		DataSetIterator iter = new RecordReaderDataSetIterator(rr, batchSize, 1, labelgen.getClassCount());

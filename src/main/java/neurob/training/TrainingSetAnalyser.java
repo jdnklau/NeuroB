@@ -1,5 +1,6 @@
 package neurob.training;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,12 +20,32 @@ import neurob.training.generators.interfaces.LabelGenerator;
 public class TrainingSetAnalyser {
 	private static final Logger log = LoggerFactory.getLogger(TrainingSetAnalyser.class);
 	
+	/**
+	 * Logs the results gathered by the analysis object on INFO level. 
+	 * @param analysis
+	 */
 	public static void logTrainingAnalysis(TrainingAnalysisData analysis){
 		if(analysis == null){
 			log.warn("No training analysis data to log");
 			return;
 		}
-		analysis.log();
+		log.info("Training set analysis");
+		log.info(analysis.getStatistics());
+		log.info("******************************");
+	}
+	
+	/**
+	 * Write the given analysis data to a <i>analysis.txt</i> file in the given directory.
+	 * @param analysis Analysis data that already evaluated a data set
+	 * @param directory Target directory to create the .txt file in
+	 * @throws IOException
+	 */
+	public static void writeTrainingAnalysis(TrainingAnalysisData analysis, Path directory) throws IOException{
+		Path analysisFile = directory.resolve("analysis.txt");
+		log.info("Writing analysis results to {}", analysisFile);
+		BufferedWriter out = Files.newBufferedWriter(analysisFile);
+		out.write(analysis.getStatistics());
+		out.close();
 	}
 	
 	/**

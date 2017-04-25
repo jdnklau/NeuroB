@@ -32,7 +32,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		super(fg, lg);
 		this.fg = fg;
 		
-		preferredFileExtension = "gif";
+		preferredFileExtension = "png";
 		imageCounter = 0;
 	}
 	
@@ -68,7 +68,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 		try {
 			Files.createDirectories(targetFile.getParent());
 			log.debug("\tWriting image {}", targetFile);
-			ImageIO.write(img, "gif", targetFile.toFile());
+			ImageIO.write(img, "png", targetFile.toFile());
 			imageCounter++;
 			return true;
 		} catch (IOException e) {

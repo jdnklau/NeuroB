@@ -1,15 +1,22 @@
 package neurob.core;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.eval.IEvaluation;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
+import org.deeplearning4j.ui.storage.FileStatsStorage;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -19,7 +26,12 @@ import org.slf4j.LoggerFactory;
 
 import neurob.core.nets.NeuroBNet;
 import neurob.exceptions.NeuroBException;
+import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
+import neurob.training.analysis.TrainingAnalysisData;
+import neurob.training.statistics.ClassificationModelEvaluation;
+import neurob.training.statistics.RegressionModelEvaluation;
+import neurob.training.statistics.interfaces.ModelEvaluation;
 
 /**
  * <p>Main class of NeuroB to use</p>
@@ -69,11 +81,27 @@ public class NeuroB {
 	private NeuroBNet nbn;
 
 	private boolean dl4jUIEnabled;
+	
+	/**
+	 * Path to which the NeuroB data will be saved
+	 */
+	private final Path savePath;
 
 	public NeuroB(NeuroBNet neuroBNet) {
+		// set up with default target directory 
+		this(neuroBNet, 
+				Paths.get("trained_models/")
+				.resolve(neuroBNet.getDataPathName())
+				.resolve(ZonedDateTime.now()
+						.format(DateTimeFormatter.ISO_INSTANT)));
+	}
+	
+	public NeuroB(NeuroBNet neuroBNet, Path modelDirectory){
 		// link neural net
 		nbn = neuroBNet;
 		dl4jUIEnabled = false;
+		
+		savePath = modelDirectory; 
 	}
 	
 	public NeuroBNet getNeuroBNet(){
@@ -84,25 +112,62 @@ public class NeuroB {
 	 * Trains the neural net with a training set located at the given source.
 	 * <p>
 	 * The test source is then used to evaluate the trained network.
+	 * If for 5 consecutive epochs no performance gain on the test set could be measured,
+	 * the training stops.
 	 * @param trainSource
 	 * @param testSource
-	 * @param epochs Number of epochs used in training
+	 * @param numEpochs Number of epochs used in training
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainSource, Path testSource, int epochs) throws IOException, InterruptedException{
-		train(trainSource, epochs);
-		test(testSource);
+	public void train(Path trainSource, Path testSource, int numEpochs) throws IOException, InterruptedException{
+		train(trainSource, testSource, numEpochs, false);
+	}
+		
+	/**
+	 * Trains the neural net with a training set located at the given source.
+	 * <p>
+	 * The test source is then used to evaluate the trained network.
+	 * If for 5 consecutive epochs no performance gain on the test set could be measured,
+	 * the training stops.
+	 * @param trainSource
+	 * @param testSource
+	 * @param numEpochs Number of epochs used in training
+	 * @param saveEpochStats Whether or not to save the evaluation results generated after each epoch to a csv file
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	public void train(Path trainSource, Path testSource, int numEpochs, boolean saveEpochStats)
+			throws IOException, InterruptedException{
+		train(trainSource, testSource, numEpochs, saveEpochStats, 5);
 	}
 	
 	/**
 	 * Trains the neural net with a training set located at the given source.
+	 * <p>
+	 * The test source is then used to evaluate the trained network.
+	 * <p>
+	 * If for {@code earlyStoppingEpochs} consecutive epochs no performance gain on the test set could be measured,
+	 * the training stops.
 	 * @param trainSource
-	 * @param numEpochs Number of times the training data will be fit into the network
+	 * @param testSource
+	 * @param numEpochs Number of epochs used in training
+	 * @param saveEpochStats Whether or not to save the evaluation results generated after each epoch to a csv file
+	 * @param earlyStoppingEpochs Number of consecutive epochs without performance gain before training is interrupted
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainSource, int numEpochs) throws IOException, InterruptedException{
+	public void train(Path trainSource, Path testSource, int numEpochs, boolean saveEpochStats, int earlyStoppingEpochs)
+			throws IOException, InterruptedException{
+		log.info("Setting up target directory {}", savePath);
+		Files.createDirectories(savePath);
+		
+		// get evaluation unit
+		@SuppressWarnings("rawtypes")
+		ModelEvaluation eval = modelEvaluationByProblemType();
+		if(saveEpochStats)
+			eval.enableSavingToDisk(savePath.resolve("epochs.csv"));
+		
 		int batchSize = 250;
 		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
 		
@@ -111,13 +176,10 @@ public class NeuroB {
 		
 		// set up normaliser
 		log.info("Setting up normaliser...");
-		while(iterator.hasNext()){
-			DataSet batch = iterator.next();
-        	nbn.fitNormalizer(batch);
-		}
+		nbn.fitNormalizer(iterator);
 		
 		// Set up listeners
-		ArrayList<IterationListener> listeners = new ArrayList<>();
+		List<IterationListener> listeners = new ArrayList<>();
 		if(dl4jUIEnabled){
 			UIServer uiServer = UIServer.getInstance();
 			
@@ -126,48 +188,96 @@ public class NeuroB {
 			
 			listeners.add(new StatsListener(statsStorage));
 			
-			log.info("DL4J UI is available at http://localhost:9000/train/");
+			log.info("DL4J UI is available at http://localhost:9000/");
 		}
+		// - save stats for later use
+		StatsStorage statsStorage = new FileStatsStorage(savePath.resolve("training_stats.dl4j").toFile());
+		listeners.add(new StatsListener(statsStorage));
 		listeners.add(new PerformanceListener(75, true));
 		nbn.setListeners(listeners);
 		
 		// train net on training data
-		for(int i=0; i<numEpochs; i++){
-			log.info("Training epoch {}", i+1);
+		int bestEpochSaved = -1;
+		int trainedEpochs = 0; // count how many epochs were actually trained
+		for(int i=1; i<=numEpochs; i++){
+			log.info("Training epoch {}", i);
         	iterator.reset();
-			while(iterator.hasNext()){
-				DataSet trainingData = iterator.next(); 
-	        	nbn.fit(trainingData);
+			nbn.fit(iterator);
+			trainedEpochs++;
+			
+			// evaluate after each epoch
+			try {
+				eval.evaluateAfterEpoch(trainSource, testSource);
+			} catch (NeuroBException e) {
+				log.warn("Could not calculate training and testing errors after epoch.", e);
 			}
+			
+			// save best model
+			if(eval.getBestEpochSeen() > bestEpochSaved){
+				log.info("Improved performance with latest epoch {} (former best epoch was {})",
+						eval.getBestEpochSeen(), bestEpochSaved);
+				log.info("\tSaving model to {}", savePath);
+				nbn.saveModel(savePath);
+				bestEpochSaved = eval.getBestEpochSeen();
+			} else {
+				log.info("Best epoch thus far: #{}", eval.getBestEpochSeen());
+				// early stopping
+				if(i-bestEpochSaved >= earlyStoppingEpochs){
+					log.warn("No performance gain for {} consecutive epochs; stopping training.",
+							earlyStoppingEpochs);
+					break;
+				}
+			}
+			
 		}
 		
-		log.info("Done with training {} epochs", numEpochs);
+		log.info("Done with training {} epochs", trainedEpochs);
+		log.info("******************************");
+
+		// evaluate whole model
+		test(testSource);
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private ModelEvaluation modelEvaluationByProblemType() throws IOException {
+		switch(nbn.getProblemType()){
+		default: // NOTE: Defaulting to classification
+		case CLASSIFICATION:
+			return new ClassificationModelEvaluation(nbn);
+		case REGRESSION:
+			return new RegressionModelEvaluation(nbn);		
+		}
+	}
+
+	public void test(Path testSource) throws IOException, InterruptedException{
+		log.info("Evaluating the trained model...");
+		
+		try {
+			modelEvaluationByProblemType().evaluateAfterTraining(testSource);
+		} catch (NeuroBException e) {
+			log.error("Could not evaluate model on test set.", e);
+		}
+		
 		log.info("******************************");
 	}
 	
-	public void test(Path testSource) throws IOException, InterruptedException{
-		log.info("Evaluating the training results");
-		
+	/**
+	 * Evaluates the network upon the given test set
+	 * @param testSource
+	 * @return
+	 * @throws NeuroBException 
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	protected IEvaluation evaluateModel(Path testSource) throws NeuroBException, IOException, InterruptedException{
 		int batchSize = 100;
 		DataSetIterator iterator = nbn.getDataSetIterator(testSource, batchSize);
-		
+		nbn.applyNormalizer(iterator); //Apply normalization to the test data. This is using statistics calculated from the *training* set
 		// Evaluate on test set
 		// TODO: decide between regression and classification
-		Evaluation eval = new Evaluation(nbn.getClassificationSize());
+		IEvaluation eval = modelEvaluationByProblemType().evaluateAfterTraining(testSource);
 		
-		while(iterator.hasNext()){
-			DataSet testData = iterator.next();
-            nbn.applyNormalizer(testData);         //Apply normalization to the test data. This is using statistics calculated from the *training* set        	
-        	INDArray output = nbn.output(testData.getFeatureMatrix());        	
-        	eval.eval(testData.getLabels(), output);
-		}
-		
-		// log evaluation results
-		log.info("\tAccuracy: {}", eval.accuracy());
-		log.info("\tPrecision: {}", eval.precision());
-		log.info("\tRecall: {}", eval.recall());
-		log.info("\tF1 score: {}", eval.f1());
-		log.info("******************************");
+		return eval;
 	}
 	
 	/**
@@ -213,9 +323,13 @@ public class NeuroB {
 		tsg.logStatistics();
 		
 		try {
-			tsg.logTrainingSetAnalysis(fullTargetDirectory);
-		} catch (IOException e) {
+			TrainingAnalysisData analysis = tsg.analyseTrainingSet(fullTargetDirectory);
+			TrainingSetAnalyser.logTrainingAnalysis(analysis);
+			TrainingSetAnalyser.writeTrainingAnalysis(analysis, fullTargetDirectory);
+		} catch (NeuroBException e) {
 			log.error("Could not access target directory {} for training data analysis: {}", targetDirectory, e.getMessage(), e);
+		} catch (IOException e) {
+			log.error("Could not write analysis results to disk.", e);
 		}
 	}
 
