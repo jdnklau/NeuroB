@@ -19,7 +19,6 @@ import neurob.training.statistics.interfaces.ModelEvaluation;
 public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluation> {
 	protected BufferedWriter epochCSV;
 	protected int numColumns;
-	private boolean saveToDisk;
 	private double bestR2;
 	
 	private static final Logger log = LoggerFactory.getLogger(RegressionModelEvaluation.class); 
@@ -29,20 +28,9 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		numColumns = nbn.getOutputSize();
 		bestR2 = -1; // value between 0 and 1, so -1 will always be outperformed
 	}
-	
-	@Override
-	public void enableSavingToDisk(Path csv) throws IOException {
-		saveToDisk = true;
-		setup(csv);
-	}
 
 	@Override
-	public boolean isSavingToDiskEnabled() {
-		return saveToDisk;
-	}
-
-	@Override
-	protected void setup(Path csv) throws IOException {
+	protected void setupCSV(Path csv) throws IOException {
 		epochCSV = Files.newBufferedWriter(csv);
 		
 		// setting up csv header
@@ -70,25 +58,22 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		
 		return columns;
 	}
-
+	
 	@Override
-	public RegressionEvaluation evaluateAfterEpoch(Path trainingSet, Path testSet) throws NeuroBException {
-		epochsSeen++; // increase number of epochs seen
-
-		RegressionEvaluation trainEval;
-		RegressionEvaluation testEval;
-		try {
-			trainEval = evaluateModel(trainingSet);
-			testEval = evaluateModel(testSet);
-		} catch (IOException | InterruptedException e) {
-			throw new NeuroBException("Could not correctly evaluate model on training and testing set");
-		}
+	protected void writeEvaluationToCSV(RegressionEvaluation trainEval, RegressionEvaluation testEval)
+			throws IOException {
+		// set up line of csv
+		List<String> columns = new ArrayList<>();
+		columns.add(Integer.toString(epochsSeen));
+		columns.addAll(partialCSVEntries(trainEval));
+		columns.addAll(partialCSVEntries(testEval));
 		
-		// log results
-		logEvaluation("Training", trainEval);
-		logEvaluation("Testing", testEval);
-
-		// evaluate best epoch
+		epochCSV.write(String.join(",", columns));
+		epochCSV.flush();
+	}
+	
+	@Override
+	protected void compareWithBestEpoch(RegressionEvaluation testEval) {
 		double r2sum = 0;
 		for(int i=0; i<numColumns; i++){
 			r2sum = testEval.correlationR2(i);
@@ -101,38 +86,7 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 					epochsSeen, bestR2, r2mean);
 		} else {
 			log.info("\tBest epoch thus far: #{}", bestEpochSeen);
-		}
-		
-		// if saving to disk is enabled, do so, otherwise terminate method
-		if(saveToDisk){
-			// set up line of csv
-			List<String> columns = new ArrayList<>();
-			columns.add(Integer.toString(epochsSeen));
-			columns.addAll(partialCSVEntries(trainEval));
-			columns.addAll(partialCSVEntries(testEval));
-			
-			try {
-				epochCSV.write(String.join(",", columns));
-				epochCSV.flush();
-			} catch (IOException e) {
-				throw new NeuroBException("Unable to write statistics for epoch "+epochsSeen+" to csv", e);
-			}
-		}
-		
-		return testEval;
-		
-	}
-	
-	private void logEvaluation(String caption, RegressionEvaluation eval){
-		for(int c=0; c<numColumns; c++){
-			log.info("\t{}, column #{} --- MSE: {}; MAE: {}; RMSE: {}; RSE: {}; R2: {}",
-					caption, c,
-					eval.meanSquaredError(c),
-					eval.meanAbsoluteError(c),
-					eval.rootMeanSquaredError(c),
-					eval.relativeSquaredError(c),
-					eval.correlationR2(c));
-		}
+		}		
 	}
 	
 	protected List<String> partialCSVEntries(RegressionEvaluation eval){
@@ -153,6 +107,21 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 	public RegressionEvaluation evaluateModel(Path testSet) throws IOException, InterruptedException {
 		RegressionEvaluation eval = new RegressionEvaluation(numColumns);
 		return evaluateModel(testSet, eval);
+	}
+	
+	@Override
+	public RegressionEvaluation evaluateModel(Path testSet, String caption) throws IOException, InterruptedException {
+		RegressionEvaluation eval = evaluateModel(testSet);
+		for(int c=0; c<numColumns; c++){
+			log.info("\t{}, column #{} --- MSE: {}; MAE: {}; RMSE: {}; RSE: {}; R2: {}",
+				caption, c,
+				eval.meanSquaredError(c),
+				eval.meanAbsoluteError(c),
+				eval.rootMeanSquaredError(c),
+				eval.relativeSquaredError(c),
+				eval.correlationR2(c));
+		}
+		return eval;
 	}
 
 	@Override

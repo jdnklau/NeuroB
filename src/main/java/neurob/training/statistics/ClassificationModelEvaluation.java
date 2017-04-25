@@ -19,31 +19,18 @@ import neurob.training.statistics.interfaces.ModelEvaluation;
 public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 	protected BufferedWriter epochCSV;
 	private static final Logger log = LoggerFactory.getLogger(ClassificationModelEvaluation.class);
-	private boolean saveToDisk;
 	private double bestAccuracy;
 	private double bestF1;
 
 	public ClassificationModelEvaluation(NeuroBNet model) {
 		super(model);
-		saveToDisk = false;
 		// accuracy and f1 scoe are values in [0,1], so -1 will always be inferior.
 		bestAccuracy = -1;
 		bestF1 = -1;
 	}
-	
-	@Override
-	public void enableSavingToDisk(Path csv) throws IOException {
-		saveToDisk = true;
-		setup(csv);
-	}
 
 	@Override
-	public boolean isSavingToDiskEnabled() {
-		return saveToDisk;
-	}
-
-	@Override
-	protected void setup(Path csv) throws IOException {
+	protected void setupCSV(Path csv) throws IOException {
 		epochCSV = Files.newBufferedWriter(csv);
 		
 		// setting up csv header
@@ -64,60 +51,17 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		epochCSV.newLine();
 		epochCSV.flush();
 	}
-
-	@Override
-	public Evaluation evaluateAfterEpoch(Path trainingSet, Path testSet) throws NeuroBException {
-		epochsSeen++; // new epoch seen
-		
-		Evaluation trainEval;
-		Evaluation testEval;
-		try {
-			trainEval = evaluateModel(trainingSet);
-			testEval = evaluateModel(testSet);
-		} catch (IOException | InterruptedException e) {
-			throw new NeuroBException("Could not evaluate training or test set.", e);
-		}
-		
-		// log results
-		logEvaluation("Training", trainEval);
-		logEvaluation("Testing", testEval);
-		
-		// evaluate best epoch
-		if(testEval.f1() >= bestF1 || testEval.accuracy() >= bestAccuracy){		
-			// found new best epoch
-			bestEpochSeen = epochsSeen;
-			log.info("\tImproved on epoch {}: Accuracy {}->{}, F1 Score {}->{}",
-					epochsSeen, bestAccuracy, testEval.accuracy(), bestF1, testEval.f1());
-		} else {
-			log.info("\tBest epoch thus far: #{}", bestEpochSeen);
-		}
-		
-		// if saving to disk is enabled, do so, otherwise terminate method
-		if(saveToDisk){
-			// set up line of csv
-			List<String> columns = new ArrayList<>();
-			columns.add(Integer.toString(epochsSeen));
-			columns.addAll(partialCSVEntries(trainEval));
-			columns.addAll(partialCSVEntries(testEval));
-			
-			try {
-				epochCSV.write(String.join(",", columns));
-				epochCSV.flush();
-			} catch (IOException e) {
-				throw new NeuroBException("Unable to write statistics for epoch "+epochsSeen+" to csv", e);
-			}
-		}
-		
-		return testEval;
-	}
 	
-	private void logEvaluation(String caption, Evaluation testEval) {
-		log.info("\t{} stats - Accuracy: {}; Precision: {}; Recall: {}; F1 score: {}",
-				caption,
-				testEval.accuracy(),
-				testEval.precision(),
-				testEval.recall(),
-				testEval.f1());
+	@Override
+	protected void writeEvaluationToCSV(Evaluation trainEval, Evaluation testEval) throws IOException {
+		// set up line of csv
+		List<String> columns = new ArrayList<>();
+		columns.add(Integer.toString(epochsSeen));
+		columns.addAll(partialCSVEntries(trainEval));
+		columns.addAll(partialCSVEntries(testEval));
+		
+		epochCSV.write(String.join(",", columns));
+		epochCSV.flush();
 	}
 
 	protected List<String> partialCSVEntries(Evaluation eval){
@@ -132,9 +76,33 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 	}
 
 	@Override
+	protected void compareWithBestEpoch(Evaluation testEval) {
+		if(testEval.f1() >= bestF1 || testEval.accuracy() >= bestAccuracy){		
+			// found new best epoch
+			bestEpochSeen = epochsSeen;
+			log.info("\tImproved on epoch {}: Accuracy {}->{}, F1 Score {}->{}",
+					epochsSeen, bestAccuracy, testEval.accuracy(), bestF1, testEval.f1());
+		} else {
+			log.info("\tBest epoch thus far: #{}", bestEpochSeen);
+		}
+	}
+
+	@Override
 	public Evaluation evaluateModel(Path testSet) throws IOException, InterruptedException {
 		Evaluation eval = new Evaluation(nbn.getClassificationSize());
 		return evaluateModel(testSet, eval);
+	}
+	
+	@Override
+	public Evaluation evaluateModel(Path testSet, String caption) throws IOException, InterruptedException {
+		Evaluation testEval = evaluateModel(testSet);
+		log.info("\t{} stats - Accuracy: {}; Precision: {}; Recall: {}; F1 score: {}",
+				caption,
+				testEval.accuracy(),
+				testEval.precision(),
+				testEval.recall(),
+				testEval.f1());
+		return testEval;
 	}
 
 	@Override
