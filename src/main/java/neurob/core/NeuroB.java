@@ -1,6 +1,5 @@
 package neurob.core;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.deeplearning4j.api.storage.StatsStorage;
-import org.deeplearning4j.eval.ConfusionMatrix;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.eval.IEvaluation;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
 import org.deeplearning4j.ui.api.UIServer;
@@ -30,6 +29,9 @@ import neurob.exceptions.NeuroBException;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.analysis.TrainingAnalysisData;
+import neurob.training.statistics.ClassificationModelEvaluation;
+import neurob.training.statistics.RegressionModelEvaluation;
+import neurob.training.statistics.interfaces.ModelEvaluation;
 
 /**
  * <p>Main class of NeuroB to use</p>
@@ -135,29 +137,11 @@ public class NeuroB {
 		log.info("Setting up target directory {}", savePath);
 		Files.createDirectories(savePath);
 		
-		BufferedWriter epochCSV = null;
-		if(saveEpochStats){
-			// set up csv
-			epochCSV = Files.newBufferedWriter(savePath.resolve("epochs.csv"));
-			
-			// set up header
-			List<String> columns = new ArrayList<>();
-			columns.add("Epoch");
-			// training set stats
-			columns.add("Training Accuracy");
-			columns.add("Training Precision");
-			columns.add("Training Recall");
-			columns.add("Training F1 Score");
-			// test set stats
-			columns.add("Test Accuracy");
-			columns.add("Test Precision");
-			columns.add("Test Recall");
-			columns.add("Test F1 Score");
-			
-			epochCSV.write(String.join(",", columns));
-			epochCSV.newLine();
-			epochCSV.flush();
-		}
+		// get evaluation unit
+		@SuppressWarnings("rawtypes")
+		ModelEvaluation eval = modelEvaluationByProblemType();
+		if(saveEpochStats)
+			eval.enableSavingToDisk(savePath.resolve("epochs.csv"));
 		
 		int batchSize = 250;
 		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
@@ -194,47 +178,12 @@ public class NeuroB {
 			nbn.fit(iterator);
 			
 			// evaluate after each epoch
-			Evaluation trainEval = evaluateModel(trainSource);
-			Evaluation testEval = evaluateModel(testSource);
-			log.info("Done with epoch {}", i+1);
-			log.info("\tTraining stats - Accuracy: {}; Precision: {}; Recall: {}; F1 score: {}",
-					trainEval.accuracy(),
-					trainEval.precision(),
-					trainEval.recall(),
-					trainEval.f1());
-			log.info("\tTesting stats - Accuracy: {}; Precision: {}; Recall: {}; F1 score: {}",
-					testEval.accuracy(),
-					testEval.precision(),
-					testEval.recall(),
-					testEval.f1());
-			
-			// save to csv
-			if(saveEpochStats && epochCSV != null){
-				List<String> columns = new ArrayList<>();
-				columns.add(Integer.toString(i+1));
-				// training set stats
-				columns.add(Double.toString(trainEval.accuracy()));
-				columns.add(Double.toString(trainEval.precision()));
-				columns.add(Double.toString(trainEval.recall()));
-				columns.add(Double.toString(trainEval.f1()));
-				// test set stats
-				columns.add(Double.toString(testEval.accuracy()));
-				columns.add(Double.toString(testEval.precision()));
-				columns.add(Double.toString(testEval.recall()));
-				columns.add(Double.toString(testEval.f1()));
-				
-				try {
-					epochCSV.write(String.join(",", columns));
-					epochCSV.newLine();
-					epochCSV.flush();
-				} catch (Exception e) {
-					log.warn("\tCould not add evaluation results of current epoch to csv");
-				}
+			try {
+				eval.evaluateAfterEpoch(trainSource, testSource);
+			} catch (NeuroBException e) {
+				log.warn("Could not calulate training and testing errors after epoch.", e);
 			}
 		}
-		
-		if(epochCSV != null)
-			epochCSV.close();
 		
 		log.info("Done with training {} epochs", numEpochs);
 		log.info("******************************");
@@ -246,25 +195,24 @@ public class NeuroB {
 		test(testSource);
 	}
 	
+	@SuppressWarnings("rawtypes")
+	private ModelEvaluation modelEvaluationByProblemType() throws IOException {
+		switch(nbn.getProblemType()){
+		default: // NOTE: Defaulting to classification
+		case CLASSIFICATION:
+			return new ClassificationModelEvaluation(nbn);
+		case REGRESSION:
+			return new RegressionModelEvaluation(nbn);		
+		}
+	}
+
 	public void test(Path testSource) throws IOException, InterruptedException{
 		log.info("Evaluating the trained model...");
 		
-		Evaluation eval = evaluateModel(testSource);
-		
-		// log evaluation results
-		log.info("\tAccuracy: {}", eval.accuracy());
-		log.info("\tPrecision: {}", eval.precision());
-		log.info("\tRecall: {}", eval.recall());
-		log.info("\tF1 score: {}", eval.f1());
-
-		// log confusion matrix
-		ConfusionMatrix<Integer> matrix = eval.getConfusionMatrix();
-		log.info("Confusion Matrix:");
-		for(int i=0; i<nbn.getClassificationSize(); i++){
-			for(int j=0; j<nbn.getClassificationSize(); j++){
-				log.info("\tClass {} predicted as {} a total of {} times", i, j,
-						matrix.getCount(i, j));
-			}
+		try {
+			modelEvaluationByProblemType().evaluateAfterTraining(testSource);
+		} catch (NeuroBException e) {
+			log.error("Could not evaluate model on test set.", e);
 		}
 		
 		log.info("******************************");
@@ -274,22 +222,17 @@ public class NeuroB {
 	 * Evaluates the network upon the given test set
 	 * @param testSource
 	 * @return
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @throws NeuroBException 
+	 * @throws InterruptedException 
+	 * @throws IOException 
 	 */
-	protected Evaluation evaluateModel(Path testSource) throws IOException, InterruptedException{
+	protected IEvaluation evaluateModel(Path testSource) throws NeuroBException, IOException, InterruptedException{
 		int batchSize = 100;
 		DataSetIterator iterator = nbn.getDataSetIterator(testSource, batchSize);
 		nbn.applyNormalizer(iterator); //Apply normalization to the test data. This is using statistics calculated from the *training* set
 		// Evaluate on test set
 		// TODO: decide between regression and classification
-		Evaluation eval = new Evaluation(nbn.getClassificationSize());
-		
-		while(iterator.hasNext()){
-			DataSet testData = iterator.next();
-        	INDArray output = nbn.output(testData.getFeatureMatrix());        	
-        	eval.eval(testData.getLabels(), output);
-		}
+		IEvaluation eval = modelEvaluationByProblemType().evaluateAfterTraining(testSource);
 		
 		return eval;
 	}
