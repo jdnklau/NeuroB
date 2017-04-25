@@ -79,14 +79,13 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 			r2sum = testEval.correlationR2(i);
 		}
 		double r2mean = r2sum/numColumns;
-		if(r2mean >= bestR2){		
+		if(r2mean > bestR2){		
 			// found new best epoch
 			bestEpochSeen = epochsSeen;
 			log.info("\tImproved on epoch {}: Mean correlation coefficient (R2) {}->{}",
 					epochsSeen, bestR2, r2mean);
-		} else {
-			log.info("\tBest epoch thus far: #{}", bestEpochSeen);
-		}		
+			bestR2 = r2mean;
+		}	
 	}
 	
 	protected List<String> partialCSVEntries(RegressionEvaluation eval){

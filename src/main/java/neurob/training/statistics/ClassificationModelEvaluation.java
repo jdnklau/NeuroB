@@ -77,13 +77,13 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 
 	@Override
 	protected void compareWithBestEpoch(Evaluation testEval) {
-		if(testEval.f1() >= bestF1 || testEval.accuracy() >= bestAccuracy){		
+		if(testEval.f1() > bestF1 || testEval.accuracy() > bestAccuracy){		
 			// found new best epoch
 			bestEpochSeen = epochsSeen;
+			bestF1 = testEval.f1();
+			bestAccuracy = testEval.accuracy();
 			log.info("\tImproved on epoch {}: Accuracy {}->{}, F1 Score {}->{}",
 					epochsSeen, bestAccuracy, testEval.accuracy(), bestF1, testEval.f1());
-		} else {
-			log.info("\tBest epoch thus far: #{}", bestEpochSeen);
 		}
 	}
 
@@ -115,10 +115,10 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		}
 		
 		// log evaluation results
-		log.info("\tAccuracy: {}", eval.accuracy());
-		log.info("\tPrecision: {}", eval.precision());
-		log.info("\tRecall: {}", eval.recall());
-		log.info("\tF1 score: {}", eval.f1());
+		log.info("Accuracy: {}", eval.accuracy());
+		log.info("Precision: {}", eval.precision());
+		log.info("Recall: {}", eval.recall());
+		log.info("F1 score: {}", eval.f1());
 
 		// log confusion matrix
 		ConfusionMatrix<Integer> matrix = eval.getConfusionMatrix();
