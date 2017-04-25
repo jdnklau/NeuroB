@@ -112,6 +112,8 @@ public class NeuroB {
 	 * Trains the neural net with a training set located at the given source.
 	 * <p>
 	 * The test source is then used to evaluate the trained network.
+	 * If for 5 consecutive epochs no performance gain on the test set could be measured,
+	 * the training stops.
 	 * @param trainSource
 	 * @param testSource
 	 * @param numEpochs Number of epochs used in training
@@ -126,6 +128,8 @@ public class NeuroB {
 	 * Trains the neural net with a training set located at the given source.
 	 * <p>
 	 * The test source is then used to evaluate the trained network.
+	 * If for 5 consecutive epochs no performance gain on the test set could be measured,
+	 * the training stops.
 	 * @param trainSource
 	 * @param testSource
 	 * @param numEpochs Number of epochs used in training
@@ -133,7 +137,28 @@ public class NeuroB {
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainSource, Path testSource, int numEpochs, boolean saveEpochStats) throws IOException, InterruptedException{
+	public void train(Path trainSource, Path testSource, int numEpochs, boolean saveEpochStats)
+			throws IOException, InterruptedException{
+		train(trainSource, testSource, numEpochs, saveEpochStats, 5);
+	}
+	
+	/**
+	 * Trains the neural net with a training set located at the given source.
+	 * <p>
+	 * The test source is then used to evaluate the trained network.
+	 * <p>
+	 * If for {@code earlyStoppingEpochs} consecutive epochs no performance gain on the test set could be measured,
+	 * the training stops.
+	 * @param trainSource
+	 * @param testSource
+	 * @param numEpochs Number of epochs used in training
+	 * @param saveEpochStats Whether or not to save the evaluation results generated after each epoch to a csv file
+	 * @param earlyStoppingEpochs Number of consecutive epochs without performance gain before training is interrupted
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	public void train(Path trainSource, Path testSource, int numEpochs, boolean saveEpochStats, int earlyStoppingEpochs)
+			throws IOException, InterruptedException{
 		log.info("Setting up target directory {}", savePath);
 		Files.createDirectories(savePath);
 		
@@ -172,24 +197,42 @@ public class NeuroB {
 		nbn.setListeners(listeners);
 		
 		// train net on training data
-		for(int i=0; i<numEpochs; i++){
-			log.info("Training epoch {}", i+1);
+		int bestEpochSaved = -1;
+		int trainedEpochs = 0; // count how many epochs were actually trained
+		for(int i=1; i<=numEpochs; i++){
+			log.info("Training epoch {}", i);
         	iterator.reset();
 			nbn.fit(iterator);
+			trainedEpochs++;
 			
 			// evaluate after each epoch
 			try {
 				eval.evaluateAfterEpoch(trainSource, testSource);
 			} catch (NeuroBException e) {
-				log.warn("Could not calulate training and testing errors after epoch.", e);
+				log.warn("Could not calculate training and testing errors after epoch.", e);
 			}
+			
+			// save best model
+			if(eval.getBestEpochSeen() > bestEpochSaved){
+				log.info("Improved performance with latest epoch {} (former best epoch was {})",
+						eval.getBestEpochSeen(), bestEpochSaved);
+				log.info("\tSaving model to {}", savePath);
+				nbn.saveModel(savePath);
+				bestEpochSaved = eval.getBestEpochSeen();
+			} else {
+				log.info("Best epoch thus far: #{}", eval.getBestEpochSeen());
+				// early stopping
+				if(i-bestEpochSaved >= earlyStoppingEpochs){
+					log.warn("No performance gain for {} consecutive epochs; stopping training.",
+							earlyStoppingEpochs);
+					break;
+				}
+			}
+			
 		}
 		
-		log.info("Done with training {} epochs", numEpochs);
+		log.info("Done with training {} epochs", trainedEpochs);
 		log.info("******************************");
-		
-		log.info("Saving model to {}", savePath);
-		nbn.saveModel(savePath);
 
 		// evaluate whole model
 		test(testSource);
