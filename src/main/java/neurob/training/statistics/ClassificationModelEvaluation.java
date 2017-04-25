@@ -61,7 +61,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 	}
 
 	@Override
-	public void evaluateAfterEpoch(Path trainingSet, Path testSet) throws NeuroBException {
+	public Evaluation evaluateAfterEpoch(Path trainingSet, Path testSet) throws NeuroBException {
 		epochsSeen++; // new epoch seen
 		
 		Evaluation trainEval;
@@ -83,21 +83,22 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		log.info("\tBest epoch thus far: #{}", bestEpochSeen);
 		
 		// if saving to disk is enabled, do so, otherwise terminate method
-		if(!saveToDisk)
-			return;
-		
-		// set up line of csv
-		List<String> columns = new ArrayList<>();
-		columns.add(Integer.toString(epochsSeen));
-		columns.addAll(partialCSVEntries(trainEval));
-		columns.addAll(partialCSVEntries(testEval));
-		
-		try {
-			epochCSV.write(String.join(",", columns));
-			epochCSV.flush();
-		} catch (IOException e) {
-			throw new NeuroBException("Unable to write statistics for epoch "+epochsSeen+" to csv", e);
+		if(saveToDisk){
+			// set up line of csv
+			List<String> columns = new ArrayList<>();
+			columns.add(Integer.toString(epochsSeen));
+			columns.addAll(partialCSVEntries(trainEval));
+			columns.addAll(partialCSVEntries(testEval));
+			
+			try {
+				epochCSV.write(String.join(",", columns));
+				epochCSV.flush();
+			} catch (IOException e) {
+				throw new NeuroBException("Unable to write statistics for epoch "+epochsSeen+" to csv", e);
+			}
 		}
+		
+		return testEval;
 	}
 	
 	private void logEvaluation(String caption, Evaluation testEval) {

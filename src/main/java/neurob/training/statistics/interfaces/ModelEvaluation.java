@@ -60,12 +60,14 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	 * Increases internal epoch counter by 1, evaluates the model on the training and test set
 	 * and checks whether the new epoch reached the best performance on the test set or not.
 	 * <p>
-	 * Saves the generated results as a line to the csv file.
+	 * Saves the generated results as a line to the csv file, if {@link #enableSavingToDisk(Path)}
+	 * was called prior.
 	 * @param trainingSet Location of training set, to calculate training error
 	 * @param testSet Location of test set, to calculate test error
+	 * @return Evaluation object for test set
 	 * @throws NeuroBException
 	 */
-	public abstract void evaluateAfterEpoch(Path trainingSet, Path testSet) throws NeuroBException;
+	public abstract T evaluateAfterEpoch(Path trainingSet, Path testSet) throws NeuroBException;
 	
 	/**
 	 * Like {@link #evaluateModel(Path)}, but also adds detailed information to log.
