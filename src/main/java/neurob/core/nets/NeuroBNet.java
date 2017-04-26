@@ -234,13 +234,9 @@ public class NeuroBNet {
 		// save model
 		ModelSerializer.writeModel(model,
 				targetDirectory.resolve("model.zip").toFile(), saveUpdater);
-		// save model config
-		BufferedWriter confWr = Files.newBufferedWriter(targetDirectory.resolve("config.json"));
-		confWr.write(model.getLayerWiseConfigurations().toJson());
-		confWr.close();
 		// save seed
 		BufferedWriter seedWr = Files.newBufferedWriter(targetDirectory.resolve("seed.txt"));
-		seedWr.write(Integer.toString(seed));
+		seedWr.write(seed);
 		seedWr.newLine();
 		seedWr.close();
 	}
