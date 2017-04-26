@@ -106,7 +106,7 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	
 	/**
 	 * If {@link #enableSavingToDisk(Path)} was called prior, saves the evaluation results on training
-	 * and/or testing set to the CSV file.
+	 * and/or testing set to the CSV file as a single line, followed by a new line character.
 	 * @param trainEval
 	 * @param testEval
 	 */

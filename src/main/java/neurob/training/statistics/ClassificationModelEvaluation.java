@@ -61,6 +61,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		columns.addAll(partialCSVEntries(testEval));
 		
 		epochCSV.write(String.join(",", columns));
+		epochCSV.newLine();
 		epochCSV.flush();
 	}
 
