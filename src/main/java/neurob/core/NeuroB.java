@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.deeplearning4j.api.storage.StatsStorage;
-import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.eval.IEvaluation;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
@@ -18,8 +17,6 @@ import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,30 +168,9 @@ public class NeuroB {
 		int batchSize = 250;
 		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
 		
-		// set up training data
-		DataSetIterator iterator = nbn.getDataSetIterator(trainSource, batchSize);
-		
-		// set up normaliser
-		log.info("Setting up normaliser...");
-		nbn.fitNormalizer(iterator);
-		
-		// Set up listeners
-		List<IterationListener> listeners = new ArrayList<>();
-		if(dl4jUIEnabled){
-			UIServer uiServer = UIServer.getInstance();
-			
-			StatsStorage statsStorage = new InMemoryStatsStorage();
-			uiServer.attach(statsStorage);
-			
-			listeners.add(new StatsListener(statsStorage));
-			
-			log.info("DL4J UI is available at http://localhost:9000/");
-		}
-		// - save stats for later use
-		StatsStorage statsStorage = new FileStatsStorage(savePath.resolve("training_stats.dl4j").toFile());
-		listeners.add(new StatsListener(statsStorage));
-		listeners.add(new PerformanceListener(75, true));
-		nbn.setListeners(listeners);
+		// set up training data iterator and listeners
+		DataSetIterator iterator = setupTrainingSetIterator(trainSource, batchSize);
+		setupModlTrainingListeners();
 		
 		// train net on training data
 		int bestEpochSaved = -1;
@@ -236,6 +212,46 @@ public class NeuroB {
 
 		// evaluate whole model
 		test(testSource);
+	}
+	
+	/**
+	 * Attaches listeners to the model for training observation
+	 */
+	private void setupModlTrainingListeners() {
+		List<IterationListener> listeners = new ArrayList<>();
+		if(dl4jUIEnabled){
+			UIServer uiServer = UIServer.getInstance();
+			
+			StatsStorage statsStorage = new InMemoryStatsStorage();
+			uiServer.attach(statsStorage);
+			
+			listeners.add(new StatsListener(statsStorage));
+			
+			log.info("DL4J UI is available at http://localhost:9000/");
+		}
+		// - save stats for later use
+		StatsStorage statsStorage = new FileStatsStorage(savePath.resolve("training_stats.dl4j").toFile());
+		listeners.add(new StatsListener(statsStorage));
+		listeners.add(new PerformanceListener(75, true));
+		nbn.setListeners(listeners);
+	}
+
+	/**
+	 * Sets up the training set iterator and normalizer.
+	 * @param trainingSource
+	 * @param batchSize
+	 * @return
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	private DataSetIterator setupTrainingSetIterator(Path trainingSource, int batchSize) throws IOException, InterruptedException{
+		// set up data set itreator
+		DataSetIterator iterator = nbn.getDataSetIterator(trainingSource, batchSize);
+		// set up normaliser
+		log.info("Setting up normaliser...");
+		nbn.fitNormalizer(iterator);
+		
+		return iterator;
 	}
 	
 	@SuppressWarnings("rawtypes")
