@@ -25,13 +25,16 @@ repositories {
 }
 
 dependencies {
-
+	// ProB dependencies
 	compile 'commons-cli:commons-cli:1.2'
 	compile (group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '3.1.1-SNAPSHOT')
 
-	compile 'org.deeplearning4j:deeplearning4j-core:0.8.0'
+	// DeepLearning4J dependencies
 	compile 'org.nd4j:nd4j-native-platform:0.8.0'
-	// user interface of deeplearning4j
+	compile 'org.deeplearning4j:deeplearning4j-core:0.8.0'
+	// arbiter for random search and grid search utility
+	compile 'org.deeplearning4j:arbiter-deeplearning4j:0.8.0'
+ 	// user interface of deeplearning4j
 	compile 'org.deeplearning4j:deeplearning4j-ui_2.10:0.8.0'
 	
 	compile 'org.slf4j:slf4j-api:1.7.21'
