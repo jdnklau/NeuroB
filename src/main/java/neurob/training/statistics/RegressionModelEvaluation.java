@@ -147,7 +147,7 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 
 	@Override
 	protected boolean performsBetterThan(RegressionEvaluation first, RegressionEvaluation second) {
-		return r2mean(first) < r2mean(second);
+		return r2mean(first) > r2mean(second);
 	}
 	
 	private double r2mean(RegressionEvaluation eval){
