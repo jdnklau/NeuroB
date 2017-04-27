@@ -22,7 +22,8 @@ public class HyperParameterSearch
 	private T candidateGenerator;
 	private Path savePath;
 	private int bestPerformingIndex;
-	private ModelEvaluation<IEvaluation> modelEvaluation = null;
+	@SuppressWarnings("rawtypes")
+	private ModelEvaluation bestEvaluation = null;
 	private FeatureGenerator featureGenerator;
 	private LabelGenerator labelGenerator;
 
@@ -70,17 +71,9 @@ public class HyperParameterSearch
 	public int trainModels(int numModels, 
 			Path trainSource, Path testSource, int numEpochs)
 			throws IOException, InterruptedException{
-		/*
-		 * TODO
-		 * - [x] get candidates
-		 * - [x] train them
-		 * - [x] save them (automatically done by NeuroB#train call)
-		 * - [ ] get final evaluation for comparison
-		 * - [ ] update best model
-		 * - [ ] return index of best performing model  
-		 */
 		// Train and evaluate up to numModels candidates
-		for(int i=0; i<numModels && candidateGenerator.hasMoreCandidates();
+		for(int i=0;
+				i<numModels && candidateGenerator.hasMoreCandidates();
 				i++){
 			// get candidate
 			MultiLayerNetwork model = new MultiLayerNetwork(
@@ -93,14 +86,19 @@ public class HyperParameterSearch
         	Path modelSavePath = 
         			savePath.resolve(nbn.getDataPathName())
         			.resolve(Integer.toString(i));
-			// set up NeuroB
+			
+        	// set up NeuroB
 			NeuroB nb = new NeuroB(nbn, modelSavePath);
 			
-			// train model
-			nb.train(trainSource, testSource, numEpochs);
-			
+			// train model and get evaluation
+			ModelEvaluation eval = nb.train(trainSource,testSource,numEpochs);
+
+			// compare evaluations
+			if(eval.performsBetterThan(bestEvaluation)){
+				bestEvaluation = eval;
+				bestPerformingIndex = i;
+			}
 		}
-		
 		
 		return bestPerformingIndex;
 	}
@@ -109,8 +107,9 @@ public class HyperParameterSearch
 		return bestPerformingIndex;
 	}
 
-	public ModelEvaluation<IEvaluation> getModelEvaluation() {
-		return modelEvaluation;
+	@SuppressWarnings("rawtypes")
+	public ModelEvaluation getBestEvaluation() {
+		return bestEvaluation;
 	}
 
 }
