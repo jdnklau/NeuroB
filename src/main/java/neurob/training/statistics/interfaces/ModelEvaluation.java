@@ -31,15 +31,42 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	
 	/**
 	 * The best evaluation gotten so far. May stay {@code null} as long
-	 * no evaluation has taken place
+	 * no evaluation has taken place --- call {@link #init(Path)} to set
+	 * initial value. 
 	 */
 	protected T bestEvaluation;
 	
 	public ModelEvaluation(NeuroBNet model) {
 		this.nbn = model;
 		epochsSeen = 0;
-		bestEpochSeen = -1;
+		bestEpochSeen = 0;
 		savingToDisk = false;
+	}
+	
+	/**
+	 * Initialises the evaluation, preferably before any epoch was trained.
+	 * <p>
+	 * Sets initial results for the randomly chosen parameters in the model
+	 * over the data set given, but if already some evaluation results are
+	 * stored, behaviour remains undefined.
+	 * <p>
+	 * If {@link #enableSavingToDisk(Path)} was called before,
+	 * this method will write a line to the epochs CSV.
+	 * 
+	 * @param trainSet Location of training set, to calculate training error
+	 * @param testSet Location of test set, to calculate test error
+	 * @return The resulting evaluation
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	public T init(Path trainSet, Path testSet) throws IOException, InterruptedException{
+		if(bestEvaluation == null){
+			T trainEval = evaluateModel(trainSet, "Initialisation, Training");
+			bestEvaluation = evaluateModel(testSet, "Initialisation, Testing");
+			if(savingToDisk)
+				writeEvaluationToCSV(trainEval, bestEvaluation);
+		}
+		return bestEvaluation;
 	}
 	
 	/**

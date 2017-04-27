@@ -175,7 +175,10 @@ public class NeuroB {
 		
 		// set up training data iterator and listeners
 		DataSetIterator iterator = setupTrainingSetIterator(trainSource, batchSize);
-		setupModlTrainingListeners();
+		setupModelTrainingListeners();
+		
+		// initial evaluation before any training happened
+		eval.init(trainSource, testSource);
 		
 		// train net on training data
 		int bestEpochSaved = -1;
@@ -224,7 +227,7 @@ public class NeuroB {
 	/**
 	 * Attaches listeners to the model for training observation
 	 */
-	private void setupModlTrainingListeners() {
+	private void setupModelTrainingListeners() {
 		List<IterationListener> listeners = new ArrayList<>();
 		if(dl4jUIEnabled){
 			UIServer uiServer = UIServer.getInstance();
