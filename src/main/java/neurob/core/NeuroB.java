@@ -117,8 +117,10 @@ public class NeuroB {
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainSource, Path testSource, int numEpochs) throws IOException, InterruptedException{
-		train(trainSource, testSource, numEpochs, false);
+	@SuppressWarnings("rawtypes")
+	public ModelEvaluation train(Path trainSource,Path testSource,
+			int numEpochs) throws IOException, InterruptedException{
+		return train(trainSource, testSource, numEpochs, false);
 	}
 		
 	/**
@@ -134,9 +136,11 @@ public class NeuroB {
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainSource, Path testSource, int numEpochs, boolean saveEpochStats)
-			throws IOException, InterruptedException{
-		train(trainSource, testSource, numEpochs, saveEpochStats, 5);
+	@SuppressWarnings("rawtypes")
+	public ModelEvaluation train(Path trainSource,Path testSource,
+			int numEpochs, boolean saveEpochStats)
+					throws IOException, InterruptedException{
+		return train(trainSource, testSource, numEpochs, saveEpochStats, 5);
 	}
 	
 	/**
@@ -154,13 +158,14 @@ public class NeuroB {
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void train(Path trainSource, Path testSource, int numEpochs, boolean saveEpochStats, int earlyStoppingEpochs)
+	@SuppressWarnings("rawtypes")
+	public ModelEvaluation train(Path trainSource,Path testSource,
+			int numEpochs, boolean saveEpochStats, int earlyStoppingEpochs)
 			throws IOException, InterruptedException{
 		log.info("Setting up target directory {}", savePath);
 		Files.createDirectories(savePath);
 		
 		// get evaluation unit
-		@SuppressWarnings("rawtypes")
 		ModelEvaluation eval = modelEvaluationByProblemType();
 		if(saveEpochStats)
 			eval.enableSavingToDisk(savePath.resolve("epochs.csv"));
@@ -212,6 +217,8 @@ public class NeuroB {
 
 		// evaluate whole model
 		test(testSource);
+		
+		return eval;
 	}
 	
 	/**
@@ -255,7 +262,8 @@ public class NeuroB {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private ModelEvaluation modelEvaluationByProblemType() throws IOException {
+	private ModelEvaluation modelEvaluationByProblemType()
+			throws IOException {
 		switch(nbn.getProblemType()){
 		default: // NOTE: Defaulting to classification
 		case CLASSIFICATION:
@@ -264,17 +272,21 @@ public class NeuroB {
 			return new RegressionModelEvaluation(nbn);		
 		}
 	}
-
-	public void test(Path testSource) throws IOException, InterruptedException{
+	
+	@SuppressWarnings("rawtypes")
+	public ModelEvaluation test(Path testSource) throws IOException, InterruptedException{
 		log.info("Evaluating the trained model...");
 		
+		ModelEvaluation eval = modelEvaluationByProblemType();
 		try {
-			modelEvaluationByProblemType().evaluateAfterTraining(testSource);
+			eval.evaluateAfterTraining(testSource);
 		} catch (NeuroBException e) {
 			log.error("Could not evaluate model on test set.", e);
 		}
 		
 		log.info("******************************");
+		
+		return eval;
 	}
 	
 	/**
@@ -285,6 +297,7 @@ public class NeuroB {
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
+	@SuppressWarnings("rawtypes")
 	protected IEvaluation evaluateModel(Path testSource) throws NeuroBException, IOException, InterruptedException{
 		int batchSize = 100;
 		DataSetIterator iterator = nbn.getDataSetIterator(testSource, batchSize);
