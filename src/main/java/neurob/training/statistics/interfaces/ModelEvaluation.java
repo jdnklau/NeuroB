@@ -3,7 +3,6 @@ package neurob.training.statistics.interfaces;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.eval.IEvaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -30,6 +29,12 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	 */
 	protected boolean savingToDisk;
 	
+	/**
+	 * The best evaluation gotten so far. May stay {@code null} as long
+	 * no evaluation has taken place
+	 */
+	protected T bestEvaluation;
+	
 	public ModelEvaluation(NeuroBNet model) {
 		this.nbn = model;
 		epochsSeen = 0;
@@ -42,7 +47,7 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	 * the statistics generated per epoch are saved line wise to the specified
 	 * CSV file.
 	 * <p>
-	 * The file will be created or overriden, if it already exists.
+	 * The file will be created or overridden, if it already exists.
 	 * @param csv CSV the data will be written to
 	 */
 	public final void enableSavingToDisk(Path csv) throws IOException {
@@ -105,16 +110,18 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	}
 	
 	/**
-	 * If {@link #enableSavingToDisk(Path)} was called prior, saves the evaluation results on training
-	 * and/or testing set to the CSV file as a single line, followed by a new line character.
+	 * If {@link #enableSavingToDisk(Path)} was called prior, saves the 
+	 * evaluation results on training and/or testing set to the CSV file as a
+	 * single line, followed by a new line character.
 	 * @param trainEval
 	 * @param testEval
 	 */
-	protected abstract void writeEvaluationToCSV(T trainEval, T testEval) throws IOException;
+	protected abstract void writeEvaluationToCSV(T trainEval, T testEval)
+			throws IOException;
 
 	/**
-	 * Compares the evaluation statistics gathered with the ones of the best performing epoch thus far
-	 * and sets the new best epoch accordingly.
+	 * Compares the evaluation statistics gathered with the ones of the best
+	 * performing epoch thus far and sets the new best epoch accordingly.
 	 * @param testEval
 	 */
 	protected abstract void compareWithBestEpoch(T testEval);
@@ -169,4 +176,44 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 		
 		return eval;
 	}
+	
+	/**
+	 * Returns true if this evaluation stored better results than the
+	 * compared instance.
+	 * @param compareWith Evaluation to compare performance results with
+	 * @return true if this evaluation's results are better
+	 */
+	public boolean performsBetterThan(ModelEvaluation<T> compareWith){
+		if(bestEvaluation != null){
+			if(compareWith.getBestEvaluation() == null)
+				return true;
+			// both evaluations gathered are not null
+			return performsBetterThan(bestEvaluation,
+					compareWith.getBestEvaluation());
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Returns true if this evaluation stored better results than the compared
+	 * instance.
+	 * @param compareWith Evaluation to compare performance results with
+	 * @return true if this evaluation's results are better
+	 */
+	protected boolean performsBetterThan(T compareWith){
+		return bestEvaluation != null 
+				&& performsBetterThan(bestEvaluation, compareWith);
+	}
+	
+	/**
+	 * Returns true if the performance measured in the first evaluation is
+	 * better than the one in the second.
+	 * @param first
+	 * @param second
+	 * @return True if first is better than second
+	 */
+	protected abstract boolean performsBetterThan(T first, T second);
+	
+	public T getBestEvaluation(){ return bestEvaluation;}
 }

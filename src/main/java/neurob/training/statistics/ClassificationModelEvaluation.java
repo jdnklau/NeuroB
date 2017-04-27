@@ -19,14 +19,9 @@ import neurob.training.statistics.interfaces.ModelEvaluation;
 public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 	protected BufferedWriter epochCSV;
 	private static final Logger log = LoggerFactory.getLogger(ClassificationModelEvaluation.class);
-	private double bestAccuracy;
-	private double bestF1;
 
 	public ClassificationModelEvaluation(NeuroBNet model) {
 		super(model);
-		// accuracy and f1 scoe are values in [0,1], so -1 will always be inferior.
-		bestAccuracy = -1;
-		bestF1 = -1;
 	}
 
 	@Override
@@ -78,13 +73,14 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 
 	@Override
 	protected void compareWithBestEpoch(Evaluation testEval) {
-		if(testEval.f1() > bestF1 || testEval.accuracy() > bestAccuracy){		
+		if(!performsBetterThan(testEval)){
 			// found new best epoch
 			bestEpochSeen = epochsSeen;
-			bestF1 = testEval.f1();
-			bestAccuracy = testEval.accuracy();
-			log.info("\tImproved on epoch {}: Accuracy {}->{}, F1 Score {}->{}",
-					epochsSeen, bestAccuracy, testEval.accuracy(), bestF1, testEval.f1());
+			log.info(
+					"\tImproved on epoch {}: Accuracy {}->{}, F1 Score {}->{}",
+					epochsSeen,
+					bestEvaluation.accuracy(), testEval.accuracy(),
+					bestEvaluation.f1(), testEval.f1());
 		}
 	}
 
@@ -132,6 +128,11 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		}
 		
 		return eval;
+	}
+
+	@Override
+	protected boolean performsBetterThan(Evaluation first, Evaluation second) {
+		return second.f1()>first.f1() || second.accuracy()>first.accuracy();
 	}
 
 }

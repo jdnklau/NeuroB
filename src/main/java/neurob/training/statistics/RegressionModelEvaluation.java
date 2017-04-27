@@ -75,18 +75,17 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 	
 	@Override
 	protected void compareWithBestEpoch(RegressionEvaluation testEval) {
-		double r2sum = 0;
-		for(int i=0; i<numColumns; i++){
-			r2sum = testEval.correlationR2(i);
-		}
-		double r2mean = r2sum/numColumns;
-		if(r2mean > bestR2){		
+		if(!performsBetterThan(testEval)){
+			// NOTE: is already calculated in performsBetterThan(testEval)
+			// but I see no way to store/return/access the value
+			// in a way that makes sense.
+			double r2mean = r2mean(testEval);
 			// found new best epoch
 			bestEpochSeen = epochsSeen;
 			log.info("\tImproved on epoch {}: Mean correlation coefficient (R2) {}->{}",
 					epochsSeen, bestR2, r2mean);
 			bestR2 = r2mean;
-		}	
+		}
 	}
 	
 	protected List<String> partialCSVEntries(RegressionEvaluation eval){
@@ -144,6 +143,19 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		}
 		
 		return eval;
+	}
+
+	@Override
+	protected boolean performsBetterThan(RegressionEvaluation first, RegressionEvaluation second) {
+		return r2mean(first) < r2mean(second);
+	}
+	
+	private double r2mean(RegressionEvaluation eval){
+		double r2sum = 0;
+		for(int i=0; i<numColumns; i++){
+			r2sum = eval.correlationR2(i);
+		}
+		return r2sum/numColumns;
 	}
 
 }
