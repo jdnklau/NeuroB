@@ -1,11 +1,19 @@
 package neurob.core.features.interfaces;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Random;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import org.datavec.api.records.reader.RecordReader;
+import org.datavec.api.split.FileSplit;
+import org.datavec.image.recordreader.ImageRecordReader;
+
+import neurob.core.nets.util.ImageNameLabelGenerator;
 import neurob.exceptions.NeuroBException;
 
 /**
@@ -103,5 +111,17 @@ public interface ConvolutionFeatures extends FeatureGenerator {
 		frame.getContentPane().add(new JLabel(new ImageIcon(image)));
 		
 		frame.setVisible(true);
+	}
+	
+	@Override
+	default RecordReader getRecordReader(Path trainingSet, int batchSize) throws IOException, InterruptedException {
+		ImageRecordReader rr = 
+				new ImageRecordReader(getImageHeight(), getImageWidth(), 
+						getFeatureChannels(), new ImageNameLabelGenerator());
+		FileSplit fileSplit = new FileSplit(trainingSet.toFile(), 
+				new String[]{"png", "PNG"}, new Random(123));
+		rr.initialize(fileSplit);
+		
+		return rr;
 	}
 }

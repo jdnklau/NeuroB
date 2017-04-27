@@ -351,19 +351,16 @@ public class NeuroBNet {
 	}
 	
 	/**
-	 * Returns an iterator for the given data set.
-	 * <p>
-	 * It is assumed that the csv file's first row consists of column headers and thus it is ignored.
-	 * @param csvFile The data set to use.
-	 * @param batchSize
-	 * @return
+	 * Returns an iterator for the given data set to use for training a model.
+	 * @param dataSet The data set to use.
+	 * @param batchSize Size of samples read at once per batch
+	 * @return An iterator to go over thr data set
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public DataSetIterator getDataSetIterator(Path csvFile, int batchSize) throws IOException, InterruptedException{
+	public DataSetIterator getDataSetIterator(Path dataSet, int batchSize) throws IOException, InterruptedException{
 		// set up record reader
-		RecordReader recordReader = new CSVRecordReader(1,","); // skip first line (header line)
-		recordReader.initialize(new FileSplit(csvFile.toFile()));
+		RecordReader recordReader = features.getRecordReader(dataSet, batchSize);
 		
 		return labelgen.getDataSetIterator(recordReader, batchSize, features.getFeatureDimension());
 	}

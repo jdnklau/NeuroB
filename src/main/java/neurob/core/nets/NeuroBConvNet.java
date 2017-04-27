@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Random;
 
-import org.datavec.api.split.FileSplit;
-import org.datavec.image.loader.NativeImageLoader;
-import org.datavec.image.recordreader.ImageRecordReader;
+import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -24,7 +22,6 @@ import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import neurob.core.features.interfaces.ConvolutionFeatures;
-import neurob.core.nets.util.ImageNameLabelGenerator;
 import neurob.core.util.ProblemType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.interfaces.LabelGenerator;
@@ -143,14 +140,9 @@ public class NeuroBConvNet extends NeuroBNet {
 	
 	@Override
 	public DataSetIterator getDataSetIterator(Path datapath, int batchSize) throws IOException, InterruptedException {
-		ConvolutionFeatures features = (ConvolutionFeatures) this.features;
-		ImageRecordReader rr = new ImageRecordReader(features.getImageHeight(), features.getImageWidth(), 
-				features.getFeatureChannels(), new ImageNameLabelGenerator());
-		FileSplit fileSplit = new FileSplit(datapath.toFile(), new String[]{"png", "PNG"}, new Random(123));
-		rr.initialize(fileSplit);
-		
-		DataSetIterator iter = new RecordReaderDataSetIterator(rr, batchSize, 1, labelgen.getClassCount());
-		
+		RecordReader rr = features.getRecordReader(datapath, batchSize);
+		DataSetIterator iter = new RecordReaderDataSetIterator(rr, batchSize,
+				1, labelgen.getClassCount());
 		return iter;
 	}
 
