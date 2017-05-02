@@ -181,7 +181,7 @@ public class NeuroB {
 		eval.init(trainSource, testSource);
 		
 		// train net on training data
-		int bestEpochSaved = -1;
+		int bestEpochSaved = 0;
 		int trainedEpochs = 0; // count how many epochs were actually trained
 		for(int i=1; i<=numEpochs; i++){
 			log.info("Training epoch {}", i);
