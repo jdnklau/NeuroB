@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.DoubleStream;
 
+import neurob.core.util.SolverType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,14 +25,20 @@ import neurob.training.splitting.TrainingSetTrimmer;
 
 public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	private static final Logger log = LoggerFactory.getLogger(PredicateDumpGenerator.class);
+	private final SolverType trimSolver;
 
 	public PredicateDumpGenerator() {
 		this(3);
 	}
 
 	public PredicateDumpGenerator(int samplingSize) {
+		this(samplingSize, null);
+	}
+
+	public PredicateDumpGenerator(int samplingSize, SolverType solver){
 		super(null, new PredicateDumpLabelGenerator(samplingSize));
 		preferredFileExtension = "pdump";
+		this.trimSolver = solver;
 	}
 
 	@Override
@@ -90,7 +97,11 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 
 	@Override
 	protected TrainingAnalysisData getAnalysisData() {
-		return new PredicateDumpAnalysis();
+		// if no solver was specified for trimming at instance construction, do not use one
+		if(trimSolver == null){
+			return new PredicateDumpAnalysis();
+		}
+		return new PredicateDumpAnalysis(trimSolver);
 	}
 
 	@Override

@@ -41,8 +41,8 @@ public class NeuroBCli {
 
 	public static void main(String[] args) {
 		// set up options hash map
-		ops = new HashMap<String, ArrayList<String>>();		
-		
+		ops = new HashMap<String, ArrayList<String>>();
+
 		// collect command line options
 		if(args.length >= 2){
 			ArrayList<String> values = null;
@@ -60,12 +60,12 @@ public class NeuroBCli {
 					System.out.println("Unknown argument "+args[i]);
 					return;
 				}
-				
+
 			}
 		}
-		
+
 		NeuroBCli.parseCommandLineOptions(ops);
-		
+
 		// extract command
 		String cmd;
 		if(args.length < 1){ // no commands
@@ -74,48 +74,55 @@ public class NeuroBCli {
 		else {
 			cmd = args[0];
 		}
-		
+
 		// execute command
-		
+
 		if(cmd.equals("help")){
 			String help =
-					  "Call with the following arguments, where -net <features> <labels> indicates the neural net to be used (see below):\n"
-					
+					"Call with the following arguments, where -net <features> <labels> indicates the neural net to be used (see below):\n"
+
 					+ "trainingset -dir <directory> [-net <features> <labels>] [-excludefile <excludefile]\n"
 					+ "\tGenerate training data from the mch files found in <directory>, but ignore those listed in <excludefile>\n"
-					
+
 					+ "trainingset -file <filename +> [-net <features> <labels>]\n"
 					+ "\tGenerate training data from the specified files, separated by a space character \n"
-					
+
 					+ "trainingset -analyse -dir <directory> [-net <features> <labels>]\n"
 					+ "\tAnalyse the generated training data in <directory>\n"
 					+ "\t<net> specifies the label format in use; specifically whether it is regression data or not\n"
-					
+
 					+ "trainingset -split -source <source> -first <first> -second <second> -ratio <ratio> [-net <features> <labels>]\n"
 					+ "\tSplit the training set located in <source> into two distinct subsets, <first> and <second>\n"
 					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
 					+ "\twith <ratio> being a number from the interval [0,1]\n"
-					
+
 					+ "trainingset -trim -source <source> -target <target> [-net <features> <labels>]\n"
 					+ "\tTrims the training set located in <source> after a beforehand analysis\n"
 					+ "\tThe trimmed version of the training set will be located in <target> afterwards.\n"
-					
+
 					+ "pdump -dir <directory> [-excludefile <excludefile>]\n"
 					+ "\tCreates predicate dump files from the (Event)B machines in <directory>\n"
-					
+
 					+ "pdump -file <file>\n"
 					+ "\tCreates predicate dump files from <file>\n"
-					
+
 					+ "pdump -translate <directory> [-net <features> <labels>]\n"
 					+ "\tTranslates the given directory of pdump-files into a CSV to train the given neural network\n"
-					
+
 					+ "pdump -analyse <directory>\n"
 					+ "\tAnalyses the .pdump files in the given directory (recursively)\n"
-					
+
+					+ "pdump -trim <directory> -target <directory> -solver <solver>\n"
+					+ "\tTrims the predicate dump given with respect to the given solver as classification problem\n"
+					+ "\tThe trimmed set will be located in the target directory; the source set remains unchanged\n"
+					+ "\t<solver> may be one of the following:\n"
+					+ "\t\tprob, kodkod, z3, smt\n"
+					+ "\t\twith smt representing SMT_SUPPORTED_INTERPRETER, a combination of ProB and Z3\n"
+
 					+ "trainnet -train <trainingfile> -test <testfile> [-net <features> <labels>]\n"
 					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
 					+ "\tBoth files being csv files generated with this tool\n"
-					
+
 					+ "trainnet -train <traindata> -test <testdata> [-hidden <layer_sizes +>] [-seed <seed +>] [-epochs <epochs +>] [-lr <learningrate +>] [-net <features> <labels>]\n"
 					+ "\tTrains a neural networks model of type <net>\n"
 					+ "\tThe model is trained on <traindata>, then evaluated on <testdata>\n"
@@ -125,29 +132,29 @@ public class NeuroBCli {
 					+ "\t\tNote: One can set multiple values for the hyper parameters seed, epochs, and lr, resulting in training each possible combination\n"
 					+ "\t\t      so be carefull with how many you query\n"
 					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007\n"
-					
+
 					+ "loadnet -dl4jdata <modeldirectory> [-net <features> <labels>]\n"
 					+ "\tLoad stats of an already trained model into the DL4J UI"
-					
+
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
 
 					+ "exclude [-excludefile <excludefile>] -source <toexcludes>\n"
 					+ "\tSets <toexclude> (path to either directory or file) onto the specified <excludefile>, if not already present\n"
 					+ "\t<toexcludes> can be a list of multiple paths to files or directories, separated by a blank space\n"
-					
+
 					+ "\nDefault values:\n"
 					+ "- if -excludefile <excludefile> is not set, it defaults to default.excludes\n"
 					+ "\t* if -excludefile none is set, no exclusions are made\n"
-					
+
 					+ "\nNets:\n"
 					+ "The -net argument takes two parameters: <features> and <labels>.\n"
-					
+
 					+ "<features> can be one of the following:\n"
 					+ "\tpredf: (default) Basic, handcrafted features for predicates\n"
 					+ "\tpredi: Predicate image features, i.e. image versions of the predicates\n"
 					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)\n"
-					
+
 					+ "<labels> describe the labelling mechanism in use:\n"
 					+ "\tsolclass: (default) Solver classification; classifies whether a given solver can decide a predicate or not\n"
 					+ "\t\tTakes optional -solver <solver> argument, with <solver> being\n"
@@ -155,18 +162,18 @@ public class NeuroBCli {
 					+ "\t\tor smt (for SMT_SUPPORTED_INTERPRETER setting in ProB, using ProB+Z3 together)\n"
 					+ "\tsolsel: Selection approach, what solver decides a given predicate the fastes\n"
 					+ "\tsoltime: Regression approach for each solver, how long it takes to decide a predicate\n"
-					
+
 					;
-			
+
 			System.out.println(help);
-							  
+
 		}
 		// Generate training data
 		else if(cmd.equals("trainingset")){
 			// analyse training set
 			if(ops.containsKey("analyse")){
 				buildNet();
-				
+
 				if(ops.containsKey("dir")){
 					analyseTrainingSet(dir, nb.getNeuroBNet().getTrainingSetGenerator());
 				}
@@ -177,8 +184,8 @@ public class NeuroBCli {
 				else{
 					System.out.println("trainingset -analyse: Missing parameter, either -dir or -file");
 				}
-				
-				
+
+
 			}
 			else if(ops.containsKey("split")){
 				if(ops.containsKey("source")){
@@ -188,7 +195,7 @@ public class NeuroBCli {
 						Path second = Paths.get(ops.get("second").get(0));
 						double ratio = Double.parseDouble(ops.get("ratio").get(0));
 						splitTrainingset(csv, first, second, ratio);
-						
+
 					}
 					else {
 						System.out.println("trainingset -split: Missing at least one of those parameters: -first, -second, -ratio");
@@ -207,7 +214,7 @@ public class NeuroBCli {
 					System.out.println("trainingset -trim: -source and -target arguments need to be set");
 				}
 			}
-			
+
 			else if(ops.containsKey("dir")){// generate training set
 				buildNet();
 				trainingSetGeneration(dir);
@@ -244,6 +251,11 @@ public class NeuroBCli {
 			else if(ops.containsKey("analyse")){
 				Path dir = Paths.get(ops.get("analyse").get(0));
 				analysePDump(dir);
+			}
+			else if(ops.containsKey("trim")){
+				Path dir = Paths.get(ops.get("trim").get(0));
+				Path target = Paths.get(ops.get("target").get(0));
+				trimPDump(dir, target, ops.get("solver").get(0));
 			}
 			else {
 				System.out.println("pdump: expecting either -file, -dir, or -translate parameter");
@@ -298,10 +310,32 @@ public class NeuroBCli {
 			System.out.println("Unknown command: "+cmd);
 			System.out.println("Use help to show a list of available commands");
 		}
-		
+
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
-	
+
+	private static void trimPDump(Path dir, Path target, String solver) {
+		// get solver type
+		SolverType trimSolver = null;
+		if(solver.equals("prob")){
+			trimSolver = SolverType.PROB;
+		} else if(solver.equals("kodkod")){
+			trimSolver = SolverType.KODKOD;
+		} else if(solver.equals("z3")){
+			trimSolver = SolverType.Z3;
+		} else if(solver.equals("smt")){
+			trimSolver = SolverType.SMT_SUPPORTED_INTERPRETER;
+		}
+
+		PredicateDumpGenerator gen = new PredicateDumpGenerator(3, trimSolver);
+
+		try {
+			gen.trimTrainingData(dir, target);
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static void loadDL4JData(Path dl4jData) {
 		StatsStorage stats = new FileStatsStorage(dl4jData.toFile());
 		UIServer ui = UIServer.getInstance();
@@ -316,9 +350,9 @@ public class NeuroBCli {
 	private static void trimTrainingSet(Path source, Path target) {
 		FeatureGenerator fg = getFeatureGenerator();
 		LabelGenerator lg = getLabelGenerator();
-		
+
 		TrainingDataGenerator tdg = fg.getTrainingDataGenerator(lg);
-		
+
 		try {
 			tdg.trimTrainingData(source, target);
 		} catch (NeuroBException e) {
@@ -329,9 +363,9 @@ public class NeuroBCli {
 	private static void splitTrainingset(Path source, Path first, Path second, double ratio) {
 		FeatureGenerator fg = getFeatureGenerator();
 		LabelGenerator lg = getLabelGenerator();
-		
+
 		TrainingDataGenerator tdg = fg.getTrainingDataGenerator(lg);
-		
+
 		try {
 			tdg.splitTrainingData(source, first, second, ratio, new Random(123));
 		} catch (NeuroBException e) {
@@ -341,7 +375,7 @@ public class NeuroBCli {
 
 	private static void generatePDumpFromFile(Path file) {
 		PredicateDumpGenerator tpg = new PredicateDumpGenerator();
-		
+
 		try {
 			Path targetFile = tpg.generateTrainingDataPath(file, Paths.get("training_data/PredicateDump/"));
 			tpg.generateTrainingDataFromFile(file, targetFile);
@@ -354,7 +388,7 @@ public class NeuroBCli {
 		TrainingSetGenerator tpd = new TrainingSetGenerator(new PredicateDumpGenerator());
 		tpd.generateTrainingSet(dir, Paths.get("training_data/PredicateDump/"), excludefile);
 	}
-	
+
 	private static void translatePDump(Path dir) {
 //		try {
 			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName());
@@ -363,7 +397,7 @@ public class NeuroBCli {
 //			e.printStackTrace();
 //		}
 	}
-	
+
 	private static void analysePDump(Path dir){
 		try {
 			TrainingSetAnalyser.logTrainingAnalysis(TrainingSetAnalyser.analysePredicateDumps(dir));
@@ -375,16 +409,16 @@ public class NeuroBCli {
 	private static void buildNet(){
 		buildNet(1);
 	}
-	
+
 	private static void buildNet(int i){
 		buildNet(i, 0.006, new int[]{512, 256, 128, 128});
 	}
-	
+
 	private static void buildNet(int seed, double learningrate, int[] hiddenLayers){
 		NeuroBNet model;
 		LabelGenerator labelling = getLabelGenerator();
 		FeatureGenerator features = getFeatureGenerator();
-		
+
 		// FeatureGenerator features;
 		if(features instanceof ConvolutionFeatures){
 			model = new NeuroBConvNet(hiddenLayers, learningrate, (ConvolutionFeatures) features, labelling, seed);
@@ -392,11 +426,11 @@ public class NeuroBCli {
 		else {//if(feats.equals("predf")){
 			model = new NeuroBNet(hiddenLayers, learningrate, features, labelling, seed);
 		}
-		
+
 		nb = new NeuroB(model);
 		nb.enableDL4JUI(true);
 	}
-	
+
 	private static FeatureGenerator getFeatureGenerator(){
 		// get net type
 		String feats = "predf";
@@ -408,7 +442,7 @@ public class NeuroBCli {
 			}
 			feats = net.get(0);
 		}
-		
+
 		if(feats.equals("predi")){
 			int s = 32;
 			if(ops.containsKey("size")){
@@ -420,7 +454,7 @@ public class NeuroBCli {
 			return new TheoryFeatures();
 		}
 	}
-	
+
 	private static LabelGenerator getLabelGenerator(){
 		String label = "solclass";
 		if(ops.containsKey("net")){
@@ -431,7 +465,7 @@ public class NeuroBCli {
 			}
 			label = net.get(1);
 		}
-		
+
 		LabelGenerator labelling;
 		if(label.equals("soltime")) {
 			labelling = new SolverTimerGenerator();
@@ -450,17 +484,17 @@ public class NeuroBCli {
 			}
 			labelling = new SolverClassificationGenerator(solver);
 		}
-		
+
 		return labelling;
 	}
 
 	private static void parseCommandLineOptions(HashMap<String, ArrayList<String>> ops) {
-		
+
 		// directory path
 		if(ops.containsKey("dir")){
 			dir = Paths.get(ops.get("dir").get(0));
 		}
-		
+
 		// exclude file
 		if(ops.containsKey("excludefile")){
 			if(ops.get("excludefile").get(0).equals("none")){
@@ -474,7 +508,7 @@ public class NeuroBCli {
 			// default
 			excludefile = Paths.get("default.excludes");
 		}
-		
+
 	}
 
 	private static void distribute(Path directory){
@@ -482,7 +516,7 @@ public class NeuroBCli {
 		seen=0;
 		present=0;
 		created=0;
-		
+
 		try (Stream<Path> stream = Files.walk(directory)) {
 	        stream.forEach(entry -> {
 	        	// check if directory or not; recursion if so
@@ -497,9 +531,9 @@ public class NeuroBCli {
 	            		present++;
 	            	}
 	            }
-	            
+
 	        });
-	        
+
 	        System.out.println("LibraryIO.def was already present in "+present+"/"+seen+" directories.");
 	        System.out.println("LibraryIO.def was created in "+created+"/"+seen+" directories.");
 	        System.out.println("Directories without LibraryIO.def: "+ (seen-created-present));
@@ -508,15 +542,15 @@ public class NeuroBCli {
 			System.out.println("Could not access directory "+directory+": "+e.getMessage());
 		}
 	}
-	
+
 	private static void singleTrainingDataGeneration(Path source){
 		buildNet();
-		
+
 		String fileName = source.getFileName().toString();
 		Path target = Paths.get("training_data/single_file_generation/").resolve(fileName.substring(0, fileName.lastIndexOf('.'))+".nbtrain");
 		nb.getNeuroBNet().getTrainingSetGenerator().generateTrainingDataFromFile(source, target);
 	}
-	
+
 	private static void trainingSetGeneration(Path sourceDir){
 		Path targetDir = Paths.get("training_data/");
 		try {
@@ -525,7 +559,7 @@ public class NeuroBCli {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static void analyseTrainingSet(Path dir, TrainingSetGenerator tsg) {
 		try {
 			TrainingSetAnalyser.logTrainingAnalysis(tsg.analyseTrainingSet(dir));
@@ -534,7 +568,7 @@ public class NeuroBCli {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static void analyseTrainingSetCSV(Path csv, TrainingSetGenerator tsg) {
 		try {
 			TrainingSetAnalyser.logTrainingAnalysis(TrainingSetAnalyser.analyseTrainingCSV(csv, getLabelGenerator()));
@@ -543,14 +577,14 @@ public class NeuroBCli {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static void exclude(Path excludefile, Path excl) {
 		TrainingSetGenerator tsg = new TrainingSetGenerator(
 				new TheoryFeatures().getTrainingDataGenerator(new SolverClassificationGenerator(SolverType.PROB)));
 		tsg.exclude(excludefile, excl);
-		
+
 	}
-	
+
 	private static void trainNet(Path traincsv, Path testcsv){
 		// set defaults
 		if(!ops.containsKey("seed")){
@@ -571,17 +605,17 @@ public class NeuroBCli {
 		} else {
 			hidden = new int[]{512,256,128,128};
 		}
-		
+
 		for(String lrStr : ops.get("lr")){
 			double lr = Double.parseDouble(lrStr);
-			
+
 			for(String epochsStr : ops.get("epochs")){
 				int epochs = Integer.parseInt(epochsStr);
-				
+
 				for(String seedStr : ops.get("seed")){
 					int seed = Integer.parseInt(seedStr);
 					buildNet(seed, lr, hidden);
-					
+
 					try {
 						nb.train(traincsv, testcsv, epochs, true);
 					} catch (IOException e) {

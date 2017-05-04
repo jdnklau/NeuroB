@@ -29,6 +29,26 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 		this.samplingSize = samplingSize;
 	}
 
+	/**
+	 * For a given solver, returns the index of said solver at which it appears in the generated
+	 * labelling. Indexing starts at 0.
+	 * @param solver Solver to get index position of
+	 * @return Index of given solver in labelling
+	 */
+	public static int getSolverIndex(SolverType solver){
+		int index = 0; // set initially to 0
+		for(SolverType s : PredicateDumpLabelGenerator.solverOrder){
+			if (s!=solver){
+				// if solver with currently set index is not the right one, use next index
+				index++;
+			} else {
+				// if solver was found, leave index unchanged and exit loop
+				break;
+			}
+		}
+		return index;
+	}
+
 	@Override
 	public int getClassCount() {
 		return -1;
