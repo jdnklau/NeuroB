@@ -28,26 +28,26 @@ import neurob.training.generators.util.TrainingData;
 public abstract class TrainingDataGenerator {
 	// logger
 	private static final Logger log = LoggerFactory.getLogger(TrainingDataGenerator.class);
-	
+
 	protected final FeatureGenerator fg;
 	protected final LabelGenerator lg;
-	
+
 	protected Api api;
 	/**
 	 * The preferred file extension to use for created training files.
 	 */
 	protected String preferredFileExtension;
-	
+
 	@Inject
 	public TrainingDataGenerator(FeatureGenerator fg, LabelGenerator lg) {
 		this.fg = fg;
 		this.lg = lg;
-		
+
 		api = Main.getInjector().getInstance(Api.class);
-		
+
 		preferredFileExtension = "nbtrain";
 	}
-	
+
 	/**
 	 * Generates the training data from the given source file into the given target directory.
 	 * <p>
@@ -55,20 +55,20 @@ public abstract class TrainingDataGenerator {
 	 * @param sourceFile File from which the training data will be collected
 	 * @param targetDir Target directory in which the training data files will be created
 	 * @throws NeuroBException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public void generateTrainingDataFromFile(Path sourceFile, Path targetDir) throws NeuroBException, IOException{
 		// determine machine type
 		MachineType mt = determineMachineType(sourceFile);
 		if(mt == null){
-			log.debug("Not a machine file. Skipping: {}", sourceFile);			
+			log.debug("Not a machine file. Skipping: {}", sourceFile);
 			return;
 		}
-		
+
 
 		Path trainingDataLocation = generateTrainingDataPath(sourceFile, targetDir);
 		log.info("Generating training data: {} -> {}...", sourceFile, trainingDataLocation);
-		
+
 		try {
 			if(isTrainingDataUpToDate(sourceFile, trainingDataLocation)){
 				log.info("\tTraining data {} seems already up to date, skipping.", trainingDataLocation);
@@ -78,13 +78,13 @@ public abstract class TrainingDataGenerator {
 			throw new NeuroBException("Could not correctly access source file "+sourceFile
 					+ " or training data location "+trainingDataLocation, e);
 		}
-		
+
 		// over the state space, the training data will be created
 		StateSpace ss = loadStateSpace(sourceFile, mt);
-		
+
 		List<TrainingData> data = collectTrainingDataFromFile(sourceFile, ss);
 		ss.kill(); // state space no longer of need
-		
+
 		if(data.isEmpty()){
 			// no training data generated. leaving method
 			log.info("\tNo training data created");
@@ -93,7 +93,7 @@ public abstract class TrainingDataGenerator {
 
 		writeTrainingDataToDirectory(data, targetDir);
 	}
-	
+
 	/**
 	 * Collects a list of {@link TrainingData} over the given file or StateSpace.
 	 * <p>
@@ -103,9 +103,9 @@ public abstract class TrainingDataGenerator {
 	 * @return
 	 * @throws NeuroBException
 	 */
-	public abstract List<TrainingData> collectTrainingDataFromFile(Path sourceFile, StateSpace stateSpace) 
+	public abstract List<TrainingData> collectTrainingDataFromFile(Path sourceFile, StateSpace stateSpace)
 			throws NeuroBException;
-	
+
 	/**
 	 * Writes the training data collected to training data files in the given target directory.
 	 * @param trainingData List of {@link TrainingData} instances, preferably collected via the same source file
@@ -114,7 +114,7 @@ public abstract class TrainingDataGenerator {
 	 */
 	public abstract void writeTrainingDataToDirectory(List<TrainingData> trainingData, Path targetDir)
 			throws NeuroBException;
-	
+
 	/**
 	 * Creates a path locating the training data for the given file after creation.
 	 * <p>
@@ -123,10 +123,10 @@ public abstract class TrainingDataGenerator {
 	 * @param targetDir
 	 * @return
 	 */
-	public Path generateTrainingDataPath(Path sourceFile, Path targetDir){		
+	public Path generateTrainingDataPath(Path sourceFile, Path targetDir){
 		String sourceFileName = sourceFile.getFileName().toString();
 		String targetFileName = sourceFileName.substring(0, sourceFileName.lastIndexOf('.')+1)+preferredFileExtension;
-		
+
 		return targetDir.resolve(sourceFile.getParent()).resolve(targetFileName);
 	}
 
@@ -134,7 +134,7 @@ public abstract class TrainingDataGenerator {
 	 * Loads a state space by machine type.
 	 * <p>
 	 * As internally another method is called depending on whether the machine is
-	 * e.g. a Classical B or EventB machine, the machine type has to be determined 
+	 * e.g. a Classical B or EventB machine, the machine type has to be determined
 	 * beforehand.
 	 * @param file
 	 * @param mt
@@ -158,7 +158,7 @@ public abstract class TrainingDataGenerator {
 			throw new NeuroBException("Unexpected exception encountered: "+e.getMessage(), e);
 		}
 	}
-	
+
 	/**
 	 * Determines the machine type based of the file extension of the source file.
 	 * <p>
@@ -182,13 +182,13 @@ public abstract class TrainingDataGenerator {
 
 	public FeatureGenerator getFeatureGenerator(){return fg;}
 	public LabelGenerator getLabelGenerator(){return lg;}
-	
+
 	/**
-	 * 
-	 * @return The preferred file extension to use on the generated training data files; <b>without</b> leading . (dot) 
+	 *
+	 * @return The preferred file extension to use on the generated training data files; <b>without</b> leading . (dot)
 	 */
 	public String getPreferredFileExtension(){ return preferredFileExtension;}
-	
+
 	/**
 	 * Checks necessity of file creation.
 	 * <p>
@@ -197,7 +197,7 @@ public abstract class TrainingDataGenerator {
 	 * @param source
 	 * @param target
 	 * @return true if training data exists, that is newer than the source file, false otherwise
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	protected boolean isTrainingDataUpToDate(Path source, Path target) throws IOException{
 		if(Files.exists(target, LinkOption.NOFOLLOW_LINKS)){
@@ -209,7 +209,7 @@ public abstract class TrainingDataGenerator {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Splits the training data directory given into two parts.
 	 * <p>
@@ -217,7 +217,7 @@ public abstract class TrainingDataGenerator {
 	 * E.g. if {@code ratio==0.6}, ~60% of data will be located in {@code first}.
 	 * <p>
 	 * The original data in {@code source} will not be altered nor deleted.
-	 * 
+	 *
 	 * @param source Directory containing the training data to be split
 	 * @param first Target directory to contain ~{@code ratio * source_data_count} samples
 	 * @param second Target directory to contain ~{@code (1-ratio) * source_data_count} samples
@@ -227,18 +227,18 @@ public abstract class TrainingDataGenerator {
 	 */
 	abstract public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
 			throws NeuroBException;
-	
+
 	/**
 	 * Trims the training data after analysing it, and saves the result into a given directory.
 	 * <p>
 	 * The original training data remains unchanged.
-	 * 
+	 *
 	 * @param source Directory containing the training data to be trimmed
 	 * @param target Directory to contain the trimmed data
 	 * @throws NeuroBException
 	 */
 	abstract public void trimTrainingData(Path source, Path target) throws NeuroBException;
-	
+
 	/**
 	 * Analyses the training set located in the source directory.
 	 * @param source
@@ -247,27 +247,27 @@ public abstract class TrainingDataGenerator {
 	 */
 	public TrainingAnalysisData analyseTrainingSet(Path source) throws NeuroBException{
 		TrainingAnalysisData data = getAnalysisData();
-		
+
 		try(Stream<Path> files = Files.walk(source)){
 			files
 				.filter(Files::isRegularFile)
 				.filter(p->p.toString().endsWith("."+preferredFileExtension))
 				.forEach(file->analyseTrainingFile(file, data));
 		} catch (IOException e) {
-			new NeuroBException("Could not analyse training set in "+source+" correctly.", e);
+			throw new NeuroBException("Could not analyse training set in "+source+" correctly.", e);
 		}
-		
+
 		data.evaluateAllSamples();
 		return data;
 	}
-	
+
 	/**
 	 * @return A {@link TrainingAnalysisData} object suitable for analysis training data generated by this generator.
 	 */
 	protected TrainingAnalysisData getAnalysisData(){
 		return TrainingSetAnalyser.getAnalysisTypeByProblem(lg);
 	}
-	
+
 	/**
 	 * Analyses the training file and adds its data to the analysis data object.
 	 * @param file
@@ -275,7 +275,7 @@ public abstract class TrainingDataGenerator {
 	 * @return Reference to the analysisData
 	 */
 	abstract protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData);
-	
+
 	/**
 	 * Takes a sample generated by this generator and returns the labelling assigned to it.
 	 * <p>
@@ -285,9 +285,9 @@ public abstract class TrainingDataGenerator {
 	 * file.
 	 * <p>
 	 * However, this depends on implementing class.
-	 * @param sample Either line sample from file, or file name 
+	 * @param sample Either line sample from file, or file name
 	 * @return The assigned labelling of the training data
 	 */
 	abstract public double[] labellingFromSample(String sample);
-	
+
 }
