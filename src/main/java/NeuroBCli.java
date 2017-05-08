@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,7 +8,12 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import neurob.core.nets.search.NeuroBModelSpace;
+import neurob.training.HyperParameterSearch;
 import org.deeplearning4j.api.storage.StatsStorage;
+import org.deeplearning4j.arbiter.DL4JConfiguration;
+import org.deeplearning4j.arbiter.MultiLayerSpace;
+import org.deeplearning4j.arbiter.optimize.candidategenerator.RandomSearchGenerator;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
 
@@ -137,6 +143,13 @@ public class NeuroBCli {
 					+ "\t\tNote: One can set multiple values for the hyper parameters seed, epochs, and lr, resulting in training each possible combination\n"
 					+ "\t\t      so be carefull with how many you query\n"
 					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007\n"
+
+					+ "modelsearch -train <traindata> -test <testdata> [-layers <hidden_layers>] [-models <amount>] [-epochs <amount>] [-net <features> <labels>]\n"
+					+ "\tPerforms a randoms search for hyper parameters on a model\n"
+					+ "\tThe amount of desired models will be trained and tested on the given data\n"
+					+ "\t\tNote: -layers needs two entries for convolution models\n"
+					+ "\t\t\t- first is number of convolution, second is number of fully connected layers\n"
+					+ "\tDefault values: -layers 4; -models 15; -epochs 15\n"
 
 					+ "loadnet -dl4jdata <modeldirectory> [-net <features> <labels>]\n"
 					+ "\tLoad stats of an already trained model into the DL4J UI"
@@ -305,7 +318,31 @@ public class NeuroBCli {
 				System.out.println("loadnet: missing -dl4jdata parameter");
 			}
 		}
-		else if(cmd.equals("trainmultiplenets")){
+		else if(cmd.equals("modelsearch")){
+			if(ops.containsKey("train") && ops.containsKey("test")){
+				// default values
+				int layers1 = 4;
+				int layers2 = 0;
+				if(ops.containsKey("layers")){
+					layers1 = Integer.getInteger(ops.get("layers").get(0));
+					if(ops.get("layers").contains(1))
+						layers2 = Integer.getInteger(ops.get("layers").get(1));
+				}
+				int models = 15;
+				if(ops.containsKey("models")){
+					models = Integer.getInteger(ops.get("models").get(0));
+				}
+				int epochs = 15;
+				if(ops.containsKey("epochs")){
+					epochs = Integer.getInteger(ops.get("epochs").get(0));
+				}
+				Path train = Paths.get(ops.get("train").get(0));
+				Path test = Paths.get(ops.get("test").get(0));
+				modelSearch(train, test, layers1, layers2, models, epochs);
+			}
+			else {
+				System.out.println("modelsearch: missing -train or -test parameter");
+			}
 		}
 		// distribute library file
 		else if(cmd.equals("libraryIODef")){
@@ -330,6 +367,33 @@ public class NeuroBCli {
 		}
 
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
+	}
+
+	private static void modelSearch(Path train, Path test, int layers1, int layers2, int models, int epochs) {
+		FeatureGenerator fg = getFeatureGenerator();
+		LabelGenerator lg = getLabelGenerator();
+		// set up model space
+		MultiLayerSpace modelSpace;
+		if(lg instanceof ConvolutionFeatures){
+			modelSpace = NeuroBModelSpace.convolutionalModel(layers1,16,128,3,7,
+					layers2,128,1024,0.0001,0.1, (ConvolutionFeatures) fg, lg, 123);
+		} else {
+			modelSpace = NeuroBModelSpace.feedForwardModel(layers1, 32,1024, 0.0001, 0.1, fg, lg, 123);
+		}
+
+		RandomSearchGenerator<DL4JConfiguration> candidateGenerator
+				= new RandomSearchGenerator<>(modelSpace);
+
+		HyperParameterSearch<RandomSearchGenerator<DL4JConfiguration>> modelSearch
+				= new HyperParameterSearch<>(candidateGenerator, fg, lg);
+
+		try {
+			modelSearch.trainModels(models, train, test, epochs);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void splitPDump(Path dir, Path first, Path second, double ratio){

@@ -24,13 +24,14 @@ import neurob.training.generators.interfaces.LabelGenerator;
  * This class offers utility to easily access different models
  * without having to deal with Deeplearning4J directly.
  * <p>
- * Of course, defining your very own models with dl4j is more powerfull,
- * but as dl4j has a high bar for beginners, this should ease up the usage of NeuroB.
+ * Of course, defining custom models with dl4j is more powerfull,
+ * but as dl4j has a relatively high entrance bar for beginners,
+ * this should ease up the usage of NeuroB.
  * @author jannik
  *
  */
 public class NeuroBModels {
-	
+
 	/**
 	 * Creates a feed forward neural network.
 	 * <p>
@@ -47,13 +48,13 @@ public class NeuroBModels {
 		return feedForwardModel(
 				new int[]{512,128,128}, learningRate, features, labelling);
 	}
-	
+
 	/**
 	 * Creates a feed forward neural network.
 	 * <p>
 	 * This is a special case of {@link #feedForwardModel(int[], double, FeatureGenerator, LabelGenerator, int)}
 	 * with a predefined size of hidden layers, namely {512, 128, 128}.
-	 * 
+	 *
 	 * @param learningRate
 	 * @param features
 	 * @param labelling
@@ -65,7 +66,7 @@ public class NeuroBModels {
 		return feedForwardModel(
 				new int[]{512,128,128}, learningRate, features, labelling, seed);
 	}
-	
+
 	/**
 	 * Creates a feed forward neural network with given structure.
 	 * <p>
@@ -81,11 +82,11 @@ public class NeuroBModels {
 	public static NeuroBNet feedForwardModel(int[] hiddenLayers, double learningRate, FeatureGenerator features, LabelGenerator labelling){
 		return feedForwardModel(hiddenLayers, learningRate, features, labelling, new Random().nextInt());
 	}
-	
+
 	/**
 	 * Creates a neural network with given structure.
 	 * <p>
-	 * {@code hiddenLayers} parameter gives structure of the neural net. For each entry in the array, 
+	 * {@code hiddenLayers} parameter gives structure of the neural net. For each entry in the array,
 	 * a hidden layer with the entry's value of neurons will be created.
 	 * They are stacked onto each other according to the index in the array.
 	 * <br>
@@ -93,8 +94,8 @@ public class NeuroBModels {
 	 * The given {@code seed} will be used for this.
 	 * <p>
 	 * For example:
-	 * {1000, 500, 200} would create a neural net with three hidden layers. 
-	 * The first one having 1000 neurons, the second one having 500 neurons, 
+	 * {1000, 500, 200} would create a neural net with three hidden layers.
+	 * The first one having 1000 neurons, the second one having 500 neurons,
 	 * and the third one having 200 neurons.
 	 * <br>
 	 * The network has to have at least one hidden layer.
@@ -102,7 +103,7 @@ public class NeuroBModels {
 	 * The {@link LabelGenerator} indicates the problem position,
 	 * e.g. whether it is a classification or regression task.
 	 * <br>
-	 * For classification problems, the output layer uses soft max as activation function, 
+	 * For classification problems, the output layer uses soft max as activation function,
 	 * paired with negative log-likelihood as loss function.
 	 * <br>
 	 * For regression, the output layer uses the identity function paired with MSE as loss function.
@@ -115,7 +116,7 @@ public class NeuroBModels {
 	 */
 	public static NeuroBNet feedForwardModel(int[] hiddenLayers, double learningRate, FeatureGenerator features, LabelGenerator labelling, int seed){
 		MultiLayerNetwork model;
-		
+
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
 		        .seed(seed)
 		        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -124,17 +125,17 @@ public class NeuroBModels {
 		        .updater(Updater.NESTEROVS).momentum(0.9)
 		        .regularization(true).l2(1e-4)
 		        .list();
-		        
+
 		// Set up layers
-		if(hiddenLayers.length == 0) { 
+		if(hiddenLayers.length == 0) {
 			// no hidden layers
 			throw new IllegalArgumentException("NeuroBNet needs to have hidden layers, but an empty array was given.");
 		}
 		else {
 			// hidden layers!
-			
+
 			int lastOut = features.getFeatureDimension();
-			
+
 			for(int i=0; i<hiddenLayers.length; i++){
 				listBuilder = listBuilder.layer(i, new DenseLayer.Builder()
 						.nIn(lastOut)
@@ -144,13 +145,13 @@ public class NeuroBModels {
 						.build());
 				lastOut = hiddenLayers[i];
 			}
-			
+
 			// Output layer - depending on whether we do regression or not
 			LossFunction lossFunction;
 			Activation activationFunction;
 			if(labelling.getProblemType() == ProblemType.REGRESSION){ // Regression
 				lossFunction = LossFunction.MSE;
-				activationFunction = Activation.IDENTITY; 
+				activationFunction = Activation.IDENTITY;
 			}
 			else { // No regression
 				lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
@@ -165,13 +166,13 @@ public class NeuroBModels {
 					.build())
 			.pretrain(false).backprop(true);
 		}
-		
+
 		model = new MultiLayerNetwork(listBuilder.build());
 		model.init();
-		
+
 		return new NeuroBNet(model, features, labelling);
 	}
-	
+
 	/**
 	 * Creates a convolutional neural network model.
 	 * <p>
@@ -188,7 +189,7 @@ public class NeuroBModels {
 	public static NeuroBConvNet convolutionalModel(double learningRate, ConvolutionFeatures features, LabelGenerator labelling){
 		return convolutionalModel(new int[]{32,64}, 5, new int[]{128}, learningRate, features, labelling, new Random().nextInt());
 	}
-	
+
 	/**
 	 * Creates a convolutional neural network model.
 	 * <p>
@@ -205,13 +206,13 @@ public class NeuroBModels {
 	public static NeuroBConvNet convolutionalModel(double learningRate, ConvolutionFeatures features, LabelGenerator labelling, int seed){
 		return convolutionalModel(new int[]{32,64}, 5, new int[]{128}, learningRate, features, labelling, seed);
 	}
-	
+
 	/**
 	 * Creates a convolutional neural network with given structure.
 	 * <p>
 	 * This is a special case of {@link #convolutionalModel(int[], int, int[], double, ConvolutionFeatures, LabelGenerator, int)}
 	 * with a randomly set seed.
-	 * 
+	 *
 	 * @param convLayers
 	 * @param filterSize
 	 * @param fcLayers
@@ -222,14 +223,14 @@ public class NeuroBModels {
 	 * @see #convolutionalModel(int[], int, int[], double, ConvolutionFeatures, LabelGenerator, int)
 	 */
 	public static NeuroBConvNet convolutionalModel(int[] convLayers, int filterSize, int[] fcLayers, double learningRate, ConvolutionFeatures features, LabelGenerator labelling){
-		return convolutionalModel(convLayers, filterSize, fcLayers, learningRate, features, labelling, new Random().nextInt());		
+		return convolutionalModel(convLayers, filterSize, fcLayers, learningRate, features, labelling, new Random().nextInt());
 	}
-	
+
 	/**
 	 * Creates a convolutional neural network with given structure.
 	 * <p>
-	 * {@code convLayers} parameter gives structure of the neural net. 
-	 * For each entry in the array, a convolutional layer the entry's 
+	 * {@code convLayers} parameter gives structure of the neural net.
+	 * For each entry in the array, a convolutional layer the entry's
 	 * value amount of {@code filterSize * filterSize} filters will be created.
 	 * They are stacked onto each other according to the index in the array.
 	 * <br>
@@ -237,7 +238,7 @@ public class NeuroBModels {
 	 * <p>
 	 * {@code fcLayers} parameter gives the size and amount of fully connected
 	 * layers at the end of the model. For each entry in the array,
-	 * a fully connected layer will be created with neuron in the amount of 
+	 * a fully connected layer will be created with neuron in the amount of
 	 * the respective entry's value.
 	 * <br>
 	 * There has to be at least one fully connected layer.
@@ -245,17 +246,17 @@ public class NeuroBModels {
 	 * Both layer types use ReLU as activation function, and Xavier initialisation.
 	 * <p>
 	 * For example:
-	 * {16, 32, 32} would create a neural net with three stacked convolution layers and a final fully connected layer. 
+	 * {16, 32, 32} would create a neural net with three stacked convolution layers and a final fully connected layer.
 	 * The first one learning 16 filters, the second and third one each 32.
 	 * <p>
 	 * The {@link LabelGenerator} indicates the problem position,
 	 * e.g. whether it is a classification or regression task.
 	 * <br>
-	 * For classification problems, the output layer uses soft max as activation function, 
+	 * For classification problems, the output layer uses soft max as activation function,
 	 * paired with negative log-likelihood as loss function.
 	 * <br>
 	 * For regression, the output layer uses the identity function paired with MSE as loss function.
-	 * 
+	 *
 	 * @param convLayers Size and amount of convolutional layers at the beginning of the model
 	 * @param filterSize Size of the convolutional filters used in hidden layers
 	 * @param fcLayers Size and amount of fully connected layers at the end of the model
@@ -267,7 +268,7 @@ public class NeuroBModels {
 	 */
 	public static NeuroBConvNet convolutionalModel(int[] convLayers, int filterSize, int[] fcLayers, double learningRate, ConvolutionFeatures features, LabelGenerator labelling, int seed){
 		MultiLayerNetwork model;
-		
+
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
 		        .seed(seed)
 		        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -276,9 +277,9 @@ public class NeuroBModels {
 		        .updater(Updater.NESTEROVS).momentum(0.9)
 		        .regularization(true).l2(1e-4)
 		        .list();
-		        
+
 		// Set up layers
-		if(convLayers.length < 1 || fcLayers.length < 1) { 
+		if(convLayers.length < 1 || fcLayers.length < 1) {
 			// no hidden layers
 			throw new IllegalArgumentException("NeuroBConvNet needs to have at least one convolutional and one fully connected layer");
 		}
@@ -295,7 +296,7 @@ public class NeuroBModels {
 						.build());
 				lastOut = convLayers[i];
 			}
-			
+
 			// Fully connected layer
 			for(int i=0; i<fcLayers.length; i++){
 				listBuilder = listBuilder.layer(i+convLayers.length, new DenseLayer.Builder()
@@ -305,13 +306,13 @@ public class NeuroBModels {
 						.build());
 				lastOut = fcLayers[i];
 			}
-			
+
 			// Output layer - depending on whether we do regression or not
 			LossFunction lossFunction;
 			Activation activationFunction;
 			if(labelling.getProblemType() == ProblemType.REGRESSION){ // Regression
 				lossFunction = LossFunction.MSE;
-				activationFunction = Activation.IDENTITY; 
+				activationFunction = Activation.IDENTITY;
 			}
 			else { // No regression
 				lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
@@ -324,14 +325,14 @@ public class NeuroBModels {
 					.weightInit(WeightInit.XAVIER)
 					.build());
 		}
-		
+
 		model = new MultiLayerNetwork(listBuilder
-				.setInputType(InputType.convolutional(features.getImageHeight(), 
+				.setInputType(InputType.convolutional(features.getImageHeight(),
 						features.getImageWidth(), features.getFeatureChannels()))
 				.pretrain(false).backprop(true)
 				.build());
 		model.init();
-		
+
 		return new NeuroBConvNet(model, features, labelling);
 	}
 }
