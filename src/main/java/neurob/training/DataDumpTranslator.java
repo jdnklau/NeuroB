@@ -24,11 +24,11 @@ import neurob.training.generators.util.TrainingData;
  *
  */
 public class DataDumpTranslator {
-	
+
 	private TrainingDataGenerator generator;
 	// logger
 	private static final Logger log = LoggerFactory.getLogger(DataDumpTranslator.class);
-	
+
 	/**
 	 * Creates a DataDump translator, translating any data dump files to a format
 	 * the generator would have created in the first place.
@@ -37,7 +37,7 @@ public class DataDumpTranslator {
 	public DataDumpTranslator(TrainingDataGenerator generator) {
 		this.generator = generator;
 	}
-	
+
 	/**
 	 * Walks over the {@code source} directory recursively and tries to translate each
 	 * {@code .*dump} file.
@@ -60,12 +60,12 @@ public class DataDumpTranslator {
 				.filter(p->Files.isRegularFile(p))
 				.filter(p->p.toString().endsWith("dump"))
 				.forEach(p->translateDumpFile(p, target));
-			
+
 		} catch (IOException e) {
 			log.error("Could not access source directory {}.", source, e);
 		}
 	}
-	
+
 	/**
 	 * Translates the given dump file into valid training data.
 	 * @param sourceFile
@@ -76,6 +76,10 @@ public class DataDumpTranslator {
 		List<TrainingData> data;
 		try {
 			data = collectTrainingDataFromDumpFile(sourceFile);
+			if(data.isEmpty()){
+				log.info("\tNo training data found");
+				return;
+			}
 			generator.writeTrainingDataToDirectory(data, targetDir);
 		} catch (NeuroBException | IOException e) {
 			log.error("Could not correctly translate dump file {}.", sourceFile, e);
@@ -91,7 +95,7 @@ public class DataDumpTranslator {
 	public List<TrainingData> collectTrainingDataFromDumpFile(Path sourceFile) throws IOException {
 		List<TrainingData> data = new ArrayList<>();
 		FeatureGenerator fg = generator.getFeatureGenerator();
-		
+
 		try(Stream<String> lines = Files.lines(sourceFile)){
 			lines
 				.forEach(l -> {
@@ -114,10 +118,10 @@ public class DataDumpTranslator {
 					}
 				});
 		}
-		
+
 		return data;
 	}
-	
+
 	/**
 	 * Translates a sample from a data dump file to training data.
 	 * @param dataDumpEntry
@@ -127,12 +131,12 @@ public class DataDumpTranslator {
 	public TrainingData translateDataDumpEntry(String dataDumpEntry) throws NeuroBException{
 		FeatureGenerator fg = generator.getFeatureGenerator();
 		LabelGenerator lg = generator.getLabelGenerator();
-		
+
 		// access dump data from entry, then translate to training data
 		DumpData dd = new DumpData(dataDumpEntry);
 		double[] features = fg.generateFeatureArray(dd.getSource());
-		double[] labels = lg.translateLabelling(dd); 
-		
+		double[] labels = lg.translateLabelling(dd);
+
 		return new TrainingData(features, labels, fg.getSourceFile(), dd.getSource());
 	}
 }
