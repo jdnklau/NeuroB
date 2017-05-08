@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.DoubleStream;
 
+import neurob.core.util.SolverType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,29 +25,35 @@ import neurob.training.splitting.TrainingSetTrimmer;
 
 public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	private static final Logger log = LoggerFactory.getLogger(PredicateDumpGenerator.class);
+	private final SolverType trimSolver;
 
 	public PredicateDumpGenerator() {
 		this(3);
 	}
-	
+
 	public PredicateDumpGenerator(int samplingSize) {
+		this(samplingSize, null);
+	}
+
+	public PredicateDumpGenerator(int samplingSize, SolverType solver){
 		super(null, new PredicateDumpLabelGenerator(samplingSize));
 		preferredFileExtension = "pdump";
+		this.trimSolver = solver;
 	}
-	
+
 	@Override
 	public void writeTrainingDataToDirectory(List<TrainingData> trainingData, Path targetDir) throws NeuroBException {
-		
+
 		Path sourceFile = trainingData.get(0).getSource();
 		Path targetFile = generateTrainingDataPath(sourceFile, targetDir);
-		
+
 		// ensure existence of target directory
 		try {
 			Files.createDirectories(targetFile.getParent());
 		} catch (IOException e) {
 			throw new NeuroBException("Could not create or access directory "+targetDir, e);
 		}
-		
+
 		// open target file
 		try(BufferedWriter out = Files.newBufferedWriter(targetFile)) {
 			log.info("\tWriting training data...");
@@ -62,14 +70,14 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 		} catch (IOException e) {
 			throw new NeuroBException("Could not correctly access target file: "+targetFile, e);
 		}
-		
-		
+
+
 	}
-	
+
 	protected String generateOutput(TrainingData td){
 		return td.getLabelString()+":"+td.getComment();
 	}
-	
+
 	@Override
 	protected TrainingData setUpTrainingData(String predicate, Path source, StateSpace ss) throws NeuroBException {
 		return new TrainingData(null, lg.generateLabelling(predicate, ss), source, predicate);
@@ -80,16 +88,20 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 			throws NeuroBException {
 		TrainingSetSplitter.splitLinewise(source, first, second, ratio, rng, false, "."+preferredFileExtension);
 	}
-	
+
 	@Override
 	protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
 		TrainingSetAnalyser.analyseTrainingDataFile(file, analysisData);
 		return analysisData;
 	}
-	
+
 	@Override
 	protected TrainingAnalysisData getAnalysisData() {
-		return new PredicateDumpAnalysis();
+		// if no solver was specified for trimming at instance construction, do not use one
+		if(trimSolver == null){
+			return new PredicateDumpAnalysis();
+		}
+		return new PredicateDumpAnalysis(trimSolver);
 	}
 
 	@Override
@@ -102,6 +114,6 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 
 	@Override
 	public double[] labellingFromSample(String sample) {
-		return new DumpData(sample).getLabellings().stream().mapToDouble(l->l.doubleValue()).toArray();
+		return new DumpData(sample).getLabellings();
 	}
 }

@@ -22,13 +22,33 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 	 */
 	public static final SolverType[] solverOrder =
 		{SolverType.PROB, SolverType.KODKOD, SolverType.Z3, SolverType.SMT_SUPPORTED_INTERPRETER};
-	
+
 	private int samplingSize;
 
 	public PredicateDumpLabelGenerator(int samplingSize) {
 		this.samplingSize = samplingSize;
 	}
-	
+
+	/**
+	 * For a given solver, returns the index of said solver at which it appears in the generated
+	 * labelling. Indexing starts at 0.
+	 * @param solver Solver to get index position of
+	 * @return Index of given solver in labelling
+	 */
+	public static int getSolverIndex(SolverType solver){
+		int index = 0; // set initially to 0
+		for(SolverType s : PredicateDumpLabelGenerator.solverOrder){
+			if (s!=solver){
+				// if solver with currently set index is not the right one, use next index
+				index++;
+			} else {
+				// if solver was found, leave index unchanged and exit loop
+				break;
+			}
+		}
+		return index;
+	}
+
 	@Override
 	public int getClassCount() {
 		return -1;
@@ -38,7 +58,7 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 	public int getLabelDimension() {
 		return 3;
 	}
-	
+
 	@Override
 	public int getTrainingLabelDimension() {
 		return 3;
@@ -52,13 +72,13 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 	@Override
 	public double[] generateLabelling(String predicate, StateSpace stateSpace) throws NeuroBException {
 		IBEvalElement formula = FormulaGenerator.generateBCommandByMachineType(stateSpace, predicate);
-		
+
 		// Check for solvers if they can decide the predicate + get the time they need
 		long ProBTime = 0;
 		long KodKodTime = 0;
 		long Z3Time = 0;
 		long SMTSupportedTime = 0;
-		
+
 		for(int sample=0; sample<samplingSize; ++sample){
 			ProBTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.PROB, formula);
 			KodKodTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace, SolverType.KODKOD, formula);
@@ -66,7 +86,7 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 			SMTSupportedTime += PredicateEvaluator.getCommandExecutionTimeBySolverInNanoSeconds(stateSpace,
 					SolverType.SMT_SUPPORTED_INTERPRETER, formula);
 		}
-		
+
 		return new double[]{ProBTime/(double)samplingSize
 							, KodKodTime/(double)samplingSize
 							, Z3Time/(double)samplingSize
@@ -81,7 +101,7 @@ public class PredicateDumpLabelGenerator implements PredicateLabelGenerator {
 
 	@Override
 	public double[] translateLabelling(DumpData dumpData) {
-		return dumpData.getLabellings().stream().mapToDouble(Long::doubleValue).toArray();
+		return dumpData.getLabellings();
 	}
 
 }
