@@ -68,7 +68,7 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 			res.append("Files found: ").append(filesSeen);
 			res.append("\nOf these were ").append(emptyFilesSeen).append(" seemingly empty\n");
 		}
-		res.append("Samples seen: ").append(samplesSeen);
+		res.append("Samples seen: ").append(samplesSeen).append("\n");
 
 		// info per solver
 		for(int i=0; i<solversAccountedFor; i++){

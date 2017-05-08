@@ -25,12 +25,12 @@ public class TrainingSetSplitter {
 	 * Iterates over the files in the source directory and splits them to the given target directories.
 	 * <p>
 	 * Using the given RNG, the files are distributed in a way that a {@code ratio} sized part will
-	 * be located in {@code first}, and the rest in {@code second}. 
+	 * be located in {@code first}, and the rest in {@code second}.
 	 * For this, the found files are iterated linewise, and for each line the decision is made whether it will
 	 * go first or second.
 	 * This means especially, that for each source file found two corresponding target files will be created, one in
 	 * {@code first}, the other in {@code second}. Those target files hold the corresponding lines of the source file.
-	 * 
+	 *
 	 * @param source The source directory to search for training files in
 	 * @param first The first target directory; ratio samples will be placed here
 	 * @param second The second target directory; 1-ratio samples will be placed here
@@ -40,12 +40,12 @@ public class TrainingSetSplitter {
 	public static void splitLinewise(Path source, Path first, Path second, double ratio, Random rng){
 		splitLinewise(source, first, second, ratio, rng, false);
 	}
-	
+
 	/**
 	 * Iterates over the files in the source directory and splits them to the given target directories.
 	 * <p>
 	 * Using the given RNG, the files are distributed in a way that a {@code ratio} sized part will
-	 * be located in {@code first}, and the rest in {@code second}. 
+	 * be located in {@code first}, and the rest in {@code second}.
 	 * For this, the found files are iterated linewise, and for each line the decision is made whether it will
 	 * go first or second.
 	 * This means especially, that for each source file found two corresponding target files will be created, one in
@@ -61,16 +61,16 @@ public class TrainingSetSplitter {
 	 * @param rng RNG to decide the target directory per sample
 	 * @param copyHeader Whether the first line should be handled as header or not
 	 */
-	public static void splitLinewise(Path source, Path first, Path second, 
+	public static void splitLinewise(Path source, Path first, Path second,
 			double ratio, Random rng, boolean copyHeader){
 		splitLinewise(source, first, second, ratio, rng, false, "");
 	}
-	
+
 	/**
 	 * Iterates over the files in the source directory and splits them to the given target directories.
 	 * <p>
 	 * Using the given RNG, the files are distributed in a way that a {@code ratio} sized part will
-	 * be located in {@code first}, and the rest in {@code second}. 
+	 * be located in {@code first}, and the rest in {@code second}.
 	 * For this, the found files are iterated linewise, and for each line the decision is made whether it will
 	 * go first or second.
 	 * This means especially, that for each source file found two corresponding target files will be created, one in
@@ -82,7 +82,7 @@ public class TrainingSetSplitter {
 	 * The {@code extension} will be used to filter the source files. Only source files ending with the given extension
 	 * will be taken into account. Examples: ".csv" only looks for csv files, "v" would take all files with names ending
 	 * in a v into account, and "" (empty string) uses them all.
-	 * 
+	 *
 	 * @param source The source directory to search for training files in
 	 * @param first The first target directory; ratio samples will be placed here
 	 * @param second The second target directory; 1-ratio samples will be placed here
@@ -91,24 +91,24 @@ public class TrainingSetSplitter {
 	 * @param copyHeader Whether the first line should be handled as header or not
 	 * @param extension Only files ending with this string will be taken into account
 	 */
-	public static void splitLinewise(Path source, Path first, Path second, 
+	public static void splitLinewise(Path source, Path first, Path second,
 			double ratio, Random rng, boolean copyHeader, String extension){
 		checkRatio(ratio);
-		
+
 		log.info("Splitting training set {} to {} and {}, by ratio of {}", source, first, second, ratio);
-		
+
 		try(Stream<Path> stream = Files.walk(source)){
-			
+
 			stream
 				.filter(Files::isRegularFile)
 				.filter(p->p.toString().endsWith(extension))
 				.forEach(p->splitFileLinewise(source, p,first,second,ratio,copyHeader,rng));
-			
+
 		} catch (IOException e) {
 			log.error("Could not split training set correctly.", e);
 		}
 	}
-	
+
 	/**
 	 * Splits all csv files found in the {@code source} directory.
 	 * <p>
@@ -125,20 +125,20 @@ public class TrainingSetSplitter {
 		splitLinewise(source, first, second, ratio, rng, true, ".csv");
 	}
 
-	private static void splitFileLinewise(Path sourceDir, Path sourceFile, Path first, Path second, 
+	private static void splitFileLinewise(Path sourceDir, Path sourceFile, Path first, Path second,
 			double ratio, boolean copyHeader, Random rng) {
 		log.debug("Splitting {}", sourceFile);
-		
+
 		// for path/to/source/subdir/file with path/to/source as source dir, get subdir/
 		Path sourceSubDir = sourceDir.relativize(sourceFile).getParent();
-		
+
 		// set up paths for new training data files
 		Path sourceFileName = sourceFile.getFileName();
 		Path fstFile = first.resolve(sourceSubDir).resolve(sourceFileName);
 		Path sndFile = second.resolve(sourceSubDir).resolve(sourceFileName);
-		
+
 		log.debug("\tSplitting {} to {} and {}", sourceFile, fstFile,sndFile);
-		
+
 		// create target files
 		BufferedWriter wrFst;
 		BufferedWriter wrSnd;
@@ -146,7 +146,7 @@ public class TrainingSetSplitter {
 			// set up directories
 			Files.createDirectories(fstFile.getParent());
 			Files.createDirectories(sndFile.getParent());
-			
+
 			// set up new files to write
 			wrFst = Files.newBufferedWriter(fstFile);
 			wrSnd = Files.newBufferedWriter(sndFile);
@@ -154,12 +154,12 @@ public class TrainingSetSplitter {
 			log.error("Could not split up {} correctly.", sourceFile, e);
 			return;
 		}
-		
+
 		// copy header line
 		if(copyHeader){
 			copyHeader(sourceFile, wrFst, wrSnd);
 		}
-		
+
 
 		try(Stream<String> lines = Files.lines(sourceFile)){
 			lines
@@ -168,13 +168,21 @@ public class TrainingSetSplitter {
 		} catch (IOException e) {
 			log.error("Could not split up {}", sourceFile, e);
 		}
+
+		// close files
+		try{
+			wrFst.close();
+			wrSnd.close();
+		} catch(IOException e) {
+			log.error("Could not close target files for {} correctly", sourceFile, e);
+		}
 	}
 
-	private static void splitFileLinewise(String line, BufferedWriter wrFst, BufferedWriter wrSnd, 
+	private static void splitFileLinewise(String line, BufferedWriter wrFst, BufferedWriter wrSnd,
 			double ratio, Random rng) {
 		// decide which target file should be used
 		BufferedWriter wr = (rng.nextDouble() <= ratio) ? wrFst : wrSnd;
-		
+
 		try {
 			wr.write(line);
 			wr.newLine();
@@ -187,11 +195,11 @@ public class TrainingSetSplitter {
 	private static void copyHeader(Path sourceFile, BufferedWriter wrFst, BufferedWriter wrSnd) {
 		try(Stream<String> lines = Files.lines(sourceFile)){
 			Optional<String> header = lines.findFirst();
-			
+
 			wrFst.write(header.get());
 			wrFst.newLine();
 			wrFst.flush();
-			
+
 			wrSnd.write(header.get());
 			wrSnd.newLine();
 			wrSnd.flush();
@@ -207,14 +215,14 @@ public class TrainingSetSplitter {
 					+ " but got "+ratio);
 		}
 	}
-	
+
 	/**
 	 * Iterates over the files in the source directory and splits them to the given target directories.
 	 * <p>
 	 * Using the given RNG, the files are distributed in a way that a {@code ratio} sized part will
-	 * be located in {@code first}, and the rest in {@code second}. 
-	 * For this, the found files are copied to the respective location. 
-	 * 
+	 * be located in {@code first}, and the rest in {@code second}.
+	 * For this, the found files are copied to the respective location.
+	 *
 	 * @param source The source directory to search for training files in
 	 * @param first The first target directory; ratio samples will be placed here
 	 * @param second The second target directory; 1-ratio samples will be placed here
@@ -225,18 +233,18 @@ public class TrainingSetSplitter {
 		splitFilewise(source, first, second, ratio, rng, "");
 	}
 
-	
+
 	/**
 	 * Iterates over the files in the source directory and splits them to the given target directories.
 	 * <p>
 	 * Using the given RNG, the files are distributed in a way that a {@code ratio} sized part will
-	 * be located in {@code first}, and the rest in {@code second}. 
-	 * For this, the found files are copied to the respective location. 
+	 * be located in {@code first}, and the rest in {@code second}.
+	 * For this, the found files are copied to the respective location.
 	 * <p>
 	 * The {@code extension} will be used to filter the source files. Only source files ending with the given extension
 	 * will be taken into account. Examples: ".csv" only looks for csv files, "v" would take all files with names ending
 	 * in a v into account, and "" (empty string) uses them all.
-	 * 
+	 *
 	 * @param source The source directory to search for training files in
 	 * @param first The first target directory; ratio samples will be placed here
 	 * @param second The second target directory; 1-ratio samples will be placed here
@@ -246,9 +254,9 @@ public class TrainingSetSplitter {
 	 */
 	public static void splitFilewise(Path source, Path first, Path second, double ratio, Random rng, String extension){
 		checkRatio(ratio);
-		
+
 		log.info("Splitting training set {} to {} and {}, by ratio of {}", source, first, second, ratio);
-		
+
 		try(Stream<Path> stream = Files.walk(source)){
 			stream
 			.filter(Files::isRegularFile)
@@ -257,20 +265,20 @@ public class TrainingSetSplitter {
 		} catch (IOException e) {
 			log.error("Could not split up training data from {}", source, e);
 		}
-		
-		
+
+
 	}
 
 	private static void copyFileToTarget(Path sourceDir, Path sourceFile, Path targetDir) {
 		log.debug("Splitting {}", sourceFile);
-		
+
 		// for path/to/source/subdir/file with path/to/source as source dir, get subdir/
 		Path sourceSubDir = sourceDir.relativize(sourceFile).getParent();
-		
+
 		// set up paths for new training data files
 		Path sourceFileName = sourceFile.getFileName();
 		Path targetFile = targetDir.resolve(sourceSubDir).resolve(sourceFileName);
-		
+
 		try{
 			Files.createDirectories(targetFile.getParent());
 			log.debug("\tCopying {} to {}", sourceFile, targetFile);

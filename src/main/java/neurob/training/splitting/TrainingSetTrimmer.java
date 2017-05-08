@@ -23,12 +23,12 @@ public class TrainingSetTrimmer {
 	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
 	 * <p>
 	 * The original files are not altered by this, instead the trimmed version of the data will be located in
-	 * {@code targetDirectory}.  
+	 * {@code targetDirectory}.
 	 * @param sourceDirectory Directory containing training data created by {@code generator}
-	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * @param targetDirectory Directory to locate the trimmed version of the source training data
 	 * @param analysisData
 	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
-	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis
 	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
 	 * @see #trimLineWise(Path, Path, TrainingAnalysisData, TrainingDataGenerator, boolean)
 	 * @see #trimLineWise(Path, Path, TrainingAnalysisData, TrainingDataGenerator, boolean, String)
@@ -37,7 +37,7 @@ public class TrainingSetTrimmer {
 			TrainingDataGenerator generator){
 		trimLineWise(sourceDirectory, targetDirectory, analysisData, generator, false);
 	}
-	
+
 	/**
 	 * Trims the training set located in {@code sourceDirectory} on a line-by-line basis, by the ruling of
 	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
@@ -46,12 +46,12 @@ public class TrainingSetTrimmer {
 	 * first line as well to the corresponding, trimmed file.
 	 * <p>
 	 * The original files are not altered by this, instead the trimmed version of the data will be located in
-	 * {@code targetDirectory}.  
+	 * {@code targetDirectory}.
 	 * @param sourceDirectory Directory containing training data created by {@code generator}
-	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * @param targetDirectory Directory to locate the trimmed version of the source training data
 	 * @param analysisData
 	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
-	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis
 	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
 	 * @param copyHeader Whether the first line of training files should be treated as header line or not
 	 * @see #trimLineWise(Path, Path, TrainingAnalysisData, TrainingDataGenerator, boolean, String)
@@ -60,7 +60,7 @@ public class TrainingSetTrimmer {
 			TrainingDataGenerator generator, boolean copyHeader){
 		trimLineWise(sourceDirectory, targetDirectory, analysisData, generator, copyHeader, "");
 	}
-	
+
 	/**
 	 * Trims the training set located in {@code sourceDirectory} on a line-by-line basis, by the ruling of
 	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
@@ -69,12 +69,12 @@ public class TrainingSetTrimmer {
 	 * first line as well to the corresponding, trimmed file.
 	 * <p>
 	 * The original files are not altered by this, instead the trimmed version of the data will be located in
-	 * {@code targetDirectory}.  
+	 * {@code targetDirectory}.
 	 * @param sourceDirectory Directory containing training data created by {@code generator}
-	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * @param targetDirectory Directory to locate the trimmed version of the source training data
 	 * @param analysisData
 	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
-	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis
 	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
 	 * @param copyHeader Whether the first line of training files should be treated as header line or not
 	 * @param suffix Only files with names ending with this suffix are accounted for; empty suffix accounts for all
@@ -82,13 +82,13 @@ public class TrainingSetTrimmer {
 	public static void trimLineWise(Path sourceDirectory, Path targetDirectory, TrainingAnalysisData analysisData,
 			TrainingDataGenerator generator, boolean copyHeader, String suffix){
 		log.info("Trimming training set {} to {}", sourceDirectory, targetDirectory);
-		
+
 		try(Stream<Path> stream = Files.walk(sourceDirectory)){
 			stream
 				.filter(Files::isRegularFile)
 				.filter(p->p.toString().endsWith(suffix))
 				.forEach(p->trimFileLinewise(sourceDirectory, p, targetDirectory,copyHeader,analysisData, generator));
-			
+
 		} catch (IOException e) {
 			log.error("Could not split training set correctly.", e);
 		}
@@ -96,16 +96,16 @@ public class TrainingSetTrimmer {
 
 	private static void trimFileLinewise(Path sourceDir, Path sourceFile, Path targetDir, boolean copyHeader,
 			TrainingAnalysisData analysisData, TrainingDataGenerator generator) {
-		
+
 		// for path/to/source/subdir/file with path/to/source as source dir, get subdir/
 		Path sourceSubDir = sourceDir.relativize(sourceFile).getParent();
-		
+
 		// set up paths for new training data files
 		Path sourceFileName = sourceFile.getFileName();
 		Path targetFile = targetDir.resolve(sourceSubDir).resolve(sourceFileName);
-		
+
 		log.debug("\tTrimming {}, writing result to {}", sourceFile, targetFile);
-		
+
 		// set up target file
 		BufferedWriter target;
 		try {
@@ -115,10 +115,10 @@ public class TrainingSetTrimmer {
 			log.error("\tCould not setup target file {}", sourceFile, e);
 			return;
 		}
-		
+
 		if(copyHeader)
 			copyHeader(sourceFile, target);
-		
+
 		try(Stream<String> lines = Files.lines(sourceFile)){
 			lines
 			.skip(copyHeader?1:0)
@@ -127,12 +127,18 @@ public class TrainingSetTrimmer {
 		} catch (IOException e) {
 			log.error("\tCould not trim {}", sourceFile, e);
 		}
+
+		try {
+			target.close();
+		} catch (IOException e) {
+			log.error("Could not close {} correctly", target, e);
+		}
 	}
 
 	private static void copyHeader(Path sourceFile, BufferedWriter target) {
 		try(Stream<String> lines = Files.lines(sourceFile)){
 			Optional<String> header = lines.findFirst();
-			
+
 			target.write(header.get());
 			target.newLine();
 			target.flush();
@@ -140,7 +146,7 @@ public class TrainingSetTrimmer {
 			log.warn("\tCould not copy header from {}", sourceFile, e);
 		}
 	}
-	
+
 	/**
 	 * Actually does nothing but writing the sample as new line to the target file
 	 * @param sample
@@ -155,50 +161,50 @@ public class TrainingSetTrimmer {
 			log.warn("\tCould not write sample {} to trimmed file", sample, e);
 		}
 	}
-	
-	
 
-	
+
+
+
 	/**
-	 * Trims the training set located in {@code sourceDirectory} on a by-file basis, by the ruling of
+	 * Trims the training set located in {@code source} on a by-file basis, by the ruling of
 	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
 	 * <p>
 	 * Each file is interpreted as an individual sample.
 	 * <p>
 	 * The original files are not altered by this, instead the trimmed version of the data will be located in
-	 * {@code targetDirectory}.  
-	 * @param sourceDirectory Directory containing training data created by {@code generator}
-	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * {@code target}.
+	 * @param source Directory containing training data created by {@code generator}
+	 * @param target Directory to locate the trimmed version of the source training data
 	 * @param analysisData
 	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
-	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis
 	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
 	 */
 	public static void trimFilewise(Path source, Path target, TrainingAnalysisData analysisData,
 			TrainingDataGenerator generator){
 		trimFilewise(source, target, analysisData, generator, "");
 	}
-	
+
 	/**
-	 * Trims the training set located in {@code sourceDirectory} on a by-file basis, by the ruling of
+	 * Trims the training set located in {@code source} on a by-file basis, by the ruling of
 	 * {@link TrainingAnalysisData#canSampleBeTrimmed(double[]) the given analysisData}.
 	 * <p>
 	 * Each file is interpreted as an individual sample.
 	 * <p>
 	 * The original files are not altered by this, instead the trimmed version of the data will be located in
-	 * {@code targetDirectory}.  
-	 * @param sourceDirectory Directory containing training data created by {@code generator}
-	 * @param targetDirectory Directory to locate the trimmed version of the source training data 
+	 * {@code target}.
+	 * @param source Directory containing training data created by {@code generator}
+	 * @param target Directory to locate the trimmed version of the source training data
 	 * @param analysisData
 	 * 			Resulting analysis object of the source training data. Dictates the trimming behaviour by
-	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis 
+	 * 			{@link TrainingAnalysisData#canSampleBeTrimmed(double[])} on a per-sample basis
 	 * @param generator {@link TrainingDataGenerator} used to create the source training data in the first place
 	 * @param suffix Only files with names ending with this suffix are accounted for; empty suffix accounts for all
 	 */
 	public static void trimFilewise(Path source, Path target, TrainingAnalysisData analysisData,
 			TrainingDataGenerator generator, String suffix){
 		log.info("Trimming training set {} to {}", source, target);
-		
+
 		try(Stream<Path> stream = Files.walk(source)){
 			stream
 			.filter(Files::isRegularFile)
@@ -208,20 +214,20 @@ public class TrainingSetTrimmer {
 		} catch (IOException e) {
 			log.error("Could not trim training data from {}", source, e);
 		}
-		
-		
+
+
 	}
 
 	private static void copyFileToTarget(Path sourceDir, Path sourceFile, Path targetDir) {
 		log.debug("Splitting {}", sourceFile);
-		
+
 		// for path/to/source/subdir/file with path/to/source as source dir, get subdir/
 		Path sourceSubDir = sourceDir.relativize(sourceFile).getParent();
-		
+
 		// set up paths for new training data files
 		Path sourceFileName = sourceFile.getFileName();
 		Path targetFile = targetDir.resolve(sourceSubDir).resolve(sourceFileName);
-		
+
 		try{
 			Files.createDirectories(targetFile.getParent());
 			log.debug("\tCopying {} to {}", sourceFile, targetFile);
