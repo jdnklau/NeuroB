@@ -86,7 +86,7 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 	@Override
 	public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
 			throws NeuroBException {
-		TrainingSetSplitter.splitLinewise(source, first, second, ratio, rng, false, "."+preferredFileExtension);
+		TrainingSetSplitter.splitLinewise(source, first, second, ratio, rng, true, "."+preferredFileExtension);
 	}
 
 	@Override
