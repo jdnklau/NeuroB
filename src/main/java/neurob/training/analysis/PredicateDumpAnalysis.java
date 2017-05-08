@@ -68,7 +68,7 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 			res.append("Files found: ").append(filesSeen);
 			res.append("\nOf these were ").append(emptyFilesSeen).append(" seemingly empty\n");
 		}
-		res.append("Samples seen: ").append(samplesSeen);
+		res.append("Samples seen: ").append(samplesSeen).append("\n");
 
 		// info per solver
 		for(int i=0; i<solversAccountedFor; i++){
@@ -125,10 +125,28 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 		return this;
 	}
 
+	/**
+	 * Returns an array containing a percentage of how many samples were decidable by each solver.
+	 * This should only be called <b>after</b> {@link #evaluateAllSamples()} was called.
+	 * <p>
+	 * The indices map to the solvers like given by {@link PredicateDumpLabelGenerator#solverOrder}.
+	 * Similar, {@link PredicateDumpLabelGenerator#getSolverIndex(SolverType)} returns the matching
+	 * index to a given solver.
+	 * @return Array of percentages of how many samples each solver could decide.
+	 */
 	public double[] getDecidabilityDist() {
 		return decidabilityDist;
 	}
 
+	/**
+	 * Returns a matrix containing the pair wise decidability of two solvers. Each entry represents
+	 * the number of samples decidable by both.
+	 * <p>
+	 * The indices map to the solvers like given by {@link PredicateDumpLabelGenerator#solverOrder}.
+	 * Similar, {@link PredicateDumpLabelGenerator#getSolverIndex(SolverType)} returns the matching
+	 * index to a given solver.
+	 * @return Matrix containing number of samples decidable pair wise by two solvers
+	 */
 	public int[][] getDecidabilityMatrix() {
 		return decidabilityMatrix;
 	}

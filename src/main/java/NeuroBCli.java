@@ -112,6 +112,11 @@ public class NeuroBCli {
 					+ "pdump -analyse <directory>\n"
 					+ "\tAnalyses the .pdump files in the given directory (recursively)\n"
 
+					+ "pdump -split <source> -first <first> -second <second> -ratio <ratio>\n"
+					+ "\tSplit the training set located in <source> into two distinct subsets, <first> and <second>\n"
+					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
+					+ "\twith <ratio> being a number from the interval [0,1]\n"
+
 					+ "pdump -trim <directory> -target <directory> -solver <solver>\n"
 					+ "\tTrims the predicate dump given with respect to the given solver as classification problem\n"
 					+ "\tThe trimmed set will be located in the target directory; the source set remains unchanged\n"
@@ -257,6 +262,19 @@ public class NeuroBCli {
 				Path target = Paths.get(ops.get("target").get(0));
 				trimPDump(dir, target, ops.get("solver").get(0));
 			}
+			else if(ops.containsKey("split")){
+				if(ops.containsKey("first") && ops.containsKey("second") && ops.containsKey("ratio")){
+					Path csv = Paths.get(ops.get("split").get(0));
+					Path first = Paths.get(ops.get("first").get(0));
+					Path second = Paths.get(ops.get("second").get(0));
+					double ratio = Double.parseDouble(ops.get("ratio").get(0));
+					splitPDump(csv, first, second, ratio);
+
+				}
+				else {
+					System.out.println("pdump -split: Missing at least one of those parameters: -first, -second, -ratio");
+				}
+			}
 			else {
 				System.out.println("pdump: expecting either -file, -dir, or -translate parameter");
 			}
@@ -312,6 +330,16 @@ public class NeuroBCli {
 		}
 
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
+	}
+
+	private static void splitPDump(Path dir, Path first, Path second, double ratio){
+		PredicateDumpGenerator gen = new PredicateDumpGenerator();
+
+		try {
+			gen.splitTrainingData(dir, first, second, ratio, new Random(123));
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void trimPDump(Path dir, Path target, String solver) {
