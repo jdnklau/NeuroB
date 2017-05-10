@@ -13,7 +13,7 @@
         - [x] distinction between classification and regression
         - [x] log confusion matrix
     - [x] early stopping
-    - [ ] random search
+    - [x] random search
 - training set generation
     - [ ] shuffle data files
     - [ ] ~~generation pipeline; flushing samples directly to files instead of 
