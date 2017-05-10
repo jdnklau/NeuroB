@@ -9,6 +9,7 @@ import org.deeplearning4j.arbiter.layers.ConvolutionLayerSpace;
 import org.deeplearning4j.arbiter.layers.DenseLayerSpace;
 import org.deeplearning4j.arbiter.layers.OutputLayerSpace;
 import org.deeplearning4j.arbiter.optimize.api.ParameterSpace;
+import org.deeplearning4j.arbiter.optimize.parameter.FixedValue;
 import org.deeplearning4j.arbiter.optimize.parameter.continuous.ContinuousParameterSpace;
 import org.deeplearning4j.arbiter.optimize.parameter.discrete.DiscreteParameterSpace;
 import org.deeplearning4j.arbiter.optimize.parameter.integer.IntegerParameterSpace;
@@ -55,6 +56,13 @@ public class NeuroBModelSpace {
 	 *     {@code [learningRateMin, learningRateMax]}
 	 * </p>
 	 * <p>
+	 *     <b>NOTE:</b> Each hidden layer will have the exactly same number of neurons, due a bug in
+	 *     DL4J Arbiter, that makes different parameter spaces with exact same configurations
+	 *     unusable.
+	 *     On the other hand, copying the same layer with different values used from the
+	 *     parameter spaces is not implemented yet (DL4J version 0.8.0)
+	 * </p>
+	 * <p>
 	 *     Each hidden layer uses tanh as activation function, and is initialised by
 	 *     Xavier initialisation.
 	 * </p>
@@ -96,20 +104,22 @@ public class NeuroBModelSpace {
 				.activation("tanh")
 				.weightInit(WeightInit.XAVIER)
 				.nOut(layerSize)
-				.build());
+				.build(), new FixedValue<>(hiddenLayers), true);
+		// FIXME: parameter true in line above corresponds to bug mentioned in the java doc comment
+
 		// remaining layers but output
-		ParameterSpace<Integer> layerSizeIn;
-		for(int i=1; i<hiddenLayers; i++){
-			layerSizeIn = layerSize;
-			// set up new random size for layer
-			layerSize = new IntegerParameterSpace(hiddenSizeMin, hiddenSizeMax);
-			spaceBuilder.addLayer(new DenseLayerSpace.Builder()
-					.nIn(layerSizeIn)
-					.activation("tanh")
-					.weightInit(WeightInit.XAVIER)
-					.nOut(layerSize)
-					.build());
-		}
+//		ParameterSpace<Integer> layerSizeIn;
+//		for(int i=1; i<hiddenLayers; i++){
+//			layerSizeIn = layerSize;
+//			// set up new random size for layer
+//			layerSize = new IntegerParameterSpace(hiddenSizeMin, hiddenSizeMax);
+//			spaceBuilder.addLayer(new DenseLayerSpace.Builder()
+//					.nIn(layerSizeIn)
+//					.activation("tanh")
+//					.weightInit(WeightInit.XAVIER)
+//					.nOut(layerSize)
+//					.build());
+//		}
 		// output layer configuration depending on regression or classification
 		String activationFunction;
 		LossFunction lossFunction;
@@ -142,6 +152,13 @@ public class NeuroBModelSpace {
 	 *     is chosen, dictating how many filters will be learned by this layer.
 	 *     Also, a random integer k from {@code [filterSizeMin, filterSizeMax]} sets the filter size
 	 *     to {@code k*k}, but model wide.
+	 * </p>
+	 * <p>
+	 *     <b>NOTE:</b> Each convolution layer will have the exactly same number of filters, due to
+	 *     a bug in DL4J Arbiter, that makes different parameter spaces with exact same
+	 *     configurations unusable.
+	 *     On the other hand, copying the same layer with different values used from the
+	 *     parameter spaces is not implemented yet (DL4J version 0.8.0)
 	 * </p>
 	 * <p>
 	 *     After the convolution layers, the model(s) will consist of fully connected layers,
@@ -210,32 +227,34 @@ public class NeuroBModelSpace {
 				.activation("relu") // FIXME: unsure whether "relu" or "RELU"; Arbiter does not use theDL4J enum for now
 				.weightInit(WeightInit.XAVIER)
 				.nOut(layerSize)
-				.build());
-		// remaining conv layers
-		ParameterSpace<Integer> layerSizeIn;
-		for(int i=1; i<convolutionLayers; i++){
-			layerSizeIn = layerSize;
-			// NOTE: decided not to vary filter size inside model
-//			filterSize = new DiscreteParameterSpace<>(filterSizes); // for each layer different
-			// set up new random size for layer
-			layerSize = new IntegerParameterSpace(filtersMin, filtersMax);
-			spaceBuilder.addLayer(new ConvolutionLayerSpace.Builder()
-					.kernelSize(filterSize)
-					.nIn(layerSizeIn)
-					.activation("relu") // FIXME: unsure whether "relu" or "RELU"; Arbiter does not use theDL4J enum for now
-					.weightInit(WeightInit.XAVIER)
-					.nOut(layerSize)
-					.build());
-		}
-		// fully connected layers
-		for(int i=0; i<fullyConnectedLayers; i++){
+				.build(), new FixedValue<>(convolutionLayers), true);
+		// FIXME: parameter true in line above corresponds to bug mentioned in the java doc comment
+
+//		// remaining conv layers
+//		ParameterSpace<Integer> layerSizeIn;
+//		for(int i=1; i<convolutionLayers; i++){
+//			layerSizeIn = layerSize;
+//			// NOTE: decided not to vary filter size inside model
+////			filterSize = new DiscreteParameterSpace<>(filterSizes); // for each layer different
+//			// set up new random size for layer
+//			layerSize = new IntegerParameterSpace(filtersMin, filtersMax);
+//			spaceBuilder.addLayer(new ConvolutionLayerSpace.Builder()
+//					.kernelSize(filterSize)
+//					.nIn(layerSizeIn)
+//					.activation("relu") // FIXME: unsure whether "relu" or "RELU"; Arbiter does not use theDL4J enum for now
+//					.weightInit(WeightInit.XAVIER)
+//					.nOut(layerSize)
+//					.build());
+//		}
+//		// fully connected layers
+//		for(int i=0; i<fullyConnectedLayers; i++){
 			layerSize = new IntegerParameterSpace(fullyConnectedSizeMin, fullyConnectedSizeMax);
 			spaceBuilder.addLayer(new DenseLayerSpace.Builder()
 					.nOut(layerSize)
 					.activation("relu")
 					.weightInit(WeightInit.XAVIER)
-					.build());
-		}
+					.build(), new FixedValue<>(fullyConnectedLayers), true);
+//		}
 		// output layer configuration depending on regression or classification
 		String activationFunction;
 		LossFunction lossFunction;
