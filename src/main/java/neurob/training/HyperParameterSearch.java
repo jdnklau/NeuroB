@@ -16,6 +16,8 @@ import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.nets.NeuroBNet;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.statistics.interfaces.ModelEvaluation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguration>> {
 	private T candidateGenerator;
@@ -25,6 +27,7 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 	private ModelEvaluation bestEvaluation = null;
 	private FeatureGenerator featureGenerator;
 	private LabelGenerator labelGenerator;
+	private static final Logger log = LoggerFactory.getLogger(HyperParameterSearch.class);
 
 	public HyperParameterSearch(T candidateGenerator,
 			FeatureGenerator featureGen, LabelGenerator labelGen) {
@@ -93,12 +96,14 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 			ModelEvaluation eval = nb.train(trainSource,testSource,numEpochs);
 
 			// compare evaluations
-			if(eval.performsBetterThan(bestEvaluation)){
+			if(bestEvaluation == null || eval.performsBetterThan(bestEvaluation)){
 				bestEvaluation = eval;
+				log.info("New model #{} performed best; previous best was #{}", i, bestPerformingIndex);
 				bestPerformingIndex = i;
 			}
 		}
 
+		log.info("Best model generated has index {}", bestPerformingIndex);
 		return bestPerformingIndex;
 	}
 
