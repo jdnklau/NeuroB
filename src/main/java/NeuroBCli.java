@@ -331,17 +331,17 @@ public class NeuroBCli {
 				int layers1 = 4;
 				int layers2 = 0;
 				if(ops.containsKey("layers")){
-					layers1 = Integer.getInteger(ops.get("layers").get(0));
+					layers1 = Integer.parseInt(ops.get("layers").get(0));
 					if(ops.get("layers").contains(1))
-						layers2 = Integer.getInteger(ops.get("layers").get(1));
+						layers2 = Integer.parseInt(ops.get("layers").get(1));
 				}
 				int models = 15;
 				if(ops.containsKey("models")){
-					models = Integer.getInteger(ops.get("models").get(0));
+					models = Integer.parseInt(ops.get("models").get(0));
 				}
 				int epochs = 15;
 				if(ops.containsKey("epochs")){
-					epochs = Integer.getInteger(ops.get("epochs").get(0));
+					epochs = Integer.parseInt(ops.get("epochs").get(0));
 				}
 				Path train = Paths.get(ops.get("train").get(0));
 				Path test = Paths.get(ops.get("test").get(0));
