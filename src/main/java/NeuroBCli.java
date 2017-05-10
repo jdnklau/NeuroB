@@ -112,8 +112,10 @@ public class NeuroBCli {
 					+ "pdump -file <file>\n"
 					+ "\tCreates predicate dump files from <file>\n"
 
-					+ "pdump -translate <directory> [-net <features> <labels>]\n"
-					+ "\tTranslates the given directory of pdump-files into a CSV to train the given neural network\n"
+					+ "pdump -translate <directory> [-subdir <subdir>] [-net <features> <labels>]\n"
+					+ "\tTranslates the given directory of pdump-files into a trainingset the given neural network would have created\n"
+					+ "\tThe given subdirectory will add an additional directory layer between the generated samples and the default output directory\n"
+					+ "\t-subdir <subdir> defaults to \"from-pdump\"\n"
 
 					+ "pdump -analyse <directory>\n"
 					+ "\tAnalyses the .pdump files in the given directory (recursively)\n"
@@ -264,7 +266,12 @@ public class NeuroBCli {
 			else if(ops.containsKey("translate")){
 				buildNet();
 				Path dir = Paths.get(ops.get("translate").get(0));
-				translatePDump(dir);
+				String subdir = "from-pdump";
+				if(ops.containsKey("subdir")){
+					subdir = ops.get("subdir").get(0);
+				}
+				Path subdirPath = Paths.get(subdir);
+				translatePDump(dir, subdirPath);
 			}
 			else if(ops.containsKey("analyse")){
 				Path dir = Paths.get(ops.get("analyse").get(0));
@@ -483,9 +490,9 @@ public class NeuroBCli {
 		tpd.generateTrainingSet(dir, Paths.get("training_data/PredicateDump/"), excludefile);
 	}
 
-	private static void translatePDump(Path dir) {
+	private static void translatePDump(Path dir, Path subdir) {
 //		try {
-			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName());
+			Path target = Paths.get("training_data/"+nb.getNeuroBNet().getDataPathName()).resolve(subdir);
 			nb.getNeuroBNet().getTrainingSetGenerator().translateDataDumpFiles(dir, target);
 //		} catch (NeuroBException e) {
 //			e.printStackTrace();
