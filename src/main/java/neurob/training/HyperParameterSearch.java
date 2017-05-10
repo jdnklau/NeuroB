@@ -17,8 +17,7 @@ import neurob.core.nets.NeuroBNet;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.statistics.interfaces.ModelEvaluation;
 
-public class HyperParameterSearch
-	<T extends CandidateGenerator<DL4JConfiguration>> {
+public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguration>> {
 	private T candidateGenerator;
 	private Path savePath;
 	private int bestPerformingIndex;
@@ -29,25 +28,25 @@ public class HyperParameterSearch
 
 	public HyperParameterSearch(T candidateGenerator,
 			FeatureGenerator featureGen, LabelGenerator labelGen) {
-		this(candidateGenerator, 
+		this(candidateGenerator,
 				featureGen, labelGen,
 				Paths.get("random_search/")
 				.resolve(ZonedDateTime.now()
 						.format(DateTimeFormatter.ISO_INSTANT))
 				);
 	}
-	
+
 	public HyperParameterSearch(T candidateGenerator,
 			FeatureGenerator featureGen, LabelGenerator labelGen,
 			Path modelDirectory){
 		this.candidateGenerator = candidateGenerator;
 		savePath = modelDirectory;
 		bestPerformingIndex = -1;
-		
+
 		featureGenerator = featureGen;
 		labelGenerator = labelGen;
 	}
-	
+
 	/**
 	 * Trains multiple models, saves them to disk and reports
 	 * the index of the best performing model.
@@ -59,16 +58,16 @@ public class HyperParameterSearch
 	 * It is advised to use a relatively small epoch number, as hyperparameter
 	 * search is only meant to find hyperparameter settings to use for
 	 * following, longer training.
-	 * 
+	 *
 	 * @param numModels Maximum number of models to train
 	 * @param trainSource Location of training set
 	 * @param testSource Location of test set
 	 * @param numEpochs Number of epochs to train each model
 	 * @return index of best performing model
-	 * @throws InterruptedException 
-	 * @throws IOException 
+	 * @throws InterruptedException
+	 * @throws IOException
 	 */
-	public int trainModels(int numModels, 
+	public int trainModels(int numModels,
 			Path trainSource, Path testSource, int numEpochs)
 			throws IOException, InterruptedException{
 		// Train and evaluate up to numModels candidates
@@ -81,15 +80,15 @@ public class HyperParameterSearch
 					.getValue().getMultiLayerConfiguration());
 			// make neuroB net instance
 			// TODO: distinguish between NN, CNN, RNN, etc
-        	NeuroBNet nbn = new NeuroBNet(model, 
+        	NeuroBNet nbn = new NeuroBNet(model,
         			featureGenerator, labelGenerator);
-        	Path modelSavePath = 
+        	Path modelSavePath =
         			savePath.resolve(nbn.getDataPathName())
         			.resolve(Integer.toString(i));
-			
+
         	// set up NeuroB
 			NeuroB nb = new NeuroB(nbn, modelSavePath);
-			
+
 			// train model and get evaluation
 			ModelEvaluation eval = nb.train(trainSource,testSource,numEpochs);
 
@@ -99,10 +98,10 @@ public class HyperParameterSearch
 				bestPerformingIndex = i;
 			}
 		}
-		
+
 		return bestPerformingIndex;
 	}
-	
+
 	public int getBestPerformingIndex() {
 		return bestPerformingIndex;
 	}

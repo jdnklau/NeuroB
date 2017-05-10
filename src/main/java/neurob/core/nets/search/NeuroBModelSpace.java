@@ -104,7 +104,7 @@ public class NeuroBModelSpace {
 			// set up new random size for layer
 			layerSize = new IntegerParameterSpace(hiddenSizeMin, hiddenSizeMax);
 			spaceBuilder.addLayer(new DenseLayerSpace.Builder()
-					.nIn(features.getFeatureDimension())
+					.nIn(layerSizeIn)
 					.activation("tanh")
 					.weightInit(WeightInit.XAVIER)
 					.nOut(layerSize)
@@ -221,7 +221,7 @@ public class NeuroBModelSpace {
 			layerSize = new IntegerParameterSpace(filtersMin, filtersMax);
 			spaceBuilder.addLayer(new ConvolutionLayerSpace.Builder()
 					.kernelSize(filterSize)
-					.nIn(features.getFeatureChannels())
+					.nIn(layerSizeIn)
 					.activation("relu") // FIXME: unsure whether "relu" or "RELU"; Arbiter does not use theDL4J enum for now
 					.weightInit(WeightInit.XAVIER)
 					.nOut(layerSize)
