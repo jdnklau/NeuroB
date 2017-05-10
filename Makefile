@@ -1,6 +1,8 @@
 # Shortcut to run the Cli of NeuroB
 RUNCLI = ./build/install/NeuroB/bin/NeuroB
 EXAMPLES = examples/prob_examples/public_examples
+PDUMPDIR = training_data/PredicateDump
+PDUMPPROBTRIM = $(PDUMPDIR)_trim/PROB
 
 all : neurob dev unzip_examples distributedlibraryfile 
 	@echo "Done."
@@ -31,17 +33,29 @@ dev :
 	@echo "*****/ Eclipse project set up"
 
 # how to run stuff
-trainingset : distributedlibraryfile
+trainingset : predicatedump
 	@echo "***** Beginning generation of training set"
-	@echo "This will take a while. Maybe just come back tomorrow"
-	@$(RUNCLI) trainingset -dir $(EXAMPLES)
+	@$(RUNCLI) pdump -translate $(PDUMPDIR)
 	@echo "*****/ Training set generated"
 
 predicatedump : distributedlibraryfile
+	@echo "***** Generating general purpose training set"
+	@echo "This will take a while. Maybe just come back tomorrow."
 	@$(RUNCLI) pdump -dir $(EXAMPLES)
 	@echo "Ensuring the termination of all KodKod processes... the hard way:"
 	pkill -u $(USER) -f probkodkod
+	@echo "*****/ Done: Predicate Dump"
 
+trimpredicatedump :
+	@echo "***** trimming predicate dump wrt ProB"
+	@$(RUNCLI) pdump -trim $(PDUMPDIR) -target $(PDUMPPROBTRIM)/examples -solver prob
+	@echo "*****/ Done with trimming"
+
+splitpredicatedump :
+	@echo "***** splitting predicate dump to train, validation, and test set"
+	@$(RUNCLI) pdump -split $(PDUMPPROBTRIM)/examples -first $(PDUMPPROBTRIM)/notest -second $(PDUMPPROBTRIM)/test -ratio 0.8
+	@$(RUNCLI) pdump -split $(PDUMPPROBTRIM)/notest -first $(PDUMPPROBTRIM)/train -second $(PDUMPPROBTRIM)/validation -ratio 0.8
+	
 alltrainingsets : distributedlibraryfile
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solclass -solver prob
 	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solclass -solver kodkod
