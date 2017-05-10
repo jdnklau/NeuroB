@@ -20,8 +20,8 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 	protected BufferedWriter epochCSV;
 	protected int numColumns;
 	private double bestR2;
-	
-	private static final Logger log = LoggerFactory.getLogger(RegressionModelEvaluation.class); 
+
+	private static final Logger log = LoggerFactory.getLogger(RegressionModelEvaluation.class);
 
 	public RegressionModelEvaluation(NeuroBNet model) {
 		super(model);
@@ -32,14 +32,14 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 	@Override
 	protected void setupCSV(Path csv) throws IOException {
 		epochCSV = Files.newBufferedWriter(csv);
-		
+
 		// setting up csv header
 		List<String> columns = new ArrayList<>();
 		columns.add("Epoch");
 		// training set stats
 		columns.addAll(setup_header("Training"));
 		columns.addAll(setup_header("Test"));
-		
+
 		epochCSV.write(String.join(",", columns));
 		epochCSV.newLine();
 		epochCSV.flush();
@@ -47,7 +47,7 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 
 	private List<String> setup_header(String caption) {
 		List<String> columns = new ArrayList<>();
-		
+
 		for(int c=0; c<numColumns; c++){
 			columns.add(caption+" MSE #"+c);
 			columns.add(caption+" MAE #"+c);
@@ -55,10 +55,10 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 			columns.add(caption+" RSE #"+c);
 			columns.add(caption+" R2 #"+c);
 		}
-		
+
 		return columns;
 	}
-	
+
 	@Override
 	protected void writeEvaluationToCSV(RegressionEvaluation trainEval, RegressionEvaluation testEval)
 			throws IOException {
@@ -67,12 +67,12 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		columns.add(Integer.toString(epochsSeen));
 		columns.addAll(partialCSVEntries(trainEval));
 		columns.addAll(partialCSVEntries(testEval));
-		
+
 		epochCSV.write(String.join(",", columns));
 		epochCSV.newLine();
 		epochCSV.flush();
 	}
-	
+
 	@Override
 	protected void compareWithBestEpoch(RegressionEvaluation testEval) {
 		if(!performsBetterThan(testEval)){
@@ -85,12 +85,13 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 			log.info("\tImproved on epoch {}: Mean correlation coefficient (R2) {}->{}",
 					epochsSeen, bestR2, r2mean);
 			bestR2 = r2mean;
+			bestEvaluation = testEval;
 		}
 	}
-	
+
 	protected List<String> partialCSVEntries(RegressionEvaluation eval){
 		List<Double> entries = new ArrayList<>();
-		
+
 		for(int c=0; c<numColumns; c++){
 			entries.add(eval.meanSquaredError(c));
 			entries.add(eval.meanAbsoluteError(c));
@@ -98,7 +99,7 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 			entries.add(eval.relativeSquaredError(c));
 			entries.add(eval.correlationR2(c));
 		}
-		
+
 		return entries.stream().map(d->d.toString()).collect(Collectors.toList());
 	}
 
@@ -107,7 +108,7 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		RegressionEvaluation eval = new RegressionEvaluation(numColumns);
 		return evaluateModel(testSet, eval);
 	}
-	
+
 	@Override
 	public RegressionEvaluation evaluateModel(Path testSet, String caption) throws IOException, InterruptedException {
 		RegressionEvaluation eval = evaluateModel(testSet);
@@ -131,7 +132,7 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 		} catch (IOException | InterruptedException e) {
 			throw new NeuroBException("Could not evaluate test set", e);
 		}
-		
+
 		// log values for each column
 		for(int c=0; c<numColumns; c++){
 			log.info("Regression performances for column #{}:", c);
@@ -141,7 +142,7 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 			log.info("\tRelative squared error: {}", eval.relativeSquaredError(c));
 			log.info("\tCorrelation coefficient (R2): {}", eval.correlationR2(c));
 		}
-		
+
 		return eval;
 	}
 
@@ -149,7 +150,7 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 	protected boolean performsBetterThan(RegressionEvaluation first, RegressionEvaluation second) {
 		return r2mean(first) > r2mean(second);
 	}
-	
+
 	private double r2mean(RegressionEvaluation eval){
 		double r2sum = 0;
 		for(int i=0; i<numColumns; i++){

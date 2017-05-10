@@ -27,7 +27,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 	@Override
 	protected void setupCSV(Path csv) throws IOException {
 		epochCSV = Files.newBufferedWriter(csv);
-		
+
 		// setting up csv header
 		List<String> columns = new ArrayList<>();
 		columns.add("Epoch");
@@ -41,12 +41,12 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		columns.add("Test Precision");
 		columns.add("Test Recall");
 		columns.add("Test F1 Score");
-		
+
 		epochCSV.write(String.join(",", columns));
 		epochCSV.newLine();
 		epochCSV.flush();
 	}
-	
+
 	@Override
 	protected void writeEvaluationToCSV(Evaluation trainEval, Evaluation testEval) throws IOException {
 		// set up line of csv
@@ -54,7 +54,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		columns.add(Integer.toString(epochsSeen));
 		columns.addAll(partialCSVEntries(trainEval));
 		columns.addAll(partialCSVEntries(testEval));
-		
+
 		epochCSV.write(String.join(",", columns));
 		epochCSV.newLine();
 		epochCSV.flush();
@@ -67,7 +67,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		entries.add(Double.toString(eval.precision()));
 		entries.add(Double.toString(eval.recall()));
 		entries.add(Double.toString(eval.f1()));
-		
+
 		return entries;
 	}
 
@@ -81,6 +81,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 					epochsSeen,
 					bestEvaluation.accuracy(), testEval.accuracy(),
 					bestEvaluation.f1(), testEval.f1());
+			bestEvaluation = testEval;
 		}
 	}
 
@@ -89,7 +90,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		Evaluation eval = new Evaluation(nbn.getClassificationSize());
 		return evaluateModel(testSet, eval);
 	}
-	
+
 	@Override
 	public Evaluation evaluateModel(Path testSet, String caption) throws IOException, InterruptedException {
 		Evaluation testEval = evaluateModel(testSet);
@@ -110,7 +111,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 		} catch (IOException | InterruptedException e) {
 			throw new NeuroBException("Could not evaluate test set", e);
 		}
-		
+
 		// log evaluation results
 		log.info("Accuracy: {}", eval.accuracy());
 		log.info("Precision: {}", eval.precision());
@@ -126,7 +127,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 						matrix.getCount(i, j));
 			}
 		}
-		
+
 		return eval;
 	}
 

@@ -33,7 +33,7 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 			FeatureGenerator featureGen, LabelGenerator labelGen) {
 		this(candidateGenerator,
 				featureGen, labelGen,
-				Paths.get("random_search/")
+				Paths.get("trained_models/hyper_parameter_search/")
 				.resolve(ZonedDateTime.now()
 						.format(DateTimeFormatter.ISO_INSTANT))
 				);
@@ -83,13 +83,13 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 					.getValue().getMultiLayerConfiguration());
 			// make neuroB net instance
 			// TODO: distinguish between NN, CNN, RNN, etc
-        	NeuroBNet nbn = new NeuroBNet(model,
-        			featureGenerator, labelGenerator);
-        	Path modelSavePath =
-        			savePath.resolve(nbn.getDataPathName())
-        			.resolve(Integer.toString(i));
+			NeuroBNet nbn = new NeuroBNet(model,
+					featureGenerator, labelGenerator);
+			Path modelSavePath =
+					savePath.resolve(nbn.getDataPathName())
+					.resolve(Integer.toString(i));
 
-        	// set up NeuroB
+			// set up NeuroB
 			NeuroB nb = new NeuroB(nbn, modelSavePath);
 
 			// train model and get evaluation
