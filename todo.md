@@ -2,6 +2,14 @@
 - documentation
     - [ ] update java doc
     - [ ] add examples
+- models
+    - [ ] implement RNN support
+        - [ ] set training set structure
+            - [ ] set/implement appropriate RecordReader
+        - [ ] create RNNTrainingDataGenerator(s)
+        - [ ] create RNN features
+            - [ ] raw predicate features
+            - [ ] predicate AST features
 - model handling
     - [ ] have list of preprocessing utilities managed by NeuroBNet
 - model training
@@ -9,21 +17,8 @@
         - [ ] add more preprocessing tools
             - [ ] PCA: whitening
             - [ ] feature reduction
-    - [x] enhance training evaluation
-        - [x] distinction between classification and regression
-        - [x] log confusion matrix
-    - [x] early stopping
-    - [x] random search
 - training set generation
     - [ ] shuffle data files
-    - [ ] ~~generation pipeline; flushing samples directly to files instead of 
-        holding everything in memory first~~
-        - disallows for easy checking if machine was already translated to
-          training data
-            - currently checking if file was created after source was lastly
-              modified
-            - with flushing each sample, there always will be an at least
-              partially created file
     - [ ] data augmentation for larger training sets
     - [ ] dimensionality reduction methods
         - [ ] via RBM
