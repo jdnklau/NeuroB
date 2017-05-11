@@ -51,7 +51,6 @@ public class NeuroBModelSpace {
 	 * <p>
 	 *     For each hidden layer, a random integer size from {@code [hiddenSizeMin, hiddenSizeMax]}
 	 *     is chosen.
-	 *     The amount of hidden layers is fix and does not vary from candidate to candidate.
 	 *     The learning rate will also be chosen from the continuous interval
 	 *     {@code [learningRateMin, learningRateMax]}
 	 * </p>
@@ -72,7 +71,8 @@ public class NeuroBModelSpace {
 	 *     the identity function, the loss function is Mean Squared Error.
 	 *     Otherwise, softmax and negative loglikelihood are used respectively.
 	 * </p>
-	 * @param hiddenLayers Number of hidden layers to use; this remains fixed for each candidate
+	 * @param hiddenLayersMin Minimum number of hidden layers to use
+	 * @param hiddenLayersMax Maximum number of hidden layers to use
 	 * @param hiddenSizeMin Lower bound of size for each hidden layer
 	 * @param hiddenSizeMax Upper bound of size for each hidden layer
 	 * @param learningRateMin Lower bound of the learning rate to use
@@ -83,7 +83,7 @@ public class NeuroBModelSpace {
 	 * @return MultiLayerSpace spanning all possible models
 	 */
 	public static MultiLayerSpace feedForwardModel(
-			int hiddenLayers, int hiddenSizeMin, int hiddenSizeMax,
+			int hiddenLayersMin, int hiddenLayersMax, int hiddenSizeMin, int hiddenSizeMax,
 			double learningRateMin, double learningRateMax,
 			FeatureGenerator features, LabelGenerator labelling, int seed){
 		// set up learning rate
@@ -97,29 +97,18 @@ public class NeuroBModelSpace {
 				.updater(Updater.NESTEROVS).momentum(0.9)
 				.regularization(true).l2(1e-4);
 
-		// set first layer
+		// set up layers
+		ParameterSpace<Integer> hiddenLayers
+				= new IntegerParameterSpace(hiddenLayersMin, hiddenLayersMax);
 		ParameterSpace<Integer> layerSize = new IntegerParameterSpace(hiddenSizeMin, hiddenSizeMax);
 		spaceBuilder.addLayer(new DenseLayerSpace.Builder()
 				.nIn(features.getFeatureDimension())
 				.activation("tanh")
 				.weightInit(WeightInit.XAVIER)
 				.nOut(layerSize)
-				.build(), new FixedValue<>(hiddenLayers), true);
+				.build(), hiddenLayers, true);
 		// FIXME: parameter true in line above corresponds to bug mentioned in the java doc comment
 
-		// remaining layers but output
-//		ParameterSpace<Integer> layerSizeIn;
-//		for(int i=1; i<hiddenLayers; i++){
-//			layerSizeIn = layerSize;
-//			// set up new random size for layer
-//			layerSize = new IntegerParameterSpace(hiddenSizeMin, hiddenSizeMax);
-//			spaceBuilder.addLayer(new DenseLayerSpace.Builder()
-//					.nIn(layerSizeIn)
-//					.activation("tanh")
-//					.weightInit(WeightInit.XAVIER)
-//					.nOut(layerSize)
-//					.build());
-//		}
 		// output layer configuration depending on regression or classification
 		String activationFunction;
 		LossFunction lossFunction;
@@ -163,6 +152,7 @@ public class NeuroBModelSpace {
 	 * <p>
 	 *     After the convolution layers, the model(s) will consist of fully connected layers,
 	 *     each of a size from {@code [fullyConnectedSizeMin, fullyConnectedSizeMax]}.
+	 *     There must be at least 1 fully connected layer.
 	 * </p>
 	 * <p>
 	 *     The amount of layers is fix  for both, convolution and fully connected,
@@ -180,12 +170,14 @@ public class NeuroBModelSpace {
 	 *     the identity function, the loss function is Mean Squared Error.
 	 *     Otherwise, softmax and negative loglikelihood are used respectively.
 	 * </p>
-	 * @param convolutionLayers Number of convolution layers
+	 * @param convolutionLayersMin Minimum number of convolution layers
+	 * @param convolutionLayersMax Maximum number of convolution layers
 	 * @param filtersMin Minimum amount of filters per convolution layer
 	 * @param filtersMax Maximum amount of filters per convolution layer
 	 * @param filterSizeMin Minimum filter size
 	 * @param filterSizeMax Maximum filter size
-	 * @param fullyConnectedLayers Amount of fully connected layers after convolution; at least 1
+	 * @param fullyConnectedLayersMin Minimum amount of fully connected layers after convolution
+	 * @param fullyConnectedLayersMax Maximum amount of fully connected layers after convolution
 	 * @param fullyConnectedSizeMin Lower bound for size of each fully connected layer
 	 * @param fullyConnectedSizeMax Upper bound for size of each fully connected layer
 	 * @param learningRateMin Lower bound of the learning rate to use
@@ -196,9 +188,10 @@ public class NeuroBModelSpace {
 	 * @return MultiLayerSpace spanning all possible models
 	 */
 	public static MultiLayerSpace convolutionalModel(
-			int convolutionLayers, int filtersMin, int filtersMax,
+			int convolutionLayersMin, int convolutionLayersMax, int filtersMin, int filtersMax,
 			int filterSizeMin, int filterSizeMax,
-			int fullyConnectedLayers, int fullyConnectedSizeMin, int fullyConnectedSizeMax,
+			int fullyConnectedLayersMin, int fullyConnectedLayersMax,
+			int fullyConnectedSizeMin, int fullyConnectedSizeMax,
 			double learningRateMin, double learningRateMax,
 			ConvolutionFeatures features, LabelGenerator labelling, int seed){
 		// set up learning rate
@@ -214,12 +207,14 @@ public class NeuroBModelSpace {
 
 		// set up parameter space for filter size
 		List<int[]> filterSizes = new ArrayList<>();
-		for(int k=filtersMin; k<=filterSizeMax; k++){
+		for(int k=filterSizeMin; k<=filterSizeMax; k++){
 			filterSizes.add(new int[]{k,k});
 		}
 		ParameterSpace<int[]> filterSize = new DiscreteParameterSpace<>(filterSizes);
 
-		// set first conv layer
+		// set conv layers
+		ParameterSpace<Integer> convolutionLayers
+				= new IntegerParameterSpace(convolutionLayersMin, convolutionLayersMax);
 		ParameterSpace<Integer> layerSize = new IntegerParameterSpace(filtersMin, filtersMax);
 		spaceBuilder.addLayer(new ConvolutionLayerSpace.Builder()
 				.kernelSize(filterSize)
@@ -227,34 +222,19 @@ public class NeuroBModelSpace {
 				.activation("relu") // FIXME: unsure whether "relu" or "RELU"; Arbiter does not use theDL4J enum for now
 				.weightInit(WeightInit.XAVIER)
 				.nOut(layerSize)
-				.build(), new FixedValue<>(convolutionLayers), true);
+				.build(), convolutionLayers, true);
 		// FIXME: parameter true in line above corresponds to bug mentioned in the java doc comment
 
-//		// remaining conv layers
-//		ParameterSpace<Integer> layerSizeIn;
-//		for(int i=1; i<convolutionLayers; i++){
-//			layerSizeIn = layerSize;
-//			// NOTE: decided not to vary filter size inside model
-////			filterSize = new DiscreteParameterSpace<>(filterSizes); // for each layer different
-//			// set up new random size for layer
-//			layerSize = new IntegerParameterSpace(filtersMin, filtersMax);
-//			spaceBuilder.addLayer(new ConvolutionLayerSpace.Builder()
-//					.kernelSize(filterSize)
-//					.nIn(layerSizeIn)
-//					.activation("relu") // FIXME: unsure whether "relu" or "RELU"; Arbiter does not use theDL4J enum for now
-//					.weightInit(WeightInit.XAVIER)
-//					.nOut(layerSize)
-//					.build());
-//		}
-//		// fully connected layers
-//		for(int i=0; i<fullyConnectedLayers; i++){
-			layerSize = new IntegerParameterSpace(fullyConnectedSizeMin, fullyConnectedSizeMax);
-			spaceBuilder.addLayer(new DenseLayerSpace.Builder()
-					.nOut(layerSize)
-					.activation("relu")
-					.weightInit(WeightInit.XAVIER)
-					.build(), new FixedValue<>(fullyConnectedLayers), true);
-//		}
+		// fully connected layers
+		ParameterSpace<Integer> fullyConnectedLayers
+				= new IntegerParameterSpace(fullyConnectedLayersMin, fullyConnectedLayersMax);
+		layerSize = new IntegerParameterSpace(fullyConnectedSizeMin, fullyConnectedSizeMax);
+		spaceBuilder.addLayer(new DenseLayerSpace.Builder()
+				.nOut(layerSize)
+				.activation("relu")
+				.weightInit(WeightInit.XAVIER)
+				.build(), fullyConnectedLayers, true);
+
 		// output layer configuration depending on regression or classification
 		String activationFunction;
 		LossFunction lossFunction;
@@ -282,7 +262,7 @@ public class NeuroBModelSpace {
 				.build();
 
 		// build and return
-		return spaceBuilder.pretrain(false).backprop(true).build();
+		return space;
 	}
 
 

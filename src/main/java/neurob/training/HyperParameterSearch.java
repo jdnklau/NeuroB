@@ -82,7 +82,6 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 					candidateGenerator.getCandidate()
 					.getValue().getMultiLayerConfiguration());
 			// make neuroB net instance
-			// TODO: distinguish between NN, CNN, RNN, etc
 			NeuroBNet nbn = new NeuroBNet(model,
 					featureGenerator, labelGenerator);
 			Path modelSavePath =

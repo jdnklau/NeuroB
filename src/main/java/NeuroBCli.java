@@ -146,12 +146,12 @@ public class NeuroBCli {
 					+ "\t\t      so be carefull with how many you query\n"
 					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007\n"
 
-					+ "modelsearch -train <traindata> -test <testdata> [-layers <hidden_layers>] [-models <amount>] [-epochs <amount>] [-net <features> <labels>]\n"
+					+ "modelsearch -train <traindata> -test <testdata> [-layers <hidden_layer_min> <hidden_layer_max>] [-models <amount>] [-epochs <amount>] [-net <features> <labels>]\n"
 					+ "\tPerforms a randoms search for hyper parameters on a model\n"
 					+ "\tThe amount of desired models will be trained and tested on the given data\n"
-					+ "\t\tNote: -layers needs two entries for convolution models\n"
-					+ "\t\t\t- first is number of convolution, second is number of fully connected layers\n"
-					+ "\tDefault values: -layers 4; -models 15; -epochs 15\n"
+					+ "\t\tNote: -layers needs four entries for convolution models\n"
+					+ "\t\t\t- first+second is number of convolution, third+fourth is number of fully connected layers\n"
+					+ "\tDefault values: -layers 3 5; -models 15; -epochs 15\n"
 
 					+ "loadnet -dl4jdata <modeldirectory> [-net <features> <labels>]\n"
 					+ "\tLoad stats of an already trained model into the DL4J UI"
@@ -328,12 +328,14 @@ public class NeuroBCli {
 		else if(cmd.equals("modelsearch")){
 			if(ops.containsKey("train") && ops.containsKey("test")){
 				// default values
-				int layers1 = 4;
-				int layers2 = 0;
+				int[] layers = new int[]{3,5,1,3};
 				if(ops.containsKey("layers")){
-					layers1 = Integer.parseInt(ops.get("layers").get(0));
-					if(ops.get("layers").contains(1))
-						layers2 = Integer.parseInt(ops.get("layers").get(1));
+					layers[0] = Integer.parseInt(ops.get("layers").get(0));
+					layers[1] = Integer.parseInt(ops.get("layers").get(1));
+					if(ops.get("layers").contains(2)) {
+						layers[2] = Integer.parseInt(ops.get("layers").get(2));
+						layers[3] = Integer.parseInt(ops.get("layers").get(3));
+					}
 				}
 				int models = 15;
 				if(ops.containsKey("models")){
@@ -345,7 +347,7 @@ public class NeuroBCli {
 				}
 				Path train = Paths.get(ops.get("train").get(0));
 				Path test = Paths.get(ops.get("test").get(0));
-				modelSearch(train, test, layers1, layers2, models, epochs);
+				modelSearch(train, test, layers, models, epochs);
 			}
 			else {
 				System.out.println("modelsearch: missing -train or -test parameter");
@@ -376,16 +378,16 @@ public class NeuroBCli {
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 
-	private static void modelSearch(Path train, Path test, int layers1, int layers2, int models, int epochs) {
+	private static void modelSearch(Path train, Path test, int[] layers, int models, int epochs) {
 		FeatureGenerator fg = getFeatureGenerator();
 		LabelGenerator lg = getLabelGenerator();
 		// set up model space
 		MultiLayerSpace modelSpace;
 		if(lg instanceof ConvolutionFeatures){
-			modelSpace = NeuroBModelSpace.convolutionalModel(layers1,16,128,3,7,
-					layers2,128,1024,0.0001,0.1, (ConvolutionFeatures) fg, lg, 123);
+			modelSpace = NeuroBModelSpace.convolutionalModel(layers[0],layers[1],16,128,3,7,
+					layers[2], layers[3],128,1024,0.0001,0.1, (ConvolutionFeatures) fg, lg, 123);
 		} else {
-			modelSpace = NeuroBModelSpace.feedForwardModel(layers1, 32,1024, 0.0001, 0.1, fg, lg, 123);
+			modelSpace = NeuroBModelSpace.feedForwardModel(layers[0], layers[1], 32,1024, 0.0001, 0.1, fg, lg, 123);
 		}
 
 		RandomSearchGenerator<DL4JConfiguration> candidateGenerator
