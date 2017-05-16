@@ -128,9 +128,9 @@ public class NeuroBCli {
 					+ "pdump -crossvalsplit <source> -target <directory> -ratio <ratio>\n"
 					+ "\tSplit the <source> directory into three distinct subsets:\n"
 					+ "\t\t<target>/train, <target>/validation, <target>/test\n"
-					+ "with train+validation resulting in approx. <ratio> percent of the whole set\n"
-					+ "train and validation are also divided with the given ratio\n"
-					+ "A fourth set, <target>/notest is created, holding all samples from train+validation\n"
+					+ "\twith train+validation resulting in approx. <ratio> percent of the whole set\n"
+					+ "\ttrain and validation are also divided with the given ratio\n"
+					+ "\tA fourth set, <target>/notest is created, holding all samples from train+validation\n"
 
 					+ "pdump -trim <directory> -target <directory> -solver <solver>\n"
 					+ "\tTrims the predicate dump given with respect to the given solver as classification problem\n"
@@ -309,13 +309,13 @@ public class NeuroBCli {
 					double ratio = Double.parseDouble(ops.get("ratio").get(0));
 
 					Path train = target.resolve("train");
-					Path notrain = target.resolve("notrain");
+					Path notest = target.resolve("notest");
 					Path test = target.resolve("test");
 					Path validation = target.resolve("validation");
 
 					// split notrain and train
-					splitPDump(source, notrain, train, ratio);
-					splitPDump(notrain, train, validation, ratio);
+					splitPDump(source, notest, test, ratio);
+					splitPDump(notest, train, validation, ratio);
 				}
 			}
 			else {
