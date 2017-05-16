@@ -125,6 +125,13 @@ public class NeuroBCli {
 					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
 					+ "\twith <ratio> being a number from the interval [0,1]\n"
 
+					+ "pdump -crossvalsplit <source> -target <directory> -ratio <ratio>\n"
+					+ "\tSplit the <source> directory into three distinct subsets:\n"
+					+ "\t\t<target>/train, <target>/validation, <target>/test\n"
+					+ "with train+validation resulting in approx. <ratio> percent of the whole set\n"
+					+ "train and validation are also divided with the given ratio\n"
+					+ "A fourth set, <target>/notest is created, holding all samples from train+validation\n"
+
 					+ "pdump -trim <directory> -target <directory> -solver <solver>\n"
 					+ "\tTrims the predicate dump given with respect to the given solver as classification problem\n"
 					+ "\tThe trimmed set will be located in the target directory; the source set remains unchanged\n"
@@ -293,6 +300,22 @@ public class NeuroBCli {
 				}
 				else {
 					System.out.println("pdump -split: Missing at least one of those parameters: -first, -second, -ratio");
+				}
+			}
+			else if(ops.containsKey("crossvalsplit")){
+				if(ops.containsKey("target") && ops.containsKey("ratio")){
+					Path source = Paths.get(ops.get("crossvalsplit").get(0));
+					Path target = Paths.get(ops.get("target").get(0));
+					double ratio = Double.parseDouble(ops.get("ratio").get(0));
+
+					Path train = target.resolve("train");
+					Path notrain = target.resolve("notrain");
+					Path test = target.resolve("test");
+					Path validation = target.resolve("validation");
+
+					// split notrain and train
+					splitPDump(source, notrain, train, ratio);
+					splitPDump(notrain, train, validation, ratio);
 				}
 			}
 			else {
