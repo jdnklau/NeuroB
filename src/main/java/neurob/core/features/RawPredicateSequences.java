@@ -8,11 +8,15 @@ import neurob.training.generators.interfaces.LabelGenerator;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.SequenceRecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
+import org.datavec.api.split.FileSplit;
+import org.datavec.api.split.NumberedFileInputSplit;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 /**
  * @author Jannik Dunkelau
@@ -28,8 +32,7 @@ public class RawPredicateSequences implements RNNFeatures {
 	@Override
 	public double[] generateFeatureArray(String source) throws NeuroBException {
 		// each character is a feature
-		double[] features = source.codePoints().asDoubleStream().toArray();
-		return features;
+		return source.codePoints().asDoubleStream().toArray();
 	}
 
 	@Override
@@ -45,12 +48,6 @@ public class RawPredicateSequences implements RNNFeatures {
 	@Override
 	public Path getSourceFile() {
 		return sourceFile;
-	}
-
-	@Override
-	public RecordReader getRecordReader(Path trainingSet, int batchSize) throws IOException, InterruptedException {
-		SequenceRecordReader recordReader = new CSVSequenceRecordReader(1, ",");
-		return recordReader;
 	}
 
 	@Override
