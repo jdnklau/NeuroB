@@ -9,6 +9,8 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import neurob.core.features.RawPredicateSequences;
+import neurob.core.features.interfaces.RNNFeatures;
+import neurob.core.nets.NeuroBRecurrentNet;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.training.HyperParameterSearch;
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -550,6 +552,9 @@ public class NeuroBCli {
 		// FeatureGenerator features;
 		if(features instanceof ConvolutionFeatures){
 			model = new NeuroBConvNet(hiddenLayers, learningrate, (ConvolutionFeatures) features, labelling, seed);
+		}
+		else if(features instanceof RNNFeatures){
+			model = new NeuroBRecurrentNet(hiddenLayers, learningrate, (RNNFeatures) features, labelling, seed);
 		}
 		else {//if(feats.equals("predf")){
 			model = new NeuroBNet(hiddenLayers, learningrate, features, labelling, seed);

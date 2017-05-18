@@ -4,11 +4,11 @@
     - [ ] add examples
 - models
     - [ ] implement RNN support
-        - [ ] set training set structure
+        - [x] set training set structure
             - [ ] set/implement appropriate RecordReader
-        - [ ] create RNNTrainingDataGenerator(s)
+        - [x] create RNNTrainingDataGenerator(s)
         - [ ] create RNN features
-            - [ ] raw predicate features
+            - [x] raw predicate features
             - [ ] predicate AST features
 - model handling
     - [ ] have list of preprocessing utilities managed by NeuroBNet
