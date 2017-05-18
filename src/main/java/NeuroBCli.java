@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import neurob.core.features.RawPredicateSequences;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.training.HyperParameterSearch;
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -180,6 +181,7 @@ public class NeuroBCli {
 					+ "<features> can be one of the following:\n"
 					+ "\tpredf: (default) Basic, handcrafted features for predicates\n"
 					+ "\tpredi: Predicate image features, i.e. image versions of the predicates\n"
+					+ "\tpreds: Predicate sequence features, i.e. the raw string sequence of the predicate\n"
 					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)\n"
 
 					+ "<labels> describe the labelling mechanism in use:\n"
@@ -575,6 +577,9 @@ public class NeuroBCli {
 				s = Integer.parseInt(ops.get("size").get(0));
 			}
 			return new PredicateImages(s);
+		}
+		else if (feats.equals("preds")){
+			return new RawPredicateSequences();
 		}
 		else {
 			return new TheoryFeatures();
