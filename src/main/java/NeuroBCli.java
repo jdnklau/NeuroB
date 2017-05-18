@@ -160,8 +160,9 @@ public class NeuroBCli {
 					+ "\t\t\t- first+second is number of convolution, third+fourth is number of fully connected layers\n"
 					+ "\tDefault values: -layers 3 5; -models 15; -epochs 15\n"
 
-					+ "loadnet -dl4jdata <modeldirectory> [-net <features> <labels>]\n"
-					+ "\tLoad stats of an already trained model into the DL4J UI"
+					+ "loadnet -dl4jdata <modeldirectory> [-seconds <seconds>] [-net <features> <labels>]\n"
+					+ "\tLoad stats of an already trained model into the DL4J UI\n"
+					+ "\tThe data will be available for the specified amount of seconds (default: 60)\n"
 
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
@@ -342,7 +343,11 @@ public class NeuroBCli {
 		else if(cmd.equals("loadnet")){
 			if(ops.containsKey("dl4jdata")){
 				Path dl4jData = Paths.get(ops.get("dl4jdata").get(0));
-				loadDL4JData(dl4jData);
+				int sleepyTime = 60; // seconds
+				if(ops.containsKey("seconds")){
+					sleepyTime = Integer.parseInt(ops.get("seconds").get(0));
+				}
+				loadDL4JData(dl4jData, sleepyTime);
 			}
 			else {
 				System.out.println("loadnet: missing -dl4jdata parameter");
@@ -460,11 +465,10 @@ public class NeuroBCli {
 		}
 	}
 
-	private static void loadDL4JData(Path dl4jData) {
+	private static void loadDL4JData(Path dl4jData, int sleepyTime) {
 		StatsStorage stats = new FileStatsStorage(dl4jData.toFile());
 		UIServer ui = UIServer.getInstance();
 		ui.attach(stats);
-		final int sleepyTime = 60; // in seconds
 		System.out.println("DL4J UI is available at http://localhost:9000/ for "+sleepyTime+" seconds");
 		System.out.println("To stop the server, kill this process (CTRL+C)");
 		try {
