@@ -10,14 +10,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -146,39 +145,98 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 		Path target = (copyToFirst) ? first : second;
 		AtomicInteger index = (copyToFirst) ? firstCounter : secondCounter;
 
-		// get index of current sample: path/to/file/index.csv
-		int cIndex = Integer.parseInt(labelFile.getFileName().toString().split(".")[0]);
+		// copy files
+		copyTrainingDataToTarget(source, labelFile, target, index.getAndIncrement());
+	}
 
-		// set new file name and increment the respective counter
-		String newFileName = index.getAndIncrement()+"."+preferredFileExtension;
+	@Override
+	public void trimTrainingData(Path source, Path target) throws NeuroBException {
+		TrainingAnalysisData analysisData = analyseTrainingSet(source);
 
+		AtomicInteger trimCounter = new AtomicInteger(0);
+		// walk files
+		try(Stream<Path> labels = Files.walk(source.resolve("labels"))){
+			labels
+					.filter(Files::isRegularFile)
+					.filter(p->p.toString().endsWith("."+preferredFileExtension))
+					.filter(p->!analysisData.canSampleBeTrimmed(labellingFromSample(p.toString())))
+					.forEach(
+							p->copyTrainingDataToTarget(source, p, target,
+									trimCounter.getAndIncrement()));
+
+		} catch (IOException e) {
+			log.error("Failed to load label directory", e);
+			throw new NeuroBException("Could not trim training data: " +
+					"failed to load label directory", e);
+		}
+	}
+
+	private void copyTrainingDataToTarget(Path source, Path labelFile, Path target, int newIndex) {
+		// set new file name in target directory
+		String newFileName = newIndex+"."+preferredFileExtension;
 		try {
 			// copy label file
 			Files.copy(labelFile, target.resolve("labels").resolve(newFileName),
 					StandardCopyOption.REPLACE_EXISTING);
 			// copy feature file
-			Path featureFile = source.resolve("features").resolve(cIndex+"."+preferredFileExtension);
+			Path featureFile = getFeaturesForLabelFile(source, labelFile);
 			Files.copy(featureFile, target.resolve("features").resolve(newFileName),
 					StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
-			log.error("Could not split files with index {}", cIndex, e);
+			log.error("Could not split file", e);
 		}
 	}
 
+	/**
+	 * Returns the correctly indexed feature file that corresponds to the given label file
+	 * @param source parent directory of both, features/ and labels/ directories
+	 * @param labelFile Path to the label file
+	 * @return Path to the feature file
+	 */
+	private Path getFeaturesForLabelFile(Path source, Path labelFile){
+		// get index of current sample: path/to/file/index.csv
+		int index = Integer.parseInt(labelFile.getFileName().toString().split(".")[0]);
+		return source.resolve("features").resolve(index+"."+preferredFileExtension);
+	}
+
 	@Override
-	public void trimTrainingData(Path source, Path target) throws NeuroBException {
-		// TODO
+	public TrainingAnalysisData analyseTrainingSet(Path source) throws NeuroBException {
+		return super.analyseTrainingSet(source.resolve("labels"));
 	}
 
 	@Override
 	protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
-		return null;
-		// TODO
+		// get labels
+		double[] labels = labellingFromSample(file.toString());
+
+		// get features
+		double[] features;
+		Path sourceDir = file.getParent().getParent();
+		try(Stream<String> stream = Files.lines(getFeaturesForLabelFile(sourceDir, file))){
+			features = stream.skip(2).mapToDouble(Double::parseDouble).toArray();
+		} catch (IOException e) {
+			log.warn("Could not read features for {}; skipping", file, e);
+			return analysisData;
+		}
+
+		// analyse
+		analysisData.analyseSample(features, labels);
+		return  analysisData;
 	}
 
 	@Override
 	public double[] labellingFromSample(String sample) {
-		// TODO
-		return new double[0];
+		Path labelFile = Paths.get(sample);
+
+		// first two lines are meta data
+		// last line is labelling
+		try(Stream<String> lines = Files.lines(Paths.get(sample))){
+			String labelStr = lines.skip(2L).findFirst().get();
+			return Arrays.stream(labelStr.split(",")).mapToDouble(Double::valueOf).toArray();
+		} catch (IOException e) {
+			log.error("Could not open {} to get label", sample, e);
+			log.warn("\tDefaulting to empty array");
+			return new double[0];
+		}
 	}
 }
