@@ -464,10 +464,11 @@ public class NeuroBCli {
 		StatsStorage stats = new FileStatsStorage(dl4jData.toFile());
 		UIServer ui = UIServer.getInstance();
 		ui.attach(stats);
-		System.out.println("DL4J UI is available at http://localhost:9000/ for 10 seconds");
+		final int sleepyTime = 60; // in seconds
+		System.out.println("DL4J UI is available at http://localhost:9000/ for "+sleepyTime+" seconds");
 		System.out.println("To stop the server, kill this process (CTRL+C)");
 		try {
-			Thread.sleep(10000L);
+			Thread.sleep(sleepyTime*1000L);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
