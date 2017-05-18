@@ -99,7 +99,7 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 	@Override
 	public Path generateTrainingDataPath(Path sourceFile, Path targetDir) {
 		// get source file name without file extension
-		return targetDir.resolve(sourceFile.toString()+".image_dir");
+		return targetDir.resolve("sequence_data");
 	}
 
 	@Override
