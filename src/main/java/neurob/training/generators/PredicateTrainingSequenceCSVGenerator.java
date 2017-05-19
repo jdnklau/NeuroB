@@ -45,6 +45,8 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 		Path featureFile;
 		Path labelFile;
 
+		int oldCounter = sequenceCounter;
+
 		for(TrainingData td : trainingData){
 			sourceFile = td.getSource();
 			Path dataPath = generateTrainingDataPath(sourceFile, targetDir);
@@ -54,6 +56,8 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 			if(generateTrainingCSV(td, featureFile, labelFile))
 				sequenceCounter++; // increase the sequence counter by one, as one file was created
 		}
+
+		log.info("\tCreated {} feature and label csv files", sequenceCounter-oldCounter);
 	}
 
 	/**
@@ -74,8 +78,8 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 			Files.createDirectories(featureFile.getParent());
 			BufferedWriter featureCSV = Files.newBufferedWriter(featureFile);
 
-			log.info("Writing data to CSV");
 			// write header
+			log.trace("\tWriting feature data to CSV {}", featureFile);
 			featureCSV.write(headerFeatures);
 			// write sequence
 			String sequence =
@@ -85,6 +89,8 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 			featureCSV.close();
 
 			// write label CSV
+			log.trace("\tWriting label data to CSV {}", labelFile);
+			Files.createDirectories(labelFile.getParent());
 			BufferedWriter labelCSV = Files.newBufferedWriter(labelFile);
 			// write header and label
 			labelCSV.write(headerLabels);
@@ -125,7 +131,7 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 
 		// walk files
 		try(Stream<Path> labels = Files.walk(source.resolve("labels"))){
-			labels.forEach(
+			labels.filter(l->l.toString().endsWith(preferredFileExtension)).forEach(
 					l->splitTrainingSample(l,firstCounter,secondCounter,source,first,second,ratio,rng));
 		} catch (IOException e) {
 			log.error("Failed to load label directory", e);
@@ -175,6 +181,9 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 		// set new file name in target directory
 		String newFileName = newIndex+"."+preferredFileExtension;
 		try {
+			// make sure target directories exist
+			Files.createDirectories(target.resolve("features"));
+			Files.createDirectories(target.resolve("labels"));
 			// copy label file
 			Files.copy(labelFile, target.resolve("labels").resolve(newFileName),
 					StandardCopyOption.REPLACE_EXISTING);
@@ -195,7 +204,7 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 	 */
 	private Path getFeaturesForLabelFile(Path source, Path labelFile){
 		// get index of current sample: path/to/file/index.csv
-		int index = Integer.parseInt(labelFile.getFileName().toString().split(".")[0]);
+		int index = Integer.parseInt(labelFile.getFileName().toString().split("\\.")[0]);
 		return source.resolve("features").resolve(index+"."+preferredFileExtension);
 	}
 
