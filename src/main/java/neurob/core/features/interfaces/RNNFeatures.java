@@ -28,7 +28,7 @@ public interface RNNFeatures extends FeatureGenerator {
 	 * @throws InterruptedException
 	 */
 	default SequenceRecordReader getSequenceRecordReader(Path dataSet, int batchSize) throws IOException, InterruptedException{
-		SequenceRecordReader recordReader = new CSVSequenceRecordReader(1, ",");
+		SequenceRecordReader recordReader = new CSVSequenceRecordReader(2, ",");
 
 		// set up file split
 		String format = dataSet.toString()+"/%d.csv";
@@ -39,7 +39,9 @@ public interface RNNFeatures extends FeatureGenerator {
 		}
 
 		NumberedFileInputSplit split =
-				new NumberedFileInputSplit(dataSet.toString()+"%d.csv", 0, maxIdx);
+				new NumberedFileInputSplit(format, 0, maxIdx);
+
+		recordReader.initialize(split);
 		return recordReader;
 	}
 

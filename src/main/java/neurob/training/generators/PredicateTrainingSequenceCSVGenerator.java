@@ -94,7 +94,7 @@ public class PredicateTrainingSequenceCSVGenerator extends PredicateTrainingData
 			BufferedWriter labelCSV = Files.newBufferedWriter(labelFile);
 			// write header and label
 			labelCSV.write(headerLabels);
-			labelCSV.write(td.getLabelString());
+			labelCSV.write(td.getLabelString(lg.getProblemType()));
 			labelCSV.close();
 		} catch (IOException e) {
 			log.error("Could not create training CSVs", e);
