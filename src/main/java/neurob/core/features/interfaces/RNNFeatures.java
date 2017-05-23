@@ -35,7 +35,8 @@ public interface RNNFeatures extends FeatureGenerator {
 		int maxIdx = 0;
 		try(Stream<Path> files = Files.walk(dataSet)){
 			// count how many csv files are present
-			maxIdx = (int) files.filter(s->s.endsWith(".csv")).count();
+			int count = (int) files.filter(s->s.toString().endsWith(".csv")).count();
+			maxIdx = count-1; // 0 until count-1 are the indices
 		}
 
 		NumberedFileInputSplit split =
