@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.deeplearning4j.eval.RegressionEvaluation;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,8 +106,8 @@ public class RegressionModelEvaluation extends ModelEvaluation<RegressionEvaluat
 
 	@Override
 	public RegressionEvaluation evaluateModel(Path testSet) throws IOException, InterruptedException {
-		RegressionEvaluation eval = new RegressionEvaluation(numColumns);
-		return evaluateModel(testSet, eval);
+		DataSetIterator iterator = nbn.getDataSetIterator(testSet, 100);
+		return nbn.evaluateRegression(iterator);
 	}
 
 	@Override

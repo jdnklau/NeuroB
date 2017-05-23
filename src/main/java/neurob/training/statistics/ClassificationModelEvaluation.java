@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.deeplearning4j.eval.ConfusionMatrix;
 import org.deeplearning4j.eval.Evaluation;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,8 +88,8 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 
 	@Override
 	public Evaluation evaluateModel(Path testSet) throws IOException, InterruptedException {
-		Evaluation eval = new Evaluation(nbn.getClassificationSize());
-		return evaluateModel(testSet, eval);
+		DataSetIterator iterator = nbn.getDataSetIterator(testSet, 100); // batch size: 100
+		return nbn.evaluate(iterator);
 	}
 
 	@Override

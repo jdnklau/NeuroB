@@ -9,8 +9,10 @@ import java.util.Collection;
 import java.util.Random;
 
 import org.datavec.api.records.reader.RecordReader;
-import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
-import org.datavec.api.split.FileSplit;
+import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.eval.ROC;
+import org.deeplearning4j.eval.ROCMultiClass;
+import org.deeplearning4j.eval.RegressionEvaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
@@ -43,12 +45,12 @@ public class NeuroBNet {
 	protected LabelGenerator labelgen; // Label generator in use of training set generation
 	protected int seed;
 	// Preprocessing
-	protected DataNormalization normalizer; // Normalizer used 
+	protected DataNormalization normalizer; // Normalizer used
 	protected boolean useNormalizer;
-	
+
 	/**
-	 * Creates a NeuroBNet without any model attached to it. 
-	 * This is useful for e.g. the training set generation, when no model is needed 
+	 * Creates a NeuroBNet without any model attached to it.
+	 * This is useful for e.g. the training set generation, when no model is needed
 	 * but the feature generator and label generator alone.
 	 * @param features
 	 * @param labelling
@@ -58,7 +60,7 @@ public class NeuroBNet {
 		this.labelgen = labelling;
 		useNormalizer = false;
 	}
-	
+
 	/**
 	 * Set up your deeplearning4j {@link MultiLayerNetwork} and use it as NeuroB class
 	 * @param model The model to use
@@ -71,7 +73,7 @@ public class NeuroBNet {
 		useNormalizer = true;
 		setUpNormalizer();
 	}
-	
+
 	/**
 	 * Creates a neural network with given structure and a random seed.
 	 * <p>
@@ -84,9 +86,9 @@ public class NeuroBNet {
 	 */
 	public NeuroBNet(int[] hiddenLayers, double learningRate, FeatureGenerator features, LabelGenerator labelling) {
 		this(hiddenLayers, learningRate, features, labelling, new Random().nextInt());
-		
+
 	}
-	
+
 	/**
 	 * Creates a neural network with given structure.
 	 * <p>
@@ -94,7 +96,7 @@ public class NeuroBNet {
 	 * They are stacked onto each other according to the index in the array.
 	 * <br>
 	 * For example:
-	 * {1000, 500, 200} would create a neural net with three hidden layers. The first one having 1000 neurons, the second one having 500 neurons, 
+	 * {1000, 500, 200} would create a neural net with three hidden layers. The first one having 1000 neurons, the second one having 500 neurons,
 	 * and the third one having 200 neurons.
 	 * <br>
 	 * The network has to have at least one hidden layer.
@@ -106,10 +108,10 @@ public class NeuroBNet {
 	 */
 	public NeuroBNet(int[] hiddenLayers, double learningRate, FeatureGenerator features, LabelGenerator labelling, int seed) {
 		this(features, labelling);
-		
+
 		// save seed
 		this.seed = seed;
-		
+
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
         .seed(seed)
         .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -118,17 +120,17 @@ public class NeuroBNet {
         .updater(Updater.NESTEROVS).momentum(0.9)
         .regularization(true).l2(1e-4)
         .list();
-        
+
 		// Set up layers
-		if(hiddenLayers.length == 0) { 
+		if(hiddenLayers.length == 0) {
 			// no hidden layers
 			throw new IllegalArgumentException("NeuroBNet needs to have hidden layers, but an empty array was given.");
 		}
 		else {
 			// hidden layers!
-			
+
 			int lastOut = features.getFeatureDimension();
-			
+
 			for(int i=0; i<hiddenLayers.length; i++){
 				listBuilder = listBuilder.layer(i, new DenseLayer.Builder()
 						.nIn(lastOut)
@@ -138,13 +140,13 @@ public class NeuroBNet {
 						.build());
 				lastOut = hiddenLayers[i];
 			}
-			
+
 			// Output layer - depending on whether we do regression or not
 			LossFunction lossFunction;
 			Activation activationFunction;
 			if(labelling.getProblemType() == ProblemType.REGRESSION){ // Regression
 				lossFunction = LossFunction.MSE;
-				activationFunction = Activation.IDENTITY; 
+				activationFunction = Activation.IDENTITY;
 			}
 			else { // No regression
 				lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
@@ -159,20 +161,20 @@ public class NeuroBNet {
 					.build())
 			.pretrain(false).backprop(true);
 		}
-        
+
 		useNormalizer = true;
 		setUpNormalizer();
-		
+
 		this.model = new MultiLayerNetwork(listBuilder.build());
 		model.init();
 	}
-	
+
 	/**
 	 * Load an already existing {@link MultiLayerNetwork} from file and use it
 	 * @param modelFile Path to the model file
 	 * @param features
 	 * @param labelling
-	 * @throws NeuroBException 
+	 * @throws NeuroBException
 	 */
 	public NeuroBNet(Path modelDirectory, FeatureGenerator features, LabelGenerator labelling) throws NeuroBException{
 		this(features, labelling);
@@ -182,7 +184,7 @@ public class NeuroBNet {
 			this.normalizer = NormalizerSerializer.getDefault()
 					.restore(modelDirectory.resolve("normalizer").toFile());
 			// read seed
-			BufferedReader seedReader = 
+			BufferedReader seedReader =
 					Files.newBufferedReader(modelDirectory.resolve("seed.txt"));
 			this.seed = Integer.valueOf(seedReader.readLine());
 		} catch (Exception e) {
@@ -190,7 +192,7 @@ public class NeuroBNet {
 				+ modelDirectory, e);
 		}
 	}
-	
+
 	/**
 	 * Saves the NeuroBNet to disc.
 	 * <p>
@@ -208,7 +210,7 @@ public class NeuroBNet {
 	public void saveModel(Path targetDirectory) throws IOException{
 		saveModel(targetDirectory, true);
 	}
-	
+
 	/**
 	 * Saves the NeuroBNet to disc.
 	 * <p>
@@ -228,7 +230,7 @@ public class NeuroBNet {
 		// save normalizer
 		if(useNormalizer){
 			NormalizerSerializer normserializer = NormalizerSerializer.getDefault();
-			normserializer.write(normalizer, 
+			normserializer.write(normalizer,
 					targetDirectory.resolve("normalizer").toFile());
 		}
 		// save model
@@ -240,11 +242,11 @@ public class NeuroBNet {
 		seedWr.newLine();
 		seedWr.close();
 	}
-	
+
 	protected void setUpNormalizer(){
 		normalizer = new NormalizerStandardize();
 	}
-	
+
 	/**
 	 * Model your normaliser on the training set
 	 * @param data
@@ -255,7 +257,7 @@ public class NeuroBNet {
 		if(useNormalizer)
 			normalizer.fit(data);
 	}
-	
+
 	/**
 	 * Fits the normalizer over the data set iterator and sets it as preprocessor.
 	 * Does nothing if no normalizer is used.
@@ -266,9 +268,9 @@ public class NeuroBNet {
 			normalizer.fit(iterator);
 			iterator.setPreProcessor(normalizer);
 		}
-			
+
 	}
-	
+
 	/**
 	 * Normalises the data with the trained normalizer, or does nothing if no normalizer is used.
 	 */
@@ -276,7 +278,7 @@ public class NeuroBNet {
 		if(useNormalizer)
 			normalizer.transform(data);
 	}
-	
+
 	/**
 	 * Sets the normalizer trained for this model as preprocessor to the given data set iterator.
 	 * If no normalizer is used, does nothing.
@@ -286,11 +288,11 @@ public class NeuroBNet {
 		if(useNormalizer)
 			iterator.setPreProcessor(normalizer);
 	}
-	
+
 	public DataNormalization getNormalizer(){
 		return normalizer;
 	}
-	
+
 	/**
 	 * Insert data to train your network on
 	 * @param data
@@ -302,7 +304,7 @@ public class NeuroBNet {
 			normalizer.transform(data);
 		model.fit(data);
 	}
-	
+
 	/**
 	 * Trains for one epoch over the data set.
 	 * @param iterator
@@ -311,7 +313,7 @@ public class NeuroBNet {
 	public void fit(DataSetIterator iterator){
 		model.fit(iterator);
 	}
-	
+
 	/**
 	 * Input predicate to the model and get prediction.
 	 * @param predicate
@@ -321,11 +323,11 @@ public class NeuroBNet {
 	public INDArray output(String predicate) throws NeuroBException{
 		return output(features.generateFeatureNDArray(predicate));
 	}
-	
+
 	public INDArray output(INDArray dataArray) {
 		return model.output(dataArray, false);
 	}
-	
+
 	/**
 	 * Returns a {@link TrainingSetGenerator} instance, that can be used to generate a training set for this network.
 	 * @return
@@ -333,38 +335,38 @@ public class NeuroBNet {
 	public TrainingSetGenerator getTrainingSetGenerator(){
 		return new TrainingSetGenerator(features.getTrainingDataGenerator(labelgen));
 	}
-	
+
 	public int getInputSize(){
 		return features.getFeatureDimension();
 	}
-	
+
 	public int getOutputSize(){
 		return labelgen.getLabelDimension();
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @return Number of classes the net differentiates
 	 */
 	public int getClassificationSize(){
 		return labelgen.getClassCount();
 	}
-	
+
 	/**
 	 * Returns an iterator for the given data set to use for training a model.
 	 * @param dataSet The data set to use.
 	 * @param batchSize Size of samples read at once per batch
 	 * @return An iterator to go over thr data set
-	 * @throws InterruptedException 
-	 * @throws IOException 
+	 * @throws InterruptedException
+	 * @throws IOException
 	 */
 	public DataSetIterator getDataSetIterator(Path dataSet, int batchSize) throws IOException, InterruptedException{
 		// set up record reader
 		RecordReader recordReader = features.getRecordReader(dataSet, batchSize);
-		
+
 		return labelgen.getDataSetIterator(recordReader, batchSize, features.getFeatureDimension());
 	}
-	
+
 	/**
 	 * Returns a string, representing an identifying path with respect to the feature and label generation used.
 	 * <p>
@@ -378,7 +380,7 @@ public class NeuroBNet {
 				+"/" +features.getDataPathIdentifier()
 				+"/";
 	}
-	
+
 	/**
 	 * Sets and overrides the listeners attached to the dl4j model.
 	 * @param listeners
@@ -386,7 +388,7 @@ public class NeuroBNet {
 	public void setListeners(IterationListener... listeners){
 		model.setListeners(listeners);
 	}
-	
+
 	/**
 	 * Sets and overrides the listeners attached to the dl4j model.
 	 * @param listeners
@@ -394,9 +396,50 @@ public class NeuroBNet {
 	public void setListeners(Collection<IterationListener> listeners){
 		model.setListeners(listeners);
 	}
-	
+
 	public boolean isNormalizerUsed(){return useNormalizer;}
-	
+
 	public ProblemType getProblemType(){ return labelgen.getProblemType();}
+
+	/**
+	 * Returns evaluation for classification problems.
+	 * @param dataSet Iterator over data set to evaluate on
+	 * @return Evaluation object containing relevant data
+	 * @see Evaluation
+	 */
+	public Evaluation evaluate(DataSetIterator dataSet){
+		return model.evaluate(dataSet);
+	}
+
+	/**
+	 * Returns evaluation for regression problems.
+	 * @param dataSet Iterator over data set to evaluate on
+	 * @return RegressionEvaluation object containing relevant data
+	 * @see RegressionEvaluation
+	 */
+	public RegressionEvaluation evaluateRegression(DataSetIterator dataSet){
+		return model.evaluateRegression(dataSet);
+	}
+
+	/**
+	 * Returns ROC for binary classification problems.
+	 * @param dataSet Iterator over data set to evaluate on
+	 * @param thresholdSteps
+	 * @return ROC object containing evaluated data
+	 * @see ROC
+	 */
+	public ROC evaluateROC(DataSetIterator dataSet, int thresholdSteps){
+		return model.evaluateROC(dataSet, thresholdSteps);
+	}
+
+	/**
+	 * Returns ROC for multi-classification problems.
+	 * @param dataSet Iterator over data set to evaluate on
+	 * @param thresholdSteps
+	 * @return ROCMultiClass object containing evaluated data
+	 */
+	public ROCMultiClass evaluateRegression(DataSetIterator dataSet, int thresholdSteps){
+		return model.evaluateROCMultiClass(dataSet, thresholdSteps);
+	}
 
 }
