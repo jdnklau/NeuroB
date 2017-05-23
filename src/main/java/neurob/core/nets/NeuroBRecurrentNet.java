@@ -128,6 +128,7 @@ public class NeuroBRecurrentNet extends NeuroBNet {
 		SequenceRecordReader labelReader = (SequenceRecordReader) features.getRecordReader(dataSet.resolve("labels"), batchSize);
 
 		return new SequenceRecordReaderDataSetIterator(featureReader, labelReader, batchSize,
-				labelgen.getClassCount(), labelgen.getProblemType() == ProblemType.REGRESSION);
+				labelgen.getClassCount(), labelgen.getProblemType() == ProblemType.REGRESSION,
+				SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
 	}
 }
