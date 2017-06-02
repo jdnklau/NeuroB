@@ -233,17 +233,77 @@ public class LargeBASTFeaturesTest {
 		assertEquals("boolean literals count does not match", expected, actual);
 	}
 
-//	@Test
-//	public void finiteSetsCountTest() throws NeuroBException {
-//		String pred = "finite({})";
-//		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
-//
-//		int expected = 1;
-//		int actual = data.getFiniteSetRequirementsCount();
-//		assertEquals("boolean literals count does not match", expected, actual);
-//	}
+	@Test
+	public void booleanConversionsCountTest() throws NeuroBException {
+		String pred = "x:BOOL & bool(2>3) = x & bool(2>3) /= x";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
 
+		int expected = 2;
+		int actual = data.getBooleanConversionCount();
+		assertEquals("boolean conversion count does not match", expected, actual);
+	}
 
+	@Test
+	public void finiteSetsCountTest() throws NeuroBException {
+		String pred = "S=1..10 & S:FIN(S) & S:FIN1(S)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getFiniteSetRequirementsCount();
+		assertEquals("finite sets count does not match", expected, actual);
+	}
+
+	@Test
+	public void infiniteSetsCountTest() throws NeuroBException {
+		String pred = "not(S=1..10 & S:FIN(S) & S:FIN1(S))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getInfiniteSetRequirementsCount();
+		assertEquals("infinite sets count does not match", expected, actual);
+	}
+
+	@Test
+	public void arithmeticsCountTest() throws NeuroBException {
+		String pred = "x:NATURAL & y:NATURAL & z:INTEGER & x+2*y-z*y+x/x/y/z = 7";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getArithmeticAdditionCount();
+		assertEquals("addition count does not match", expected, actual);
+
+		expected = 2;
+		actual = data.getArithmeticMultiplicationCount();
+		assertEquals("multiplication count does not match", expected, actual);
+
+		expected = 3;
+		actual = data.getArithmeticDivisionCount();
+		assertEquals("division count does not match", expected, actual);
+
+//		expected = 1;
+//		actual = data.getArithmeticModuloCount();
+//		assertEquals("modulo count does not match", expected, actual);
+	}
+
+	@Test
+	public void moduloCountTest() throws NeuroBException {
+		String pred = "x:NATURAL & y:NATURAL & z:INTEGER & 1 = x mod y & z = y mod x";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getArithmeticModuloCount();
+		assertEquals("modulo count does not match", expected, actual);
+	}
+
+	@Test
+	public void exponentialCountTest() throws NeuroBException {
+		String pred = "x:NATURAL & y:NATURAL & z:INTEGER & x**y = z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getArithmeticExponentialCount();
+		assertEquals("exponential operations count does not match", expected, actual);
+	}
 
 
 }

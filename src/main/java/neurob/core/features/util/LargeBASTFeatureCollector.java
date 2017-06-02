@@ -41,7 +41,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * - set membership
 	 * - subset relations
 	 * - arithmetic comparisons
-	 * - finite and partition
+	 * - finiteness of sets
+	 * - arithmetic operators
 	 */
 
 	// PREDICATE AND NEGATION DEPTH
@@ -215,7 +216,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 
 
-	// BOOLEAN LITERALS
+	// BOOLEAN LITERALS AND CONVERTIONS
 
 	@Override
 	public void caseABooleanTrueExpression(ABooleanTrueExpression node) {
@@ -229,18 +230,65 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		super.caseABooleanFalseExpression(node);
 	}
 
+	@Override
+	public void caseAConvertBoolExpression(AConvertBoolExpression node) {
+		data.incBooleanConversionCount();
+		super.caseAConvertBoolExpression(node);
+	}
 
+	// FINITENESS
 
-	// FINITE AND PARTITION
 
 	@Override
-	public void caseAFinitePredicate(AFinitePredicate node) {
+	public void caseAFinSubsetExpression(AFinSubsetExpression node) {
 		switchByNegation(data::incFiniteSetRequirementsCount, data::incInfiniteSetRequirementsCount);
-		super.caseAFinitePredicate(node);
+		super.caseAFinSubsetExpression(node);
 	}
 
 	@Override
-	public void caseAPartitionPredicate(APartitionPredicate node) {
-		super.caseAPartitionPredicate(node);
+	public void caseAFin1SubsetExpression(AFin1SubsetExpression node) {
+		switchByNegation(data::incFiniteSetRequirementsCount, data::incInfiniteSetRequirementsCount);
+		super.caseAFin1SubsetExpression(node);
+	}
+
+
+
+
+	// ARITHMETIC
+
+	@Override
+	public void caseAAddExpression(AAddExpression node) {
+		data.incArithmeticAdditionCount();
+		super.caseAAddExpression(node);
+	}
+
+	@Override
+	public void caseAMinusOrSetSubtractExpression(AMinusOrSetSubtractExpression node) {
+		data.incArithmeticAdditionCount();
+		super.caseAMinusOrSetSubtractExpression(node);
+	}
+
+	@Override
+	public void caseAMultOrCartExpression(AMultOrCartExpression node) {
+		data.incArithmeticMultiplicationCount();
+		super.caseAMultOrCartExpression(node);
+	}
+
+	@Override
+	public void caseADivExpression(ADivExpression node) {
+		data.incArithmeticDivisionCount();
+		super.caseADivExpression(node);
+	}
+
+	@Override
+	public void caseAModuloExpression(AModuloExpression node) {
+		data.incArithmeticModuloCount();
+		super.caseAModuloExpression(node);
+	}
+
+	@Override
+	public void caseAPowerOfExpression(APowerOfExpression node) {
+		data.incArithmeticExponentialCount();
+		super.caseAPowerOfExpression(node);
 	}
 }

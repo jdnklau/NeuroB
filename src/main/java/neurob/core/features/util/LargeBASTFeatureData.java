@@ -34,9 +34,14 @@ public class LargeBASTFeatureData {
 	private int notSubsetCount = 0; // Number of negated (strict) subsets /<: and /<<:
 	private int sizeComparisonCount = 0; // Number of <, <=, >, >=
 	private int booleanLiteralsCount = 0; // Number of TRUE and FALSE
-	private int finiteSetRequirementsCount = 0; // Number of finite(...) calls
-	private int infiniteSetRequirementsCount = 0; // Number of negated finite(...) calls
-	private int partitionCount = 0; // Number of partitions
+	private int booleanConversionCount = 0; // Number of BOOL(...) calls
+	private int finiteSetRequirementsCount = 0; // Number of FIN(...) calls
+	private int infiniteSetRequirementsCount = 0; // Number of FIN(...) calls in negation
+	private int arithmeticAdditionCount = 0; // Number of + and - operations
+	private int arithmeticMultiplicationCount = 0; // Number of * operations
+	private int arithmeticDivisionCount = 0; // Number of / operations
+	private int arithmeticModuloCount = 0; // Number of modulo operations
+	private int arithmeticExponentialCount = 0; // Number of ** operations
 
 
 	public LargeBASTFeatureData(String predicate) throws NeuroBException {
@@ -107,12 +112,23 @@ public class LargeBASTFeatureData {
 	public int getBooleanLiteralsCount(){ return booleanLiteralsCount; }
 	public void incBooleanLiteralsCount(){ booleanLiteralsCount++; }
 
+	public int getBooleanConversionCount(){ return booleanConversionCount; }
+	public void incBooleanConversionCount(){ booleanConversionCount++; }
+
 	public int getFiniteSetRequirementsCount(){ return finiteSetRequirementsCount;}
 	public void incFiniteSetRequirementsCount(){ finiteSetRequirementsCount++; }
 	public int getInfiniteSetRequirementsCount(){ return infiniteSetRequirementsCount;}
 	public void incInfiniteSetRequirementsCount(){ infiniteSetRequirementsCount++; }
 
-	public int getPartitionCount(){ return partitionCount; }
-	public void incPartitionCount(){ partitionCount++; }
+	public int getArithmeticAdditionCount(){return arithmeticAdditionCount;}
+	public void incArithmeticAdditionCount(){ arithmeticAdditionCount++;}
+	public int getArithmeticMultiplicationCount(){return arithmeticMultiplicationCount;}
+	public void incArithmeticMultiplicationCount(){ arithmeticMultiplicationCount++;}
+	public int getArithmeticDivisionCount(){return arithmeticDivisionCount;}
+	public void incArithmeticDivisionCount(){ arithmeticDivisionCount++;}
+	public int getArithmeticModuloCount(){return arithmeticModuloCount;}
+	public void incArithmeticModuloCount(){ arithmeticModuloCount++;}
+	public int getArithmeticExponentialCount(){ return arithmeticExponentialCount;}
+	public void incArithmeticExponentialCount(){ arithmeticExponentialCount++; }
 
 }
