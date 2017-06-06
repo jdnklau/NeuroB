@@ -42,6 +42,8 @@ public class LargeBASTFeatureData {
 	private int arithmeticDivisionCount = 0; // Number of / operations
 	private int arithmeticModuloCount = 0; // Number of modulo operations
 	private int arithmeticExponentialCount = 0; // Number of ** operations
+	private int arithmeticMinCount = 0; // Number of min calls
+	private int arithmeticMaxCount = 0; // Number of max calls
 
 
 	public LargeBASTFeatureData(String predicate) throws NeuroBException {
@@ -130,5 +132,10 @@ public class LargeBASTFeatureData {
 	public void incArithmeticModuloCount(){ arithmeticModuloCount++;}
 	public int getArithmeticExponentialCount(){ return arithmeticExponentialCount;}
 	public void incArithmeticExponentialCount(){ arithmeticExponentialCount++; }
+
+	public int getArithmeticMinCount(){return arithmeticMinCount; }
+	public void incArithmeticMinCount(){arithmeticMinCount++; }
+	public int getArithmeticMaxCount(){return arithmeticMaxCount; }
+	public void incArithmeticMaxCount(){arithmeticMaxCount++; }
 
 }

@@ -305,5 +305,24 @@ public class LargeBASTFeaturesTest {
 		assertEquals("exponential operations count does not match", expected, actual);
 	}
 
+	@Test
+	public void minimumCountTest() throws NeuroBException {
+		String pred = "S = {1,2} & x = min(S)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getArithmeticMinCount();
+		assertEquals("minimum operations count does not match", expected, actual);
+	}
+
+	@Test
+	public void maximumCountTest() throws NeuroBException {
+		String pred = "x = max(S)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getArithmeticMaxCount();
+		assertEquals("maximum operations count does not match", expected, actual);
+	}
 
 }

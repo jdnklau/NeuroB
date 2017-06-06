@@ -43,6 +43,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * - arithmetic comparisons
 	 * - finiteness of sets
 	 * - arithmetic operators
+	 * - predefined sets (NATURAL, etc)
 	 */
 
 	// PREDICATE AND NEGATION DEPTH
@@ -290,5 +291,41 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public void caseAPowerOfExpression(APowerOfExpression node) {
 		data.incArithmeticExponentialCount();
 		super.caseAPowerOfExpression(node);
+	}
+
+	@Override
+	public void caseAMinExpression(AMinExpression node) {
+		data.incArithmeticMinCount();
+		super.caseAMinExpression(node);
+	}
+
+	@Override
+	public void caseAMaxExpression(AMaxExpression node) {
+		data.incArithmeticMaxCount();
+		super.caseAMaxExpression(node);
+	}
+
+
+
+	// PREDEFINED SETS
+
+	@Override
+	public void caseANaturalSetExpression(ANaturalSetExpression node) {
+		super.caseANaturalSetExpression(node);
+	}
+
+	@Override
+	public void caseANatural1SetExpression(ANatural1SetExpression node) {
+		super.caseANatural1SetExpression(node);
+	}
+
+	@Override
+	public void caseANatSetExpression(ANatSetExpression node) {
+		super.caseANatSetExpression(node);
+	}
+
+	@Override
+	public void caseANat1SetExpression(ANat1SetExpression node) {
+		super.caseANat1SetExpression(node);
 	}
 }

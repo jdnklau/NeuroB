@@ -8,13 +8,14 @@ import java.util.Set;
  * @author Jannik Dunkelau
  *
  */
+@Deprecated
 public class IdentifierRelationHandler {
-	private HashMap<String,AdjacencyNode> adjacencyList; 
-	
+	private HashMap<String,AdjacencyNode> adjacencyList;
+
 	public IdentifierRelationHandler() {
 		adjacencyList = new HashMap<String,AdjacencyNode>();
 	}
-	
+
 	/**
 	 * Add an identifier to the adjacency list if it is not already in
 	 * @param id The identifier to be added
@@ -34,35 +35,35 @@ public class IdentifierRelationHandler {
 		// syntactic sugar, as using add to access an identifier safely would be counterintuitive
 		return addIdentifier(id);
 	}
-	
+
 	public void addBoundariesToIdentifier(String id, boolean hasLowerBound, boolean hasUpperBound){
 		// get ID
 		AdjacencyNode n = accessNode(id);
 		n.addBoundaries(hasLowerBound,hasUpperBound);
 	}
-	
+
 	public void identifierUpperDomainRestrictionByIdentifier(String id, String restrictingId){
 		AdjacencyNode n = accessNode(id);
 		AdjacencyNode m = accessNode(restrictingId);
-		
+
 		n.setUpperBound(m);
 	}
-	
+
 	public void identifierLowerDomainRestrictionByIdentifier(String id, String restrictingId){
 		AdjacencyNode n = accessNode(id);
 		AdjacencyNode m = accessNode(restrictingId);
-		
+
 		n.setLowerBound(m);
 	}
-	
-	
+
+
 	public int getUniqueIdentifierCount(){
 		return adjacencyList.size();
 	}
-	
+
 	public int getInfiniteDomainIdentifiersCount(){
 		int i = 0;
-		
+
 		for(String id : adjacencyList.keySet()){
 			AdjacencyNode n = adjacencyList.get(id);
 			if(n.hasBoundariesSet){
@@ -71,13 +72,13 @@ public class IdentifierRelationHandler {
 				}
 			}
 		}
-		
+
 		return i;
 	}
-	
+
 	public int getFiniteDomainIdentifiersCount(){
 		int i = 0;
-		
+
 		for(String id : adjacencyList.keySet()){
 			AdjacencyNode n = adjacencyList.get(id);
 			if(n.hasBoundariesSet()){
@@ -86,34 +87,34 @@ public class IdentifierRelationHandler {
 				}
 			}
 		}
-		
+
 		return i;
 	}
 
 	public int getUnknownDomainSizeIdentifiersCount(){
 		int i = 0;
-		
+
 		for(String id : adjacencyList.keySet()){
 			AdjacencyNode n = adjacencyList.get(id);
 			if(!n.hasBoundariesSet()){
 				++i;
 			}
 		}
-		
+
 		return i;
 	}
-	
+
 	public String getIdentifiers(){
 		String s = "";
-		
+
 		for(String n : adjacencyList.keySet()){
 			s += n+";";
 		}
-		
+
 		return s;
-		
+
 	}
-	
+
 	/**
 	 * Holds an identifier and a list of identifiers it has a relation to
 	 * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
@@ -127,25 +128,25 @@ public class IdentifierRelationHandler {
 		private boolean hasBoundariesSet;
 		private boolean hasLowerBound;
 		private boolean hasUpperBound;
-		
+
 		public AdjacencyNode(String identifier){
 			id = identifier;
 			relatedIds = new HashSet<AdjacencyNode>();
-			
+
 			lowerBoundaries = new HashSet<AdjacencyNode>();
 			upperBoundaries = new HashSet<AdjacencyNode>();
-			
+
 			hasBoundariesSet=false;
 			hasLowerBound = false;
 			hasUpperBound = false;
 		}
-		
+
 		public void addBoundaries(boolean hasLowerBound, boolean hasUpperBound) {
 			hasBoundariesSet = true;
 			this.hasLowerBound = this.hasLowerBound || hasLowerBound;
 			this.hasUpperBound = this.hasUpperBound || hasUpperBound;
 		}
-		
+
 		public void setLowerBound(AdjacencyNode node){
 			lowerBoundaries.add(node);
 		}
@@ -157,7 +158,7 @@ public class IdentifierRelationHandler {
 		public boolean hasBoundariesSet(){return hasBoundariesSet;}
 		public boolean hasLowerBound(){return hasLowerBound;}
 		public boolean hasUpperBound(){return hasUpperBound;}
-		
+
 		@Override
 		public boolean equals(Object obj){
 			if(obj instanceof AdjacencyNode){
@@ -165,7 +166,7 @@ public class IdentifierRelationHandler {
 			}
 			return false;
 		}
-		
+
 		@Override
 		public int hashCode(){
 			return id.hashCode();
