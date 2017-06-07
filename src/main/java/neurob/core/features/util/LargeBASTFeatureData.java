@@ -44,6 +44,7 @@ public class LargeBASTFeatureData {
 	private int arithmeticExponentialCount = 0; // Number of ** operations
 	private int arithmeticMinCount = 0; // Number of min calls
 	private int arithmeticMaxCount = 0; // Number of max calls
+	private IdentifierRelationsHandler identifiers; // Handling of identifiers
 
 
 	public LargeBASTFeatureData(String predicate) throws NeuroBException {
@@ -52,6 +53,7 @@ public class LargeBASTFeatureData {
 
 	public LargeBASTFeatureData(String predicate, BParser bParser) throws NeuroBException {
 		this.bParser = bParser;
+		identifiers = new IdentifierRelationsHandler();
 		collectData(predicate);
 	}
 
@@ -137,5 +139,106 @@ public class LargeBASTFeatureData {
 	public void incArithmeticMinCount(){arithmeticMinCount++; }
 	public int getArithmeticMaxCount(){return arithmeticMaxCount; }
 	public void incArithmeticMaxCount(){arithmeticMaxCount++; }
+
+	/**
+	 * Returns the number of added identifiers
+	 * @return Number of added identifiers
+	 */
+	public int getIdentifiersCount(){ return identifiers.getIdCount();}
+
+	/**
+	 * Get the amount of relations existing between added identifiers
+	 * @return relations between identifiers
+	 */
+	public int getIdentifierRelationsCount(){ return identifiers.getIdRelationsCount();}
+
+	/**
+	 * Returns the amount of identifiers, that have other identifiers as symbolic
+	 * lower and upper boundaries. This does not imply that the domain of the identifier
+	 * is bounded as well.
+	 * @return Number of identifiers with lower and upper bound by other identifiers
+	 */
+	public int getIdentifierBoundedCount(){ return identifiers.getBoundedIdCount();}
+
+	/**
+	 * Returns the amount of identifiers, that have other identifiers either as symbolic
+	 * lower or upper boundaries. This does not imply that the domain of the identifier
+	 * is bounded as well.
+	 * @return Number of identifiers with lower or upper bound (not both) by other identifiers
+	 */
+	public int getIdentifierSemiBoundedCount(){ return identifiers.getSemiBoundedIdCount();}
+
+
+	/**
+	 * Returns the amount of identifiers, that have no other identifiers as symbolic
+	 * lower or upper boundaries. This does not imply that the domain of the identifier
+	 * is bounded as well.
+	 * @return Number of identifiers without lower and upper bound by other identifiers
+	 */
+	public int getIdentifierUnboundedCount(){ return identifiers.getUnboundedIdCount();}
+
+	/**
+	 * @return Amount of identifiers with bounded domains
+	 */
+	public int getIdentifierBoundedDomainCount(){ return identifiers.getBoundedDomainsCount();}
+
+	/**
+	 * @return Amount of identifiers with either lower or upper bounded domains
+	 */
+	public int getIdentifierSemiBoundedDomainCount(){
+		return identifiers.getSemiBoundedDomainsCount();
+	}
+
+	/**
+	 * @return Amount of identifiers with neither lower nor upper bounded domains
+	 */
+	public int getIdentifierUnboundedDomainCount(){ return identifiers.getUnboundedDomainsCount();}
+
+	/**
+	 * Add an identifier to be accounted in the feature vector
+	 * @param id Name of the identifier
+	 */
+	public void addIdentifier(String id){ identifiers.addIdentifier(id);}
+
+	/**
+	 * Add a lower bounding relation between the two identifiers: id1 < id2
+	 * @param id1 Lower bound
+	 * @param id2 Upper bound
+	 */
+	public void addIdentifierLowerBound(String id1, String id2){
+		identifiers.addLowerBoundRelation(id1, id2);
+	}
+
+	/**
+	 * Add an upper bounding relation between the two identifiers: id1 > id2
+	 * @param id1 Upper bound
+	 * @param id2 Lower bound
+	 */
+	public void addIdentifierUpperBound(String id1, String id2){
+		identifiers.addUpperBoundRelation(id1, id2);
+	}
+
+	/**
+	 * Mark id1 and id2 as in relation.
+	 * @param id1 first identifier
+	 * @param id2 second identifier
+	 */
+	public void addIdentifierRelation(String id1, String id2){
+		identifiers.addIdentifierRelation(id1, id2);
+	}
+
+	/**
+	 * Adds the specified boundaries to the domain of an identifier.
+	 * <p>
+	 *     This is additive. If an identifier has already a lower bounded domain, and
+	 *     addIdentifierDomainBoundaries(id, false, true) is called, the lower bound remains.
+	 * </p>
+	 * @param id Identifier whose domain shall be altered
+	 * @param addLowerBound Whether a lower bound shall be added
+	 * @param addUpperBound Whether an upper bound shall be added
+	 */
+	public void addIdentifierDomainBoundaries(String id, boolean addLowerBound, boolean addUpperBound){
+		identifiers.addDomainBoundaries(id, addLowerBound, addUpperBound);
+	}
 
 }

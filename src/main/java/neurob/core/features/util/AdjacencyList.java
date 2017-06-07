@@ -181,6 +181,14 @@ public class AdjacencyList {
 			lowerBoundaries.add(node);
 			addEdgeTo(node);
 			hasLowerBoundaries = true;
+			// new lower bound is also lower bound for all upper bounds
+			upperBoundaries.stream()
+					.filter(n->!n.getLowerBoundaries().contains(node))
+					.forEach(n->n.addLowerBound(node));
+			// lower boundaries of node are lower boundaries of this
+			node.getLowerBoundaries().stream()
+					.filter(n->!lowerBoundaries.contains(n))
+					.forEach(this::addLowerBound);
 			// update domains if necessary
 			if(!hasLowerBoundedDomain && node.hasLowerBoundedDomain())
 				addDomainBoundaries(true, false);
@@ -193,6 +201,14 @@ public class AdjacencyList {
 			upperBoundaries.add(node);
 			addEdgeTo(node);
 			hasUpperBoundaries = true;
+			// new upper bound is also upper bound for all lower bounds
+			lowerBoundaries.stream()
+					.filter(n->!n.getUpperBoundaries().contains(node))
+					.forEach(n->n.addUpperBound(node));
+			// lower boundaries of node are upper boundaries of this
+			node.getUpperBoundaries().stream()
+					.filter(n->!upperBoundaries.contains(n))
+					.forEach(this::addUpperBound);
 			// update domains if necessary
 			if(!hasUpperBoundedDomain && node.hasUpperBoundedDomain())
 				addDomainBoundaries(false, true);
@@ -203,7 +219,8 @@ public class AdjacencyList {
 		 * @param node Node to be connected
 		 */
 		public void addEdgeTo(AdjacencyNode node){
-			relatedIds.add(node);
+			if(!this.equals(node)) // never add edge to yourself
+				relatedIds.add(node);
 		}
 
 		/**

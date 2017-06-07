@@ -1,5 +1,8 @@
 package neurob.core.features.util;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @author Jannik Dunkelau
  */
@@ -145,9 +148,16 @@ public class IdentifierRelationsHandler {
 		return (int) adjacencyList.getNodeSet().stream().filter(n->n.hasBoundedDomain()).count();
 	}
 
+	/**
+	 * @return Amount of relations between identifiers
+	 */
 	public int getIdRelationsCount(){
 		return adjacencyList.getNodeSet().stream().mapToInt(n->n.getRelatedIds().size()).sum() / 2;
 		// Note division by two: the upper expression counts each relation twice
 		// (once for each identifier of the relation in question)
+	}
+
+	public List<String> getIds() {
+		return adjacencyList.getIdentiferSet().stream().collect(Collectors.toList());
 	}
 }

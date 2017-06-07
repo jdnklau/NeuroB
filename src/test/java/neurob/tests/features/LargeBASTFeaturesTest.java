@@ -325,4 +325,226 @@ public class LargeBASTFeaturesTest {
 		assertEquals("maximum operations count does not match", expected, actual);
 	}
 
+	@Test
+	public void identifierCountTest() throws NeuroBException {
+		String pred = "x : NAT & y < z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getIdentifiersCount();
+		assertEquals("Amount of identifiers does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierRelationsCountTest() throws NeuroBException {
+		String pred = "x : NAT & y < z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getIdentifierRelationsCount();
+		assertEquals("Amount of identifier relations does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierRelationsCount2Test() throws NeuroBException {
+		String pred = "x < y & y < z & x < z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getIdentifierRelationsCount();
+		assertEquals("Amount of identifier relations does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierImplicitRelationsCountTest() throws NeuroBException {
+		String pred = "y < z & x < y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getIdentifierRelationsCount();
+		assertEquals("Amount of identifier relations does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierImplicitRelationsCount2Test() throws NeuroBException {
+		String pred = "x < y & y < z & z < x";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getIdentifierRelationsCount();
+		assertEquals("Amount of identifier relations does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierBoundedCountTest() throws NeuroBException {
+		String pred = "x : NAT & y : NATURAL & z : INT & x > 0 & x < z & z < y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1; // todo: should x>0 count as symbolic boundary?
+		int actual = data.getIdentifierBoundedCount();
+		assertEquals("Amount of bounded identifiers does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierBoundedCount2Test() throws NeuroBException {
+		String pred = "x : NAT & y : NATURAL & z : INT & x = 2*y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierBoundedCount();
+		assertEquals("Amount of bounded identifiers does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierSemiBoundedCountTest() throws NeuroBException {
+		String pred = "x : NAT & y : NATURAL & z : INT & x < z & z < y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierSemiBoundedCount();
+		assertEquals("Amount of semi-bounded identifiers does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierSemiBoundedCount2Test() throws NeuroBException {
+		String pred = "x : INTEGER & x > y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierSemiBoundedCount();
+		assertEquals("Amount of semi-bounded identifiers does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierUnboundedCountTest() throws NeuroBException {
+		String pred = "x : NAT & y : NATURAL & z : INT & x < z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getIdentifierUnboundedCount();
+		assertEquals("Amount of unbounded identifiers does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierBoundedDomainCountTest() throws NeuroBException {
+		String pred = "x : NAT & y : NATURAL & z : INT";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierBoundedDomainCount();
+		assertEquals("Amount of bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierBoundedDomainCount2Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & z : INT & y < z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierBoundedDomainCount();
+		assertEquals("Amount of bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierBoundedDomainCount3Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & z : INT & y < z & x = y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getIdentifierBoundedDomainCount();
+		assertEquals("Amount of bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierBoundedDomainCount4Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & z : INT & y < z & x /= y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierBoundedDomainCount();
+		assertEquals("Amount of bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierBoundedDomainCount5Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & z : INT & not(y >= z & x /= y)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getIdentifierBoundedDomainCount();
+		assertEquals("Amount of bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierSemiBoundedDomainCountTest() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & z : INT & y > z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getIdentifierSemiBoundedDomainCount();
+		assertEquals("Amount of semi-bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierSemiBoundedDomainCount2Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & x = y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierSemiBoundedDomainCount();
+		assertEquals("Amount of semi-bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierSemiBoundedDomainCount3Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & x > 2*y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierSemiBoundedDomainCount();
+		assertEquals("Amount of semi-bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierSemiBoundedDomainCount4Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & x >= 2*y";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierSemiBoundedDomainCount();
+		assertEquals("Amount of semi-bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierSemiBoundedDomainCount5Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & 2*y < x";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierSemiBoundedDomainCount();
+		assertEquals("Amount of semi-bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierSemiBoundedDomainCount6Test() throws NeuroBException {
+		String pred = "x : INTEGER & y : NATURAL & 2*y <= x";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierSemiBoundedDomainCount();
+		assertEquals("Amount of semi-bounded domains does not match", expected, actual);
+	}
+
+	@Test
+	public void identifierUnboundedDomainCountTest() throws NeuroBException {
+		String pred = "x : NAT1 & y : INTEGER & z : INT";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getIdentifierUnboundedDomainCount();
+		assertEquals("Amount of unbounded domains does not match", expected, actual);
+	}
+
+
+
 }

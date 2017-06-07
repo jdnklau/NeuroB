@@ -43,7 +43,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * - arithmetic comparisons
 	 * - finiteness of sets
 	 * - arithmetic operators
-	 * - predefined sets (NATURAL, etc)
+	 * - identifiers and their relations
 	 */
 
 	// PREDICATE AND NEGATION DEPTH
@@ -307,25 +307,218 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 
 
-	// PREDEFINED SETS
+	// IDENTIFIERS AND THEIR RELATIONS
 
 	@Override
-	public void caseANaturalSetExpression(ANaturalSetExpression node) {
-		super.caseANaturalSetExpression(node);
+	public void caseAIdentifierExpression(AIdentifierExpression node) {
+		node.getIdentifier().stream().map(Tid->Tid.getText()).forEach(data::addIdentifier);
+		super.caseAIdentifierExpression(node);
+	}
+
+	/**
+	 * If possible, sets the left hand side (LHS) as lower bound for the right hand side (RHS).
+	 * <p>
+	 *     This means, LHS < RHS.
+	 *     Some distinctions are made based on whether any of LHS or RHS are only identifiers
+	 *     or more complex expressions. The highest complexity still accounted for is simple
+	 *     arithmetic, consisting of addition and multiplication.
+	 * </p>
+	 * <p>
+	 *     Internally there are three cases
+	 *     <ol>
+	 *         <li>LHS and RHS are both identifiers</li>
+	 *         <li>One of LHS or RHS is an identifer, the other is a more complex expression</li>
+	 *         <li>Both LHS and RHS are more complex expressions</li>
+	 *     </ol>
+	 * </p>
+	 * <p>
+	 *     In the first case, simply the relation LHS < RHS is set.
+	 * </p>
+	 * <p>
+	 *     The second case is treated more specially. Assume that RHS is the more complex expression
+	 *     (the following remains invariant to renaming).
+	 *     If RHS is more complex than a simple arithmetic expression (addition,
+	 *     multiplication, ...), than it will not be accounted for.
+	 *     Else, if it contains zero identifiers, than RHS will be posed as an upper boundary for
+	 *     the domain of LHS.
+	 *     It it contains exactly one identifier, this identifier will be posed as symbolic upper
+	 *     boundary for LHS.
+	 *     It it contains more than one identifier, it will not be accounted for.
+	 *     (The last case would pose the problem of a hypergraph, and implementing those is just
+	 *     another step towards rebuilding CLPFD, which is not the goal.)
+	 * </p>
+	 * <p>
+	 *     The third case is simply a more general case of case two.
+	 *     If both sides are without identifiers, the problem is discarded.
+	 *     If exactly one side contains exactly one identifier, the other side will pose a domain
+	 *     boundary on it.
+	 *     If both sides only contain one identifier each, they are treated as in the first case.
+	 *     If any side contains more than one identifier, disregard the constraint due to
+	 *     complexity.
+	 * </p>
+	 * @param left
+	 * @param right
+	 */
+	private void setLowerBoundary(PExpression left, PExpression right) {
+		// check whether left is an identifier
+		boolean isLeftId = left instanceof AIdentifierExpression;
+		boolean isRightId = right instanceof AIdentifierExpression;
+
+		// Both are identifiers
+		if(isLeftId && isRightId){
+			for(TIdentifierLiteral Tid1 : ((AIdentifierExpression) left).getIdentifier()){
+				for(TIdentifierLiteral Tid2 : ((AIdentifierExpression) right).getIdentifier()){
+					data.addIdentifierLowerBound(Tid1.getText(), Tid2.getText());
+				}
+			}
+		}
+		// at most one is id
+		else if(isLeftId || isRightId){
+			ArithmeticExpressionCheck checkLeft = new ArithmeticExpressionCheck(left);
+			ArithmeticExpressionCheck checkRight = new ArithmeticExpressionCheck(right);
+
+			// both are arithmetic expressions
+			if(checkLeft.isSimpleArithmetic() && checkRight.isSimpleArithmetic()){
+				int leftCount = checkLeft.getIdCount();
+				int rightCount = checkRight.getIdCount();
+
+				if(leftCount > 1 || rightCount > 1){
+					// to complex, do nothing
+					return;
+				}
+
+				if(leftCount == 0 && rightCount == 0){
+					// no ids, do nothing
+					return;
+				}
+
+				if(leftCount == rightCount){
+					// both have one id
+					String idLeft = checkLeft.getIds().get(0);
+					String idRight = checkRight.getIds().get(0);
+
+					data.addIdentifierLowerBound(idLeft, idRight);
+				}
+				else {
+					// exactly one has one id
+					boolean idIsLHS = leftCount==1;
+					ArithmeticExpressionCheck check = (idIsLHS) ? checkLeft : checkRight;
+
+					String id = check.getIds().get(0);
+
+					boolean lowerBound = !idIsLHS;
+					boolean upperBound = idIsLHS;
+					data.addIdentifierDomainBoundaries(id, lowerBound, upperBound);
+				}
+			}
+			// else do nothing
+		}
+	}
+
+	private void setLowerBoundaryWRTNegation(PExpression left, PExpression right) {
+		if(inNegation)
+			setLowerBoundary(right,left);
+		setLowerBoundary(left, right);
 	}
 
 	@Override
-	public void caseANatural1SetExpression(ANatural1SetExpression node) {
-		super.caseANatural1SetExpression(node);
+	public void outALessEqualPredicate(ALessEqualPredicate node) {
+		setLowerBoundaryWRTNegation(node.getLeft(), node.getRight());
+		super.outALessEqualPredicate(node);
 	}
 
 	@Override
-	public void caseANatSetExpression(ANatSetExpression node) {
-		super.caseANatSetExpression(node);
+	public void outALessPredicate(ALessPredicate node) {
+		setLowerBoundaryWRTNegation(node.getLeft(), node.getRight());
+		super.outALessPredicate(node);
 	}
 
 	@Override
-	public void caseANat1SetExpression(ANat1SetExpression node) {
-		super.caseANat1SetExpression(node);
+	public void outAGreaterEqualPredicate(AGreaterEqualPredicate node) {
+		setLowerBoundaryWRTNegation(node.getRight(), node.getLeft());
+		super.outAGreaterEqualPredicate(node);
+	}
+
+	@Override
+	public void outAGreaterPredicate(AGreaterPredicate node) {
+		setLowerBoundaryWRTNegation(node.getRight(), node.getLeft());
+		super.outAGreaterPredicate(node);
+	}
+
+	@Override
+	public void outAEqualPredicate(AEqualPredicate node) {
+		if(!inNegation){
+			setLowerBoundary(node.getLeft(), node.getRight());
+			setLowerBoundary(node.getRight(), node.getLeft());
+		}
+		super.outAEqualPredicate(node);
+	}
+
+	@Override
+	public void outANotEqualPredicate(ANotEqualPredicate node) {
+		if(inNegation){
+			setLowerBoundary(node.getLeft(), node.getRight());
+			setLowerBoundary(node.getRight(), node.getLeft());
+		}
+		super.outANotEqualPredicate(node);
+	}
+
+	@Override
+	public void outAMemberPredicate(AMemberPredicate node) {
+		setIdentifierDomain(node.getLeft(), true, node.getRight());
+		super.outAMemberPredicate(node);
+	}
+
+	@Override
+	public void outANotMemberPredicate(ANotMemberPredicate node) {
+		setIdentifierDomain(node.getLeft(), false, node.getRight());
+		super.outANotMemberPredicate(node);
+	}
+
+	private void setIdentifierDomain(PExpression left, boolean membership, PExpression right) {
+		if(!(left instanceof AIdentifierExpression)){
+			return;
+		}
+
+		// if not-member ship, domain is automatically set do be unbounded
+		if(!(inNegation^membership)){
+			((AIdentifierExpression) left).getIdentifier()
+					.stream().map(id->id.getText())
+					.forEach(id->data.addIdentifierDomainBoundaries(id,false,false));
+			return;
+		}
+
+		// prepare to only decide for positive bounding cases
+		boolean lowerBoundary = isDomainLowerBounded(right);
+		boolean upperBoundary = isDomainUpperBounded(right);
+
+		// set domain boundaries
+		((AIdentifierExpression) left).getIdentifier()
+				.stream().map(id->id.getText())
+				.forEach(id->data.addIdentifierDomainBoundaries(id,lowerBoundary,upperBoundary));
+	}
+
+	private boolean isDomainLowerBounded(PExpression expression) {
+		if(expression instanceof ANatSetExpression
+				|| expression instanceof ANat1SetExpression
+				|| expression instanceof AIntSetExpression
+				|| expression instanceof ABoolSetExpression
+				|| expression instanceof ANaturalSetExpression
+				|| expression instanceof  ANatural1SetExpression){
+			return true;
+			// todo: maybe add powerset of those above
+		}
+		return false;
+	}
+
+	private boolean isDomainUpperBounded(PExpression expression) {
+		if(expression instanceof ANatSetExpression
+				|| expression instanceof ANat1SetExpression
+				|| expression instanceof AIntSetExpression
+				|| expression instanceof ABoolSetExpression){
+			return true;
+			// todo: maybe add powerset of those above
+		}
+		return false;
 	}
 }
