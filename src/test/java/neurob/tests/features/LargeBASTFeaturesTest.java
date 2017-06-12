@@ -545,6 +545,66 @@ public class LargeBASTFeaturesTest {
 		assertEquals("Amount of unbounded domains does not match", expected, actual);
 	}
 
+	@Test
+	public void powerSetCountTest() throws NeuroBException{
+		String pred = "x : NAT & y : POW1(POW(NAT)) & z : POW1(NAT)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getPowerSetCount();
+		assertEquals("Amount of power sets does not match", expected, actual);
+	}
+
+	@Test
+	public void powerSetMaxDepthCountTest() throws NeuroBException{
+		String pred = "x : NAT & y : POW(POW1(POW(NAT))) & z : POW(POW1(NAT))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
 
 
+		int expected = 3;
+		int actual = data.getFeatureCollector().getPowMaxDepth();
+		assertEquals("Power set max depth does not match", expected, actual);
+	}
+
+	@Test
+	public void powerSetMaxDepthCount2Test() throws NeuroBException{
+		String pred = "x : NAT & y : POW(POW1(POW(NAT))*POW1(INTEGER)) & z : POW(POW1(NAT))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+
+		int expected = 3;
+		int actual = data.getFeatureCollector().getPowMaxDepth();
+		assertEquals("Power set max depth does not match", expected, actual);
+	}
+
+	@Test
+	public void powerSetMaxDepthCount3Test() throws NeuroBException{
+		String pred = "x : NAT & y : POW(POW1(NAT)*POW1(POW(INTEGER))) & z : POW(POW1(NAT))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+
+		int expected = 3;
+		int actual = data.getFeatureCollector().getPowMaxDepth();
+		assertEquals("Power set max depth does not match", expected, actual);
+	}
+
+	@Test
+	public void powerSetHigherOrderTest() throws NeuroBException{
+		String pred = "x : NAT & y : POW1(POW(NAT)) & z : POW1(NAT)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getPowerSetHigherOrderCounts();
+		assertEquals("Amount of power set stacks does not match", expected, actual);
+	}
+
+	@Test
+	public void powerSetHigherOrder2Test() throws NeuroBException{
+		String pred = "x : NAT & y : POW1(NAT*POW(NAT)) & z : POW1(NAT)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getPowerSetHigherOrderCounts();
+		assertEquals("Amount of power set stacks does not match", expected, actual);
+	}
 }

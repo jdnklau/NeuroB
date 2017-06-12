@@ -13,6 +13,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	private boolean inNegation = false;
 	private int depth = 0;
 	private int maxDepth = 0;
+	private int powDepth = 0;
+	private int powMaxDepth = 0;
 
 	public LargeBASTFeatureCollector(LargeBASTFeatureData data){
 		this.data = data;
@@ -21,6 +23,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public int getMaxDepth(){
 		return maxDepth;
 	}
+
+	public int getPowMaxDepth(){ return powMaxDepth; }
 
 	private void switchByNegation(Runnable noNegationAction, Runnable negationAction){
 		if(inNegation)
@@ -44,6 +48,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * - finiteness of sets
 	 * - arithmetic operators
 	 * - identifiers and their relations
+	 * - power sets
 	 */
 
 	// PREDICATE AND NEGATION DEPTH
@@ -61,7 +66,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public void defaultIn(Node node) {
 		super.defaultIn(node);
 		// count depth of predicates
-		// do not count basic boolen operations, as they do not actually provide to the depth
+		// do not count basic boolean operations, as they do not actually provide to the depth
 		if(node instanceof PPredicate
 				&& !(node instanceof AConjunctPredicate)
 				&& !(node instanceof AConjunctPredicate)
@@ -236,6 +241,9 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		data.incBooleanConversionCount();
 		super.caseAConvertBoolExpression(node);
 	}
+
+
+
 
 	// FINITENESS
 
@@ -520,5 +528,73 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 			// todo: maybe add powerset of those above
 		}
 		return false;
+	}
+
+
+
+	// POWER SETS
+
+	@Override
+	public void inAPowSubsetExpression(APowSubsetExpression node) {
+		powDepth++;
+		if (powDepth>powMaxDepth) powMaxDepth = powDepth; // set new maximum
+		super.inAPowSubsetExpression(node);
+	}
+
+	@Override
+	public void outAPowSubsetExpression(APowSubsetExpression node) {
+		--powDepth;
+		super.outAPowSubsetExpression(node);
+	}
+
+	@Override
+	public void inAPow1SubsetExpression(APow1SubsetExpression node) {
+		powDepth++;
+		if (powDepth>powMaxDepth) powMaxDepth = powDepth; // set new maximum
+		super.inAPow1SubsetExpression(node);
+	}
+
+	@Override
+	public void outAPow1SubsetExpression(APow1SubsetExpression node) {
+		--powDepth;
+		super.outAPow1SubsetExpression(node);
+	}
+
+	@Override
+	public void caseAPowSubsetExpression(APowSubsetExpression node) {
+		data.incPowerSetCount();
+		// count stacked power sets
+		if(powDepth == 1){
+			/*
+			 * explanation:
+			 * if the depth thus far equals 1, we are the second power set in a line
+			 *     POW(POW(...))
+			 * As we want only to count the stacks in total, not explicitly the occurence of
+			 *     POW(POW(...))
+			 * any deeper POW shall remain uncounted
+			 *
+			 */
+			data.incPowerSetHigherOrderCounts();
+		}
+		super.caseAPowSubsetExpression(node);
+	}
+
+	@Override
+	public void caseAPow1SubsetExpression(APow1SubsetExpression node) {
+		data.incPowerSetCount();
+		// count stacked power sets
+		if(powDepth == 1){
+			/*
+			 * explanation:
+			 * if the depth equals 1, we are the second power set in a line
+			 *     POW(POW(...))
+			 * As we want only to count the stacks in total, not explicitly the occurrence of
+			 *     POW(POW(...))
+			 * any deeper POW shall remain uncounted
+			 *
+			 */
+			data.incPowerSetHigherOrderCounts();
+		}
+		super.caseAPow1SubsetExpression(node);
 	}
 }

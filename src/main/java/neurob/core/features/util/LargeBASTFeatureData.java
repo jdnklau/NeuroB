@@ -44,6 +44,8 @@ public class LargeBASTFeatureData {
 	private int arithmeticExponentialCount = 0; // Number of ** operations
 	private int arithmeticMinCount = 0; // Number of min calls
 	private int arithmeticMaxCount = 0; // Number of max calls
+	private int powerSetCount = 0; // Number of POW(...) calls
+	private int powerSetHigherOrderCounts = 0; // Number of POW(POW(...)) calls
 	private IdentifierRelationsHandler identifiers; // Handling of identifiers
 
 
@@ -241,4 +243,9 @@ public class LargeBASTFeatureData {
 		identifiers.addDomainBoundaries(id, addLowerBound, addUpperBound);
 	}
 
+	public int getPowerSetCount(){ return powerSetCount; }
+	public void incPowerSetCount(){ powerSetCount++; }
+
+	public int getPowerSetHigherOrderCounts(){ return powerSetHigherOrderCounts; }
+	public void incPowerSetHigherOrderCounts(){ powerSetHigherOrderCounts++; }
 }
