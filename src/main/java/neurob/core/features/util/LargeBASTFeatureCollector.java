@@ -50,6 +50,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * - identifiers and their relations
 	 * - power sets
 	 * - sets and set operators
+	 * - relations
+	 * - functions
 	 */
 
 	// PREDICATE AND NEGATION DEPTH
@@ -663,4 +665,115 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		data.incSetQuantifiedIntersectCount();
 		super.caseAQuantifiedIntersectionExpression(node);
 	}
+
+	@Override
+	public void caseAComprehensionSetExpression(AComprehensionSetExpression node) {
+		data.incSetComprehensionCount();
+		super.caseAComprehensionSetExpression(node);
+	}
+
+
+
+	// RELATIONS
+
+	@Override
+	public void caseARelationsExpression(ARelationsExpression node) {
+		data.incRelationCount();
+		super.caseARelationsExpression(node);
+	}
+
+	@Override
+	public void caseATotalRelationExpression(ATotalRelationExpression node) {
+		data.incRelationTotalCount();
+		super.caseATotalRelationExpression(node);
+	}
+
+	@Override
+	public void caseASurjectionRelationExpression(ASurjectionRelationExpression node) {
+		data.incRelationSurjCount();
+		super.caseASurjectionRelationExpression(node);
+	}
+
+	@Override
+	public void caseATotalSurjectionRelationExpression(ATotalSurjectionRelationExpression node) {
+		data.incRelationTotalCount();
+		data.incRelationSurjCount();
+		data.incRelationTotalSurjCount();
+		super.caseATotalSurjectionRelationExpression(node);
+	}
+
+	@Override
+	public void caseAImageExpression(AImageExpression node) {
+		data.incRelationalImageCount();
+		super.caseAImageExpression(node);
+	}
+
+	@Override
+	public void caseAReverseExpression(AReverseExpression node) {
+		data.incRelationInverseCount();
+		super.caseAReverseExpression(node);
+	}
+
+	@Override
+	public void caseAOverwriteExpression(AOverwriteExpression node) {
+		data.incRelationOverrideCount();
+		super.caseAOverwriteExpression(node);
+	}
+
+	@Override
+	public void caseAParallelProductExpression(AParallelProductExpression node) {
+		data.incRelationParallelProductCount();
+		super.caseAParallelProductExpression(node);
+	}
+
+	@Override
+	public void caseADirectProductExpression(ADirectProductExpression node) {
+		data.incRelationDirectProductCount();
+		super.caseADirectProductExpression(node);
+	}
+
+	@Override
+	public void caseAFirstProjectionExpression(AFirstProjectionExpression node) {
+		data.incProjection1Count();
+		super.caseAFirstProjectionExpression(node);
+	}
+
+	@Override
+	public void caseASecondProjectionExpression(ASecondProjectionExpression node) {
+		data.incProjection2Count();
+		super.caseASecondProjectionExpression(node);
+	}
+
+	@Override
+	public void caseADomainRestrictionExpression(ADomainRestrictionExpression node) {
+		data.incDomainRestrictionCount();
+		super.caseADomainRestrictionExpression(node);
+	}
+
+	@Override
+	public void caseADomainSubtractionExpression(ADomainSubtractionExpression node) {
+		data.incDomainSubtractionCount();
+		super.caseADomainSubtractionExpression(node);
+	}
+
+	@Override
+	public void caseARangeRestrictionExpression(ARangeRestrictionExpression node) {
+		data.incRangeRestrictionCount();
+		super.caseARangeRestrictionExpression(node);
+	}
+
+	@Override
+	public void caseARangeSubtractionExpression(ARangeSubtractionExpression node) {
+		data.incRangeSubtractionCount();
+		super.caseARangeSubtractionExpression(node);
+	}
+
+	@Override
+	public void caseACompositionExpression(ACompositionExpression node) {
+		data.incForwardCompositionCount();
+		super.caseACompositionExpression(node);
+	}
+
+	// FUNCTIONS
+	// todo
 }

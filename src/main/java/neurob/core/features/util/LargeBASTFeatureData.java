@@ -55,6 +55,27 @@ public class LargeBASTFeatureData {
 	private int setGeneralIntersectCount = 0; // Number of intersects over a set of sets
 	private int setQuantifiedUnionCount = 0; // Number of unions over something
 	private int setQuantifiedIntersectCount = 0; // Number of intersects over something
+	private int setSubtractionCount = 0; // Number of set subtractions \
+	private int setComprehensionCount = 0; // Number of comprehension sets
+	private int relationCount = 0; // Number of relations defined <->
+	private int relationTotalCount = 0; // Number of total relations <<->
+	private int relationSurjCount = 0; // Number of surjective relations <->>
+	private int relationTotalSurjCount = 0; // Number of total surjective relations <<->>
+	private int relationalImageCount = 0; // Number of relational images r[S]
+	private int relationInverseCount = 0; // Number of relational inverses r~
+	private int relationOverrideCount = 0; // Number of relational overrides <+
+	private int relationDirectProductCount = 0; // Number of direct products ><
+	private int relationParallelProductCount = 0; // Number of parallel products ||
+	private int projection1Count = 0; // Number of pr1 projections
+	private int projection2Count = 0; // Number of pr2 projections
+	private int forwardCompositionCount = 0; // Number of forward compositions ;
+//	private int backwardCompositionCount = 0; // Number of backward compositions circ (EventB only)
+	private int domainRestrictionCount = 0; // Number of domain restriction <|
+
+	private int domainSubtractionCount = 0; // Number of domain subtractions <<|
+	private int rangeRestrictionCount = 0; // Number of range restrictions |>
+	private int rangeSubtractionCount = 0; // Number of range subtractions |>>
+
 	private IdentifierRelationsHandler identifiers; // Handling of identifiers
 
 
@@ -282,6 +303,51 @@ public class LargeBASTFeatureData {
 	public int getSetQuantifiedIntersectCount(){ return setQuantifiedIntersectCount; }
 	public void incSetQuantifiedIntersectCount(){ setQuantifiedIntersectCount++; }
 
+	public int getSetSubtractionCount(){ return setSubtractionCount; }
+	public void incSetSubtractionCount(){ setSubtractionCount++; }
 
+	public int getSetComprehensionCount(){ return setComprehensionCount; }
+	public void incSetComprehensionCount(){ setComprehensionCount++; }
+
+	public int getRelationCount(){ return relationCount; }
+	public void incRelationCount(){ relationCount++; }
+	public int getRelationTotalCount(){ return relationTotalCount; }
+	public void incRelationTotalCount(){ relationTotalCount++; }
+	public int getRelationSurjCount(){ return relationSurjCount; }
+	public void incRelationSurjCount(){ relationSurjCount++; }
+	public int getRelationTotalSurjCount(){ return relationTotalSurjCount; }
+	public void incRelationTotalSurjCount(){ relationTotalSurjCount++; }
+
+	public int getRelationalImageCount(){ return relationalImageCount; }
+	public void incRelationalImageCount(){ relationalImageCount++; }
+	public int getRelationInverseCount(){ return relationInverseCount; }
+	public void incRelationInverseCount(){ relationInverseCount++; }
+
+	public int getRelationOverrideCount(){ return relationOverrideCount; }
+	public void incRelationOverrideCount(){ relationOverrideCount++; }
+
+	public int getRelationDirectProductCount(){ return relationDirectProductCount; }
+	public void incRelationDirectProductCount(){ relationDirectProductCount++; }
+	public int getRelationParallelProductCount(){ return relationParallelProductCount; }
+	public void incRelationParallelProductCount(){ relationParallelProductCount++; }
+
+	public int getProjection1Count(){ return projection1Count; }
+	public void incProjection1Count(){ projection1Count++; }
+	public int getProjection2Count() { return projection2Count; }
+	public void incProjection2Count() { projection2Count++; }
+
+	public int getForwardCompositionCount() { return forwardCompositionCount; }
+	public void incForwardCompositionCount() { forwardCompositionCount++; }
+//	public int getBackwardCompositionCount() { return backwardCompositionCount; }
+//	public void incBackwardCompositionCount() { backwardCompositionCount++; }
+
+	public int getDomainRestrictionCount() { return domainRestrictionCount; }
+	public void incDomainRestrictionCount() { domainRestrictionCount++; }
+	public int getDomainSubtractionCount() { return domainSubtractionCount; }
+	public void incDomainSubtractionCount() { domainSubtractionCount++; }
+	public int getRangeRestrictionCount() { return rangeRestrictionCount; }
+	public void incRangeRestrictionCount() { rangeRestrictionCount++; }
+	public int getRangeSubtractionCount() { return rangeSubtractionCount; }
+	public void incRangeSubtractionCount() { rangeSubtractionCount++; }
 
 }

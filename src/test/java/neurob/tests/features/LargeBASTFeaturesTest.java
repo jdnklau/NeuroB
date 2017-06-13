@@ -768,8 +768,194 @@ public class LargeBASTFeaturesTest {
 		assertEquals("Amount of generalised intersections does not match", expected, actual);
 	}
 
+	@Test
+	public void setSubtractionCountTest() throws NeuroBException{
+		String pred = "x = INTER(z).(card(z)=3 & z<:NAT | z) & y : FIN(NATURAL) & z = y\\x";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
 
+		int expected = 1;
+		int actual = data.getSetQuantifiedIntersectCount();
+		assertEquals("Amount of generalised intersections does not match", expected, actual);
+	}
 
+	@Test
+	public void setComprehensionCountTest() throws NeuroBException{
+		String pred = "X = {x | y:NATURAL1 & x=y**2}";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
 
+		int expected = 1;
+		int actual = data.getSetComprehensionCount();
+		assertEquals("Amount of set comprehensions does not match", expected, actual);
+	}
+
+	@Test
+	public void relCountTest() throws NeuroBException{
+		String pred = "x : A<->B & y : POW(A<->B) & z : A<->(A<->B)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 4;
+		int actual = data.getRelationCount();
+		assertEquals("Amount of relations does not match", expected, actual);
+	}
+
+	@Test
+	public void totalRelCountTest() throws NeuroBException{
+		String pred = "x : A<<->B & y : POW(A<->>B) & z : A<->(A<<->>B)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getRelationTotalCount();
+		assertEquals("Amount of total relations does not match", expected, actual);
+	}
+
+	@Test
+	public void surjRelCountTest() throws NeuroBException{
+		String pred = "x : A<<->B & y : POW(A<->>B) & z : A<->(A<<->>B)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getRelationSurjCount();
+		assertEquals("Amount of surjective relations does not match", expected, actual);
+	}
+
+	@Test
+	public void totalSurjRelCountTest() throws NeuroBException{
+		String pred = "x : A<<->B & y : POW(A<->>B) & z : A<->(A<<->>B)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getRelationTotalSurjCount();
+		assertEquals("Amount of total surjective relations does not match", expected, actual);
+	}
+
+	@Test
+	public void relImageCountTest() throws NeuroBException{
+		String pred = "r : S<->T & S2 <: S & t = r[S2] & u = r[{1}]";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getRelationalImageCount();
+		assertEquals("Amount of relational images does not match", expected, actual);
+	}
+
+	@Test
+	public void relInverseCountTest() throws NeuroBException{
+		String pred = "x : A<<->B & y = x~";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getRelationInverseCount();
+		assertEquals("Amount of inverse relations does not match", expected, actual);
+	}
+
+	@Test
+	public void relOverrideCountTest() throws NeuroBException{
+		String pred = "r1 : A<->B & r2 : A<->B & r = r1 <+ r2";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getRelationOverrideCount();
+		assertEquals("Amount of relational overrides does not match", expected, actual);
+	}
+
+	@Test
+	public void relParallelProductCountTest() throws NeuroBException{
+		String pred = "r1 : A<->B & r2 : A<->B & r = (r1 || r2)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getRelationParallelProductCount();
+		assertEquals("Amount of relational parallel products does not match", expected, actual);
+	}
+
+	@Test
+	public void relDirectProductCountTest() throws NeuroBException{
+		String pred = "r1 : A<->B & r2 : A<->B & r = r1 >< r2";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getRelationDirectProductCount();
+		assertEquals("Amount of relational direct products does not match", expected, actual);
+	}
+
+	@Test
+	public void relProj1CountTest() throws NeuroBException{
+		String pred = "x = prj1(x,y) & y = prj2(x,y) & z = prj2(z,z)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getProjection1Count();
+		assertEquals("Amount of first projections does not match", expected, actual);
+	}
+
+	@Test
+	public void relProj2CountTest() throws NeuroBException{
+		String pred = "x = prj1(x,y) & y = prj2(x,y) & z = prj2(z,z)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getProjection2Count();
+		assertEquals("Amount of second projections does not match", expected, actual);
+	}
+
+	@Test
+	public void relForwardCompCountTest() throws NeuroBException{
+		String pred = "x = {(1,2)} & y = {(2,3)} & z = (x ; y)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getForwardCompositionCount();
+		assertEquals("Amount of forward compositions does not match", expected, actual);
+	}
+
+	@Test
+	public void relForwardCompCount2Test() throws NeuroBException{
+		String pred = "x : S<->T & y : S<->T & z = (x ; y)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getForwardCompositionCount();
+		assertEquals("Amount of forward compositions does not match", expected, actual);
+	}
+
+	@Test
+	public void domainRestrictionCountTest() throws NeuroBException{
+		String pred = "r : S<->T & S2 <<: S & r2 = S2 <| r";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getDomainRestrictionCount();
+		assertEquals("Amount of domain restrictions does not match", expected, actual);
+	}
+
+	@Test
+	public void domainSubtractionCountTest() throws NeuroBException{
+		String pred = "r : S<->T & S2 <<: S & r2 = S2 <<| r";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getDomainSubtractionCount();
+		assertEquals("Amount of domain subtractions does not match", expected, actual);
+	}
+
+	@Test
+	public void rangeRestrictionCountTest() throws NeuroBException{
+		String pred = "r : S<->T & S2 <<: S & r2 = r |> S2";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getRangeRestrictionCount();
+		assertEquals("Amount of range restrictions does not match", expected, actual);
+	}
+
+	@Test
+	public void rangeSubtractionCountTest() throws NeuroBException{
+		String pred = "r : S<->T & S2 <<: S & r2 = r |>> S2";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getRangeSubtractionCount();
+		assertEquals("Amount of range subtractions does not match", expected, actual);
+	}
 
 }
