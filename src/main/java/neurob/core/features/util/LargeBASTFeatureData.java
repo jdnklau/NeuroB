@@ -71,10 +71,20 @@ public class LargeBASTFeatureData {
 	private int forwardCompositionCount = 0; // Number of forward compositions ;
 //	private int backwardCompositionCount = 0; // Number of backward compositions circ (EventB only)
 	private int domainRestrictionCount = 0; // Number of domain restriction <|
-
 	private int domainSubtractionCount = 0; // Number of domain subtractions <<|
 	private int rangeRestrictionCount = 0; // Number of range restrictions |>
 	private int rangeSubtractionCount = 0; // Number of range subtractions |>>
+	private int funPartialCount = 0; // Number of partial function definitions +->
+	private int funTotalCount = 0; // Number of total function definitions -->
+	private int funPartialInjCount = 0; // Number of partial injective function definitions >+>
+	private int funTotalInjCount = 0; // Number of total injective function definitions >->
+	private int funPartialSurjCount = 0; // Number of partial surjective function definitions +->>
+	private int funTotalSurjCount = 0; // Number of total surjective function definitions -->>
+	private int funPartialBijCount = 0; // Number of partial bijection function definitions >+>>
+	private int funTotalBijCount = 0; // Number of total bijection function definitions >->>
+	private int lambdaCount = 0; // Number of lambda abstractions %
+	private int functionApplicationCount = 0; // Number of function applications
+
 
 	private IdentifierRelationsHandler identifiers; // Handling of identifiers
 
@@ -349,5 +359,28 @@ public class LargeBASTFeatureData {
 	public void incRangeRestrictionCount() { rangeRestrictionCount++; }
 	public int getRangeSubtractionCount() { return rangeSubtractionCount; }
 	public void incRangeSubtractionCount() { rangeSubtractionCount++; }
+
+	public int getFunPartialCount() { return funPartialCount; }
+	public void incFunPartialCount() { funPartialCount++; }
+	public int getFunTotalCount() { return funTotalCount; }
+	public void incFunTotalCount() { funTotalCount++; }
+	public int getFunPartialInjCount() { return funPartialInjCount; }
+	public void incFunPartialInjCount() { funPartialInjCount++; }
+	public int getFunTotalInjCount() { return funTotalInjCount; }
+	public void incFunTotalInjCount() { funTotalInjCount++; }
+	public int getFunPartialSurjCount() { return funPartialSurjCount; }
+	public void incFunPartialSurjCount() { funPartialSurjCount++; }
+	public int getFunTotalSurjCount() { return funTotalSurjCount; }
+	public void incFunTotalSurjCount() { funTotalSurjCount++; }
+	public int getFunPartialBijCount() { return funPartialBijCount; }
+	public void incFunPartialBijCount() { funPartialBijCount++; }
+	public int getFunTotalBijCount() { return funTotalBijCount; }
+	public void incFunTotalBijCount() { funTotalBijCount++; }
+
+	public int getLambdaCount() { return lambdaCount; }
+	public void incLambdaCount() { lambdaCount++; }
+
+	public int getFunctionApplicationCount() { return functionApplicationCount; }
+	public void incFunctionApplicationCount() { functionApplicationCount++; }
 
 }

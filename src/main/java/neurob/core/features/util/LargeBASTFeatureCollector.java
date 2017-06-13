@@ -16,18 +16,20 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	private int powDepth = 0;
 	private int powMaxDepth = 0;
 
-	public LargeBASTFeatureCollector(LargeBASTFeatureData data){
+	public LargeBASTFeatureCollector(LargeBASTFeatureData data) {
 		this.data = data;
 	}
 
-	public int getMaxDepth(){
+	public int getMaxDepth() {
 		return maxDepth;
 	}
 
-	public int getPowMaxDepth(){ return powMaxDepth; }
+	public int getPowMaxDepth() {
+		return powMaxDepth;
+	}
 
-	private void switchByNegation(Runnable noNegationAction, Runnable negationAction){
-		if(inNegation)
+	private void switchByNegation(Runnable noNegationAction, Runnable negationAction) {
+		if (inNegation)
 			negationAction.run();
 		else
 			noNegationAction.run();
@@ -57,9 +59,10 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	// PREDICATE AND NEGATION DEPTH
 
 	@Override
-	public void inANegationPredicate(final ANegationPredicate node){
+	public void inANegationPredicate(final ANegationPredicate node) {
 		inNegation = !inNegation;
 	}
+
 	@Override
 	public void outANegationPredicate(ANegationPredicate node) {
 		inNegation = !inNegation;
@@ -70,7 +73,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		super.defaultIn(node);
 		// count depth of predicates
 		// do not count basic boolean operations, as they do not actually provide to the depth
-		if(node instanceof PPredicate
+		if (node instanceof PPredicate
 				&& !(node instanceof AConjunctPredicate)
 				&& !(node instanceof AConjunctPredicate)
 				&& !(node instanceof ANegationPredicate)) {
@@ -78,10 +81,11 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 			if (depth > maxDepth) maxDepth = depth;
 		}
 	}
+
 	@Override
 	public void defaultOut(Node node) {
 		super.defaultOut(node);
-		if(node instanceof  PPredicate
+		if (node instanceof PPredicate
 				&& !(node instanceof AConjunctPredicate)
 				&& !(node instanceof AConjunctPredicate)
 				&& !(node instanceof ANegationPredicate)) {
@@ -90,11 +94,10 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 
-
 	// NUMBER OF CONJUNCTS/DISJUNCTS
 	@Override
 	public void inAConjunctPredicate(AConjunctPredicate node) {
-		if(depth==DEPTH_MIN) {
+		if (depth == DEPTH_MIN) {
 			// Only count the base conjuncts (not those that are part of nested conjuncts
 			data.incConjunctsCount();
 		}
@@ -104,13 +107,12 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 	@Override
 	public void inADisjunctPredicate(ADisjunctPredicate node) {
-		if(inNegation)
+		if (inNegation)
 			data.incConjunctionsCount();
 		else
 			data.incDisjunctionsCount();
 		super.inADisjunctPredicate(node);
 	}
-
 
 
 	// EQUIVALENCES AND IMPLICATIONS
@@ -120,12 +122,12 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		data.incImplicationsCount();
 		super.caseAImplicationPredicate(node);
 	}
+
 	@Override
 	public void caseAEquivalencePredicate(AEquivalencePredicate node) {
 		data.incEquivalencesCount();
 		super.caseAEquivalencePredicate(node);
 	}
-
 
 
 	// QUANTIFIERS
@@ -143,7 +145,6 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 
-
 	// EQUALITY/INEQUALITY
 
 	@Override
@@ -157,7 +158,6 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		switchByNegation(data::incInequalityCount, data::incEqualityCount);
 		super.caseANotEqualPredicate(node);
 	}
-
 
 
 	// SETS: MEMBERSHIP AND SUBSETS
@@ -199,7 +199,6 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 
-
 	// COMPARISONS: GREATER AND LESS
 
 	@Override
@@ -227,7 +226,6 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 
-
 	// BOOLEAN LITERALS AND CONVERTIONS
 
 	@Override
@@ -249,8 +247,6 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 
-
-
 	// FINITENESS
 
 
@@ -265,8 +261,6 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		switchByNegation(data::incFiniteSetRequirementsCount, data::incInfiniteSetRequirementsCount);
 		super.caseAFin1SubsetExpression(node);
 	}
-
-
 
 
 	// ARITHMETIC
@@ -335,51 +329,52 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 	@Override
 	public void caseAIdentifierExpression(AIdentifierExpression node) {
-		node.getIdentifier().stream().map(Tid->Tid.getText()).forEach(data::addIdentifier);
+		node.getIdentifier().stream().map(Tid -> Tid.getText()).forEach(data::addIdentifier);
 		super.caseAIdentifierExpression(node);
 	}
 
 	/**
 	 * If possible, sets the left hand side (LHS) as lower bound for the right hand side (RHS).
 	 * <p>
-	 *     This means, LHS < RHS.
-	 *     Some distinctions are made based on whether any of LHS or RHS are only identifiers
-	 *     or more complex expressions. The highest complexity still accounted for is simple
-	 *     arithmetic, consisting of addition and multiplication.
+	 * This means, LHS < RHS.
+	 * Some distinctions are made based on whether any of LHS or RHS are only identifiers
+	 * or more complex expressions. The highest complexity still accounted for is simple
+	 * arithmetic, consisting of addition and multiplication.
 	 * </p>
 	 * <p>
-	 *     Internally there are three cases
-	 *     <ol>
-	 *         <li>LHS and RHS are both identifiers</li>
-	 *         <li>One of LHS or RHS is an identifer, the other is a more complex expression</li>
-	 *         <li>Both LHS and RHS are more complex expressions</li>
-	 *     </ol>
+	 * Internally there are three cases
+	 * <ol>
+	 * <li>LHS and RHS are both identifiers</li>
+	 * <li>One of LHS or RHS is an identifer, the other is a more complex expression</li>
+	 * <li>Both LHS and RHS are more complex expressions</li>
+	 * </ol>
 	 * </p>
 	 * <p>
-	 *     In the first case, simply the relation LHS < RHS is set.
+	 * In the first case, simply the relation LHS < RHS is set.
 	 * </p>
 	 * <p>
-	 *     The second case is treated more specially. Assume that RHS is the more complex expression
-	 *     (the following remains invariant to renaming).
-	 *     If RHS is more complex than a simple arithmetic expression (addition,
-	 *     multiplication, ...), than it will not be accounted for.
-	 *     Else, if it contains zero identifiers, than RHS will be posed as an upper boundary for
-	 *     the domain of LHS.
-	 *     It it contains exactly one identifier, this identifier will be posed as symbolic upper
-	 *     boundary for LHS.
-	 *     It it contains more than one identifier, it will not be accounted for.
-	 *     (The last case would pose the problem of a hypergraph, and implementing those is just
-	 *     another step towards rebuilding CLPFD, which is not the goal.)
+	 * The second case is treated more specially. Assume that RHS is the more complex expression
+	 * (the following remains invariant to renaming).
+	 * If RHS is more complex than a simple arithmetic expression (addition,
+	 * multiplication, ...), than it will not be accounted for.
+	 * Else, if it contains zero identifiers, than RHS will be posed as an upper boundary for
+	 * the domain of LHS.
+	 * It it contains exactly one identifier, this identifier will be posed as symbolic upper
+	 * boundary for LHS.
+	 * It it contains more than one identifier, it will not be accounted for.
+	 * (The last case would pose the problem of a hypergraph, and implementing those is just
+	 * another step towards rebuilding CLPFD, which is not the goal.)
 	 * </p>
 	 * <p>
-	 *     The third case is simply a more general case of case two.
-	 *     If both sides are without identifiers, the problem is discarded.
-	 *     If exactly one side contains exactly one identifier, the other side will pose a domain
-	 *     boundary on it.
-	 *     If both sides only contain one identifier each, they are treated as in the first case.
-	 *     If any side contains more than one identifier, disregard the constraint due to
-	 *     complexity.
+	 * The third case is simply a more general case of case two.
+	 * If both sides are without identifiers, the problem is discarded.
+	 * If exactly one side contains exactly one identifier, the other side will pose a domain
+	 * boundary on it.
+	 * If both sides only contain one identifier each, they are treated as in the first case.
+	 * If any side contains more than one identifier, disregard the constraint due to
+	 * complexity.
 	 * </p>
+	 *
 	 * @param left
 	 * @param right
 	 */
@@ -389,43 +384,42 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		boolean isRightId = right instanceof AIdentifierExpression;
 
 		// Both are identifiers
-		if(isLeftId && isRightId){
-			for(TIdentifierLiteral Tid1 : ((AIdentifierExpression) left).getIdentifier()){
-				for(TIdentifierLiteral Tid2 : ((AIdentifierExpression) right).getIdentifier()){
+		if (isLeftId && isRightId) {
+			for (TIdentifierLiteral Tid1 : ((AIdentifierExpression) left).getIdentifier()) {
+				for (TIdentifierLiteral Tid2 : ((AIdentifierExpression) right).getIdentifier()) {
 					data.addIdentifierLowerBound(Tid1.getText(), Tid2.getText());
 				}
 			}
 		}
 		// at most one is id
-		else if(isLeftId || isRightId){
+		else if (isLeftId || isRightId) {
 			ArithmeticExpressionCheck checkLeft = new ArithmeticExpressionCheck(left);
 			ArithmeticExpressionCheck checkRight = new ArithmeticExpressionCheck(right);
 
 			// both are arithmetic expressions
-			if(checkLeft.isSimpleArithmetic() && checkRight.isSimpleArithmetic()){
+			if (checkLeft.isSimpleArithmetic() && checkRight.isSimpleArithmetic()) {
 				int leftCount = checkLeft.getIdCount();
 				int rightCount = checkRight.getIdCount();
 
-				if(leftCount > 1 || rightCount > 1){
+				if (leftCount > 1 || rightCount > 1) {
 					// to complex, do nothing
 					return;
 				}
 
-				if(leftCount == 0 && rightCount == 0){
+				if (leftCount == 0 && rightCount == 0) {
 					// no ids, do nothing
 					return;
 				}
 
-				if(leftCount == rightCount){
+				if (leftCount == rightCount) {
 					// both have one id
 					String idLeft = checkLeft.getIds().get(0);
 					String idRight = checkRight.getIds().get(0);
 
 					data.addIdentifierLowerBound(idLeft, idRight);
-				}
-				else {
+				} else {
 					// exactly one has one id
-					boolean idIsLHS = leftCount==1;
+					boolean idIsLHS = leftCount == 1;
 					ArithmeticExpressionCheck check = (idIsLHS) ? checkLeft : checkRight;
 
 					String id = check.getIds().get(0);
@@ -440,8 +434,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 	private void setLowerBoundaryWRTNegation(PExpression left, PExpression right) {
-		if(inNegation)
-			setLowerBoundary(right,left);
+		if (inNegation)
+			setLowerBoundary(right, left);
 		setLowerBoundary(left, right);
 	}
 
@@ -471,7 +465,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 	@Override
 	public void outAEqualPredicate(AEqualPredicate node) {
-		if(!inNegation){
+		if (!inNegation) {
 			setLowerBoundary(node.getLeft(), node.getRight());
 			setLowerBoundary(node.getRight(), node.getLeft());
 		}
@@ -480,7 +474,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 	@Override
 	public void outANotEqualPredicate(ANotEqualPredicate node) {
-		if(inNegation){
+		if (inNegation) {
 			setLowerBoundary(node.getLeft(), node.getRight());
 			setLowerBoundary(node.getRight(), node.getLeft());
 		}
@@ -500,15 +494,15 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 	private void setIdentifierDomain(PExpression left, boolean membership, PExpression right) {
-		if(!(left instanceof AIdentifierExpression)){
+		if (!(left instanceof AIdentifierExpression)) {
 			return;
 		}
 
 		// if not-member ship, domain is automatically set do be unbounded
-		if(!(inNegation^membership)){
+		if (!(inNegation ^ membership)) {
 			((AIdentifierExpression) left).getIdentifier()
-					.stream().map(id->id.getText())
-					.forEach(id->data.addIdentifierDomainBoundaries(id,false,false));
+					.stream().map(id -> id.getText())
+					.forEach(id -> data.addIdentifierDomainBoundaries(id, false, false));
 			return;
 		}
 
@@ -518,18 +512,18 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 		// set domain boundaries
 		((AIdentifierExpression) left).getIdentifier()
-				.stream().map(id->id.getText())
-				.forEach(id->data.addIdentifierDomainBoundaries(id,lowerBoundary,upperBoundary));
+				.stream().map(id -> id.getText())
+				.forEach(id -> data.addIdentifierDomainBoundaries(id, lowerBoundary, upperBoundary));
 	}
 
 	private boolean isDomainLowerBounded(PExpression expression) {
-		if(expression instanceof ANatSetExpression
+		if (expression instanceof ANatSetExpression
 				|| expression instanceof ANat1SetExpression
 				|| expression instanceof AIntSetExpression
 				|| expression instanceof ABoolSetExpression
 				|| expression instanceof ANaturalSetExpression
 				|| expression instanceof ANatural1SetExpression
-				|| expression instanceof AIntervalExpression){
+				|| expression instanceof AIntervalExpression) {
 			return true;
 			// todo: maybe add powerset of those above
 		}
@@ -537,11 +531,11 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 	private boolean isDomainUpperBounded(PExpression expression) {
-		if(expression instanceof ANatSetExpression
+		if (expression instanceof ANatSetExpression
 				|| expression instanceof ANat1SetExpression
 				|| expression instanceof AIntSetExpression
 				|| expression instanceof ABoolSetExpression
-				|| expression instanceof  AIntervalExpression){
+				|| expression instanceof AIntervalExpression) {
 			return true;
 			// todo: maybe add powerset of those above
 		}
@@ -549,13 +543,12 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 
-
 	// POWER SETS
 
 	@Override
 	public void inAPowSubsetExpression(APowSubsetExpression node) {
 		powDepth++;
-		if (powDepth>powMaxDepth) powMaxDepth = powDepth; // set new maximum
+		if (powDepth > powMaxDepth) powMaxDepth = powDepth; // set new maximum
 		super.inAPowSubsetExpression(node);
 	}
 
@@ -568,7 +561,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	@Override
 	public void inAPow1SubsetExpression(APow1SubsetExpression node) {
 		powDepth++;
-		if (powDepth>powMaxDepth) powMaxDepth = powDepth; // set new maximum
+		if (powDepth > powMaxDepth) powMaxDepth = powDepth; // set new maximum
 		super.inAPow1SubsetExpression(node);
 	}
 
@@ -582,7 +575,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public void caseAPowSubsetExpression(APowSubsetExpression node) {
 		data.incPowerSetCount();
 		// count stacked power sets
-		if(powDepth == 1){
+		if (powDepth == 1) {
 			/*
 			 * explanation:
 			 * if the depth thus far equals 1, we are the second power set in a line
@@ -601,7 +594,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public void caseAPow1SubsetExpression(APow1SubsetExpression node) {
 		data.incPowerSetCount();
 		// count stacked power sets
-		if(powDepth == 1){
+		if (powDepth == 1) {
 			/*
 			 * explanation:
 			 * if the depth equals 1, we are the second power set in a line
@@ -615,7 +608,6 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		}
 		super.caseAPow1SubsetExpression(node);
 	}
-
 
 
 	// SET OPERATIONS
@@ -671,7 +663,6 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		data.incSetComprehensionCount();
 		super.caseAComprehensionSetExpression(node);
 	}
-
 
 
 	// RELATIONS
@@ -774,6 +765,68 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		super.caseACompositionExpression(node);
 	}
 
+
+
+
 	// FUNCTIONS
-	// todo
+
+	@Override
+	public void caseAPartialFunctionExpression(APartialFunctionExpression node) {
+		data.incFunPartialCount();
+		super.caseAPartialFunctionExpression(node);
+	}
+
+	@Override
+	public void caseATotalFunctionExpression(ATotalFunctionExpression node) {
+		data.incFunTotalCount();
+		super.caseATotalFunctionExpression(node);
+	}
+
+	@Override
+	public void caseAPartialInjectionExpression(APartialInjectionExpression node) {
+		data.incFunPartialInjCount();
+		super.caseAPartialInjectionExpression(node);
+	}
+
+	@Override
+	public void caseATotalInjectionExpression(ATotalInjectionExpression node) {
+		data.incFunTotalInjCount();
+		super.caseATotalInjectionExpression(node);
+	}
+
+	@Override
+	public void caseAPartialSurjectionExpression(APartialSurjectionExpression node) {
+		data.incFunPartialSurjCount();
+		super.caseAPartialSurjectionExpression(node);
+	}
+
+	@Override
+	public void caseATotalSurjectionExpression(ATotalSurjectionExpression node) {
+		data.incFunTotalSurjCount();
+		super.caseATotalSurjectionExpression(node);
+	}
+
+	@Override
+	public void caseAPartialBijectionExpression(APartialBijectionExpression node) {
+		data.incFunPartialBijCount();
+		super.caseAPartialBijectionExpression(node);
+	}
+
+	@Override
+	public void caseATotalBijectionExpression(ATotalBijectionExpression node) {
+		data.incFunTotalBijCount();
+		super.caseATotalBijectionExpression(node);
+	}
+
+	@Override
+	public void caseALambdaExpression(ALambdaExpression node) {
+		data.incLambdaCount();
+		super.caseALambdaExpression(node);
+	}
+
+	@Override
+	public void caseAFunctionExpression(AFunctionExpression node) {
+		data.incFunctionApplicationCount();
+		super.caseAFunctionExpression(node);
+	}
 }

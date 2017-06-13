@@ -958,4 +958,106 @@ public class LargeBASTFeaturesTest {
 		assertEquals("Amount of range subtractions does not match", expected, actual);
 	}
 
+	@Test
+	public void partialFunCountTest() throws NeuroBException{
+		String pred = "f : A +-> B & g : B --> A";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getFunPartialCount();
+		assertEquals("Amount of partial functions does not match", expected, actual);
+	}
+
+	@Test
+	public void totalFunCountTest() throws NeuroBException{
+		String pred = "f : A +-> B & g : B --> A";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getFunTotalCount();
+		assertEquals("Amount of total functions does not match", expected, actual);
+	}
+
+	@Test
+	public void partialInjFunCountTest() throws NeuroBException{
+		String pred = "f : A >-> B & g : B >+> A";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getFunPartialInjCount();
+		assertEquals("Amount of partial injective functions does not match", expected, actual);
+	}
+
+	@Test
+	public void totalInjFunCountTest() throws NeuroBException{
+		String pred = "f : A >-> B & g : B >+> A";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getFunTotalInjCount();
+		assertEquals("Amount of total injective functions does not match", expected, actual);
+	}
+
+	@Test
+	public void partialSurjFunCountTest() throws NeuroBException{
+		String pred = "f : A -->> B & g : B +->> A";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getFunPartialSurjCount();
+		assertEquals("Amount of partial surjective functions does not match", expected, actual);
+	}
+
+	@Test
+	public void totalSurjFunCountTest() throws NeuroBException{
+		String pred = "f : A -->> B & g : B +->> A";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getFunTotalSurjCount();
+		assertEquals("Amount of total surjective functions does not match", expected, actual);
+	}
+
+	@Test
+	public void partialBijFunCountTest() throws NeuroBException{
+		String pred = "f : A >->> B & g : B >+>> A";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getFunPartialBijCount();
+		assertEquals("Amount of partial bijective functions does not match", expected, actual);
+	}
+
+	@Test
+	public void totalBijFunCountTest() throws NeuroBException{
+		String pred = "f : A >->> B & g : B >+>> A";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getFunTotalBijCount();
+		assertEquals("Amount of total bijective functions does not match", expected, actual);
+	}
+
+	@Test
+	public void funApplicationCountTest() throws NeuroBException{
+		String pred = "f : A >->> B & g : B >+>> A & x = f(1) & y = f(2)*f(3)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getFunctionApplicationCount();
+		assertEquals("Amount of function applications does not match", expected, actual);
+	}
+
+	@Test
+	public void lambdaFunCountTest() throws NeuroBException{
+		String pred = "X = %x.(x:NATURAL|x**2)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getLambdaCount();
+		assertEquals("Amount of lambda abstractions does not match", expected, actual);
+	}
+
+
+
 }
