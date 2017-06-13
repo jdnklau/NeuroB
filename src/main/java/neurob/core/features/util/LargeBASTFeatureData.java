@@ -44,8 +44,17 @@ public class LargeBASTFeatureData {
 	private int arithmeticExponentialCount = 0; // Number of ** operations
 	private int arithmeticMinCount = 0; // Number of min calls
 	private int arithmeticMaxCount = 0; // Number of max calls
+	private int arithmeticGeneralisedSumCount = 0; // Number of generalised sums
+	private int arithmeticGeneralisedProductCount = 0; // Number of generalised products
 	private int powerSetCount = 0; // Number of POW(...) calls
 	private int powerSetHigherOrderCounts = 0; // Number of POW(POW(...)) calls
+	private int setCardCount = 0; // Number of CARD(...) counts
+	private int setUnionCount = 0; // Number of set unions
+	private int setIntersectCount = 0; // Number of set intersections
+	private int setGeneralUnionCount = 0; // Number of unions over a set of sets
+	private int setGeneralIntersectCount = 0; // Number of intersects over a set of sets
+	private int setQuantifiedUnionCount = 0; // Number of unions over something
+	private int setQuantifiedIntersectCount = 0; // Number of intersects over something
 	private IdentifierRelationsHandler identifiers; // Handling of identifiers
 
 
@@ -141,6 +150,12 @@ public class LargeBASTFeatureData {
 	public void incArithmeticMinCount(){arithmeticMinCount++; }
 	public int getArithmeticMaxCount(){return arithmeticMaxCount; }
 	public void incArithmeticMaxCount(){arithmeticMaxCount++; }
+
+	public int getArithmeticGeneralisedSumCount(){ return arithmeticGeneralisedSumCount; }
+	public void incArithmeticGeneralisedSumCount(){ arithmeticGeneralisedSumCount++; }
+
+	public int getArithmeticGeneralisedProductCount(){ return arithmeticGeneralisedProductCount; }
+	public void incArithmeticGeneralisedProductCount(){ arithmeticGeneralisedProductCount++; }
 
 	/**
 	 * Returns the number of added identifiers
@@ -248,4 +263,25 @@ public class LargeBASTFeatureData {
 
 	public int getPowerSetHigherOrderCounts(){ return powerSetHigherOrderCounts; }
 	public void incPowerSetHigherOrderCounts(){ powerSetHigherOrderCounts++; }
+
+	public int getSetCardCount(){ return setCardCount; }
+	public void incSetCardCount(){ setCardCount++; }
+
+	public int getSetUnionCount(){ return setUnionCount; }
+	public void incSetUnionCount(){ setUnionCount++; }
+	public int getSetIntersectCount(){ return setIntersectCount; }
+	public void incSetIntersectCount(){ setIntersectCount++; }
+
+	public int getSetGeneralUnionCount(){ return setGeneralUnionCount; }
+	public void incSetGeneralUnionCount(){ setGeneralUnionCount++; }
+	public int getSetGeneralIntersectCount(){ return setGeneralIntersectCount; }
+	public void incSetGeneralIntersectCount(){ setGeneralIntersectCount++; }
+
+	public int getSetQuantifiedUnionCount(){ return setQuantifiedUnionCount; }
+	public void incSetQuantifiedUnionCount(){ setQuantifiedUnionCount++; }
+	public int getSetQuantifiedIntersectCount(){ return setQuantifiedIntersectCount; }
+	public void incSetQuantifiedIntersectCount(){ setQuantifiedIntersectCount++; }
+
+
+
 }

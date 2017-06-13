@@ -49,6 +49,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * - arithmetic operators
 	 * - identifiers and their relations
 	 * - power sets
+	 * - sets and set operators
 	 */
 
 	// PREDICATE AND NEGATION DEPTH
@@ -109,6 +110,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 
+
 	// EQUIVALENCES AND IMPLICATIONS
 
 	@Override
@@ -121,6 +123,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		data.incEquivalencesCount();
 		super.caseAEquivalencePredicate(node);
 	}
+
+
 
 	// QUANTIFIERS
 
@@ -313,7 +317,17 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		super.caseAMaxExpression(node);
 	}
 
+	@Override
+	public void caseAGeneralSumExpression(AGeneralSumExpression node) {
+		data.incArithmeticGeneralisedSumCount();
+		super.caseAGeneralSumExpression(node);
+	}
 
+	@Override
+	public void caseAGeneralProductExpression(AGeneralProductExpression node) {
+		data.incArithmeticGeneralisedProductCount();
+		super.caseAGeneralProductExpression(node);
+	}
 
 	// IDENTIFIERS AND THEIR RELATIONS
 
@@ -512,7 +526,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 				|| expression instanceof AIntSetExpression
 				|| expression instanceof ABoolSetExpression
 				|| expression instanceof ANaturalSetExpression
-				|| expression instanceof  ANatural1SetExpression){
+				|| expression instanceof ANatural1SetExpression
+				|| expression instanceof AIntervalExpression){
 			return true;
 			// todo: maybe add powerset of those above
 		}
@@ -523,7 +538,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		if(expression instanceof ANatSetExpression
 				|| expression instanceof ANat1SetExpression
 				|| expression instanceof AIntSetExpression
-				|| expression instanceof ABoolSetExpression){
+				|| expression instanceof ABoolSetExpression
+				|| expression instanceof  AIntervalExpression){
 			return true;
 			// todo: maybe add powerset of those above
 		}
@@ -596,5 +612,55 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 			data.incPowerSetHigherOrderCounts();
 		}
 		super.caseAPow1SubsetExpression(node);
+	}
+
+
+
+	// SET OPERATIONS
+
+	@Override
+	public void caseACardExpression(ACardExpression node) {
+		data.incSetCardCount();
+		super.caseACardExpression(node);
+	}
+
+	@Override
+	public void caseAUnionExpression(AUnionExpression node) {
+		data.incSetUnionCount();
+		super.caseAUnionExpression(node);
+	}
+
+	@Override
+	public void caseAGeneralUnionExpression(AGeneralUnionExpression node) {
+		data.incSetUnionCount();
+		data.incSetGeneralUnionCount();
+		super.caseAGeneralUnionExpression(node);
+	}
+
+	@Override
+	public void caseAQuantifiedUnionExpression(AQuantifiedUnionExpression node) {
+		data.incSetUnionCount();
+		data.incSetQuantifiedUnionCount();
+		super.caseAQuantifiedUnionExpression(node);
+	}
+
+	@Override
+	public void caseAIntersectionExpression(AIntersectionExpression node) {
+		data.incSetIntersectCount();
+		super.caseAIntersectionExpression(node);
+	}
+
+	@Override
+	public void caseAGeneralIntersectionExpression(AGeneralIntersectionExpression node) {
+		data.incSetIntersectCount();
+		data.incSetGeneralIntersectCount();
+		super.caseAGeneralIntersectionExpression(node);
+	}
+
+	@Override
+	public void caseAQuantifiedIntersectionExpression(AQuantifiedIntersectionExpression node) {
+		data.incSetIntersectCount();
+		data.incSetQuantifiedIntersectCount();
+		super.caseAQuantifiedIntersectionExpression(node);
 	}
 }

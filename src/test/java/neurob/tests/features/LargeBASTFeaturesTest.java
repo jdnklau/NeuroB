@@ -326,6 +326,26 @@ public class LargeBASTFeaturesTest {
 	}
 
 	@Test
+	public void generalisedSumCountTest() throws NeuroBException {
+		String pred = "2 = SIGMA(z).(z:NATURAL1 | 1/z)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getArithmeticGeneralisedSumCount();
+		assertEquals("generalised sum count does not match", expected, actual);
+	}
+
+	@Test
+	public void generalisedProdCountTest() throws NeuroBException {
+		String pred = "0 = PI(z).(z:NATURAL1 | 1/z)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getArithmeticGeneralisedProductCount();
+		assertEquals("generalised product count does not match", expected, actual);
+	}
+
+	@Test
 	public void identifierCountTest() throws NeuroBException {
 		String pred = "x : NAT & y < z";
 		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
@@ -476,6 +496,16 @@ public class LargeBASTFeaturesTest {
 	}
 
 	@Test
+	public void identifierBoundedDomainCount6Test() throws NeuroBException {
+		String pred = "x : 1..10 & y : -100..100";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getIdentifierBoundedDomainCount();
+		assertEquals("Amount of bounded domains does not match", expected, actual);
+	}
+
+	@Test
 	public void identifierSemiBoundedDomainCountTest() throws NeuroBException {
 		String pred = "x : INTEGER & y : NATURAL & z : INT & y > z";
 		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
@@ -607,4 +637,139 @@ public class LargeBASTFeaturesTest {
 		int actual = data.getPowerSetHigherOrderCounts();
 		assertEquals("Amount of power set stacks does not match", expected, actual);
 	}
+
+	@Test
+	public void setCardCountTest() throws NeuroBException{
+		String pred = "card(NAT) > 3";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetCardCount();
+		assertEquals("Cardinality count does not match", expected, actual);
+	}
+
+	@Test
+	public void setUnionCountTest() throws NeuroBException{
+		String pred = "x \\/ y = z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetUnionCount();
+		assertEquals("Amount of set unions does not match", expected, actual);
+	}
+
+	@Test
+	public void setUnionCount2Test() throws NeuroBException{
+		String pred = "x \\/ y \\/ a = z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getSetUnionCount();
+		assertEquals("Amount of set unions does not match", expected, actual);
+	}
+
+	@Test
+	public void setUnionCount3Test() throws NeuroBException{
+		String pred = "x = union({a,b,c,d})";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetUnionCount();
+		assertEquals("Amount of set unions does not match", expected, actual);
+	}
+
+	@Test
+	public void setUnionCount4Test() throws NeuroBException{
+		String pred = "x = UNION(z).(card(z)=3 & z<:NAT | z)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetUnionCount();
+		assertEquals("Amount of set unions does not match", expected, actual);
+	}
+
+	@Test
+	public void setIntersecCountTest() throws NeuroBException{
+		String pred = "x /\\ y = z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetIntersectCount();
+		assertEquals("Amount of set intersections does not match", expected, actual);
+	}
+
+	@Test
+	public void setIntersecCount2Test() throws NeuroBException{
+		String pred = "x /\\ y /\\ a = z";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getSetIntersectCount();
+		assertEquals("Amount of set intersections does not match", expected, actual);
+	}
+
+	@Test
+	public void setIntersecCount3Test() throws NeuroBException{
+		String pred = "x = inter({a,b,c,d})";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetIntersectCount();
+		assertEquals("Amount of set intersections does not match", expected, actual);
+	}
+
+	@Test
+	public void setIntersecCount4Test() throws NeuroBException{
+		String pred = "x = INTER(z).(card(z)=3 & z<:NAT | z)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetIntersectCount();
+		assertEquals("Amount of set intersections does not match", expected, actual);
+	}
+
+	@Test
+	public void setGeneralUnionCountTest() throws NeuroBException{
+		String pred = "x = union({}) & y = union({a,b,c,d}) & z = union(x)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getSetGeneralUnionCount();
+		assertEquals("Amount of generalised unions does not match", expected, actual);
+	}
+
+	@Test
+	public void setQualifiedUnionCountTest() throws NeuroBException{
+		String pred = "x = UNION(z).(card(z)=3 & z<:NAT | z)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetQuantifiedUnionCount();
+		assertEquals("Amount of generalised unions does not match", expected, actual);
+	}
+
+	@Test
+	public void setGeneralIntersectCountTest() throws NeuroBException{
+		String pred = "x = inter({}) & y = inter({a,b,c,d}) & z = inter(x)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getSetGeneralIntersectCount();
+		assertEquals("Amount of generalised intersections does not match", expected, actual);
+	}
+
+	@Test
+	public void setQualifiedIntersectCountTest() throws NeuroBException{
+		String pred = "x = INTER(z).(card(z)=3 & z<:NAT | z)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getSetQuantifiedIntersectCount();
+		assertEquals("Amount of generalised intersections does not match", expected, actual);
+	}
+
+
+
+
+
 }
