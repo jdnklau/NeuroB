@@ -3,6 +3,8 @@ package neurob.core.features.util;
 import de.be4.classicalb.core.parser.analysis.DepthFirstAdapter;
 import de.be4.classicalb.core.parser.node.*;
 
+import java.util.LinkedList;
+
 /**
  * @author Jannik Dunkelau
  */
@@ -389,11 +391,25 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		// check whether left is an identifier
 		boolean isLeftId = left instanceof AIdentifierExpression;
 		boolean isRightId = right instanceof AIdentifierExpression;
+		// primed?
+		boolean isLeftPrimed = !isLeftId && left instanceof APrimedIdentifierExpression;
+		boolean isRightPrimed = !isRightId && right instanceof APrimedIdentifierExpression;
+		isLeftId = isLeftId || isLeftPrimed; // primed ids are also ids
+		isRightId = isRightId || isRightPrimed; // primed ids are also ids
 
 		// Both are identifiers
 		if (isLeftId && isRightId) {
-			for (TIdentifierLiteral Tid1 : ((AIdentifierExpression) left).getIdentifier()) {
-				for (TIdentifierLiteral Tid2 : ((AIdentifierExpression) right).getIdentifier()) {
+			LinkedList<TIdentifierLiteral> ids_left =
+					(isLeftPrimed) ?
+							((APrimedIdentifierExpression) left).getIdentifier()
+							: ((AIdentifierExpression) left).getIdentifier();
+			LinkedList<TIdentifierLiteral> ids_right =
+					(isRightPrimed) ?
+							((APrimedIdentifierExpression) right).getIdentifier()
+							: ((AIdentifierExpression) right).getIdentifier();
+
+			for (TIdentifierLiteral Tid1 : ids_left) {
+				for (TIdentifierLiteral Tid2 : ids_right) {
 					data.addIdentifierLowerBound(Tid1.getText(), Tid2.getText());
 				}
 			}

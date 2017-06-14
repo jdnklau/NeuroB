@@ -57,8 +57,25 @@ public class ArithmeticExpressionCheckTest {
 	}
 
 	@Test
+	public void positiveTest6() throws BCompoundException {
+		String pred = "18**x$0";
+		ArithmeticExpressionCheck check = new ArithmeticExpressionCheck(getAST(pred));
+		assertTrue("simple arithmetic expression "+pred+" un-detected", check.isSimpleArithmetic());
+	}
+
+	@Test
 	public void idCountTest1() throws BCompoundException {
 		String pred = "x+y";
+		ArithmeticExpressionCheck check = new ArithmeticExpressionCheck(getAST(pred));
+		int expected = 2;
+		int actual = check.getIdCount();
+
+		assertEquals("Amount of identifiers does not match", expected, actual);
+	}
+
+	@Test
+	public void idCountPrimedTest1() throws BCompoundException {
+		String pred = "x+y$0";
 		ArithmeticExpressionCheck check = new ArithmeticExpressionCheck(getAST(pred));
 		int expected = 2;
 		int actual = check.getIdCount();

@@ -66,6 +66,11 @@ public class ArithmeticExpressionCheck extends DepthFirstAdapter {
 	}
 
 	@Override
+	public void inAPrimedIdentifierExpression(APrimedIdentifierExpression node) {
+		// do nothing
+	}
+
+	@Override
 	public void inAIntegerExpression(AIntegerExpression node) {
 		// do nothing
 		// TODO: maybe check typing of identifier to eg. distinguish between set cart or integer mul
@@ -75,6 +80,12 @@ public class ArithmeticExpressionCheck extends DepthFirstAdapter {
 	public void caseAIdentifierExpression(AIdentifierExpression node) {
 		node.getIdentifier().stream().map(n->n.getText()).forEach(ids::addIdentifier);
 		super.caseAIdentifierExpression(node);
+	}
+
+	@Override
+	public void caseAPrimedIdentifierExpression(APrimedIdentifierExpression node) {
+		node.getIdentifier().stream().map(n->n.getText()).forEach(ids::addIdentifier);
+		super.caseAPrimedIdentifierExpression(node);
 	}
 
 	public int getIdCount(){
