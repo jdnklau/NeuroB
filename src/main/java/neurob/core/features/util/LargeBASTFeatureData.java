@@ -84,7 +84,20 @@ public class LargeBASTFeatureData {
 	private int funTotalBijCount = 0; // Number of total bijection function definitions >->>
 	private int lambdaCount = 0; // Number of lambda abstractions %
 	private int functionApplicationCount = 0; // Number of function applications
-
+	private int seqCount = 0; // Number of sequences [...]
+	private int iseqCount = 0; // number of isequences
+	private int sizeCount = 0; // number of size(...) calls
+	private int firstCount = 0; // Number of first(...) calls
+	private int tailCount = 0; // Number of tail(...) calls
+	private int lastCount = 0; // Number of last(...) calls
+	private int frontCount = 0; // Number of front(...) calls
+	private int revCount = 0; // Number of sequence reversions
+	private int concatCount = 0; // Number of concatenations
+	private int frontInsertionCount = 0; // Number of insert_front nodes in AST
+	private int tailInsertionCount = 0; // Number of insert_tail nodes in AST
+	private int frontRestrictionCount = 0; // Number of restrict_front nodes in AST
+	private int tailRestrictionCount = 0; // Number of restrict_tail nodes in AST
+	private int generalConcatCount = 0; // Number of general concatenations
 
 	private IdentifierRelationsHandler identifiers; // Handling of identifiers
 
@@ -382,5 +395,39 @@ public class LargeBASTFeatureData {
 
 	public int getFunctionApplicationCount() { return functionApplicationCount; }
 	public void incFunctionApplicationCount() { functionApplicationCount++; }
+
+	public int getSeqCount() { return seqCount; }
+	public void incSeqCount() { seqCount++; }
+	public int getIseqCount() { return iseqCount; }
+	public void incIseqCount() { iseqCount++; }
+
+	public int getSizeCount() { return sizeCount; }
+	public void incSizeCount() { sizeCount++; }
+
+	public int getFirstCount() { return firstCount; }
+	public void incFirstCount() { firstCount++; }
+	public int getTailCount() { return tailCount; }
+	public void incTailCount() { tailCount++; }
+	public int getLastCount() { return lastCount; }
+	public void incLastCount() { lastCount++; }
+	public int getFrontCount() { return frontCount; }
+	public void incFrontCount() { frontCount++; }
+
+	public int getFrontInsertionCount() { return frontInsertionCount; }
+	public void incFrontInsertionCount() { frontInsertionCount++; }
+	public int getTailInsertionCount() { return tailInsertionCount; }
+	public void incTailInsertionCount() { tailInsertionCount++; }
+	public int getFrontRestrictionCount() { return frontRestrictionCount; }
+	public void incFrontRestrictionCount() { frontRestrictionCount++; }
+	public int getTailRestrictionCount() { return tailRestrictionCount; }
+	public void incTailRestrictionCount() { tailRestrictionCount++; }
+
+	public int getRevCount() { return revCount; }
+	public void incRevCount() { revCount++; }
+
+	public int getConcatCount() { return concatCount; }
+	public void incConcatCount() { concatCount++; }
+	public int getGeneralConcatCount() { return generalConcatCount; }
+	public void incGeneralConcatCount() { generalConcatCount++; }
 
 }

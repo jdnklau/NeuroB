@@ -54,6 +54,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * - sets and set operators
 	 * - relations
 	 * - functions
+	 * - sequences
 	 */
 
 	// PREDICATE AND NEGATION DEPTH
@@ -331,6 +332,12 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public void caseAIdentifierExpression(AIdentifierExpression node) {
 		node.getIdentifier().stream().map(Tid -> Tid.getText()).forEach(data::addIdentifier);
 		super.caseAIdentifierExpression(node);
+	}
+
+	@Override
+	public void caseAPrimedIdentifierExpression(APrimedIdentifierExpression node) {
+		node.getIdentifier().stream().map(Tid -> Tid.getText()).forEach(data::addIdentifier);
+		super.caseAPrimedIdentifierExpression(node);
 	}
 
 	/**
@@ -828,5 +835,105 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public void caseAFunctionExpression(AFunctionExpression node) {
 		data.incFunctionApplicationCount();
 		super.caseAFunctionExpression(node);
+	}
+
+
+
+	// SEQUENCES
+
+	@Override
+	public void caseASequenceExtensionExpression(ASequenceExtensionExpression node) {
+		data.incSeqCount();
+		super.caseASequenceExtensionExpression(node);
+	}
+
+	@Override
+	public void caseASeqExpression(ASeqExpression node) {
+		data.incSeqCount();
+		super.caseASeqExpression(node);
+	}
+
+	@Override
+	public void caseASeq1Expression(ASeq1Expression node) {
+		data.incSeqCount();
+		super.caseASeq1Expression(node);
+	}
+
+	@Override
+	public void caseAIseqExpression(AIseqExpression node) {
+		data.incSeqCount();
+		super.caseAIseqExpression(node);
+	}
+
+	@Override
+	public void caseAIseq1Expression(AIseq1Expression node) {
+		data.incSeqCount();
+		super.caseAIseq1Expression(node);
+	}
+
+	@Override
+	public void caseAFirstExpression(AFirstExpression node) {
+		data.incFirstCount();
+		super.caseAFirstExpression(node);
+	}
+
+	@Override
+	public void caseALastExpression(ALastExpression node) {
+		data.incLastCount();
+		super.caseALastExpression(node);
+	}
+
+	@Override
+	public void caseATailExpression(ATailExpression node) {
+		data.incTailCount();
+		super.caseATailExpression(node);
+	}
+
+	@Override
+	public void caseAFrontExpression(AFrontExpression node) {
+		data.incFrontCount();
+		super.caseAFrontExpression(node);
+	}
+
+	@Override
+	public void caseAInsertFrontExpression(AInsertFrontExpression node) {
+		data.incFrontInsertionCount();
+		super.caseAInsertFrontExpression(node);
+	}
+
+	@Override
+	public void caseARestrictFrontExpression(ARestrictFrontExpression node) {
+		data.incFrontRestrictionCount();
+		super.caseARestrictFrontExpression(node);
+	}
+
+	@Override
+	public void caseAInsertTailExpression(AInsertTailExpression node) {
+		data.incTailInsertionCount();
+		super.caseAInsertTailExpression(node);
+	}
+
+	@Override
+	public void caseARestrictTailExpression(ARestrictTailExpression node) {
+		data.incTailRestrictionCount();
+		super.caseARestrictTailExpression(node);
+	}
+
+	@Override
+	public void caseAConcatExpression(AConcatExpression node) {
+		data.incConcatCount();
+		super.caseAConcatExpression(node);
+	}
+
+	@Override
+	public void caseAGeneralConcatExpression(AGeneralConcatExpression node) {
+		data.incGeneralConcatCount();
+		super.caseAGeneralConcatExpression(node);
+	}
+
+	@Override
+	public void caseARevExpression(ARevExpression node) {
+		data.incRevCount();
+		super.caseARevExpression(node);
 	}
 }
