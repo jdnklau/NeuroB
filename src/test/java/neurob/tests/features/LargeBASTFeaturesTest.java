@@ -346,6 +346,26 @@ public class LargeBASTFeaturesTest {
 	}
 
 	@Test
+	public void successorCountTest() throws NeuroBException {
+		String pred = "x = succ(1) & y = succ(succ(x))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getSuccCount();
+		assertEquals("successor count does not match", expected, actual);
+	}
+
+	@Test
+	public void predecessorCountTest() throws NeuroBException {
+		String pred = "x = succ(1) & y = pred(pred(x))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getPredecCount();
+		assertEquals("predecessor count does not match", expected, actual);
+	}
+
+	@Test
 	public void identifierCountTest() throws NeuroBException {
 		String pred = "x : NAT & y < z";
 		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
@@ -899,6 +919,26 @@ public class LargeBASTFeaturesTest {
 	}
 
 	@Test
+	public void domainCountTest() throws NeuroBException{
+		String pred = "r1 : A<->B & r2 : B<->C & r = (r1;r2) & dom(r)=dom(r1) & ran(r)<:C";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getDomainCount();
+		assertEquals("Amount of dom() calls does not match", expected, actual);
+	}
+
+	@Test
+	public void rangeCountTest() throws NeuroBException{
+		String pred = "r1 : A<->B & r2 : B<->C & r = (r1;r2) & dom(r)=dom(r1) & ran(r)<:C";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getRangeCount();
+		assertEquals("Amount of ran() calls does not match", expected, actual);
+	}
+
+	@Test
 	public void relProj1CountTest() throws NeuroBException{
 		String pred = "x = prj1(x,y) & y = prj2(x,y) & z = prj2(z,z)";
 		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
@@ -1219,6 +1259,16 @@ public class LargeBASTFeaturesTest {
 	}
 
 	@Test
+	public void seqPermutationCountTest() throws NeuroBException{
+		String pred = "x : seq1({1,2,3}) & y = perm(x) & first(x) /= first(y)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getPermCount();
+		assertEquals("Amount of sequence permutations does not match", expected, actual);
+	}
+
+	@Test
 	public void seqConcatCountTest() throws NeuroBException{
 		String pred = "x : seq1({1,2,3}) & y = x^x & z = y^x^y";
 		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
@@ -1237,10 +1287,6 @@ public class LargeBASTFeaturesTest {
 		int actual = data.getGeneralConcatCount();
 		assertEquals("Amount of general sequence concatenations does not match", expected, actual);
 	}
-
-
-
-
 
 
 }

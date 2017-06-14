@@ -46,6 +46,8 @@ public class LargeBASTFeatureData {
 	private int arithmeticMaxCount = 0; // Number of max calls
 	private int arithmeticGeneralisedSumCount = 0; // Number of generalised sums
 	private int arithmeticGeneralisedProductCount = 0; // Number of generalised products
+	private int succCount = 0; // Number of successor calls
+	private int predecCount = 0; // Number of predecessor calls
 	private int powerSetCount = 0; // Number of POW(...) calls
 	private int powerSetHigherOrderCounts = 0; // Number of POW(POW(...)) calls
 	private int setCardCount = 0; // Number of CARD(...) counts
@@ -66,6 +68,8 @@ public class LargeBASTFeatureData {
 	private int relationOverrideCount = 0; // Number of relational overrides <+
 	private int relationDirectProductCount = 0; // Number of direct products ><
 	private int relationParallelProductCount = 0; // Number of parallel products ||
+	private int domainCount = 0; // Number of domain(...) calls
+	private int rangeCount = 0; // Number of range(...) calls
 	private int projection1Count = 0; // Number of pr1 projections
 	private int projection2Count = 0; // Number of pr2 projections
 	private int forwardCompositionCount = 0; // Number of forward compositions ;
@@ -92,13 +96,15 @@ public class LargeBASTFeatureData {
 	private int lastCount = 0; // Number of last(...) calls
 	private int frontCount = 0; // Number of front(...) calls
 	private int revCount = 0; // Number of sequence reversions
+	private int permCount = 0; // Number of sequence permutations
 	private int concatCount = 0; // Number of concatenations
 	private int frontInsertionCount = 0; // Number of insert_front nodes in AST
 	private int tailInsertionCount = 0; // Number of insert_tail nodes in AST
 	private int frontRestrictionCount = 0; // Number of restrict_front nodes in AST
 	private int tailRestrictionCount = 0; // Number of restrict_tail nodes in AST
 	private int generalConcatCount = 0; // Number of general concatenations
-
+	private int closureCount = 0; // Number of closure(...) or closure1(...) calls
+	private int iterateCount = 0; // Number of iterate(...) calls
 	private IdentifierRelationsHandler identifiers; // Handling of identifiers
 
 
@@ -200,6 +206,11 @@ public class LargeBASTFeatureData {
 
 	public int getArithmeticGeneralisedProductCount(){ return arithmeticGeneralisedProductCount; }
 	public void incArithmeticGeneralisedProductCount(){ arithmeticGeneralisedProductCount++; }
+
+	public int getSuccCount(){ return succCount; }
+	public void incSuccCount(){ succCount++; }
+	public int getPredecCount(){ return predecCount; }
+	public void incPredecCount(){ predecCount++; }
 
 	/**
 	 * Returns the number of added identifiers
@@ -354,6 +365,11 @@ public class LargeBASTFeatureData {
 	public int getRelationParallelProductCount(){ return relationParallelProductCount; }
 	public void incRelationParallelProductCount(){ relationParallelProductCount++; }
 
+	public int getDomainCount(){ return domainCount; }
+	public void incDomainCount(){ domainCount++; }
+	public int getRangeCount(){ return rangeCount; }
+	public void incRangeCount(){ rangeCount++; }
+
 	public int getProjection1Count(){ return projection1Count; }
 	public void incProjection1Count(){ projection1Count++; }
 	public int getProjection2Count() { return projection2Count; }
@@ -424,10 +440,17 @@ public class LargeBASTFeatureData {
 
 	public int getRevCount() { return revCount; }
 	public void incRevCount() { revCount++; }
+	public int getPermCount() { return permCount; }
+	public void incPermCount() { permCount++; }
 
 	public int getConcatCount() { return concatCount; }
 	public void incConcatCount() { concatCount++; }
 	public int getGeneralConcatCount() { return generalConcatCount; }
 	public void incGeneralConcatCount() { generalConcatCount++; }
 
+
+	public int getClosureCount() { return closureCount; }
+	public void incClosureCount() { closureCount++; }
+	public int getIterateCount() { return iterateCount; }
+	public void incIterateCount() { iterateCount++; }
 }

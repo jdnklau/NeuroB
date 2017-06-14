@@ -57,6 +57,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * - relations
 	 * - functions
 	 * - sequences
+	 * - closures and iterations
 	 */
 
 	// PREDICATE AND NEGATION DEPTH
@@ -326,6 +327,18 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public void caseAGeneralProductExpression(AGeneralProductExpression node) {
 		data.incArithmeticGeneralisedProductCount();
 		super.caseAGeneralProductExpression(node);
+	}
+
+	@Override
+	public void caseASuccessorExpression(ASuccessorExpression node) {
+		data.incSuccCount();
+		super.caseASuccessorExpression(node);
+	}
+
+	@Override
+	public void caseAPredecessorExpression(APredecessorExpression node) {
+		data.incPredecCount();
+		super.caseAPredecessorExpression(node);
 	}
 
 	// IDENTIFIERS AND THEIR RELATIONS
@@ -788,8 +801,17 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		super.caseACompositionExpression(node);
 	}
 
+	@Override
+	public void caseADomainExpression(ADomainExpression node) {
+		data.incDomainCount();
+		super.caseADomainExpression(node);
+	}
 
-
+	@Override
+	public void caseARangeExpression(ARangeExpression node) {
+		data.incRangeCount();
+		super.caseARangeExpression(node);
+	}
 
 	// FUNCTIONS
 
@@ -951,5 +973,34 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	public void caseARevExpression(ARevExpression node) {
 		data.incRevCount();
 		super.caseARevExpression(node);
+	}
+
+	@Override
+	public void caseAPermExpression(APermExpression node) {
+		data.incPermCount();
+		super.caseAPermExpression(node);
+	}
+
+
+
+
+	// CLOSURES AND ITERATIONS
+
+	@Override
+	public void caseAReflexiveClosureExpression(AReflexiveClosureExpression node) {
+		data.incClosureCount();
+		super.caseAReflexiveClosureExpression(node);
+	}
+
+	@Override
+	public void caseAClosureExpression(AClosureExpression node) {
+		data.incClosureCount();
+		super.caseAClosureExpression(node);
+	}
+
+	@Override
+	public void caseAIterationExpression(AIterationExpression node) {
+		data.incIterateCount();
+		super.caseAIterationExpression(node);
 	}
 }
