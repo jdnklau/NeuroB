@@ -14,7 +14,6 @@ import neurob.exceptions.NeuroBException;
  * @author Jannik Dunkelau
  */
 public class LargeBASTFeatureData {
-	public static final int featureCount = -1;
 	private final BParser bParser;
 	private LargeBASTFeatureCollector collector;
 
@@ -133,6 +132,8 @@ public class LargeBASTFeatureData {
 	public LargeBASTFeatureCollector getFeatureCollector(){
 		return collector;
 	}
+
+	public int getMaxDepth(){ return collector.getMaxDepth(); }
 
 	public int getConjunctsCount(){ return conjunctsCount; }
 	public void incConjunctsCount(){ conjunctsCount++; }
@@ -318,6 +319,8 @@ public class LargeBASTFeatureData {
 
 	public int getPowerSetHigherOrderCounts(){ return powerSetHigherOrderCounts; }
 	public void incPowerSetHigherOrderCounts(){ powerSetHigherOrderCounts++; }
+
+	public int getMaxPowDepth(){ return collector.getPowMaxDepth(); }
 
 	public int getSetCardCount(){ return setCardCount; }
 	public void incSetCardCount(){ setCardCount++; }
