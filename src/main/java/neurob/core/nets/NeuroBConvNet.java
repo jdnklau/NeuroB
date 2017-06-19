@@ -36,16 +36,16 @@ public class NeuroBConvNet extends NeuroBNet {
 	public NeuroBConvNet(int[] hiddenLayers, double learningRate, ConvolutionFeatures features, LabelGenerator labelling) {
 		this(hiddenLayers, learningRate, features, labelling, new Random().nextInt());
 	}
-	
+
 	/**
 	 * Creates a convolutional neural network with given structure.
 	 * <p>
-	 * {@code hiddenLayers} parameter gives structure of the neural net. For each entry in the array, a convolution layer with the entry's 
+	 * {@code hiddenLayers} parameter gives structure of the neural net. For each entry in the array, a convolution layer with the entry's
 	 * value of 5*5 filters will be created. The last entry is the size of a fully connected layer at the end of the network.
 	 * They are stacked onto each other according to the index in the array.
 	 * <br>
 	 * For example:
-	 * {16, 32, 32, 256} would create a neural net with three stacked convolution layers and a final fully connected layer. 
+	 * {16, 32, 32, 256} would create a neural net with three stacked convolution layers and a final fully connected layer.
 	 * The first one learning 16 filters, the second and third one each 32.
 	 * The fully connected layer would have 256 neurons.
 	 * <br>
@@ -58,9 +58,9 @@ public class NeuroBConvNet extends NeuroBNet {
 	 */
 	public NeuroBConvNet(int[] hiddenLayers, double learningRate, ConvolutionFeatures features, LabelGenerator labelling, int seed) {
 		super(features, labelling);
-		
+
 		this.seed = seed;
-		
+
 		ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
 		        .seed(seed)
 		        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -69,17 +69,17 @@ public class NeuroBConvNet extends NeuroBNet {
 		        .updater(Updater.NESTEROVS).momentum(0.9)
 		        .regularization(true).l2(1e-4)
 		        .list();
-		        
+
 		// Set up layers
-		if(hiddenLayers.length < 2) { 
+		if(hiddenLayers.length < 2) {
 			// no hidden layers
 			throw new IllegalArgumentException("NeuroBConvNet needs to have at least two entries for the hidden layer sizes");
 		}
 		else {
 			// hidden layers!
-			
+
 			int lastOut = features.getFeatureChannels();
-			
+
 			for(int i=0; i<hiddenLayers.length; i++){
 				listBuilder = listBuilder.layer(i, new ConvolutionLayer.Builder(5,5)
 						.nIn(lastOut)
@@ -90,20 +90,20 @@ public class NeuroBConvNet extends NeuroBNet {
 						.build());
 				lastOut = hiddenLayers[i];
 			}
-			
+
 			// Fully connected layer
 			listBuilder = listBuilder.layer(hiddenLayers.length, new DenseLayer.Builder()
 					.nOut(hiddenLayers[hiddenLayers.length-1])
 					.activation(Activation.RELU)
 					.weightInit(WeightInit.XAVIER)
 					.build());
-			
+
 			// Output layer - depending on whether we do regression or not
 			LossFunction lossFunction;
 			Activation activationFunction;
 			if(labelling.getProblemType() == ProblemType.REGRESSION){ // Regression
 				lossFunction = LossFunction.MSE;
-				activationFunction = Activation.IDENTITY; 
+				activationFunction = Activation.IDENTITY;
 			}
 			else { // No regression
 				lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
@@ -117,12 +117,12 @@ public class NeuroBConvNet extends NeuroBNet {
 					.weightInit(WeightInit.XAVIER)
 					.build());
 		}
-        
+
 		setUpNormalizer();
-		
+
 		this.model = new MultiLayerNetwork(
 				listBuilder
-				.setInputType(InputType.convolutional(features.getImageHeight(), 
+				.setInputType(InputType.convolutional(features.getImageHeight(),
 						features.getImageWidth(), features.getFeatureChannels()))
 				.pretrain(false).backprop(true)
 				.build());
@@ -132,12 +132,7 @@ public class NeuroBConvNet extends NeuroBNet {
 		super(modelFile, features, labelling);
 		// Necessary to restrict the feature generator to ConvolutionFeatures
 	}
-	
-	@Override
-	protected void setUpNormalizer() {
-		normalizer = new NormalizerMinMaxScaler();
-	}
-	
+
 	@Override
 	public DataSetIterator getDataSetIterator(Path datapath, int batchSize) throws IOException, InterruptedException {
 		RecordReader rr = features.getRecordReader(datapath, batchSize);
