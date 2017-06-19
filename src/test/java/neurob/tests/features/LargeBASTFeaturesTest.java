@@ -2,6 +2,7 @@ package neurob.tests.features;
 
 import static org.junit.Assert.*;
 
+import neurob.core.features.LargeBASTFeatures;
 import neurob.core.features.util.LargeBASTFeatureData;
 import neurob.exceptions.NeuroBException;
 import org.junit.Test;
@@ -10,6 +11,17 @@ import org.junit.Test;
  * @author Jannik Dunkelau
  */
 public class LargeBASTFeaturesTest {
+
+	@Test
+	public void featureLengthTest() throws NeuroBException {
+		String pred = "x>0 & 0>x";
+		LargeBASTFeatures features = new LargeBASTFeatures();
+
+		int expected = features.getFeatureDimension();
+		int actual = features.generateFeatureArray(pred).length;
+
+		assertEquals("Predicate depth does not match", expected, actual);
+	}
 
 	@Test
 	public void maxDepthTest() throws NeuroBException {
