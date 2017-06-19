@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguration>> {
 	private T candidateGenerator;
 	private Path savePath;
+	private int batchSize;
 	private int bestPerformingIndex;
 	@SuppressWarnings("rawtypes")
 	private ModelEvaluation bestEvaluation = null;
@@ -46,12 +47,22 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 	public HyperParameterSearch(T candidateGenerator,
 			FeatureGenerator featureGen, LabelGenerator labelGen,
 			Path modelDirectory){
+		this(candidateGenerator,
+				featureGen, labelGen, 250,
+				modelDirectory);
+	}
+
+	public HyperParameterSearch(T candidateGenerator,
+			FeatureGenerator featureGen, LabelGenerator labelGen, int batchSize,
+			Path modelDirectory){
 		this.candidateGenerator = candidateGenerator;
 		savePath = modelDirectory;
 		bestPerformingIndex = -1;
 
 		featureGenerator = featureGen;
 		labelGenerator = labelGen;
+
+		this.batchSize = batchSize;
 	}
 
 	/**
@@ -95,7 +106,8 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 			NeuroB nb = new NeuroB(nbn, modelSavePath);
 
 			// train model and get evaluation
-			ModelEvaluation eval = nb.train(trainSource,testSource,numEpochs);
+			ModelEvaluation eval = nb.train(trainSource,testSource, batchSize,
+					numEpochs, true, 6);
 
 			// compare evaluations
 			if(bestEvaluation == null || eval.performsBetterThan(bestEvaluation)){

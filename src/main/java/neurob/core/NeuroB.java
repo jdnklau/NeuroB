@@ -35,42 +35,8 @@ import neurob.training.statistics.interfaces.ModelEvaluation;
  * <p>Internally this class wraps a neural network of user's choice and provides additional functionality
  * like training, trainingset generation, and more.
  * </p>
- * <p>On creating a new instance, the constructor expects an object implementing the
- * {@link neurob.core.nets.interfaces.NeuroBNet NeuroBNet} interface. Every utility this interface provides should be accessible by this class too.
- * <br>
- * See the  following usage example to set up a new neural net with NeuroB:
- * <pre>
- * {@code
- * // Setting up the neural net
- * NeuroBNet nbn = new DefaultPredicateSolverPredictionNet()
- *                 .setSeed(12345L) // Choose as seed (optional)
- *                 .build(); // Build the net internally (does not happen automatically
- *
- * // Wrap the net with NeuroB
- * NeuroB n = new NeuroB(nbn); // Done!
- * }
- * </pre></p>
- * <p> Next step would be to train the neural net:
- * <pre>
- * {@code
- * // Generate the training data
- * // (optional; if the training data already exists this step can be skipped)
- * Path sourceDirectory = Paths.get("path/to/source/data/");
- * Path targetDirectory = Paths.get("path/to/target/directory/");
- * n.generateTrainingSet(sourceDirectory, targetDirectory);
- * // (This will take a while)
- *
- * // After the generation, a data csv file should be created; use it to train your data
- * Path trainingCSV = Paths.get("path/to/target/data.csv");
- * n.train(trainingCSV); // Done! (Also could take a while)
- * }
- * </pre>
- * See {@link #generateTrainingSet(Path, Path) generateTrainingSet} for more information on the generation step.</p>
- *
+ * TODO: Add example use
  * @author Jannik Dunkelau
- * @see neurob.core.nets.interfaces
- * @see #generateTrainingSet(Path, Path)
- *
  */
 public class NeuroB {
 	private static final Logger log = LoggerFactory.getLogger(NeuroB.class);
@@ -162,6 +128,29 @@ public class NeuroB {
 	public ModelEvaluation train(Path trainSource,Path testSource,
 			int numEpochs, boolean saveEpochStats, int earlyStoppingEpochs)
 			throws IOException, InterruptedException{
+		return train(trainSource, testSource, 250, numEpochs, saveEpochStats, earlyStoppingEpochs);
+	}
+
+	/**
+	 * Trains the neural net with a training set located at the given source.
+	 * <p>
+	 * The test source is then used to evaluate the trained network.
+	 * <p>
+	 * If for {@code earlyStoppingEpochs} consecutive epochs no performance gain on the test set could be measured,
+	 * the training stops.
+	 * @param trainSource
+	 * @param testSource
+	 * @param batchSize
+	 * @param numEpochs Number of epochs used in training
+	 * @param saveEpochStats Whether or not to save the evaluation results generated after each epoch to a csv file
+	 * @param earlyStoppingEpochs Number of consecutive epochs without performance gain before training is interrupted
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
+	@SuppressWarnings("rawtypes")
+	public ModelEvaluation train(Path trainSource,Path testSource, int batchSize,
+			int numEpochs, boolean saveEpochStats, int earlyStoppingEpochs)
+			throws IOException, InterruptedException{
 		log.info("Setting up target directory {}", savePath);
 		Files.createDirectories(savePath);
 		log.trace("\tDone: Setting up target directory");
@@ -171,7 +160,6 @@ public class NeuroB {
 		if(saveEpochStats)
 			eval.enableSavingToDisk(savePath.resolve("epochs.csv"));
 
-		int batchSize = 250;
 		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
 
 		// set up training data iterator and listeners
