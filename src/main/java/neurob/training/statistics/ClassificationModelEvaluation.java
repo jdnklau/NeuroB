@@ -133,7 +133,7 @@ public class ClassificationModelEvaluation extends ModelEvaluation<Evaluation> {
 
 	@Override
 	protected boolean performsBetterThan(Evaluation first, Evaluation second) {
-		return first.f1()>second.f1() || first.accuracy()>second.accuracy();
+		return first.f1()>second.f1();
 	}
 
 }
