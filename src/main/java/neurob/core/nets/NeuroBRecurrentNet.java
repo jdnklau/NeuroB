@@ -69,10 +69,10 @@ public class NeuroBRecurrentNet extends NeuroBNet {
 				.list();
 
 		// set up layers
-		if(hiddenLayers.length < 2) {
+		if(hiddenLayers.length < 1) {
 			// no hidden layers
-			throw new IllegalArgumentException("NeuroBRecurrentNet needs to have at least two " +
-					"entries for the hidden layer sizes");
+			throw new IllegalArgumentException("NeuroBRecurrentNet needs to have at least one " +
+					"entry for the hidden layer sizes");
 		}
 
 		int lastOut = features.getFeatureDimension();
