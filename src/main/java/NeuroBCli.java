@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -142,13 +144,10 @@ public class NeuroBCli {
 					+ "\t\tprob, kodkod, z3, smt\n"
 					+ "\t\twith smt representing SMT_SUPPORTED_INTERPRETER, a combination of ProB and Z3\n"
 
-					+ "trainnet -train <trainingfile> -test <testfile> [-net <features> <labels>]\n"
-					+ "\tTrains a neural net with the given <trainingfile> and evaluates the training step on the given <testfile>\n"
-					+ "\tBoth files being csv files generated with this tool\n"
-
-					+ "trainnet -train <traindata> -test <testdata> [-hidden <layer_sizes +>] [-seed <seed +>] [-epochs <epochs +>] [-lr <learningrate +>] [-net <features> <labels>]\n"
+					+ "trainnet -train <traindata> -test <testdata> [-hidden <layer_sizes +>] [-seed <seed +>] [-epochs <epochs +>] [-lr <learningrate +>] [-modeldir <modeldir>] [-net <features> <labels>]\n"
 					+ "\tTrains a neural networks model of type <net>\n"
 					+ "\tThe model is trained on <traindata>, then evaluated on <testdata>\n"
+					+ "\t-modeldir specifies where to save the model and defaults to trained_models/\n"
 					+ "\t-hidden determines the number and size of hidden layers; -hidden 256 128 128 would create 3 hidden layers with respective amount of neurons\n"
 					+ "\t\tDefault: -hidden 512 256 128 128\n"
 					+ "\tThe defaults for the other hyper parameters are seed: 0, epochs: 15, learningrate: 0.006\n"
@@ -156,9 +155,10 @@ public class NeuroBCli {
 					+ "\t\t      so be carefull with how many you query\n"
 					+ "\t\tExample: -seed 1 2 -lr 0.006 0.0007\n"
 
-					+ "modelsearch -train <traindata> -test <testdata> [-layers <hidden_layer_min> <hidden_layer_max>] [-models <amount>] [-epochs <amount>] [-net <features> <labels>]\n"
+					+ "modelsearch -train <traindata> -test <testdata> [-layers <hidden_layer_min> <hidden_layer_max>] [-models <amount>] [-epochs <amount>] [-modeldir <modeldir>] [-net <features> <labels>]\n"
 					+ "\tPerforms a randoms search for hyper parameters on a model\n"
 					+ "\tThe amount of desired models will be trained and tested on the given data\n"
+					+ "\t-modeldir specifies where to save the model and defaults to trained_models/\n"
 					+ "\t\tNote: -layers needs four entries for convolution models\n"
 					+ "\t\t\t- first+second is number of convolution, third+fourth is number of fully connected layers\n"
 					+ "\tDefault values: -layers 3 5; -models 15; -epochs 15\n"
@@ -429,8 +429,19 @@ public class NeuroBCli {
 		RandomSearchGenerator<DL4JConfiguration> candidateGenerator
 				= new RandomSearchGenerator<>(modelSpace);
 
+		// set up model directory
+		Path modelDir;
+		if(ops.containsKey("modeldir")){
+			modelDir = Paths.get(ops.get("modeldir").get(0));
+		} else {
+			modelDir = Paths.get("trained_models/");
+		}
+		modelDir = modelDir.resolve("hyper_parameter_search")
+				.resolve(ZonedDateTime.now()
+						.format(DateTimeFormatter.ISO_INSTANT));
+
 		HyperParameterSearch<RandomSearchGenerator<DL4JConfiguration>> modelSearch
-				= new HyperParameterSearch<>(candidateGenerator, fg, lg);
+				= new HyperParameterSearch<>(candidateGenerator, fg, lg, modelDir);
 
 		try {
 			modelSearch.trainModels(models, train, test, epochs);
@@ -569,7 +580,18 @@ public class NeuroBCli {
 			model = new NeuroBNet(hiddenLayers, learningrate, features, labelling, seed);
 		}
 
-		nb = new NeuroB(model);
+		// set up model directory
+		Path modelDir;
+		if(ops.containsKey("modeldir")){
+			modelDir = Paths.get(ops.get("modeldir").get(0));
+		} else {
+			modelDir = Paths.get("trained_models/");
+		}
+		modelDir = modelDir.resolve(model.getDataPathName())
+				.resolve(ZonedDateTime.now()
+						.format(DateTimeFormatter.ISO_INSTANT));
+
+		nb = new NeuroB(model, modelDir);
 		nb.enableDL4JUI(true);
 	}
 
