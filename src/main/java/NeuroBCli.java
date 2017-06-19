@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import neurob.core.features.LargeBASTFeatures;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.training.HyperParameterSearch;
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -180,6 +181,7 @@ public class NeuroBCli {
 
 					+ "<features> can be one of the following:\n"
 					+ "\tpredf: (default) Basic, handcrafted features for predicates\n"
+					+ "\tpredfL: (default) Large set of handcrafted features for B predicates\n"
 					+ "\tpredi: Predicate image features, i.e. image versions of the predicates\n"
 					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)\n"
 
@@ -580,6 +582,13 @@ public class NeuroBCli {
 				s = Integer.parseInt(ops.get("size").get(0));
 			}
 			return new PredicateImages(s);
+		}
+		else if(feats.equals("predfL")){
+			int s = 32;
+			if(ops.containsKey("size")){
+				s = Integer.parseInt(ops.get("size").get(0));
+			}
+			return new LargeBASTFeatures();
 		}
 		else {
 			return new TheoryFeatures();
