@@ -6,6 +6,10 @@ import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import neurob.core.features.interfaces.ConvolutionFeatures;
+import neurob.core.features.interfaces.RNNFeatures;
+import neurob.core.nets.NeuroBConvNet;
+import neurob.core.nets.NeuroBRecurrentNet;
 import org.deeplearning4j.arbiter.DL4JConfiguration;
 import org.deeplearning4j.arbiter.optimize.api.CandidateGenerator;
 import org.deeplearning4j.eval.IEvaluation;
@@ -82,8 +86,7 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 					candidateGenerator.getCandidate()
 					.getValue().getMultiLayerConfiguration());
 			// make neuroB net instance
-			NeuroBNet nbn = new NeuroBNet(model,
-					featureGenerator, labelGenerator);
+			NeuroBNet nbn = setUpModel(model);
 			Path modelSavePath =
 					savePath.resolve(nbn.getDataPathName())
 					.resolve(Integer.toString(i));
@@ -106,6 +109,7 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 		return bestPerformingIndex;
 	}
 
+
 	public int getBestPerformingIndex() {
 		return bestPerformingIndex;
 	}
@@ -115,4 +119,18 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 		return bestEvaluation;
 	}
 
+	/**
+	 * Decides which NeuroBNet to set up depending on feature generator in use
+	 * @param model
+	 * @return
+	 */
+	private NeuroBNet setUpModel(MultiLayerNetwork model) {
+		if(featureGenerator instanceof RNNFeatures){
+			return new NeuroBRecurrentNet(model, (RNNFeatures) featureGenerator, labelGenerator);
+		} else if(featureGenerator instanceof ConvolutionFeatures){
+			return new NeuroBConvNet(model, (ConvolutionFeatures) featureGenerator, labelGenerator);
+		} else {
+			return new NeuroBNet(model, featureGenerator, labelGenerator);
+		}
+	}
 }
