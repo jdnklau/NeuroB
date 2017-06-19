@@ -415,11 +415,15 @@ public class NeuroBCli {
 		LabelGenerator lg = getLabelGenerator();
 		// set up model space
 		MultiLayerSpace modelSpace;
-		if(fg instanceof ConvolutionFeatures){
-			modelSpace = NeuroBModelSpace.convolutionalModel(layers[0],layers[1],16,128,3,7,
-					layers[2], layers[3],128,1024,0.0001,0.1, (ConvolutionFeatures) fg, lg, 123);
+		if(fg instanceof ConvolutionFeatures) {
+			modelSpace = NeuroBModelSpace.convolutionalModel(layers[0], layers[1], 16, 128, 3, 7,
+					layers[2], layers[3], 128, 1024, 0.0001, 0.1, (ConvolutionFeatures) fg, lg, 123);
+		} else if(fg instanceof RNNFeatures) {
+			modelSpace = NeuroBModelSpace.recurrentModel(
+					layers[0], layers[1], 1, 2, 0.0001, 0.1, (RNNFeatures) fg, lg, 123);
 		} else {
-			modelSpace = NeuroBModelSpace.feedForwardModel(layers[0], layers[1], 32,1024, 0.0001, 0.1, fg, lg, 123);
+			modelSpace = NeuroBModelSpace.feedForwardModel(
+					layers[0], layers[1], 32,1024, 0.0001, 0.1, fg, lg, 123);
 		}
 
 		RandomSearchGenerator<DL4JConfiguration> candidateGenerator

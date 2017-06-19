@@ -2,12 +2,11 @@ package neurob.core.nets.search;
 
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
+import neurob.core.features.interfaces.RNNFeatures;
 import neurob.core.util.ProblemType;
 import neurob.training.generators.interfaces.LabelGenerator;
 import org.deeplearning4j.arbiter.MultiLayerSpace;
-import org.deeplearning4j.arbiter.layers.ConvolutionLayerSpace;
-import org.deeplearning4j.arbiter.layers.DenseLayerSpace;
-import org.deeplearning4j.arbiter.layers.OutputLayerSpace;
+import org.deeplearning4j.arbiter.layers.*;
 import org.deeplearning4j.arbiter.optimize.api.ParameterSpace;
 import org.deeplearning4j.arbiter.optimize.parameter.FixedValue;
 import org.deeplearning4j.arbiter.optimize.parameter.continuous.ContinuousParameterSpace;
@@ -265,5 +264,90 @@ public class NeuroBModelSpace {
 		return space;
 	}
 
+	/**
+	 * Creates a hyper parameter model space for a recurrent neural network
+	 * with variable size of hidden layers and learning rate.
+	 * <p>
+	 *     For each hidden layer, a random integer size from {@code [hiddenSizeMin, hiddenSizeMax]}
+	 *     is chosen.
+	 *     The learning rate will also be chosen from the continuous interval
+	 *     {@code [learningRateMin, learningRateMax]}
+	 * </p>
+	 * <p>
+	 *     <b>NOTE:</b> Each hidden layer will have the exactly same number of neurons, due a bug in
+	 *     DL4J Arbiter, that makes different parameter spaces with exact same configurations
+	 *     unusable.
+	 *     On the other hand, copying the same layer with different values used from the
+	 *     parameter spaces is not implemented yet (DL4J version 0.8.0)
+	 * </p>
+	 * <p>
+	 *     Each hidden layer uses tanh as activation function, and is initialised by
+	 *     Xavier initialisation.
+	 * </p>
+	 * <p>
+	 *     The output layer's configuration is dependend on the {@link LabelGenerator} in use.
+	 *     If the LabelGenerator spans a regression problem, the used activation function is
+	 *     the identity function, the loss function is Mean Squared Error.
+	 *     Otherwise, softmax and negative loglikelihood are used respectively.
+	 * </p>
+	 * @param hiddenLayersMin Minimum number of hidden layers to use
+	 * @param hiddenLayersMax Maximum number of hidden layers to use
+	 * @param hiddenSizeMin Lower bound of size for each hidden layer
+	 * @param hiddenSizeMax Upper bound of size for each hidden layer
+	 * @param learningRateMin Lower bound of the learning rate to use
+	 * @param learningRateMax Upper bound of the learnign rate to use
+	 * @param features {@link FeatureGenerator} to use
+	 * @param labelling {@link LabelGenerator} to use
+	 * @param seed Seed for the RNG
+	 * @return MultiLayerSpace spanning all possible models
+	 */
+	public static MultiLayerSpace recurrentModel(
+			int hiddenLayersMin, int hiddenLayersMax, int hiddenSizeMin, int hiddenSizeMax,
+			double learningRateMin, double learningRateMax,
+			RNNFeatures features, LabelGenerator labelling, int seed){
+		// set up learning rate
+		ParameterSpace<Double> lr = new ContinuousParameterSpace(learningRateMin, learningRateMax);
+		// Set up hyper parameters
+		MultiLayerSpace.Builder spaceBuilder = new MultiLayerSpace.Builder()
+				.seed(seed)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+				.iterations(1)
+				.learningRate(lr)
+				.updater(Updater.NESTEROVS).momentum(0.9)
+				.regularization(true).l2(1e-4);
 
+		// set up layers
+		ParameterSpace<Integer> hiddenLayers
+				= new IntegerParameterSpace(hiddenLayersMin, hiddenLayersMax);
+		ParameterSpace<Integer> layerSize = new IntegerParameterSpace(hiddenSizeMin, hiddenSizeMax);
+		spaceBuilder.addLayer(new GravesLSTMLayerSpace.Builder()
+				.nIn(features.getFeatureDimension())
+				.activation("tanh")
+				.weightInit(WeightInit.XAVIER)
+				.nOut(layerSize)
+				.build(), hiddenLayers, true);
+		// FIXME: parameter true in line above corresponds to bug mentioned in the java doc comment
+
+		// output layer configuration depending on regression or classification
+		String activationFunction;
+		LossFunction lossFunction;
+		if(labelling.getProblemType() == ProblemType.REGRESSION){
+			lossFunction = LossFunction.MSE;
+			activationFunction = "identity"; // FIXME: maybe wrong string; unsure as Arbiter does not update to the enums of DL4J
+		}
+		else {
+			lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
+			activationFunction = "softmax";
+		}
+
+		// the output layer itself
+		spaceBuilder.addLayer(new RnnOutputLayerSpace.Builder()
+				.nIn(layerSize)
+				.nOut(labelling.getLabelDimension())
+				.activation(activationFunction).lossFunction(lossFunction)
+				.build());
+
+		// build and return
+		return spaceBuilder.pretrain(false).backprop(true).build();
+	}
 }
