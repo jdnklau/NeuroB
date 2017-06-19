@@ -4,6 +4,8 @@ import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.SequenceRecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
 import org.datavec.api.split.NumberedFileInputSplit;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,4 +52,9 @@ public interface RNNFeatures extends FeatureGenerator {
 	default RecordReader getRecordReader(Path trainingSet, int batchSize) throws IOException, InterruptedException{
 		return getSequenceRecordReader(trainingSet, batchSize);
 	}
+
+	@Override
+	default DataNormalization getNewNormalizer(){
+		return new NormalizerStandardize();
+	};
 }

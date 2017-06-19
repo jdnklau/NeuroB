@@ -181,6 +181,30 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	public abstract T evaluateModel(Path testSet, String caption) throws IOException, InterruptedException;
 
 	/**
+	 * Evaluates the model in the given test set and feeds the data into the {@link IEvaluation eval}
+	 * object.
+	 * @param testSet
+	 * @param eval
+	 * @return
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	protected T evaluateModel(Path testSet, T eval) throws IOException, InterruptedException{
+		int batchSize = 100;
+		DataSetIterator iterator = nbn.getDataSetIterator(testSet, batchSize);
+		nbn.applyNormalizer(iterator); //Apply normalization learned from training set
+
+		// evaluate test set
+		while(iterator.hasNext()){
+			DataSet testData = iterator.next();
+			INDArray output = nbn.output(testData.getFeatureMatrix());
+			eval.eval(testData.getLabels(), output);
+		}
+
+		return eval;
+	}
+
+	/**
 	 * Returns true if this evaluation stored better results than the
 	 * compared instance.
 	 * @param compareWith Evaluation to compare performance results with

@@ -244,7 +244,7 @@ public class NeuroBNet {
 	}
 
 	protected void setUpNormalizer(){
-		normalizer = new NormalizerStandardize();
+		normalizer = features.getNewNormalizer();
 	}
 
 	/**

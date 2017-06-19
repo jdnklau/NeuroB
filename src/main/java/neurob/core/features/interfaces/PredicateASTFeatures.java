@@ -9,24 +9,26 @@ import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
 
 import neurob.exceptions.NeuroBException;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
 public interface PredicateASTFeatures extends FeatureGenerator {
-	
+
 	/**
 	 * Sets the machine file over which the predicates will be parsed.
 	 * <p>
-	 * This is mainly necessary due to the definitions in classical B, as their absence 
+	 * This is mainly necessary due to the definitions in classical B, as their absence
 	 * results in unparseable predicates.
 	 * @param machineFile
 	 * @throws NeuroBException
 	 */
 	public void setMachine(Path machineFile) throws NeuroBException;
-	
+
 	@Override
 	default void setSourceFile(Path sourceFile) throws NeuroBException {
 		setMachine(sourceFile);
 	}
-	
+
 	@Override
 	default RecordReader getRecordReader(Path trainingSet, int batchSize)
 			throws IOException, InterruptedException {
@@ -34,7 +36,12 @@ public interface PredicateASTFeatures extends FeatureGenerator {
 		FileSplit fileSplit = new FileSplit(trainingSet.toFile(),
 				new String[]{"csv", "CSV"}, new Random(123));
 		recordReader.initialize(fileSplit);
-		
+
 		return recordReader;
+	}
+
+	@Override
+	default DataNormalization getNewNormalizer(){
+		return new NormalizerStandardize();
 	}
 }
