@@ -21,7 +21,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 	private Path sourceFile;
 	private BParser bParser;
 
-	public static final int featureDimension = 167;
+	public static final int featureDimension = 166;
 
 	public LargeBASTFeatures(){
 		sourceFile = null;
@@ -168,7 +168,6 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				// booleans
 				data.getBooleanLiteralsCount()/conjuncts,
 				data.getBooleanConversionCount()/conjuncts,
-				(data.getBooleanLiteralsCount())/(data.getBooleanConversionCount()+epsilon), // norm literals over conversions
 
 				// quantifiers
 				data.getExistentialQuantifiersCount()/conjuncts, // exist. quant. per conjunct
@@ -254,8 +253,8 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				data.getSetQuantifiedUnionCount()/setOperations,
 				data.getSetQuantifiedIntersectCount()/setOperations,
 
-				data.getSetComprehensionCount()/setBelongings,
-				data.getSetComprehensionCount()/setOperations,
+				data.getSetComprehensionCount()/(setBelongings+data.getSetComprehensionCount()),
+				data.getSetComprehensionCount()/(setOperations+data.getSetComprehensionCount()),
 
 				// power sets
 				data.getPowerSetCount()/conjuncts,
@@ -263,7 +262,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 
 				data.getPowerSetHigherOrderCounts()/(data.getPowerSetCount()+epsilon),
 
-				data.getPowerSetCount()/setOperations,
+				data.getPowerSetCount()/(setOperations+data.getPowerSetCount()),
 
 				data.getMaxPowDepth()/(data.getPowerSetCount()+epsilon),
 				data.getMaxPowDepth()/(data.getPowerSetHigherOrderCounts()+epsilon),
@@ -333,7 +332,8 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				data.getFunPartialBijCount()/functions,
 				data.getFunTotalBijCount()/functions,
 				data.getLambdaCount()/functions,
-				data.getFunctionApplicationCount()/functions,
+
+				data.getFunctionApplicationCount()/(functions+data.getFunctionApplicationCount()),
 
 				// sequences over conjuncts
 				data.getSeqCount()/conjuncts,
