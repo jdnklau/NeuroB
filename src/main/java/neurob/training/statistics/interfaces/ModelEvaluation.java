@@ -197,8 +197,8 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 		// evaluate test set
 		while(iterator.hasNext()){
 			DataSet testData = iterator.next();
-        	INDArray output = nbn.output(testData.getFeatureMatrix());
-        	eval.eval(testData.getLabels(), output);
+			INDArray output = nbn.output(testData.getFeatureMatrix());
+			eval.eval(testData.getLabels(), output);
 		}
 
 		return eval;

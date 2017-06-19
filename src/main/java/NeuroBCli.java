@@ -411,7 +411,7 @@ public class NeuroBCli {
 		LabelGenerator lg = getLabelGenerator();
 		// set up model space
 		MultiLayerSpace modelSpace;
-		if(lg instanceof ConvolutionFeatures){
+		if(fg instanceof ConvolutionFeatures){
 			modelSpace = NeuroBModelSpace.convolutionalModel(layers[0],layers[1],16,128,3,7,
 					layers[2], layers[3],128,1024,0.0001,0.1, (ConvolutionFeatures) fg, lg, 123);
 		} else {
