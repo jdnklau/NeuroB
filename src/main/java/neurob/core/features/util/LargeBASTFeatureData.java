@@ -157,6 +157,8 @@ public class LargeBASTFeatureData {
 	public int getExistentialQuantifiersCount(){ return exQuantifierCount; }
 	public void incExistentialQuantifiersCount(){ exQuantifierCount++; }
 
+	public int getQuantifierMaxDepthCount(){ return collector.getQuantMaxDepth(); }
+
 	public int getEqualityCount(){ return equalityCount; }
 	public void incEqualityCount(){ equalityCount++; }
 

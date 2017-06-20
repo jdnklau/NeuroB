@@ -57,6 +57,17 @@ public class LargeBASTFeaturesTest {
 	}
 
 	@Test
+	public void conjunctsCount2Test() throws NeuroBException {
+		String pred = "x : NATURAL & (not(x> 3 => (x>2 & x > 2 & x<9))) & (x > 2)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getConjunctsCount();
+
+		assertEquals("conjuncts count does not match", expected, actual);
+	}
+
+	@Test
 	public void conjunctionsCountTest() throws NeuroBException {
 		String pred = "x : NATURAL & not(x> 3 => (x>2 or x > 2 or x<9)) & x > 2";
 		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
@@ -196,6 +207,28 @@ public class LargeBASTFeaturesTest {
 		expected = 1;
 		actual = data.getUniversalQuantifiersCount();
 		assertEquals("universal quantifiers count does not match", expected, actual);
+	}
+
+	@Test
+	public void quantifierDepthCountTest() throws NeuroBException {
+		String pred = "not(!x . (x : NATURAL => " +
+				"#y . (y > x & not(#z.(z<y & z=2*y)))))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 3;
+		int actual = data.getQuantifierMaxDepthCount();
+		assertEquals("quantifier nesting depth does not match", expected, actual);
+	}
+
+	@Test
+	public void quantifierDepthCount2Test() throws NeuroBException {
+		String pred = "not(!x . (x : NATURAL => " +
+				"#y . (y > x)))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getQuantifierMaxDepthCount();
+		assertEquals("quantifier nesting depth does not match", expected, actual);
 	}
 
 	@Test

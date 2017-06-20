@@ -21,7 +21,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 	private Path sourceFile;
 	private BParser bParser;
 
-	public static final int featureDimension = 169;
+	public static final int featureDimension = 184;
 
 	public LargeBASTFeatures(){
 		sourceFile = null;
@@ -79,24 +79,35 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 		final double epsilon = 0.000001; // for division if something could be 0
 		final double conjuncts = data.getConjunctsCount();
 		final double arithmeticOps =
-				data.getArithmeticAdditionCount() + data.getArithmeticDivisionCount()
-				+ data.getArithmeticMultiplicationCount() + data.getArithmeticModuloCount()
+				data.getArithmeticAdditionCount()
+				+ data.getArithmeticDivisionCount()
+				+ data.getArithmeticMultiplicationCount()
+				+ data.getArithmeticModuloCount()
 				+ data.getArithmeticExponentialCount()
 				+ data.getArithmeticGeneralisedProductCount()
 				+ data.getArithmeticGeneralisedSumCount()
-				+ data.getSuccCount() + data.getPredecCount()
+				+ data.getSuccCount()
+				+ data.getPredecCount()
 				+ data.getSizeComparisonCount()
 				+ epsilon;
+		final double quantifiers =
+				data.getExistentialQuantifiersCount()
+				+ data.getUniversalQuantifiersCount()
+				+ epsilon;
 		final double setBelongings =
-				data.getMemberCount() +data.getNotMemberCount()
-				+ data.getNotSubsetCount() + data.getSubsetCount()
+				data.getMemberCount()
+				+ data.getNotMemberCount()
+				+ data.getNotSubsetCount()
+				+ data.getSubsetCount()
 				+ epsilon;
 		final double setOperations =
-				data.getSetUnionCount()+data.getSetIntersectCount()+data.getSetSubtractionCount()
-				+ data.getSetGeneralIntersectCount() + data.getSetGeneralUnionCount()
-				+ data.getSetQuantifiedIntersectCount() + data.getSetQuantifiedUnionCount()
+				data.getSetUnionCount()+data.getSetIntersectCount()
+				+ data.getSetSubtractionCount()
+				+ data.getSetGeneralIntersectCount()
+				+ data.getSetGeneralUnionCount()
+				+ data.getSetQuantifiedIntersectCount()
+				+ data.getSetQuantifiedUnionCount()
 				+ epsilon;
-				// todo: complete this?
 		final double relations =
 				data.getRelationCount()
 				+ data.getRelationTotalCount()
@@ -176,6 +187,13 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				// quantifiers
 				data.getExistentialQuantifiersCount()/conjuncts, // exist. quant. per conjunct
 				data.getUniversalQuantifiersCount()/conjuncts, // univ. quant. per conjunct
+				data.getQuantifierMaxDepthCount()/conjuncts,
+
+				quantifiers/conjuncts,
+
+				data.getExistentialQuantifiersCount()/quantifiers,
+				data.getUniversalQuantifiersCount()/quantifiers,
+				data.getQuantifierMaxDepthCount()/quantifiers,
 
 				// equality and inequality
 				data.getEqualityCount()/conjuncts,
@@ -212,6 +230,9 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				data.getArithmeticGeneralisedProductCount()/conjuncts,
 				data.getSuccCount()/conjuncts,
 				data.getPredecCount()/conjuncts,
+
+				arithmeticOps/conjuncts,
+
 				// arithmetic normalised over arithmetic
 				data.getArithmeticAdditionCount()/arithmeticOps,
 				data.getArithmeticMultiplicationCount()/arithmeticOps,
@@ -243,6 +264,9 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 
 				data.getSetComprehensionCount()/conjuncts,
 
+				setBelongings/conjuncts,
+				setOperations/conjuncts,
+
 				// set theory over sets
 				data.getMemberCount()/setBelongings,
 				data.getNotMemberCount()/setBelongings,
@@ -267,6 +291,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				data.getPowerSetHigherOrderCounts()/(data.getPowerSetCount()+epsilon),
 
 				data.getPowerSetCount()/(setOperations+data.getPowerSetCount()),
+				data.getPowerSetHigherOrderCounts()/(setOperations+data.getPowerSetHigherOrderCounts()),
 
 				data.getMaxPowDepth()/(data.getPowerSetCount()+epsilon),
 				data.getMaxPowDepth()/(data.getPowerSetHigherOrderCounts()+epsilon),
@@ -291,6 +316,9 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				data.getDomainSubtractionCount()/conjuncts,
 				data.getRangeRestrictionCount()/conjuncts,
 				data.getRangeSubtractionCount()/conjuncts,
+
+				relations/conjuncts,
+				relationOps/conjuncts,
 
 				// relations over relation theory
 				data.getRelationCount()/relations,
@@ -326,6 +354,9 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 
 				data.getFunctionApplicationCount()/conjuncts,
 
+				functions/conjuncts,
+				(functions+data.getFunctionApplicationCount())/conjuncts,
+
 				// functions over function theory
 				data.getFunPartialCount()/functions,
 				data.getFunTotalCount()/functions,
@@ -355,6 +386,9 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				data.getFrontRestrictionCount()/conjuncts,
 				data.getTailRestrictionCount()/conjuncts,
 				data.getGeneralConcatCount()/conjuncts,
+
+				sequences/conjuncts,
+				sequenceOps/conjuncts,
 
 				// sequences over sequence theory
 				data.getSeqCount()/sequences,

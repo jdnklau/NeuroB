@@ -19,6 +19,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	private int powMaxDepth = 0;
 	private int negDepth = 0;
 	private int negMaxDepth = 0;
+	private int quantDepth = 0; // nesting of quantifiers
+	private int quantMaxDepth = 0;
 
 	public LargeBASTFeatureCollector(LargeBASTFeatureData data) {
 		this.data = data;
@@ -34,6 +36,10 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 	public int getNegMaxDepth(){
 		return negMaxDepth;
+	}
+
+	public int getQuantMaxDepth(){
+		return quantMaxDepth;
 	}
 
 	private void switchByNegation(Runnable noNegationAction, Runnable negationAction) {
@@ -162,6 +168,31 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		super.caseAExistsPredicate(node);
 	}
 
+	@Override
+	public void inAForallPredicate(AForallPredicate node) {
+		quantDepth++;
+		if(quantDepth>quantMaxDepth) quantMaxDepth = quantDepth;
+		super.inAForallPredicate(node);
+	}
+
+	@Override
+	public void outAForallPredicate(AForallPredicate node) {
+		quantDepth--;
+		super.outAForallPredicate(node);
+	}
+
+	@Override
+	public void inAExistsPredicate(AExistsPredicate node) {
+		quantDepth++;
+		if(quantDepth>quantMaxDepth) quantMaxDepth = quantDepth;
+		super.inAExistsPredicate(node);
+	}
+
+	@Override
+	public void outAExistsPredicate(AExistsPredicate node) {
+		quantDepth--;
+		super.outAExistsPredicate(node);
+	}
 
 	// EQUALITY/INEQUALITY
 
