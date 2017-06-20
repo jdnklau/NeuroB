@@ -21,7 +21,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 	private Path sourceFile;
 	private BParser bParser;
 
-	public static final int featureDimension = 184;
+	public static final int featureDimension = 185;
 
 	public LargeBASTFeatures(){
 		sourceFile = null;
@@ -179,6 +179,11 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				data.getDisjunctionsCount()/conjuncts, // `or` per conjunct
 				data.getImplicationsCount()/conjuncts, // => per conjunct
 				data.getEquivalencesCount()/conjuncts, // <=>
+
+				((data.getConjunctionsCount()-conjuncts+1)
+					+data.getDisjunctionsCount()
+					+data.getImplicationsCount()
+					+data.getEquivalencesCount()) / conjuncts,
 
 				// booleans
 				data.getBooleanLiteralsCount()/conjuncts,
