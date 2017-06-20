@@ -25,6 +25,7 @@ public class LargeBASTFeatureData {
 	private int equivalencesCount = 0; // Number of equivalences <=>
 	private int uniQuantifierCount = 0; // universal quantifiers
 	private int exQuantifierCount = 0; // existential quantifiers
+	private int negationCount = 0; // number of negations
 	private int equalityCount = 0; // number of equalities =
 	private int inequalityCount = 0; // number of equalities /=
 	private int memberCount = 0; // Number of set memberships :
@@ -161,6 +162,11 @@ public class LargeBASTFeatureData {
 
 	public int getInequalityCount(){ return inequalityCount; }
 	public void incInequalityCount(){ inequalityCount++; }
+
+	public int getNegationCount(){ return negationCount; }
+	public void incNegationCount(){ negationCount++; }
+
+	public int getNegationMaxDepth(){ return collector.getNegMaxDepth(); }
 
 	public int getMemberCount(){ return memberCount; }
 	public void incMemberCount(){ memberCount++; }

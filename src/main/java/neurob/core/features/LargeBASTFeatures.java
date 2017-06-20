@@ -21,7 +21,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 	private Path sourceFile;
 	private BParser bParser;
 
-	public static final int featureDimension = 166;
+	public static final int featureDimension = 169;
 
 	public LargeBASTFeatures(){
 		sourceFile = null;
@@ -158,6 +158,10 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 		double[] features = {
 				// conjunct form
 				data.getMaxDepth()/conjuncts, // average conjunct depth
+				data.getNegationCount()/conjuncts, // average negations
+				data.getNegationMaxDepth()/conjuncts, // average negation depth
+
+				data.getNegationMaxDepth()/(data.getNegationCount()+epsilon), // avg depth/negation
 
 				// simple logical operators
 				(data.getConjunctionsCount()-conjuncts+1)/conjuncts, // & per conjunct
@@ -173,7 +177,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 				data.getExistentialQuantifiersCount()/conjuncts, // exist. quant. per conjunct
 				data.getUniversalQuantifiersCount()/conjuncts, // univ. quant. per conjunct
 
-				// equalitiy and inequality
+				// equality and inequality
 				data.getEqualityCount()/conjuncts,
 				data.getInequalityCount()/conjuncts,
 

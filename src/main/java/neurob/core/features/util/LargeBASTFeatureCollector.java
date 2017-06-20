@@ -17,6 +17,8 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	private int maxDepth = 0;
 	private int powDepth = 0;
 	private int powMaxDepth = 0;
+	private int negDepth = 0;
+	private int negMaxDepth = 0;
 
 	public LargeBASTFeatureCollector(LargeBASTFeatureData data) {
 		this.data = data;
@@ -28,6 +30,10 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 
 	public int getPowMaxDepth() {
 		return powMaxDepth;
+	}
+
+	public int getNegMaxDepth(){
+		return negMaxDepth;
 	}
 
 	private void switchByNegation(Runnable noNegationAction, Runnable negationAction) {
@@ -43,7 +49,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	 * For quick reference, here is the rough order of categories
 	 * - in negation or not
 	 * - predicate depth
-	 * - number of conjuncts and disjuncts
+	 * - number of conjuncts and disjuncts and negations
 	 * - equivalences/implications
 	 * - quantifiers
 	 * - set membership
@@ -65,11 +71,14 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	@Override
 	public void inANegationPredicate(final ANegationPredicate node) {
 		inNegation = !inNegation;
+		negDepth++;
+		if(negDepth>negMaxDepth) negMaxDepth = negDepth;
 	}
 
 	@Override
 	public void outANegationPredicate(ANegationPredicate node) {
 		inNegation = !inNegation;
+		negDepth--;
 	}
 
 	@Override
@@ -98,7 +107,7 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 	}
 
 
-	// NUMBER OF CONJUNCTS/DISJUNCTS
+	// NUMBER OF CONJUNCTS/DISJUNCTS/NEGATIONS
 	@Override
 	public void inAConjunctPredicate(AConjunctPredicate node) {
 		if (depth == DEPTH_MIN) {
@@ -118,6 +127,11 @@ public class LargeBASTFeatureCollector extends DepthFirstAdapter {
 		super.inADisjunctPredicate(node);
 	}
 
+	@Override
+	public void caseANegationPredicate(ANegationPredicate node) {
+		data.incNegationCount();
+		super.caseANegationPredicate(node);
+	}
 
 	// EQUIVALENCES AND IMPLICATIONS
 

@@ -79,6 +79,17 @@ public class LargeBASTFeaturesTest {
 	}
 
 	@Test
+	public void negationCount2Test() throws NeuroBException {
+		String pred = "x : NATURAL & x/:2..7 & not(x/=8)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getNegationCount();
+
+		assertEquals("negation count does not match", expected, actual);
+	}
+
+	@Test
 	public void implicationsCountTest() throws NeuroBException {
 		String pred = "(x : NATURAL & not(x> 3 => (x>2 & x > 2 or x<9))) => x > 2";
 		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
@@ -87,6 +98,28 @@ public class LargeBASTFeaturesTest {
 		int actual = data.getImplicationsCount();
 
 		assertEquals("implications count does not match", expected, actual);
+	}
+
+	@Test
+	public void negationDepthCountTest() throws NeuroBException {
+		String pred = "x : NATURAL & not(x:2..7 or not(x=8))";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 2;
+		int actual = data.getNegationMaxDepth();
+
+		assertEquals("negation count does not match", expected, actual);
+	}
+
+	@Test
+	public void negationDepthCount2Test() throws NeuroBException {
+		String pred = "x : NATURAL & not(x:2..7 or x=8)";
+		LargeBASTFeatureData data = new LargeBASTFeatureData(pred);
+
+		int expected = 1;
+		int actual = data.getNegationMaxDepth();
+
+		assertEquals("negation count does not match", expected, actual);
 	}
 
 	@Test
