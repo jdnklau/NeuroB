@@ -6,7 +6,7 @@ import de.be4.classicalb.core.parser.analysis.DepthFirstAdapter;
 import de.be4.classicalb.core.parser.node.*;
 
 /**
- * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
+ * @author Jannik Dunkelau
  *
  */
 public class TheoryFeatureCollector extends DepthFirstAdapter {
@@ -17,21 +17,21 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 	public TheoryFeatureCollector() {
 		this(new TheoryFeatureData());
 	}
-	
+
 	public TheoryFeatureCollector(TheoryFeatureData linkedFD) {
 		fd = linkedFD;
 		linked = true;
 		inNegation = false;
 	}
-	
-	
+
+
 	/**
 	 * @return A {@link TheoryFeatureData} object, containing the collected data.
 	 */
-	public TheoryFeatureData getFeatureData() { 
+	public TheoryFeatureData getFeatureData() {
 		return fd;
 	}
-	
+
 	@Override
 	public void caseStart(Start node){
 		// If not linked to a specific feature data object, create a new one
@@ -43,12 +43,12 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 		}
 		super.caseStart(node);
 	}
-	
+
 //	@Override
 //	public void defaultIn(final Node node){
 //		System.out.println(node.getClass());
 //	}
-	
+
 	/**************************************************************************
 	 * Following: the methods to extract the feature values from AST
 	 * - Quantifiers
@@ -62,7 +62,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 	 * - Functions
 	 * - Relations
 	 */
-	
+
 	// Quantifiers
 	@Override
 	public void caseAForallPredicate(final AForallPredicate node) {
@@ -75,7 +75,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 		fd.incExistsQuantifiersCount();
 		node.getPredicate().apply(this);
 	}
-	
+
 	// Arithmetic Operators
 	@Override
 	public void caseAAddExpression(final AAddExpression node){
@@ -101,7 +101,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
-	
+
 	// comparisons
 	@Override
 	public void caseAEqualPredicate(final AEqualPredicate node){
@@ -143,7 +143,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 	private void handleGreaterComparison(PExpression left, PExpression right){
 		if(left instanceof AIdentifierExpression){
 			LinkedList<TIdentifierLiteral> ids = ((AIdentifierExpression) left).getIdentifier();
-			
+
 			// integer literals
 			if(right instanceof AIntegerExpression){
 				// Upper bounds found
@@ -155,7 +155,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 			// TODO Check other identifiers
 		} else if(right instanceof AIdentifierExpression){
 			LinkedList<TIdentifierLiteral> ids = ((AIdentifierExpression) right).getIdentifier();
-			
+
 			// integer literals
 			if(left instanceof AIntegerExpression){
 				// Upper bounds found
@@ -166,7 +166,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 			}
 			// TODO Check other identifiers
 		}
-		
+
 		left.apply(this);
 		right.apply(this);
 	}
@@ -178,7 +178,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 	private void handleLesserComparison(PExpression left, PExpression right){
 		if(left instanceof AIdentifierExpression){
 			LinkedList<TIdentifierLiteral> ids = ((AIdentifierExpression) left).getIdentifier();
-			
+
 			// integer literals
 			if(right instanceof AIntegerExpression){
 				// Upper bounds found
@@ -190,7 +190,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 			// TODO Check other identifiers
 		} else if(right instanceof AIdentifierExpression){
 			LinkedList<TIdentifierLiteral> ids = ((AIdentifierExpression) right).getIdentifier();
-			
+
 			// integer literals
 			if(left instanceof AIntegerExpression){
 				// Upper bounds found
@@ -201,11 +201,11 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 			}
 			// TODO Check other identifiers
 		}
-		
+
 		left.apply(this);
 		right.apply(this);
 	}
-	
+
 	// logical operators
 	@Override
 	public void caseAConjunctPredicate(final AConjunctPredicate node){
@@ -232,7 +232,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 	public void outANegationPredicate(ANegationPredicate node) {
 		inNegation = !inNegation;
 	}
-	
+
 	// Implications
 	@Override
 	public void caseAImplicationPredicate(final AImplicationPredicate node){
@@ -246,7 +246,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
-	
+
 	// Identifiers
 	@Override
 	public void caseAIdentifierExpression(final AIdentifierExpression node){
@@ -254,12 +254,12 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 			fd.addIdentifier(id.getText());
 		}
 	}
-	
+
 	// Sets
 	@Override
 	public void caseAMemberPredicate(final AMemberPredicate node){
 		fd.incSetMemberCount();
-		
+
 		// check for domain values
 		PExpression left = node.getLeft();
 		PExpression right = node.getRight();
@@ -289,7 +289,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 					}
 				});
 		}
-		
+
 		left.apply(this);
 		right.apply(this);
 	}
@@ -345,10 +345,10 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
-	
+
 	// Named Sets
 	//---
-	
+
 	// Functions
 	@Override
 	public void caseAPartialFunctionExpression(final APartialFunctionExpression node){
@@ -399,7 +399,7 @@ public class TheoryFeatureCollector extends DepthFirstAdapter {
 		node.getLeft().apply(this);
 		node.getRight().apply(this);
 	}
-	
+
 	// Relations
 	@Override
 	public void caseADomainRestrictionExpression(final ADomainRestrictionExpression node){

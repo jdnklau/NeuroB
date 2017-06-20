@@ -1,4 +1,3 @@
-import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +12,7 @@ import java.util.stream.Stream;
 import neurob.core.features.RawPredicateSequences;
 import neurob.core.features.interfaces.RNNFeatures;
 import neurob.core.nets.NeuroBRecurrentNet;
+import neurob.core.features.LargeBASTFeatures;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.training.HyperParameterSearch;
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -31,7 +31,6 @@ import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBNet;
 import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
-import neurob.training.DataDumpTranslator;
 import neurob.training.TrainingSetAnalyser;
 import neurob.training.TrainingSetGenerator;
 import neurob.training.generators.PredicateDumpGenerator;
@@ -183,6 +182,7 @@ public class NeuroBCli {
 
 					+ "<features> can be one of the following:\n"
 					+ "\tpredf: (default) Basic, handcrafted features for predicates\n"
+					+ "\tpredfL: (default) Large set of handcrafted features for B predicates\n"
 					+ "\tpredi: Predicate image features, i.e. image versions of the predicates\n"
 					+ "\tpreds: Predicate sequence features, i.e. the raw string sequence of the predicate\n"
 					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)\n"
@@ -614,8 +614,11 @@ public class NeuroBCli {
 			}
 			return new PredicateImages(s);
 		}
-		else if (feats.equals("preds")){
+		else if (feats.equals("preds")) {
 			return new RawPredicateSequences();
+		}
+		else if(feats.equals("predfL")){
+			return new LargeBASTFeatures();
 		}
 		else {
 			return new TheoryFeatures();
@@ -685,26 +688,26 @@ public class NeuroBCli {
 		created=0;
 
 		try (Stream<Path> stream = Files.walk(directory)) {
-	        stream.forEach(entry -> {
-	        	// check if directory or not; recursion if so
-	            if (Files.isDirectory(entry)) {
-	            	seen++;
-	            	Path newLibraryIOPath = entry.resolve("LibraryIO.def");
-	            	try{
-	            		Files.copy(libraryIOpath, newLibraryIOPath);
-	            		System.out.println("Created: "+newLibraryIOPath);
-	            		created++;
-	            	} catch (IOException e){
-	            		present++;
-	            	}
-	            }
+			stream.forEach(entry -> {
+				// check if directory or not; recursion if so
+				if (Files.isDirectory(entry)) {
+					seen++;
+					Path newLibraryIOPath = entry.resolve("LibraryIO.def");
+					try{
+						Files.copy(libraryIOpath, newLibraryIOPath);
+						System.out.println("Created: "+newLibraryIOPath);
+						created++;
+					} catch (IOException e){
+						present++;
+					}
+				}
 
-	        });
+			});
 
-	        System.out.println("LibraryIO.def was already present in "+present+"/"+seen+" directories.");
-	        System.out.println("LibraryIO.def was created in "+created+"/"+seen+" directories.");
-	        System.out.println("Directories without LibraryIO.def: "+ (seen-created-present));
-	    }
+			System.out.println("LibraryIO.def was already present in "+present+"/"+seen+" directories.");
+			System.out.println("LibraryIO.def was created in "+created+"/"+seen+" directories.");
+			System.out.println("Directories without LibraryIO.def: "+ (seen-created-present));
+		}
 		catch (IOException e){
 			System.out.println("Could not access directory "+directory+": "+e.getMessage());
 		}
