@@ -6,6 +6,10 @@ NeuroB
 # developer's personal todo list
 mytodo.md
 
+# logging specific
+src/main/resources/logback.xml
+neurob_logs/
+
 # training data directory
 training_data/
 trained_models/
