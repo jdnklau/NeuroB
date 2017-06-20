@@ -13,6 +13,7 @@
 - model handling
     - [ ] have list of preprocessing utilities managed by NeuroBNet
 - model training
+    - [ ] add dropout by default
     - more generic handling of data preprocessing if possible
         - [ ] add more preprocessing tools
             - [ ] PCA: whitening
