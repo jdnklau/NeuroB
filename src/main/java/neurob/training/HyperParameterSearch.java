@@ -88,6 +88,36 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 	 */
 	public int trainModels(int numModels,
 			Path trainSource, Path testSource, int numEpochs)
+			throws IOException, InterruptedException {
+		return trainModels(numModels, trainSource, testSource, numEpochs, -1);
+	}
+
+	/**
+	 * Trains multiple models, saves them to disk and reports
+	 * the index of the best performing model.
+	 * <p>
+	 * In the target directory, a subdirectory will be created for each model.
+	 * Those subdirectories are enumerated from 0 onwards, being the model
+	 * index.
+	 * <p>
+	 * It is advised to use a relatively small epoch number, as hyperparameter
+	 * search is only meant to find hyperparameter settings to use for
+	 * following, longer training.
+	 * <p>
+	 *     If for <code>earlyStopping</code> consecutive epochs no performance gain could be
+	 *     measured, the training for the respective model is stopped.
+	 *     A value of -1 disables early stopping.
+	 * @param numModels Maximum number of models to train
+	 * @param trainSource Location of training set
+	 * @param testSource Location of test set
+	 * @param numEpochs Number of epochs to train each model
+	 * @param earlyStopping Number of consecutive epochs without performance gain stopping training
+	 * @return index of best performing model
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
+	public int trainModels(int numModels,
+						   Path trainSource, Path testSource, int numEpochs, int earlyStopping)
 			throws IOException, InterruptedException{
 		// Train and evaluate up to numModels candidates
 		for(int i=0;
@@ -108,7 +138,7 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 
 			// train model and get evaluation
 			ModelEvaluation eval = nb.train(trainSource,testSource, batchSize,
-					numEpochs, true, 6);
+					numEpochs, true, earlyStopping);
 
 			// compare evaluations
 			if(bestEvaluation == null || eval.performsBetterThan(bestEvaluation)){

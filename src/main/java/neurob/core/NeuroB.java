@@ -75,8 +75,6 @@ public class NeuroB {
 	 * Trains the neural net with a training set located at the given source.
 	 * <p>
 	 * The test source is then used to evaluate the trained network.
-	 * If for 5 consecutive epochs no performance gain on the test set could be measured,
-	 * the training stops.
 	 * @param trainSource
 	 * @param testSource
 	 * @param numEpochs Number of epochs used in training
@@ -93,8 +91,6 @@ public class NeuroB {
 	 * Trains the neural net with a training set located at the given source.
 	 * <p>
 	 * The test source is then used to evaluate the trained network.
-	 * If for 5 consecutive epochs no performance gain on the test set could be measured,
-	 * the training stops.
 	 * @param trainSource
 	 * @param testSource
 	 * @param numEpochs Number of epochs used in training
@@ -106,7 +102,7 @@ public class NeuroB {
 	public ModelEvaluation train(Path trainSource,Path testSource,
 			int numEpochs, boolean saveEpochStats)
 					throws IOException, InterruptedException{
-		return train(trainSource, testSource, numEpochs, saveEpochStats, 5);
+		return train(trainSource, testSource, numEpochs, saveEpochStats, -1);
 	}
 
 	/**
@@ -115,7 +111,7 @@ public class NeuroB {
 	 * The test source is then used to evaluate the trained network.
 	 * <p>
 	 * If for {@code earlyStoppingEpochs} consecutive epochs no performance gain on the test set could be measured,
-	 * the training stops.
+	 * the training stops. A value of -1 disables early stopping
 	 * @param trainSource
 	 * @param testSource
 	 * @param numEpochs Number of epochs used in training
@@ -137,7 +133,7 @@ public class NeuroB {
 	 * The test source is then used to evaluate the trained network.
 	 * <p>
 	 * If for {@code earlyStoppingEpochs} consecutive epochs no performance gain on the test set could be measured,
-	 * the training stops.
+	 * the training stops. A value of -1 disables early stopping
 	 * @param trainSource
 	 * @param testSource
 	 * @param batchSize
@@ -195,7 +191,7 @@ public class NeuroB {
 			} else {
 				log.info("Best epoch thus far: #{}", eval.getBestEpochSeen());
 				// early stopping
-				if(i-bestEpochSaved >= earlyStoppingEpochs){
+				if(earlyStoppingEpochs>=0 && i-bestEpochSaved >= earlyStoppingEpochs){
 					log.warn("No performance gain for {} consecutive epochs; stopping training.",
 							earlyStoppingEpochs);
 					break;
