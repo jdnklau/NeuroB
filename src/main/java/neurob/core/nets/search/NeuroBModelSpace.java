@@ -84,7 +84,56 @@ public class NeuroBModelSpace {
 	public static MultiLayerSpace feedForwardModel(
 			int hiddenLayersMin, int hiddenLayersMax, int hiddenSizeMin, int hiddenSizeMax,
 			double learningRateMin, double learningRateMax,
-			FeatureGenerator features, LabelGenerator labelling, int seed){
+			FeatureGenerator features, LabelGenerator labelling, int seed) {
+		return feedForwardModel(hiddenLayersMin, hiddenLayersMax, hiddenSizeMin, hiddenSizeMax,
+				learningRateMin, learningRateMax, features, labelling, 1., seed);
+	}
+
+	/**
+	 * Creates a hyper parameter model space with variable size of hidden layers and learning rate.
+	 * <p>
+	 *     For each hidden layer, a random integer size from {@code [hiddenSizeMin, hiddenSizeMax]}
+	 *     is chosen.
+	 *     The learning rate will also be chosen from the continuous interval
+	 *     {@code [learningRateMin, learningRateMax]}
+	 * </p>
+	 * <p>
+	 *     <b>NOTE:</b> Each hidden layer will have the exactly same number of neurons, due a bug in
+	 *     DL4J Arbiter, that makes different parameter spaces with exact same configurations
+	 *     unusable.
+	 *     On the other hand, copying the same layer with different values used from the
+	 *     parameter spaces is not implemented yet (DL4J version 0.8.0)
+	 * </p>
+	 * <p>
+	 *     Each hidden layer uses tanh as activation function, and is initialised by
+	 *     Xavier initialisation.
+	 * </p>
+	 * <p>
+	 *     The output layer's configuration is dependend on the {@link LabelGenerator} in use.
+	 *     If the LabelGenerator spans a regression problem, the used activation function is
+	 *     the identity function, the loss function is Mean Squared Error.
+	 *     Otherwise, softmax and negative loglikelihood are used respectively.
+	 * </p>
+	 * <p>
+	 *     {@code keepProb} handles drop out, and represents the probability to keep a node
+	 *     during training. A probability of 1 results in effectively no dropout
+	 * </p>
+	 * @param hiddenLayersMin Minimum number of hidden layers to use
+	 * @param hiddenLayersMax Maximum number of hidden layers to use
+	 * @param hiddenSizeMin Lower bound of size for each hidden layer
+	 * @param hiddenSizeMax Upper bound of size for each hidden layer
+	 * @param learningRateMin Lower bound of the learning rate to use
+	 * @param learningRateMax Upper bound of the learnign rate to use
+	 * @param features {@link FeatureGenerator} to use
+	 * @param labelling {@link LabelGenerator} to use
+	 * @param keepProb Probability to keep a node during drop out
+	 * @param seed Seed for the RNG
+	 * @return MultiLayerSpace spanning all possible models
+	 */
+	public static MultiLayerSpace feedForwardModel(
+			int hiddenLayersMin, int hiddenLayersMax, int hiddenSizeMin, int hiddenSizeMax,
+			double learningRateMin, double learningRateMax,
+			FeatureGenerator features, LabelGenerator labelling, double keepProb, int seed){
 		// set up learning rate
 		ParameterSpace<Double> lr = new ContinuousParameterSpace(learningRateMin, learningRateMax);
 		// Set up hyper parameters
@@ -94,7 +143,7 @@ public class NeuroBModelSpace {
 				.iterations(1)
 				.learningRate(lr)
 				.updater(Updater.NESTEROVS).momentum(0.9)
-				.regularization(true).l2(1e-4);
+				.regularization(true).l2(1e-4).dropOut(keepProb);
 
 		// set up layers
 		ParameterSpace<Integer> hiddenLayers
@@ -192,7 +241,81 @@ public class NeuroBModelSpace {
 			int fullyConnectedLayersMin, int fullyConnectedLayersMax,
 			int fullyConnectedSizeMin, int fullyConnectedSizeMax,
 			double learningRateMin, double learningRateMax,
-			ConvolutionFeatures features, LabelGenerator labelling, int seed){
+			ConvolutionFeatures features, LabelGenerator labelling, int seed) {
+		return convolutionalModel(convolutionLayersMin, convolutionLayersMax,
+				filtersMin, filtersMax, filterSizeMin, filterSizeMax,
+				fullyConnectedLayersMin, fullyConnectedLayersMax,
+				fullyConnectedSizeMin, fullyConnectedSizeMax,
+				learningRateMin, learningRateMax,
+				features, labelling, 1.,  seed);
+	}
+
+	/**
+	 * Creates a hyper parameter model space for a convolutional neural network with variable size
+	 * of filters used, amount of filters learned per layer, size of fully connected layers,
+	 * and learning rate.
+	 * <p>
+	 *     For each convolution layer, a random integer size from {@code [filtersMin, filtersMax]}
+	 *     is chosen, dictating how many filters will be learned by this layer.
+	 *     Also, a random integer k from {@code [filterSizeMin, filterSizeMax]} sets the filter size
+	 *     to {@code k*k}, but model wide.
+	 * </p>
+	 * <p>
+	 *     <b>NOTE:</b> Each convolution layer will have the exactly same number of filters, due to
+	 *     a bug in DL4J Arbiter, that makes different parameter spaces with exact same
+	 *     configurations unusable.
+	 *     On the other hand, copying the same layer with different values used from the
+	 *     parameter spaces is not implemented yet (DL4J version 0.8.0)
+	 * </p>
+	 * <p>
+	 *     After the convolution layers, the model(s) will consist of fully connected layers,
+	 *     each of a size from {@code [fullyConnectedSizeMin, fullyConnectedSizeMax]}.
+	 *     There must be at least 1 fully connected layer.
+	 * </p>
+	 * <p>
+	 *     The amount of layers is fix  for both, convolution and fully connected,
+	 *     and does not vary between candidates candidate.
+	 *     The learning rate will be chosen from the continuous interval
+	 *     {@code [learningRateMin, learningRateMax]} and is set model wide
+	 * </p>
+	 * <p>
+	 *     Both layer types use ReLU as activation function, and are initialised by
+	 *     Xavier initialisation.
+	 * </p>
+	 * <p>
+	 *     The output layer's configuration is dependend on the {@link LabelGenerator} in use.
+	 *     If the LabelGenerator spans a regression problem, the used activation function is
+	 *     the identity function, the loss function is Mean Squared Error.
+	 *     Otherwise, softmax and negative loglikelihood are used respectively.
+	 * </p>
+	 * <p>
+	 *     {@code keepProb} handles drop out, and represents the probability to keep a node
+	 *     during training. A probability of 1 results in effectively no dropout
+	 * </p>
+	 * @param convolutionLayersMin Minimum number of convolution layers
+	 * @param convolutionLayersMax Maximum number of convolution layers
+	 * @param filtersMin Minimum amount of filters per convolution layer
+	 * @param filtersMax Maximum amount of filters per convolution layer
+	 * @param filterSizeMin Minimum filter size
+	 * @param filterSizeMax Maximum filter size
+	 * @param fullyConnectedLayersMin Minimum amount of fully connected layers after convolution
+	 * @param fullyConnectedLayersMax Maximum amount of fully connected layers after convolution
+	 * @param fullyConnectedSizeMin Lower bound for size of each fully connected layer
+	 * @param fullyConnectedSizeMax Upper bound for size of each fully connected layer
+	 * @param learningRateMin Lower bound of the learning rate to use
+	 * @param learningRateMax Upper bound of the learnign rate to use
+	 * @param features {@link FeatureGenerator} to use
+	 * @param labelling {@link LabelGenerator} to use
+	 * @param keepProb Probability to keep a node during dropout
+	 * @param seed Seed for the RNG
+	 * @return MultiLayerSpace spanning all possible models
+	 */public static MultiLayerSpace convolutionalModel(
+			int convolutionLayersMin, int convolutionLayersMax, int filtersMin, int filtersMax,
+			int filterSizeMin, int filterSizeMax,
+			int fullyConnectedLayersMin, int fullyConnectedLayersMax,
+			int fullyConnectedSizeMin, int fullyConnectedSizeMax,
+			double learningRateMin, double learningRateMax,
+			ConvolutionFeatures features, LabelGenerator labelling, double keepProb, int seed){
 		// set up learning rate
 		ParameterSpace<Double> lr = new ContinuousParameterSpace(learningRateMin, learningRateMax);
 		// Set up hyper parameters

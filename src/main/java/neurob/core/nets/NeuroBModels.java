@@ -126,7 +126,7 @@ public class NeuroBModels {
 		        .iterations(1)
 		        .learningRate(learningRate)
 		        .updater(Updater.NESTEROVS).momentum(0.9)
-		        .regularization(true).l2(1e-4)
+		        .regularization(true).l2(1e-4).dropOut(0.5)
 		        .list();
 
 		// Set up layers
@@ -278,7 +278,7 @@ public class NeuroBModels {
 		        .iterations(1)
 		        .learningRate(learningRate)
 		        .updater(Updater.NESTEROVS).momentum(0.9)
-		        .regularization(true).l2(1e-4)
+		        .regularization(true).l2(1e-4).dropOut(0.5)
 		        .list();
 
 		// Set up layers
