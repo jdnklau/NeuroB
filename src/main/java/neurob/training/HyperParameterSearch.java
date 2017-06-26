@@ -10,6 +10,7 @@ import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.RNNFeatures;
 import neurob.core.nets.NeuroBConvNet;
 import neurob.core.nets.NeuroBRecurrentNet;
+import neurob.exceptions.NeuroBException;
 import org.deeplearning4j.arbiter.DL4JConfiguration;
 import org.deeplearning4j.arbiter.optimize.api.CandidateGenerator;
 import org.deeplearning4j.eval.IEvaluation;
@@ -118,6 +119,12 @@ public class HyperParameterSearch <T extends CandidateGenerator<DL4JConfiguratio
 		}
 
 		log.info("Best model generated has index {}", bestPerformingIndex);
+		try {
+			bestEvaluation.evaluateAfterTraining(testSource);
+		} catch (NeuroBException e) {
+			log.warn("Could not evaluate best evaluation on test set again.", e);
+		}
+		log.info("********************");
 		return bestPerformingIndex;
 	}
 
