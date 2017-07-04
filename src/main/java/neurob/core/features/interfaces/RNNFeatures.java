@@ -20,7 +20,7 @@ public interface RNNFeatures extends FeatureGenerator {
 	/**
 	 * Returns a record reader that is specifically intended for sequential data.
 	 * <p>
-	 *     It is assumed, that the data is in the form of "dataSet/%d.csv", with %d being an integer
+	 *     It is assumed, that the data is in the form of "dataSet/sequence_data/%d.csv", with %d being an integer
 	 *     from 0 to a maximum index n.
 	 * </p>
 	 * @param dataSet
@@ -33,7 +33,7 @@ public interface RNNFeatures extends FeatureGenerator {
 		SequenceRecordReader recordReader = new CSVSequenceRecordReader(2, ",");
 
 		// set up file split
-		String format = dataSet.toString()+"/%d.csv";
+		String format = dataSet.toString()+"sequence_data/%d.csv";
 		int maxIdx = 0;
 		try(Stream<Path> files = Files.walk(dataSet)){
 			// count how many csv files are present

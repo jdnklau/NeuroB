@@ -54,4 +54,6 @@ public class RawPredicateSequences implements RNNFeatures {
 	public TrainingDataGenerator getTrainingDataGenerator(LabelGenerator lg) {
 		return new PredicateTrainingSequenceCSVGenerator(this, lg);
 	}
+
+
 }
