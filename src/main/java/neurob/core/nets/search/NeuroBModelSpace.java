@@ -418,7 +418,7 @@ public class NeuroBModelSpace {
 	 * @param hiddenSizeMin Lower bound of size for each hidden layer
 	 * @param hiddenSizeMax Upper bound of size for each hidden layer
 	 * @param learningRateMin Lower bound of the learning rate to use
-	 * @param learningRateMax Upper bound of the learnign rate to use
+	 * @param learningRateMax Upper bound of the learning rate to use
 	 * @param features {@link FeatureGenerator} to use
 	 * @param labelling {@link LabelGenerator} to use
 	 * @param seed Seed for the RNG

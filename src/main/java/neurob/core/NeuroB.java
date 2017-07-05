@@ -156,14 +156,15 @@ public class NeuroB {
 		if(saveEpochStats)
 			eval.enableSavingToDisk(savePath.resolve("epochs.csv"));
 
-		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
-
 		// set up training data iterator and listeners
 		DataSetIterator iterator = setupTrainingSetIterator(trainSource, batchSize);
 		setupModelTrainingListeners();
 
 		// initial evaluation before any training happened
+		log.info("Calculating initial performance...");
 		eval.init(trainSource, testSource);
+
+		log.info("Beginning with training on {}: Using {} epochs and a batch size of {}", trainSource, numEpochs, batchSize);
 
 		// train net on training data
 		int bestEpochSaved = 0;
