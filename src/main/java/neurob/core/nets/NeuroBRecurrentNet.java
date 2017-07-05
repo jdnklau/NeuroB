@@ -124,8 +124,12 @@ public class NeuroBRecurrentNet extends NeuroBNet {
 
 	@Override
 	public DataSetIterator getDataSetIterator(Path dataSet, int batchSize) throws IOException, InterruptedException {
-		SequenceRecordReader featureReader = (SequenceRecordReader) features.getRecordReader(dataSet.resolve("features"), batchSize);
-		SequenceRecordReader labelReader = (SequenceRecordReader) features.getRecordReader(dataSet.resolve("labels"), batchSize);
+		SequenceRecordReader featureReader =
+				(SequenceRecordReader) features.getRecordReader(
+						dataSet.resolve("sequence_data/features"), batchSize);
+		SequenceRecordReader labelReader =
+				(SequenceRecordReader) features.getRecordReader(
+						dataSet.resolve("sequence_data/labels"), batchSize);
 
 		return new SequenceRecordReaderDataSetIterator(featureReader, labelReader, batchSize,
 				labelgen.getClassCount(), labelgen.getProblemType() == ProblemType.REGRESSION,
