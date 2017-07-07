@@ -190,7 +190,7 @@ public abstract class ModelEvaluation<T extends IEvaluation> {
 	 * @throws InterruptedException
 	 */
 	protected T evaluateModel(Path testSet, T eval) throws IOException, InterruptedException{
-		int batchSize = 100;
+		int batchSize = 32;
 		DataSetIterator iterator = nbn.getDataSetIterator(testSet, batchSize);
 		nbn.applyNormalizer(iterator); //Apply normalization learned from training set
 
