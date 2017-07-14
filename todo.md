@@ -19,7 +19,7 @@
             - [ ] PCA: whitening
             - [ ] feature reduction
 - training set generation
-    - [ ] shuffle data files
+    - [x] shuffle data files
     - [ ] data augmentation for larger training sets
     - [ ] dimensionality reduction methods
         - [ ] via RBM

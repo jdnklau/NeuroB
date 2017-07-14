@@ -27,13 +27,25 @@ public class TrainingSetShuffler {
 	 * @param predicateDump
 	 * @param target
 	 */
-	public static void shuffle(Path predicateDump, Path target) throws NeuroBException {
+	public static void shuffle(Path predicateDump, Path target) throws NeuroBException{
+		shuffle(predicateDump, target, new Random());
+	}
+
+	/**
+	 * Shuffles the predicate dump and writes the shuffled samples into the target file.
+	 * The shuffling happens with respect to the given RNG.
+	 * @param predicateDump
+	 * @param target
+	 * @param rng
+	 * @throws NeuroBException
+	 */
+	public static void shuffle(Path predicateDump, Path target, Random rng) throws NeuroBException {
 		log.info("Begin shuffling of {}", predicateDump);
 		// get data
 		List<Pair<Path, Pair<String,Integer>>> dataList = getDataList(predicateDump);
 
 		// permute data
-		Collections.shuffle(dataList);
+		Collections.shuffle(dataList, rng);
 
 		// create target file
 		log.info("Create target {} containing shuffled data", target);

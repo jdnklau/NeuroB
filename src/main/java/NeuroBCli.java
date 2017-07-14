@@ -298,7 +298,10 @@ public class NeuroBCli {
 				Path dir = Paths.get(ops.get("shuffle").get(0));
 				if (ops.containsKey("target")) {
 					Path target = Paths.get(ops.get("target").get(0));
-					shufflePdump(dir, target);
+					int seed = 123;
+					if(ops.containsKey("seed"))
+						seed = Integer.parseInt(ops.get("seed").get(0));
+					shufflePdump(dir, target, seed);
 				} else {
 					System.out.println("pdump -shuffle: need -target parameter");
 				}
@@ -424,9 +427,9 @@ public class NeuroBCli {
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
 	}
 
-	private static void shufflePdump(Path pdump, Path target) {
+	private static void shufflePdump(Path pdump, Path target, int seed) {
 		try {
-			TrainingSetShuffler.shuffle(pdump, target);
+			TrainingSetShuffler.shuffle(pdump, target, new Random(seed));
 		} catch (NeuroBException e) {
 			e.printStackTrace();
 		}
