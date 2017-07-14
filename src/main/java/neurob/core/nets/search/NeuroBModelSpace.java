@@ -143,7 +143,7 @@ public class NeuroBModelSpace {
 				.iterations(1)
 				.learningRate(lr)
 				.updater(Updater.NESTEROVS).momentum(0.9)
-				.regularization(true).l2(1e-4).dropOut(keepProb);
+				.regularization(true).l2(1e-4).l1(1e-4).dropOut(keepProb);
 
 		// set up layers
 		ParameterSpace<Integer> hiddenLayers
@@ -325,7 +325,7 @@ public class NeuroBModelSpace {
 				.iterations(1)
 				.learningRate(lr)
 				.updater(Updater.NESTEROVS).momentum(0.9)
-				.regularization(true).l2(1e-4);
+				.regularization(true).l2(1e-4).l1(1e-4).dropOut(keepProb);
 
 		// set up parameter space for filter size
 		List<int[]> filterSizes = new ArrayList<>();
@@ -437,7 +437,7 @@ public class NeuroBModelSpace {
 				.iterations(1)
 				.learningRate(lr)
 				.updater(Updater.NESTEROVS).momentum(0.9)
-				.regularization(true).l2(1e-4);
+				.regularization(true).l2(1e-4).l1(1e-4);
 
 		// set up layers
 		ParameterSpace<Integer> hiddenLayers
