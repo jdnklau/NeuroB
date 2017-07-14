@@ -15,6 +15,7 @@ import neurob.core.nets.NeuroBRecurrentNet;
 import neurob.core.features.LargeBASTFeatures;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.training.HyperParameterSearch;
+import neurob.training.splitting.TrainingSetShuffler;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.arbiter.DL4JConfiguration;
 import org.deeplearning4j.arbiter.MultiLayerSpace;
@@ -128,6 +129,10 @@ public class NeuroBCli {
 					+ "\tSplit the training set located in <source> into two distinct subsets, <first> and <second>\n"
 					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
 					+ "\twith <ratio> being a number from the interval [0,1]\n"
+
+					+ "pdump -shuffle <source> -target <target file>\n"
+					+ "\tTake all examples from the source predicate dump, shuffle them, and write\n"
+					+ "\tthe shuffled data into the target file\n"
 
 					+ "pdump -crossvalsplit <source> -target <directory> -ratio <ratio>\n"
 					+ "\tSplit the <source> directory into three distinct subsets:\n"
@@ -289,6 +294,15 @@ public class NeuroBCli {
 				Path dir = Paths.get(ops.get("analyse").get(0));
 				analysePDump(dir);
 			}
+			else if(ops.containsKey("shuffle")){
+				Path dir = Paths.get(ops.get("shuffle").get(0));
+				if (ops.containsKey("target")) {
+					Path target = Paths.get(ops.get("target").get(0));
+					shufflePdump(dir, target);
+				} else {
+					System.out.println("pdump -shuffle: need -target parameter");
+				}
+			}
 			else if(ops.containsKey("trim")){
 				Path dir = Paths.get(ops.get("trim").get(0));
 				Path target = Paths.get(ops.get("target").get(0));
@@ -408,6 +422,14 @@ public class NeuroBCli {
 		}
 
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
+	}
+
+	private static void shufflePdump(Path pdump, Path target) {
+		try {
+			TrainingSetShuffler.shuffle(pdump, target);
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void modelSearch(Path train, Path test, int[] layers, int models, int epochs) {
