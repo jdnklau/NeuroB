@@ -3,6 +3,9 @@ package neurob.core.features.util;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import de.be4.classicalb.core.parser.node.Node;
+import de.prob.statespace.StateSpace;
+import neurob.training.generators.util.FormulaGenerator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -12,16 +15,17 @@ import neurob.exceptions.NeuroBException;
 
 /**
  * This class is for data points in the feature space.
- * 
+ *
  * It is intended to apply an instance of {@link TheoryFeatureCollector} on an AST and
  * use the resulting object's {@link TheoryFeatureCollector#getFeatureData() getFeatureData} method.
- * 
+ *
  * @author Jannik Dunkelau <jannik.dunkelau@hhu.de>
  *
  */
 public class TheoryFeatureData {
 	// Dimensions
 	public static final int featureCount = 17;
+	private StateSpace ss;
 	// Helpers
 	protected IdentifierRelationHandler ids;
 	// Features
@@ -45,25 +49,31 @@ public class TheoryFeatureData {
 	protected int fEquivalencesCount; // count equivalences used (<=>)
 	// parser
 	private BParser parser;
-	
+
 	public TheoryFeatureData(String predicate, BParser parser) throws NeuroBException {
-		this(parser);
+		this(parser, null);
 		collectData(predicate);
 	}
-	
+
 	public TheoryFeatureData(String predicate) throws NeuroBException{
 		this(predicate, new BParser());
 	}
-	
-	public TheoryFeatureData(){
-		this(new BParser());
+
+	public TheoryFeatureData(String predicate, StateSpace stateSpace) throws NeuroBException{
+		this(new BParser(), stateSpace);
+		collectData(predicate);
 	}
-	
-	public TheoryFeatureData(BParser parser) {
+
+	public TheoryFeatureData(){
+		this(new BParser(), null);
+	}
+
+	public TheoryFeatureData(BParser parser, StateSpace ss) {
 		this.parser = parser;
-		
+		this.ss = ss;
+
 		ids = new IdentifierRelationHandler();
-		
+
 		// set initial values
 //		fFormulaLength = 0;
 		// Quantifiers
@@ -90,11 +100,11 @@ public class TheoryFeatureData {
 		fFunctionsCount = 0;
 		fRelationOperatorsCount = 0;
 	}
-	
+
 	@Override
 	public String toString(){
 		ArrayList<Integer> features = new ArrayList<Integer>();
-		
+
 		//features.add(fFormulaLength);
 		features.add(fArithmOperatorsCount);
 		features.add(fCompOperatorsCount);
@@ -113,24 +123,28 @@ public class TheoryFeatureData {
 		features.add(ids.getUnknownDomainSizeIdentifiersCount());
 		features.add(fImplicationsCount);
 		features.add(fEquivalencesCount);
-		
+
 		return features.stream()
 				.map(i -> i.toString())
 				.collect(Collectors.joining(","));
 	}
-	
+
 	public void collectData(String predicate) throws NeuroBException {
-		Start ast;
+		Node ast;
 		try {
-			ast = parser.parse(BParser.PREDICATE_PREFIX+" "+predicate, false, parser.getContentProvider());
+			if(ss != null){
+				ast = FormulaGenerator.generateBCommandByMachineType(ss, predicate).getAst();
+			} else {
+				ast = parser.parse(BParser.PREDICATE_PREFIX+" "+predicate, false, parser.getContentProvider());
+			}
 		} catch (Exception e) {
 			throw new NeuroBException("Could not collect feature data from predicate "+predicate, e);
 		}
-		
+
 		ast.apply(new TheoryFeatureCollector(this));
-		
+
 	}
-	
+
 	public final double[] toArray(){
 		double[] features = new double[]{
 				fArithmOperatorsCount,
@@ -153,18 +167,18 @@ public class TheoryFeatureData {
 		};
 		return features;
 	}
-	
+
 	public final INDArray toNDArray(){
 		return Nd4j.create(toArray());
 	}
-	
+
 	/*
 	 * Following the get-methods for the feature values and their corresponding increment methods
 	 */
 
 	public final int getExistsQuantifiersCount(){ return fExistsQuantifiersCount; }
 	public  final void incExistsQuantifiersCount(){ fExistsQuantifiersCount++; }
-	
+
 	public final int getForAllQuantifiersCount(){ return fForAllQuantifiersCount; }
 	public final void incForAllQuantifiersCount(){ fForAllQuantifiersCount++; }
 

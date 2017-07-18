@@ -63,7 +63,10 @@ public class TheoryFeatures implements PredicateASTFeatures {
 	private TheoryFeatureData generatePredicateFeatureData(String predicate) throws NeuroBException{
 		TheoryFeatureData pfd;
 		try {
-			pfd = new TheoryFeatureData(predicate, bParser);
+			if(ss != null)
+				pfd = new TheoryFeatureData(predicate, ss);
+			else
+				pfd = new TheoryFeatureData(predicate, bParser);
 		} catch (NeuroBException e) {
 			throw new NeuroBException("Could not generate feature string from predicate: "+predicate, e);
 		}

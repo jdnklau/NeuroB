@@ -2,11 +2,13 @@ package neurob.core.features.util;
 
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
+import de.be4.classicalb.core.parser.node.Node;
 import de.be4.classicalb.core.parser.node.Start;
 import de.prob.model.representation.Machine;
 import de.prob.statespace.StateSpace;
 import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
+import neurob.training.generators.util.FormulaGenerator;
 
 /**
  * This class represents a feature vector for a given predicate of the B method.
@@ -138,10 +140,14 @@ public class LargeBASTFeatureData {
 	}
 
 	private void collectData(String predicate) throws NeuroBException {
-		Start ast;
+		Node ast;
 		try {
-			ast = bParser.parse(BParser.PREDICATE_PREFIX+" "+predicate, false,
-					bParser.getContentProvider());
+			if (ss != null) {
+				ast = FormulaGenerator.generateBCommandByMachineType(ss, predicate).getAst();
+			} else {
+				ast = bParser.parse(BParser.PREDICATE_PREFIX + " " + predicate, false,
+						bParser.getContentProvider());
+			}
 		} catch (BCompoundException e) {
 			throw new NeuroBException("Could not collect features from predicate "+predicate, e);
 		}
