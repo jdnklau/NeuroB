@@ -19,7 +19,14 @@ import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 
 public class PredicateEvaluator {
-	
+	private static long timeOutSeconds = 20L;
+	private static TimeUnit timeUnit = TimeUnit.SECONDS;
+
+	public static void setTimeOut(long value, TimeUnit unit){
+		timeOutSeconds = value;
+		timeUnit = unit;
+	}
+
 	/**
 	 * Checks if the formula given is decidable or not by the given solver.
 	 * @param stateSpace
@@ -27,31 +34,29 @@ public class PredicateEvaluator {
 	 * @param formula
 	 * @return
 	 * @throws NeuroBException
-	 * @see {@link #evaluateCommandExecution(StateSpace, IBEvalElement)}
 	 */
 	public static boolean isDecidableWithSolver(StateSpace stateSpace, SolverType solver, IBEvalElement formula) throws NeuroBException{
 		boolean decidable = false;
-		
+
 		// Check decidability
 		decidable = PredicateEvaluator.evaluateCommandExecution(stateSpace, solver, formula);
-		
+
 		return decidable;
 	}
-	
+
 	/**
-	 * Measures time needed to decide whether the formula is decidable or not. 
+	 * Measures time needed to decide whether the formula is decidable or not.
 	 * @param stateSpace The StateSpace the predicate gets decided in
 	 * @param solver The solver to use
 	 * @param formula The Formula to decide
 	 * @return Time needed in nano seconds or -1 if it could not be decided
 	 * @throws NeuroBException
-	 * @see {@link #getCommandExecutionTimeInNanoSeconds(StateSpace, IBEvalElement)}
 	 */
 	public static long getCommandExecutionTimeBySolverInNanoSeconds(StateSpace stateSpace, SolverType solver, IBEvalElement formula) throws NeuroBException{
 		long start = System.nanoTime();
 		boolean isDecidable = evaluateCommandExecution(stateSpace, solver, formula);
 		long duration = System.nanoTime()-start;
-		
+
 		return (isDecidable) ? duration : -1;
 	}
 
@@ -70,9 +75,9 @@ public class PredicateEvaluator {
 			Boolean res = false;
 //			EvaluateFormulaCommand cmd = new EvaluateFormulaCommand(formula, "0");
 			CbcSolveCommand cmd = new CbcSolveCommand(formula, solver.toCbcSolveCommandEnum());
-			
+
 			stateSpace.execute(cmd);
-			
+
 			// get value for result
 			AbstractEvalResult cmdres = cmd.getValue();
 			if(cmdres instanceof EvalResult){
@@ -87,11 +92,11 @@ public class PredicateEvaluator {
 			}
 			return res;
 		});
-		
+
 		// actually check for timeout
 		Boolean res = false;
 		try {
-			res = futureRes.get(20L, TimeUnit.SECONDS);
+			res = futureRes.get(timeOutSeconds, timeUnit);
 		} catch (IllegalStateException e) {
 			throw e;
 		} catch (ProBError e) {
@@ -100,7 +105,7 @@ public class PredicateEvaluator {
 		} catch (TimeoutException e) {
 			// Timeout
 			stateSpace.sendInterrupt();
-			throw new NeuroBException("Timeouted after 20 seconds.", e);
+			throw new NeuroBException("Timeouted after "+timeOutSeconds+" "+timeUnit+".", e);
 		} catch (InterruptedException e) {
 			stateSpace.sendInterrupt();
 			throw new NeuroBException("Execution interrupted: "+e.getMessage(), e);
@@ -110,7 +115,7 @@ public class PredicateEvaluator {
 		} finally {
 			executor.shutdown();
 		}
-		
+
 		return res.booleanValue();
 	}
 

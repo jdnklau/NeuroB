@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import neurob.core.features.RawPredicateSequences;
@@ -15,6 +16,7 @@ import neurob.core.nets.NeuroBRecurrentNet;
 import neurob.core.features.LargeBASTFeatures;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.training.HyperParameterSearch;
+import neurob.training.generators.util.PredicateEvaluator;
 import neurob.training.splitting.TrainingSetShuffler;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.arbiter.DL4JConfiguration;
@@ -207,6 +209,12 @@ public class NeuroBCli {
 		}
 		// Generate training data
 		else if(cmd.equals("trainingset")){
+			// set time out
+			if(ops.containsKey("timeout")){
+				long tout = Long.parseLong(ops.get("timeout").get(0));
+				PredicateEvaluator.setTimeOut(tout,TimeUnit.SECONDS);
+			}
+
 			// analyse training set
 			if(ops.containsKey("analyse")){
 				buildNet();
@@ -272,6 +280,13 @@ public class NeuroBCli {
 		}
 		// pdump
 		else if(cmd.equals("pdump")){
+
+			// set time out
+			if(ops.containsKey("timeout")){
+				long tout = Long.parseLong(ops.get("timeout").get(0));
+				PredicateEvaluator.setTimeOut(tout,TimeUnit.SECONDS);
+			}
+
 			if(ops.containsKey("dir")){
 				Path dir = Paths.get(ops.get("dir").get(0));
 				generatePDump(dir);
