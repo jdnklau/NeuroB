@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import de.prob.statespace.StateSpace;
 import org.datavec.api.records.reader.RecordReader;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
@@ -108,6 +109,14 @@ public interface FeatureGenerator {
 	 * @param sourceFile
 	 */
 	public void setSourceFile(Path sourceFile) throws NeuroBException;
+
+	/**
+	 * Adds the state space of a corresponding machine file to the feature generator
+	 * for possible further analysis.
+	 * @param stateSpace
+	 * @throws NeuroBException
+	 */
+	public void setStateSpace(StateSpace stateSpace);
 
 	/**
 	 * Returns the path to the source file over which the features are generated. May return null.

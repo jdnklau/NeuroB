@@ -9,6 +9,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import de.prob.statespace.StateSpace;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.split.FileSplit;
 import org.datavec.image.recordreader.ImageRecordReader;
@@ -26,6 +27,11 @@ import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
  *
  */
 public interface ConvolutionFeatures extends FeatureGenerator {
+
+	@Override
+	default void setStateSpace(StateSpace stateSpace){
+		// do nothing
+	}
 
 	/**
 	 *

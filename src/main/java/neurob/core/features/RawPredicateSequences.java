@@ -1,5 +1,6 @@
 package neurob.core.features;
 
+import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.RNNFeatures;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.PredicateTrainingSequenceCSVGenerator;
@@ -48,6 +49,11 @@ public class RawPredicateSequences implements RNNFeatures {
 	@Override
 	public Path getSourceFile() {
 		return sourceFile;
+	}
+
+	@Override
+	public void setStateSpace(StateSpace stateSpace) {
+		// do nothing
 	}
 
 	@Override

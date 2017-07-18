@@ -1,9 +1,11 @@
 package neurob.core.features;
 
 import de.be4.classicalb.core.parser.BParser;
+import de.prob.statespace.StateSpace;
 import neurob.core.features.interfaces.PredicateASTFeatures;
 import neurob.core.features.util.IdentifierRelationsHandler;
 import neurob.core.features.util.LargeBASTFeatureData;
+import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
 import neurob.training.generators.PredicateTrainingCSVGenerator;
 import neurob.training.generators.TrainingDataGenerator;
@@ -20,6 +22,8 @@ import java.nio.file.Path;
 public class LargeBASTFeatures implements PredicateASTFeatures {
 	private Path sourceFile;
 	private BParser bParser;
+	private MachineType mtype = MachineType.CLASSICALB; // type of machine currently working on
+	private StateSpace ss;
 
 	public static final int featureDimension = 185;
 
@@ -29,9 +33,15 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 	}
 
 	@Override
+	public void setStateSpace(StateSpace ss) {
+		this.ss = ss;
+	}
+
+	@Override
 	public void setMachine(Path machineFile) throws NeuroBException {
 		String fileName = machineFile.getFileName().toString();
 		if(fileName.endsWith(".mch")) {
+			mtype = MachineType.CLASSICALB;
 			try {
 				bParser = new BParser(machineFile.toString());
 				bParser.parseFile(machineFile.toFile(), false);
@@ -42,6 +52,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 			}
 		} else if(fileName.endsWith(".bcm")){
 			bParser = new BParser();
+			mtype = MachineType.EVENTB;
 		}
 		sourceFile = machineFile;
 	}
@@ -73,7 +84,7 @@ public class LargeBASTFeatures implements PredicateASTFeatures {
 
 
 	private double[] calcFeatures(String source) throws NeuroBException {
-		LargeBASTFeatureData data = new LargeBASTFeatureData(source, bParser);
+		LargeBASTFeatureData data = new LargeBASTFeatureData(source, bParser, mtype, ss);
 
 		// get some constants
 		final double epsilon = 0.000001; // for division if something could be 0

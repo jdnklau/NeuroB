@@ -8,6 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.google.inject.Inject;
+import de.prob.Main;
+import de.prob.model.representation.Machine;
+import de.prob.scripting.Api;
+import de.prob.scripting.ModelTranslationError;
+import de.prob.statespace.StateSpace;
+import neurob.core.util.MachineType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +31,8 @@ import neurob.training.generators.util.TrainingData;
  *
  */
 public class DataDumpTranslator {
+	private StateSpace ss=null;
+	private Api api;
 
 	private TrainingDataGenerator generator;
 	// logger
@@ -34,8 +43,11 @@ public class DataDumpTranslator {
 	 * the generator would have created in the first place.
 	 * @param generator
 	 */
+	@Inject
 	public DataDumpTranslator(TrainingDataGenerator generator) {
 		this.generator = generator;
+
+		this.api = Main.getInjector().getInstance(Api.class);
 	}
 
 	/**
@@ -102,7 +114,12 @@ public class DataDumpTranslator {
 					if(l.startsWith("#")){ // skip those lines
 						if(l.startsWith("source:", 1)){
 							try {
-								fg.setSourceFile(Paths.get(l.substring(8)));
+								Path machineFile = Paths.get(l.substring(8));
+								// load correct state space
+								if(ss!=null)
+									ss.kill();
+								ss = loadStateSpace(machineFile);
+								fg.setSourceFile(machineFile);
 							} catch (NeuroBException e) {
 								log.warn("Could not set source file {}", l.substring(8), e);
 							}
@@ -119,7 +136,29 @@ public class DataDumpTranslator {
 				});
 		}
 
+		ss.kill();
+
 		return data;
+	}
+
+	protected StateSpace loadStateSpace(Path file) throws NeuroBException{
+		log.info("\tLoading state space for {}", file);
+		try{
+			if(ss != null)
+				ss.kill();
+			String fileName = file.toString();
+			if(fileName.endsWith(".bcm")) {
+				return api.eventb_load(file.toString());
+			} else  if(fileName.endsWith(".mch")) {
+				return api.b_load(file.toString());
+			} else {
+				throw new NeuroBException("Unknown machine type");
+			}
+		} catch(ModelTranslationError e){
+			throw new NeuroBException("Unable to load state space due to model translation error.", e);
+		} catch(Exception e){
+			throw new NeuroBException("Unexpected exception encountered: "+e.getMessage(), e);
+		}
 	}
 
 	/**
@@ -131,6 +170,28 @@ public class DataDumpTranslator {
 	public TrainingData translateDataDumpEntry(String dataDumpEntry) throws NeuroBException{
 		FeatureGenerator fg = generator.getFeatureGenerator();
 		LabelGenerator lg = generator.getLabelGenerator();
+
+		fg.setStateSpace(ss);
+
+		// fixme: this is a hack which should not be necessary in the first place
+		/*
+		 The EventB parser seems to apply some AST transformation magic onto quantified
+		 expressions, adding an "oftype" node to the syntax, which the pretty printer
+		 also returns in the string representation. But such is not parsable again.
+
+		 The trick is here to abuse, that in EventB the quantifiers have a form such as
+		 	(!x.P(x))
+		 which results in a pretty print like
+		 	(!x oftype X.P(x))
+		 with X being the inferred type of x.
+		 The regex below translates that to
+		 	!x.(P(x))
+		 where the hack is to (a) remove the oftype annotation, and (b) move the opening parenthesis
+		 to achieve a syntax like that of classical B, which requires the
+		 */
+		dataDumpEntry = dataDumpEntry.replaceAll("\\(([!#%].+?) oftype .+?\\.", "$1.(");
+		dataDumpEntry = dataDumpEntry.replaceAll("\\(\\{} oftype .+?\\)", "{}"); // replace ({} oftype POW(...))
+		// todo "not "
 
 		// access dump data from entry, then translate to training data
 		DumpData dd = new DumpData(dataDumpEntry);

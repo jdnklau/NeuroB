@@ -23,7 +23,7 @@ public abstract class PredicateTrainingDataGenerator extends TrainingDataGenerat
 	public PredicateTrainingDataGenerator(FeatureGenerator fg, LabelGenerator lg) {
 		super(fg, lg);
 	}
-	
+
 	@Override
 	public List<TrainingData> collectTrainingDataFromFile(Path sourceFile, StateSpace ss)
 			throws NeuroBException {
@@ -33,10 +33,10 @@ public abstract class PredicateTrainingDataGenerator extends TrainingDataGenerat
 
 		// set up results
 		List<TrainingData> data = generateResults(formulae, ss, sourceFile);
-		
+
 		return data;
 	}
-	
+
 	/**
 	 * Generates a list of formulae for training from a given predicate collector.
 	 * @param predicateCollector Holds base formulae (invariants, guards) from a machine file.
@@ -49,14 +49,14 @@ public abstract class PredicateTrainingDataGenerator extends TrainingDataGenerat
 		formulae.addAll(FormulaGenerator.multiGuardFormulae(predicateCollector));
 		formulae.addAll(FormulaGenerator.enablingRelationships(predicateCollector));
 		formulae.addAll(FormulaGenerator.invariantPreservations(predicateCollector));
-		
+
 		return formulae;
 	}
-	
+
 	/**
 	 * Takes a list of formulae and calculates the respective labelling and feature representation.
 	 * Returns a list of {@link TrainingData}.
-	 * 
+	 *
 	 * @param formulae List of formulae to solve
 	 * @param ss StateSpace that has the corresponding machine loaded
 	 * @param sourceFile Corresponding machine
@@ -65,13 +65,13 @@ public abstract class PredicateTrainingDataGenerator extends TrainingDataGenerat
 	protected List<TrainingData> generateResults(List<String> formulae, StateSpace ss, Path sourceFile){
 		// get machine type
 		MachineType mt = MachineType.getTypeFromStateSpace(ss);
-		
+
 		// generate data per formula
 		List<TrainingData> results = new ArrayList<>();
 		int count = formulae.size();
 		int curr = 1;
 		boolean isStateSpaceCorrupted = false; // if something goes wrong inside the solvers at label generation, we might want to reload the state space
-		int corruptionCounter = 0; // count sequential corruptions. To stop if state space corrupts to often 
+		int corruptionCounter = 0; // count sequential corruptions. To stop if state space corrupts to often
 		for( String formula : formulae) {
 			// check state space corruption
 			if(isStateSpaceCorrupted){
@@ -94,11 +94,11 @@ public abstract class PredicateTrainingDataGenerator extends TrainingDataGenerat
 					break; // get out of the loop to save at least the other formulae to file
 				}
 			}
-			
+
 			log.info("\tAt {}/{}...", curr++, count);
 			try {
 				// features:labeling vector:comment
-				TrainingData output = setUpTrainingData(formula, sourceFile, ss); 
+				TrainingData output = setUpTrainingData(formula, sourceFile, ss);
 				results.add(output);
 				log.debug("\tGenerated training data: {}", output);
 				corruptionCounter = (corruptionCounter ==0 ? 0 : corruptionCounter-1); // could use new state space without corrupting it again
@@ -113,14 +113,15 @@ public abstract class PredicateTrainingDataGenerator extends TrainingDataGenerat
 				isStateSpaceCorrupted = true;
 			}
 		}
-		
+
 		return results;
 	}
-	
+
 	protected TrainingData setUpTrainingData(String predicate, Path source, StateSpace ss) throws NeuroBException{
+		fg.setStateSpace(ss); // set state space for feature generator
 		return new TrainingData(fg.generateFeatureArray(predicate), lg.generateLabelling(predicate, ss), source, predicate);
 	}
-	
+
 //	/**
 //	 * Generates a output string from a {@link TrainingData single sample}.
 //	 * This string will be written as line to the training file.

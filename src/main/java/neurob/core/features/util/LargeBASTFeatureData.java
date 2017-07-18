@@ -3,6 +3,9 @@ package neurob.core.features.util;
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.Start;
+import de.prob.model.representation.Machine;
+import de.prob.statespace.StateSpace;
+import neurob.core.util.MachineType;
 import neurob.exceptions.NeuroBException;
 
 /**
@@ -15,7 +18,9 @@ import neurob.exceptions.NeuroBException;
  */
 public class LargeBASTFeatureData {
 	private final BParser bParser;
+	private final StateSpace ss;
 	private LargeBASTFeatureCollector collector;
+	private final MachineType mtype;
 
 	// count of data from predicate
 	private int conjunctsCount = 1; // at least one conjunct in predicate
@@ -112,9 +117,23 @@ public class LargeBASTFeatureData {
 		this(predicate, new BParser());
 	}
 
-	public LargeBASTFeatureData(String predicate, BParser bParser) throws NeuroBException {
+	public LargeBASTFeatureData(String predicate, MachineType mt) throws NeuroBException {
+		this(predicate, new BParser(), mt);
+	}
+
+	public LargeBASTFeatureData(String predicate, BParser bParser) throws NeuroBException{
+		this(predicate, bParser, MachineType.CLASSICALB);
+	}
+
+	public LargeBASTFeatureData(String predicate, BParser bParser, MachineType mtype) throws NeuroBException {
+		this(predicate, bParser, mtype, null);
+	}
+
+	public LargeBASTFeatureData(String predicate, BParser bParser, MachineType mtype, StateSpace ss) throws NeuroBException {
 		this.bParser = bParser;
+		this.mtype = mtype;
 		identifiers = new IdentifierRelationsHandler();
+		this.ss = ss;
 		collectData(predicate);
 	}
 
