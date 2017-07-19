@@ -289,11 +289,14 @@ public class NeuroBCli {
 
 			if(ops.containsKey("dir")){
 				Path dir = Paths.get(ops.get("dir").get(0));
+				Path target = Paths.get("training_data/PredicateDump/");
+				if(ops.containsKey("target"))
+					target = Paths.get(ops.get("target").get(0));
 				generatePDump(dir);
 			}
 			else if(ops.containsKey("file")){
 				Path file = Paths.get(ops.get("file").get(0));
-				generatePDumpFromFile(file);
+				generatePDumpFromFile(file, Paths.get("training_data/PredicateDump/"));
 			}
 			else if(ops.containsKey("translate")){
 				buildNet();
@@ -563,11 +566,11 @@ public class NeuroBCli {
 		}
 	}
 
-	private static void generatePDumpFromFile(Path file) {
+	private static void generatePDumpFromFile(Path file, Path target) {
 		PredicateDumpGenerator tpg = new PredicateDumpGenerator();
 
 		try {
-			Path targetFile = tpg.generateTrainingDataPath(file, Paths.get("training_data/PredicateDump/"));
+			Path targetFile = tpg.generateTrainingDataPath(file, target);
 			tpg.generateTrainingDataFromFile(file, targetFile);
 		} catch (NeuroBException | IOException e) {
 			e.printStackTrace();
