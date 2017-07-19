@@ -292,7 +292,7 @@ public class NeuroBCli {
 				Path target = Paths.get("training_data/PredicateDump/");
 				if(ops.containsKey("target"))
 					target = Paths.get(ops.get("target").get(0));
-				generatePDump(dir);
+				generatePDump(dir, target);
 			}
 			else if(ops.containsKey("file")){
 				Path file = Paths.get(ops.get("file").get(0));
@@ -577,9 +577,9 @@ public class NeuroBCli {
 		}
 	}
 
-	private static void generatePDump(Path dir) {
+	private static void generatePDump(Path dir, Path target) {
 		TrainingSetGenerator tpd = new TrainingSetGenerator(new PredicateDumpGenerator());
-		tpd.generateTrainingSet(dir, Paths.get("training_data/PredicateDump/"), excludefile);
+		tpd.generateTrainingSet(dir, target, excludefile);
 	}
 
 	private static void translatePDump(Path dir, Path subdir) {
