@@ -15,7 +15,6 @@ import de.prob.animator.command.BeforeAfterPredicateCommand;
 import de.prob.animator.command.WeakestPreconditionCommand;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.model.classicalb.Assertion;
-import de.prob.model.classicalb.PrettyPrinter;
 import de.prob.model.classicalb.Property;
 import de.prob.model.representation.AbstractElement;
 import de.prob.model.representation.Axiom;
@@ -37,13 +36,13 @@ public class PredicateCollector {
 	private Map<String, String> beforeAfterPredicates;
 	private Map<String, Map<String, String>> weakestPreconditions;
 	private Map<String, String> primedInvariants;
-	
+
 	private StateSpace ss;
-	
+
 	private MachineType machineType;
-	
+
 	private static final Logger log = LoggerFactory.getLogger(PredicateCollector.class);
-	
+
 	public PredicateCollector(StateSpace ss){
 		this.ss = ss;
 		machineType = MachineType.getTypeFromStateSpace(ss);
@@ -58,35 +57,35 @@ public class PredicateCollector {
 		beforeAfterPredicates = new HashMap<>();
 		weakestPreconditions = new HashMap<>();
 		primedInvariants = new HashMap<>();
-		
+
 		collectPredicates();
-		
+
 	}
-	
+
 	private void collectPredicates(){
 		AbstractElement comp = ss.getMainComponent();
 		// properties
 		for(Property x : comp.getChildrenOfType(Property.class)){
 			properties.add(x.getFormula().getCode());
 		}
-		
+
 		// add invariants
 		for(Invariant x : comp.getChildrenOfType(Invariant.class)){
 			if(x.isTheorem())
 				theorems.add(x.getFormula().getCode());
 			else
 				invariants.add(x.getFormula().getCode());
-			
+
 		}
-		
+
 		for(Assertion x : comp.getChildrenOfType(Assertion.class)){
 			assertions.add(x.getFormula().getCode());
 		}
-		
+
 		// for each event collect guards
 		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 			events.add(x.getName());
-			
+
 			ArrayList<String> event = new ArrayList<String>();
 			for(Guard g : x.getChildrenOfType(Guard.class)){
 				event.add(g.getFormula().getCode());
@@ -98,7 +97,7 @@ public class PredicateCollector {
 		for(Axiom x : comp.getChildrenOfType(Axiom.class)){
 			axioms.add(x.getFormula().getCode());
 		}
-		
+
 		// set up invariants as commands for below
 		Map<String, IBEvalElement> invCmds = new HashMap<>();
 		for(String inv : invariants) {
@@ -109,16 +108,16 @@ public class PredicateCollector {
 				continue;
 			}
 		}
-		
+
 		// weakest preconditions for each invariant
 		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 			if(x.getName().equals("INITIALISATION"))
 				continue; // None for initialisation
-			
+
 			Map<String, String> wpcs = new HashMap<>();
 			for(String inv : invCmds.keySet()){
 				IBEvalElement invCmd = invCmds.get(inv);
-				
+
 				try{
 					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invCmd);
 					ss.execute(wpcc);
@@ -126,11 +125,11 @@ public class PredicateCollector {
 				} catch(Exception e) {
 					log.warn("\tCould not build weakest precondition for {} by event {}.", invCmd.getCode(), x.getName(), e);
 				}
-				
+
 			}
 			weakestPreconditions.put(x.getName(), wpcs);
 		}
-		
+
 //		// Weakest precondition for all invariants conjuncted
 //		IBEvalElement invConjCmd = null;
 //		String invConj = FormulaGenerator.getStringConjunction(invariants);
@@ -144,7 +143,7 @@ public class PredicateCollector {
 //			for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 //				if(x.getName().equals("INITIALISATION"))
 //					continue; // None for initialisation
-//				
+//
 //				try{
 //					WeakestPreconditionCommand wpcc = new WeakestPreconditionCommand(x.getName(), invConjCmd);
 //					ss.execute(wpcc);
@@ -155,16 +154,16 @@ public class PredicateCollector {
 //			}
 //			weakestPreconditions.put(invConj, wpcs);
 //		}
-		
-		
+
+
 		if(machineType != MachineType.EVENTB)
 			return; // FIXME: allow usage of classical B, too
-		
+
 		// Before/After predicates
 		for(BEvent x : comp.getChildrenOfType(BEvent.class)){
 			if(x.getName().equals("INITIALISATION"))
 				continue; // None for initialisation
-			
+
 			try{
 				BeforeAfterPredicateCommand bapc = new BeforeAfterPredicateCommand(x.getName());
 				ss.execute(bapc);
@@ -172,7 +171,7 @@ public class PredicateCollector {
 			} catch(Exception e) {
 				log.warn("\tCould not build Before After Predicate for event {}.", x.getName(), e);
 			}
-		
+
 		}
 
 		for(String inv : invCmds.keySet()){
@@ -183,9 +182,9 @@ public class PredicateCollector {
 				log.warn("\tCould not build primed invariant from {}", inv, e);
 			}
 		}
-			
+
 	}
-	
+
 	/**
 	 * @return A Map, that pairs an event name (key) with a list of its respective guards
 	 */
@@ -211,50 +210,9 @@ public class PredicateCollector {
 	 * @return A map of invariants to their primed version
 	 */
 	public Map<String, String> getPrimedInvariants(){ return primedInvariants; }
-	
-	
+
+
 	public MachineType getMachineType(){ return machineType; }
 	public StateSpace accessStateSpace(){ return ss; }
 
-	
-	
-	/**
-	 * Modifies an ArrayList of predicates to have only Numbers of infinite domains.
-	 * This means, that types like NAT and INT are replaced by NATURAL and INTEGER in the typing predicates.
-	 * <p>
-	 * Note that this is only supported if the PredicateCollector was initially called on a 
-	 * Classical B statespace. Otherwise the returned list will be empty.
-	 * @param invariants Predicates (usually invariants) to modify
-	 * @return The modified input or an empty array list for non-classical B.
-	 */
-	public List<String> modifyDomains(List<String> invariants){
-		ArrayList<String> modifiedList = new ArrayList<String>();
-		
-		switch(machineType){
-		case CLASSICALB:
-			for(String invariant : invariants){
-				Start ast;
-				try {
-					ast = BParser.parse(BParser.PREDICATE_PREFIX + invariant);
-				} catch (BCompoundException e) {
-					// do nothing but skip this
-					continue;
-				}
-				
-				ast.apply(new ClassicalBIntegerDomainReplacer());
-				PrettyPrinter pp = new PrettyPrinter();
-				ast.apply(pp);
-				
-				modifiedList.add(pp.getPrettyPrint());
-			}
-			break;
-		
-		case EVENTB:
-			// TODO
-		default:
-			break;
-			
-		}
-		return modifiedList;
-	}
 }

@@ -119,6 +119,7 @@ public class DataDumpTranslator {
 								if(ss!=null)
 									ss.kill();
 								ss = loadStateSpace(machineFile);
+								fg.setStateSpace(ss);
 								fg.setSourceFile(machineFile);
 							} catch (NeuroBException e) {
 								log.warn("Could not set source file {}", l.substring(8), e);
@@ -172,26 +173,6 @@ public class DataDumpTranslator {
 		LabelGenerator lg = generator.getLabelGenerator();
 
 		fg.setStateSpace(ss);
-
-		// fixme: this is a hack which should not be necessary in the first place
-		/*
-		 The EventB parser seems to apply some AST transformation magic onto quantified
-		 expressions, adding an "oftype" node to the syntax, which the pretty printer
-		 also returns in the string representation. But such is not parsable again.
-
-		 The trick is here to abuse, that in EventB the quantifiers have a form such as
-		 	(!x.P(x))
-		 which results in a pretty print like
-		 	(!x oftype X.P(x))
-		 with X being the inferred type of x.
-		 The regex below translates that to
-		 	!x.(P(x))
-		 where the hack is to (a) remove the oftype annotation, and (b) move the opening parenthesis
-		 to achieve a syntax like that of classical B, which requires the
-		 */
-		dataDumpEntry = dataDumpEntry.replaceAll("\\(([!#%].+?) oftype .+?\\.", "$1.(");
-		dataDumpEntry = dataDumpEntry.replaceAll("\\(\\{} oftype .+?\\)", "{}"); // replace ({} oftype POW(...))
-		// todo "not "
 
 		// access dump data from entry, then translate to training data
 		DumpData dd = new DumpData(dataDumpEntry);
