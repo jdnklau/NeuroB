@@ -22,45 +22,33 @@ public class DataCollectorTests {
 	private Api api;
 	private final Path formulaeGenTestFile = Paths.get("src/test/resources/training/formulae_generation.mch");
 //	private final Path formulaeGenNBTrain = Paths.get("src/test/resources/training/formulae_generation.nbtrain");
-	
+
 	@Inject
 	public DataCollectorTests() {
 		api = Main.getInjector().getInstance(Api.class);
 	}
-	
+
 	@Test
 	public void extendedGuardFormulaeGeneration() throws IOException, ModelTranslationError{
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
-		
+
 		PredicateCollector pc = new PredicateCollector(ss);
 		List<String> formulae = FormulaGenerator.extendedGuardFormulae(pc);
-		
+
 		assertEquals("Not enough formulae created", 49, formulae.size());
-		
+
 		ss.kill();
 	}
-	
+
 	@Test
 	public void multiGuardFormulaeGeneration() throws IOException, ModelTranslationError{
 		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
-		
+
 		PredicateCollector pc = new PredicateCollector(ss);
 		List<String> formulae = FormulaGenerator.multiGuardFormulae(pc);
-		
+
 		assertEquals("Not enough formulae created", 24, formulae.size());
-		
-		ss.kill();
-	}
-	
-	@Test
-	public void extendedGuardFormulaeGenerationWithInfiniteDomains() throws IOException, ModelTranslationError{
-		StateSpace ss = api.b_load(formulaeGenTestFile.toString());
-		
-		PredicateCollector pc = new PredicateCollector(ss);
-		List<String> formulae = FormulaGenerator.extendedGuardFomulaeWithInfiniteDomains(pc);
-		
-		assertEquals("Not enough formulae created", 49, formulae.size());
-		
+
 		ss.kill();
 	}
 }
