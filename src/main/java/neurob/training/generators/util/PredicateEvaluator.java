@@ -19,13 +19,16 @@ import neurob.core.util.SolverType;
 import neurob.exceptions.NeuroBException;
 
 public class PredicateEvaluator {
-	private static long timeOutSeconds = 20L;
+	private static long timeOutValue = 20L;
 	private static TimeUnit timeUnit = TimeUnit.SECONDS;
 
 	public static void setTimeOut(long value, TimeUnit unit){
-		timeOutSeconds = value;
+		timeOutValue = value;
 		timeUnit = unit;
 	}
+
+	public static long getTimeOutValue(){ return timeOutValue; }
+	public static TimeUnit getTimeOutUnit(){ return timeUnit; }
 
 	/**
 	 * Checks if the formula given is decidable or not by the given solver.
@@ -96,7 +99,7 @@ public class PredicateEvaluator {
 		// actually check for timeout
 		Boolean res = false;
 		try {
-			res = futureRes.get(timeOutSeconds, timeUnit);
+			res = futureRes.get(timeOutValue, timeUnit);
 		} catch (IllegalStateException e) {
 			throw e;
 		} catch (ProBError e) {
@@ -105,7 +108,7 @@ public class PredicateEvaluator {
 		} catch (TimeoutException e) {
 			// Timeout
 			stateSpace.sendInterrupt();
-			throw new NeuroBException("Timeouted after "+timeOutSeconds+" "+timeUnit+".", e);
+			throw new NeuroBException("Timeouted after "+ timeOutValue +" "+timeUnit+".", e);
 		} catch (InterruptedException e) {
 			stateSpace.sendInterrupt();
 			throw new NeuroBException("Execution interrupted: "+e.getMessage(), e);

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import de.prob.animator.command.SetPreferenceCommand;
+import neurob.training.generators.util.PredicateEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,12 +145,17 @@ public abstract class TrainingDataGenerator {
 	 * @throws NeuroBException
 	 */
 	protected StateSpace loadStateSpace(Path file, MachineType mt) throws IOException, NeuroBException{
+		StateSpace ss;
+
+		// load
 		try{
 			switch(mt){
 			case EVENTB:
-				return api.eventb_load(file.toString());
+				ss = api.eventb_load(file.toString());
+				break;
 			case CLASSICALB:
-				return api.b_load(file.toString());
+				ss = api.b_load(file.toString());
+				break;
 			default:
 				throw new NeuroBException("Unexpected machine type given for state space loading: "+mt);
 			}
@@ -157,6 +164,20 @@ public abstract class TrainingDataGenerator {
 		} catch(Exception e){
 			throw new NeuroBException("Unexpected exception encountered: "+e.getMessage(), e);
 		}
+
+		// set time out
+		long time = PredicateEvaluator.getTimeOutUnit()
+				.toMillis(PredicateEvaluator.getTimeOutValue());
+		SetPreferenceCommand timeout = new SetPreferenceCommand("TIME_OUT", Long.toString(time));
+//		SetPreferenceCommand timeout = new SetPreferenceCommand("DISABLE_TIMEOUT", "true");
+		try{
+
+		ss.execute(timeout);
+		} catch (Exception e){
+			log.warn("Could not set time out for state space");
+		}
+
+		return ss;
 	}
 
 	/**
