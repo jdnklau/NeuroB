@@ -366,7 +366,7 @@ public class NeuroBModels {
 //				.updater(Updater.NESTEROVS).momentum(0.9)
 				.updater(Updater.RMSPROP).rmsDecay(0.95)
 				.weightInit(WeightInit.XAVIER)
-				.regularization(true).l2(1e-4)
+				.regularization(true).l2(1e-4).l1(1e-4)
 				.list();
 
 		// set up layers

@@ -10,10 +10,9 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import neurob.core.features.RawPredicateSequences;
+import neurob.core.features.*;
 import neurob.core.features.interfaces.RNNFeatures;
 import neurob.core.nets.NeuroBRecurrentNet;
-import neurob.core.features.LargeBASTFeatures;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.training.HyperParameterSearch;
 import neurob.training.generators.util.PredicateEvaluator;
@@ -26,8 +25,6 @@ import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
 
 import neurob.core.NeuroB;
-import neurob.core.features.PredicateImages;
-import neurob.core.features.TheoryFeatures;
 import neurob.core.features.interfaces.ConvolutionFeatures;
 import neurob.core.features.interfaces.FeatureGenerator;
 import neurob.core.nets.NeuroBConvNet;
@@ -659,6 +656,9 @@ public class NeuroBCli {
 		}
 		else if (feats.equals("preds")) {
 			return new RawPredicateSequences();
+		}
+		else if (feats.equals("preds_t")) {
+			return new TruncatedRawPredicateSequences();
 		}
 		else if(feats.equals("predfL")){
 			return new LargeBASTFeatures();
