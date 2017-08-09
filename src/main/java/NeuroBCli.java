@@ -191,6 +191,8 @@ public class NeuroBCli {
 					+ "\tpredi: Predicate image features, i.e. image versions of the predicates\n"
 					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)\n"
 					+ "\tpreds: Predicate sequence features, i.e. the raw string sequence of the predicate\n"
+					+ "\tpreds_t: truncated predicate sequence features, i.e. the raw string sequence of the predicate\n"
+					+ "\t\tTakes optional -size <s> parameter, truncating sequences to size of <s> (default: 1500)\n"
 
 					+ "<labels> describe the labelling mechanism in use:\n"
 					+ "\tsolclass: (default) Solver classification; classifies whether a given solver can decide a predicate or not\n"
@@ -659,7 +661,11 @@ public class NeuroBCli {
 			return new RawPredicateSequences();
 		}
 		else if (feats.equals("preds_t")) {
-			return new TruncatedRawPredicateSequences();
+			int length = 1500;
+			if(ops.containsKey("size")){
+				length = Integer.parseInt(ops.get("size").get(0));
+			}
+			return new TruncatedRawPredicateSequences(length);
 		}
 		else if(feats.equals("predfL")){
 			return new LargeBASTFeatures();
