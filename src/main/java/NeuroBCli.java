@@ -186,7 +186,8 @@ public class NeuroBCli {
 
 					+ "<features> can be one of the following:\n"
 					+ "\tpredf: (default) Basic, handcrafted features for predicates\n"
-					+ "\tpredfL: (default) Large set of handcrafted features for B predicates\n"
+					+ "\tpredfL: Large set of handcrafted features for B predicates\n"
+					+ "\tpredfF: Full set of handcrafted features for B predicates\n"
 					+ "\tpredi: Predicate image features, i.e. image versions of the predicates\n"
 					+ "\t\tTakes optional -size <s> parameter, generating <s>**2 sized images (default: 32)\n"
 					+ "\tpreds: Predicate sequence features, i.e. the raw string sequence of the predicate\n"
@@ -662,6 +663,9 @@ public class NeuroBCli {
 		}
 		else if(feats.equals("predfL")){
 			return new LargeBASTFeatures();
+		}
+		else if(feats.equals("predfF")){
+			return new BASTFullFeatures();
 		}
 		else {
 			return new TheoryFeatures();
