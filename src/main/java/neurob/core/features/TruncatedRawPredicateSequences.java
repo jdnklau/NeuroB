@@ -18,6 +18,11 @@ public class TruncatedRawPredicateSequences extends RawPredicateSequences {
 		this(1500); // NOTE: if this value is changed, change JavaDoc also
 	}
 
+	@Override
+	public String getDataPathIdentifier() {
+		return this.getClass().getSimpleName()+tlength;
+	}
+
 	public int getTruncateLength(){ return tlength; }
 
 	/**
