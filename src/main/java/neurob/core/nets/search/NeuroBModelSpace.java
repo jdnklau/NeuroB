@@ -142,7 +142,7 @@ public class NeuroBModelSpace {
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
 				.iterations(1)
 				.learningRate(lr)
-				.updater(Updater.NESTEROVS).momentum(0.9)
+				.updater(Updater.RMSPROP)//.momentum(0.9)
 				.regularization(true).l2(1e-4).l1(1e-4).dropOut(keepProb);
 
 		// set up layers
@@ -324,7 +324,7 @@ public class NeuroBModelSpace {
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
 				.iterations(1)
 				.learningRate(lr)
-				.updater(Updater.NESTEROVS).momentum(0.9)
+				.updater(Updater.RMSPROP)//.momentum(0.9)
 				.regularization(true).l2(1e-4).l1(1e-4).dropOut(keepProb);
 
 		// set up parameter space for filter size
@@ -436,7 +436,7 @@ public class NeuroBModelSpace {
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
 				.iterations(1)
 				.learningRate(lr)
-				.updater(Updater.NESTEROVS).momentum(0.9)
+				.updater(Updater.RMSPROP)//.momentum(0.9)
 				.regularization(true).l2(1e-4).l1(1e-4);
 
 		// set up layers
