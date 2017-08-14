@@ -15,6 +15,7 @@ import neurob.core.features.interfaces.RNNFeatures;
 import neurob.core.nets.NeuroBRecurrentNet;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.training.HyperParameterSearch;
+import neurob.training.generators.labelling.SMTSelectionGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
 import neurob.training.splitting.TrainingSetShuffler;
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -124,6 +125,10 @@ public class NeuroBCli {
 					+ "pdump -analyse <directory>\n"
 					+ "\tAnalyses the .pdump files in the given directory (recursively)\n"
 
+					+ "pdump -analyseLG <directory> -lg <label generator>\n"
+					+ "\tAnalyses the .pdump files in the given directory\n"
+					+ "\tand outputs additionally the analysis a fully translated set would yield\n"
+
 					+ "pdump -split <source> -first <first> -second <second> -ratio <ratio>\n"
 					+ "\tSplit the training set located in <source> into two distinct subsets, <first> and <second>\n"
 					+ "\t<first> will hold <ratio> times of samples from <source>, <second> will hold 1-<ratio>\n"
@@ -146,6 +151,9 @@ public class NeuroBCli {
 					+ "\t<solver> may be one of the following:\n"
 					+ "\t\tprob, kodkod, z3, smt\n"
 					+ "\t\twith smt representing SMT_SUPPORTED_INTERPRETER, a combination of ProB and Z3\n"
+
+					+ "pumpd -trimLG <directory> -target <directory> -lg <label generator>\n"
+					+ "\t Trims the predicate dump wrt a specified label generator\n"
 
 					+ "trainnet -train <traindata> -test <testdata> [-hidden <layer_sizes +>] [-seed <seed +>] [-epochs <epochs +>] [-lr <learningrate +>] [-modeldir <modeldir>] [-net <features> <labels>]\n"
 					+ "\tTrains a neural networks model of type <net>\n"
@@ -201,6 +209,7 @@ public class NeuroBCli {
 					+ "\t\tor smt (for SMT_SUPPORTED_INTERPRETER setting in ProB, using ProB+Z3 together)\n"
 					+ "\tsolsel: Selection approach, what solver decides a given predicate the fastes\n"
 					+ "\tsoltime: Regression approach for each solver, how long it takes to decide a predicate\n"
+					+ "\tsmtclass: Classification between ProB and Z3\n"
 
 					;
 
@@ -311,6 +320,9 @@ public class NeuroBCli {
 			else if(ops.containsKey("analyse")){
 				Path dir = Paths.get(ops.get("analyse").get(0));
 				analysePDump(dir);
+			} else if(ops.containsKey("analyseLG")){
+				Path dir = Paths.get(ops.get("analyseLG").get(0));
+				analysePDumpLG(dir, ops.get("lg").get(0));
 			}
 			else if(ops.containsKey("shuffle")){
 				Path dir = Paths.get(ops.get("shuffle").get(0));
@@ -328,38 +340,40 @@ public class NeuroBCli {
 				Path dir = Paths.get(ops.get("trim").get(0));
 				Path target = Paths.get(ops.get("target").get(0));
 				trimPDump(dir, target, ops.get("solver").get(0));
-			}
-			else if(ops.containsKey("split")){
-				if(ops.containsKey("first") && ops.containsKey("second") && ops.containsKey("ratio")){
-					Path csv = Paths.get(ops.get("split").get(0));
-					Path first = Paths.get(ops.get("first").get(0));
-					Path second = Paths.get(ops.get("second").get(0));
-					double ratio = Double.parseDouble(ops.get("ratio").get(0));
-					splitPDump(csv, first, second, ratio);
+			} else if (ops.containsKey("trimLG")) {
+				Path dir = Paths.get(ops.get("trimLG").get(0));
+				Path target = Paths.get(ops.get("target").get(0));
+				trimPDumpLG(dir, target, ops.get("lg").get(0));
+			} else {
+				if (ops.containsKey("split")) {
+					if (ops.containsKey("first") && ops.containsKey("second") && ops.containsKey("ratio")) {
+						Path csv = Paths.get(ops.get("split").get(0));
+						Path first = Paths.get(ops.get("first").get(0));
+						Path second = Paths.get(ops.get("second").get(0));
+						double ratio = Double.parseDouble(ops.get("ratio").get(0));
+						splitPDump(csv, first, second, ratio);
 
-				}
-				else {
-					System.out.println("pdump -split: Missing at least one of those parameters: -first, -second, -ratio");
-				}
-			}
-			else if(ops.containsKey("crossvalsplit")){
-				if(ops.containsKey("target") && ops.containsKey("ratio")){
-					Path source = Paths.get(ops.get("crossvalsplit").get(0));
-					Path target = Paths.get(ops.get("target").get(0));
-					double ratio = Double.parseDouble(ops.get("ratio").get(0));
+					} else {
+						System.out.println("pdump -split: Missing at least one of those parameters: -first, -second, -ratio");
+					}
+				} else if (ops.containsKey("crossvalsplit")) {
+					if (ops.containsKey("target") && ops.containsKey("ratio")) {
+						Path source = Paths.get(ops.get("crossvalsplit").get(0));
+						Path target = Paths.get(ops.get("target").get(0));
+						double ratio = Double.parseDouble(ops.get("ratio").get(0));
 
-					Path train = target.resolve("train");
-					Path notest = target.resolve("notest");
-					Path test = target.resolve("test");
-					Path validation = target.resolve("validation");
+						Path train = target.resolve("train");
+						Path notest = target.resolve("notest");
+						Path test = target.resolve("test");
+						Path validation = target.resolve("validation");
 
-					// split notrain and train
-					splitPDump(source, notest, test, ratio);
-					splitPDump(notest, train, validation, ratio);
+						// split notrain and train
+						splitPDump(source, notest, test, ratio);
+						splitPDump(notest, train, validation, ratio);
+					}
+				} else {
+					System.out.println("pdump: expecting either -file, -dir, or -translate parameter");
 				}
-			}
-			else {
-				System.out.println("pdump: expecting either -file, -dir, or -translate parameter");
 			}
 		}
 		// trainnet -train <traindata> -test <testdata> [-seed <seed>+] [-epochs <epochs>+] [-lr <learningrate>+] [-net <features> <labels>]
@@ -527,6 +541,18 @@ public class NeuroBCli {
 		}
 	}
 
+	private static void trimPDumpLG(Path dir, Path target, String lgValue){
+		LabelGenerator lg = pdumpLG(lgValue);
+
+		PredicateDumpGenerator gen = new PredicateDumpGenerator(3, SolverType.PROB); //solver is irrelevant
+
+		try {
+			gen.trimTrainingData(dir, target, lg);
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static void loadDL4JData(Path dl4jData, int sleepyTime) {
 		StatsStorage stats = new FileStatsStorage(dl4jData.toFile());
 		UIServer ui = UIServer.getInstance();
@@ -597,6 +623,25 @@ public class NeuroBCli {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static void analysePDumpLG(Path dir, String lg){
+		LabelGenerator labelGenerator = pdumpLG(lg);
+
+		try {
+			TrainingSetAnalyser.logTrainingAnalysis(TrainingSetAnalyser.analysePredicateDumps(dir,
+					labelGenerator));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private static LabelGenerator pdumpLG(String lgValue){
+		ops.put("net", new ArrayList<>());
+		ops.get("net").add("predf");
+		ops.get("net").add(lgValue);
+		return getLabelGenerator();
 	}
 
 	private static void buildNet(){
@@ -692,8 +737,10 @@ public class NeuroBCli {
 		LabelGenerator labelling;
 		if(label.equals("soltime")) {
 			labelling = new SolverTimerGenerator();
-		} else if(label.equals("solsel")){
+		} else if(label.equals("solsel")) {
 			labelling = new SolverSelectionGenerator();
+		} else if(label.equals("smtclass")){
+			labelling = new SMTSelectionGenerator();
 		} else { // if (label.equals("solclass")) {
 			SolverType solver = SolverType.PROB;
 			if(ops.containsKey("solver")){

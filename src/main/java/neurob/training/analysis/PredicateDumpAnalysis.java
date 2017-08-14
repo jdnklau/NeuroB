@@ -2,14 +2,21 @@ package neurob.training.analysis;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import neurob.core.util.SolverType;
+import neurob.training.TrainingSetAnalyser;
+import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
+import neurob.training.generators.util.DumpData;
 
 public class PredicateDumpAnalysis extends RegressionAnalysis {
 	// trimming utility
 	private final SolverType trimSolver; // trimming happens wrt this solver
 	private final int trimIdx; // index of solver in used arrays
+	private LabelGenerator labelGenerator; // for trimming, to trim as data would have been translated
+	private TrainingAnalysisData wrappedData;
+	private boolean wrappedAnalysis = false;
 	private double trimChanceDecidable; // trim chance for samples decidable by trimSolver
 	private double trimChanceUndecidable; // trim chance for samples undecidable by trimSolver
 	private final Random rng = new Random(123);
@@ -27,7 +34,7 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 	private int[][] decidabilityMatrix;
 
 	public PredicateDumpAnalysis(){
-		this(null);
+		this((SolverType) null);
 	}
 
 	/**
@@ -52,6 +59,14 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 		trimIdx = PredicateDumpLabelGenerator.getSolverIndex(trimSolver);
 		trimChanceDecidable = 1; // this corresponds to always trimming; overwritten in #evaluateAllSamples
 		trimChanceUndecidable = 1; // this corresponds to always trimming; overwritten in #evaluateAllSamples
+	}
+
+	public PredicateDumpAnalysis(LabelGenerator lg) {
+		this((SolverType) null);
+		this.labelGenerator = lg;
+
+		this.wrappedData = TrainingSetAnalyser.getAnalysisTypeByProblem(lg);
+		this.wrappedAnalysis = true;
 	}
 
 	@Override
@@ -101,6 +116,10 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 				.append("\n");
 		}
 
+		if(wrappedAnalysis){
+			res.append(wrappedData.getStatistics());
+		}
+
 		return res.toString();
 	}
 
@@ -120,6 +139,10 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 			double smallerClassDist = Math.min(trimDecidability, 1-trimDecidability);
 			trimChanceDecidable = 1-smallerClassDist/trimDecidability;
 			trimChanceUndecidable = 1-smallerClassDist/(1-trimDecidability);
+		}
+
+		if(wrappedAnalysis){
+			wrappedData.evaluateAllSamples();
 		}
 
 		return this;
@@ -151,8 +174,24 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 		return decidabilityMatrix;
 	}
 
+	private double[] translateLabels(double[] labels, LabelGenerator lg){
+		String labelStr =
+				String.join(",",
+						Arrays.stream(labels).mapToObj(Double::toString)
+						.collect(Collectors.toList()));
+
+		return labelGenerator.translateLabelling(
+				new DumpData(labelStr+":TRUE"));
+	}
+
 	@Override
 	public void analyseSample(double[] features, double[] labels) {
+		if(wrappedAnalysis){
+			wrappedData.analyseSample(
+					new double[]{},
+					translateLabels(labels, labelGenerator));
+		}
+
 		// for each solver
 		boolean[] couldDecide = {false, false, false, false}; // to compare which solvers could decide the same sample
 		for(int s=0; s<labels.length; s++){
@@ -200,6 +239,10 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 
 	@Override
 	public boolean canSampleBeTrimmed(double[] trainingLabels) {
+		if(wrappedAnalysis){
+			return wrappedData.canSampleBeTrimmed(translateLabels(trainingLabels,labelGenerator));
+		}
+
 		if(trimSolver==null){
 			// NOTE: In regression we do not need trimming
 			// => trim everything, so no new files are generated

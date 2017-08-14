@@ -7,8 +7,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 import neurob.core.util.SolverType;
+import neurob.training.generators.interfaces.LabelGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +91,23 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 		TrainingSetSplitter.splitLinewise(source, first, second, ratio, rng, true, "."+preferredFileExtension);
 	}
 
+	protected  TrainingAnalysisData analyseTrainingSet(Path source, LabelGenerator lg)
+			throws NeuroBException{
+		TrainingAnalysisData data = getAnalysisData(lg);
+
+		try(Stream<Path> files = Files.walk(source)){
+			files
+					.filter(Files::isRegularFile)
+					.filter(p->p.toString().endsWith("."+preferredFileExtension))
+					.forEach(file->analyseTrainingFile(file, data));
+		} catch (IOException e) {
+			throw new NeuroBException("Could not analyse training set in "+source+" correctly.", e);
+		}
+
+		data.evaluateAllSamples();
+		return data;
+	}
+
 	@Override
 	protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
 		TrainingSetAnalyser.analyseTrainingDataFile(file, analysisData);
@@ -104,10 +123,22 @@ public class PredicateDumpGenerator extends PredicateTrainingDataGenerator {
 		return new PredicateDumpAnalysis(trimSolver);
 	}
 
+	protected TrainingAnalysisData getAnalysisData(LabelGenerator lg){
+		return new PredicateDumpAnalysis(lg);
+	}
+
 	@Override
 	public void trimTrainingData(Path source, Path target) throws NeuroBException {
 		// Analyse data before hand
 		TrainingAnalysisData analysisData = analyseTrainingSet(source);
+		TrainingSetTrimmer.trimLineWise(source, target, analysisData, this, true,
+				"."+preferredFileExtension);
+	}
+
+	public void trimTrainingData(Path source, Path target, LabelGenerator lg)
+			throws NeuroBException{
+		// analyse data before hand
+		TrainingAnalysisData analysisData = analyseTrainingSet(source, lg);
 		TrainingSetTrimmer.trimLineWise(source, target, analysisData, this, true,
 				"."+preferredFileExtension);
 	}
