@@ -14,6 +14,7 @@ import neurob.core.features.*;
 import neurob.core.features.interfaces.RNNFeatures;
 import neurob.core.nets.NeuroBRecurrentNet;
 import neurob.core.nets.search.NeuroBModelSpace;
+import neurob.latex.hyperparametersearch.SearchResultCrawler;
 import neurob.training.HyperParameterSearch;
 import neurob.training.generators.labelling.SMTSelectionGenerator;
 import neurob.training.generators.util.PredicateEvaluator;
@@ -173,6 +174,11 @@ public class NeuroBCli {
 					+ "\t\tNote: -layers needs four entries for convolution models\n"
 					+ "\t\t\t- first+second is number of convolution, third+fourth is number of fully connected layers\n"
 					+ "\tDefault values: -layers 3 5; -models 15; -epochs 15\n"
+
+					+ "modelsearch -crawl <training dir> [-n <top n>]\n"
+					+ "\tCrawls through a hyper parameter search directory, collecting data from\n"
+					+ "\tthe epochs.csv files and adds a .tex file plotting the learning curve of\n"
+					+ "\tthe n best models, with n defaulting to 5\n"
 
 					+ "loadnet -dl4jdata <modeldirectory> [-seconds <seconds>] [-net <features> <labels>]\n"
 					+ "\tLoad stats of an already trained model into the DL4J UI\n"
@@ -407,7 +413,15 @@ public class NeuroBCli {
 			}
 		}
 		else if(cmd.equals("modelsearch")){
-			if(ops.containsKey("train") && ops.containsKey("test")){
+			if(ops.containsKey("crawl")){
+				Path dir = Paths.get(ops.get("crawl").get(0));
+				int n = 5;
+				if(ops.containsKey("n")){
+					n = Integer.parseInt(ops.get("n").get(0));
+				}
+				crawlModelSearch(dir, n);
+			}
+			else if(ops.containsKey("train") && ops.containsKey("test")){
 				// default values
 				int[] layers = new int[]{3,5,1,3};
 				if(ops.containsKey("layers")){
@@ -457,6 +471,18 @@ public class NeuroBCli {
 		}
 
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
+	}
+
+	private static void crawlModelSearch(Path dir, int n) {
+		SearchResultCrawler crawler = new SearchResultCrawler(n);
+		crawler.crawl(dir);
+
+		try {
+			crawler.writeTeX(dir.resolve("top"+n+".tex"));
+			crawler.writeTeXStandalone(dir.resolve("top"+n+"_standalone.tex"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void shufflePdump(Path pdump, Path target, int seed) {
