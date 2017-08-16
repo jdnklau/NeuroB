@@ -97,26 +97,24 @@ public class SearchResultCrawler implements PGFPlotable {
 
 		// if already results present, binary search to add at right place
 		int k = results.size()/2; // index to look for
-		int kOld = results.size(); // previous looked at index
+		int kmin=0,kmax=results.size(); // min and max possible value for k
 		boolean isInserted = false;
 		while(!isInserted & k<maxResults){
 			SearchResultEntry compare = results.get(k);
-			int kTemp = k; // save current k
 			int offset=0; // only needed for insertion at end
 			// found better result
 			if(res.isGreaterThan(compare)){
-				int reference = (k<kOld) ? 0 : kOld;
-				k = reference + (k-reference)/2; // find your place, little result
+				kmax = k;
+				k = kmin + (k-kmin)/2; // find your place, little result
 			}
 			else { // performance is worse
-				int reference = (k>kOld) ? results.size() : kOld;
-				k += (reference-k)/2;
+				kmin = k+1;
+				k += (kmax-k)/2;
 				offset = 1; // order it at insertion one place behind
 			}
-			kOld = kTemp;
 
 			// if comparing with previous result, we found our place
-			if(k==kOld && k<maxResults){
+			if(kmin == kmax && k<maxResults){
 				results.add(k+offset, res);
 				isInserted = true;
 			}
