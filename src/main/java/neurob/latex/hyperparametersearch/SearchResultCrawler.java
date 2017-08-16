@@ -1,5 +1,6 @@
 package neurob.latex.hyperparametersearch;
 
+import neurob.latex.interfaces.PGFPlotable;
 import neurob.latex.interfaces.TeXable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ import java.util.stream.Stream;
  *
  * @author Jannik Dunkelau
  */
-public class SearchResultCrawler implements TeXable {
+public class SearchResultCrawler implements PGFPlotable {
 	private final int maxResults;
 	private List<SearchResultEntry> results;
 
