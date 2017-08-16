@@ -63,6 +63,7 @@ public class SearchResultCrawler implements TeXable {
 	}
 
 	private void checkResults(Path csv) {
+		log.info("Loading {}", csv);
 		// get index of model
 		int idx = Integer.parseInt(csv.getParent().getFileName().toString());
 		// get best performance from csv
@@ -104,7 +105,7 @@ public class SearchResultCrawler implements TeXable {
 			// found better result
 			if(res.isGreaterThan(compare)){
 				int reference = (k<kOld) ? 0 : kOld;
-				k = (k-reference)/2; // find your place, little result
+				k = reference + (k-reference)/2; // find your place, little result
 			}
 			else { // performance is worse
 				int reference = (k>kOld) ? results.size() : kOld;
@@ -139,7 +140,7 @@ public class SearchResultCrawler implements TeXable {
 				"\\begin{tikzpicture}[scale=0.85, transform shape]\n" +
 				"    \\begin{axis}\n" +
 				"        [\n" +
-				"            ymin = 0.4,\n" +
+				"            ymin = 0,\n" +
 				"            ymax = 1,\n" +
 				"            legend style={at={(0.95,0.05)}, anchor=south east, font=\\small},\n" +
 				"            ylabel={$F_1$-Score},\n" +

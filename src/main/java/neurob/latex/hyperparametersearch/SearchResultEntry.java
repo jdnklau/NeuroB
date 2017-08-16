@@ -32,4 +32,9 @@ public class SearchResultEntry {
 	public Path getSource() {
 		return source;
 	}
+
+	@Override
+	public String toString() {
+		return "("+index+","+value+")";
+	}
 }
