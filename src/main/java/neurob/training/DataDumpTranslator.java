@@ -137,7 +137,8 @@ public class DataDumpTranslator {
 				});
 		}
 
-		ss.kill();
+		if(ss != null)
+			ss.kill();
 
 		return data;
 	}
