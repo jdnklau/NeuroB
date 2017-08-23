@@ -148,7 +148,7 @@ public class LargeBASTFeatureData {
 				ast = bParser.parse(BParser.PREDICATE_PREFIX + " " + predicate, false,
 						bParser.getContentProvider());
 			}
-		} catch (BCompoundException e) {
+		} catch (Exception e) {
 			throw new NeuroBException("Could not collect features from predicate "+predicate, e);
 		}
 		collector = new LargeBASTFeatureCollector(this);

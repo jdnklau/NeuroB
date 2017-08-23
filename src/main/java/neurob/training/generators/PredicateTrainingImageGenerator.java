@@ -31,17 +31,17 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 	public PredicateTrainingImageGenerator(ConvolutionFeatures fg, LabelGenerator lg) {
 		super(fg, lg);
 		this.fg = fg;
-		
+
 		preferredFileExtension = "png";
 		imageCounter = 0;
 	}
-	
+
 	@Override
 	public void writeTrainingDataToDirectory(List<TrainingData> trainingData, Path targetDir) throws NeuroBException {
 		Path sourceFile;
 		Path targetFile;
 		imageCounter = 0; // set to zero as we probably are looking at a new file
-		
+
 		log.info("Writing training images...");
 		for(TrainingData td : trainingData){
 			/*
@@ -54,17 +54,17 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 			sourceFile = td.getSource();
 			Path targetFileDir = generateTrainingDataPath(sourceFile, targetDir);
 			targetFile = targetFileDir.resolve(
-					imageCounter 
+					imageCounter
 					+ "_" + td.getLabelString(lg.getProblemType()) +  "." + getPreferredFileExtension());
-			
+
 			createTrainingImage(td, targetFile);
 		}
 		log.info("\tDone: {} training images.", imageCounter);
 	}
-	
+
 	private boolean createTrainingImage(TrainingData td, Path targetFile) {
 		BufferedImage img = fg.translateArrayFeatureToImage(td.getFeatures());
-		
+
 		try {
 			Files.createDirectories(targetFile.getParent());
 			log.debug("\tWriting image {}", targetFile);
@@ -80,20 +80,22 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 	@Override
 	public Path generateTrainingDataPath(Path sourceFile, Path targetDir) {
 		// get source file name without file extension
+		if(sourceFile == null)
+			sourceFile = Paths.get("null_source");
 		return targetDir.resolve(sourceFile.toString()+".image_dir");
 	}
-	
+
 	@Override
 	public void splitTrainingData(Path source, Path first, Path second, double ratio, Random rng)
 			throws NeuroBException {
 		TrainingSetSplitter.splitFilewise(source, first, second, ratio, rng, "."+preferredFileExtension);
 	}
-	
+
 	@Override
 	protected TrainingAnalysisData analyseTrainingFile(Path file, TrainingAnalysisData analysisData) {
 		// load features and labels
 		String labelString = ImageNameLabelGenerator.labelStringForImage(file);
-		
+
 		BufferedImage img;
 		try {
 			img = ImageIO.read(file.toFile());
@@ -101,13 +103,13 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 			log.error("Could not read {}", file, e);
 			return analysisData;
 		}
-		
+
 		// translate features
 		double[] features = fg.translateImageFeatureToArray(img);
 		double[] labels = Arrays.stream(labelString.split(",")).mapToDouble(Double::valueOf).toArray();
-		
+
 		analysisData.analyseSample(features, labels);
-		
+
 		return analysisData;
 	}
 
@@ -120,7 +122,7 @@ public class PredicateTrainingImageGenerator extends PredicateTrainingDataGenera
 	@Override
 	public double[] labellingFromSample(String sample) {
 		String labelStr = ImageNameLabelGenerator.labelStringForImage(Paths.get(sample));
-		
+
 		return Arrays.stream(labelStr.split(",")).mapToDouble(Double::valueOf).toArray();
 	}
 }
