@@ -354,9 +354,26 @@ public class NeuroBModels {
 	 * @return
 	 */
 	public static NeuroBRecurrentNet recurrentModel(int[] hiddenLayers, double learningRate,
-			RNNFeatures features, LabelGenerator labelling, int seed){
+      RNNFeatures features, LabelGenerator labelling, int seed){
+		return recurrentModel(hiddenLayers, learningRate, features, labelling, 50, seed);
+	}
+	/**
+	 * Creates a recurrent neural network (RNN) with given structure.
+	 * <p>
+	 *     {@code hiddenLayers} parameter gives structure of the RNN. For each entry in the array
+	 *     a GravesLSTM layer will be added, with size corresponding to the entry's value.
+	 * </p>
+	 * @param hiddenLayers Structure to build
+	 * @param learningRate learning rate to be used
+	 * @param features FeatureGenerator to use
+	 * @param labelling LabelGenerator to use
+	 * @param tbpttLength Length of truncated back propagation through time
+	 * @param seed seed fed to the RNG
+	 * @return
+	 */
+	public static NeuroBRecurrentNet recurrentModel(int[] hiddenLayers, double learningRate,
+			RNNFeatures features, LabelGenerator labelling, int tbpttLength, int seed){
 		MultiLayerNetwork model;
-		int tbpttLength = 50;
 
 		NeuralNetConfiguration.ListBuilder listBuilder = new NeuralNetConfiguration.Builder()
 				.seed(seed)
