@@ -165,7 +165,11 @@ public class NeuroBModelSpace {
 			activationFunction = "identity"; // FIXME: maybe wrong string; unsure as Arbiter does not update to the enums of DL4J
 		}
 		else {
-			lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
+			if(labelling.getClassCount() > 2){
+				lossFunction = LossFunction.MCXENT;
+			} else {
+				lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
+			}
 			activationFunction = "softmax";
 		}
 
@@ -365,7 +369,10 @@ public class NeuroBModelSpace {
 			activationFunction = "identity"; // FIXME: maybe wrong string; unsure as Arbiter does not update to the enums of DL4J
 		}
 		else {
-			lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
+			if(labelling.getClassCount() > 2)
+				lossFunction = LossFunction.MCXENT;
+			else
+				lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
 			activationFunction = "softmax";
 		}
 
@@ -459,7 +466,11 @@ public class NeuroBModelSpace {
 			activationFunction = "identity"; // FIXME: maybe wrong string; unsure as Arbiter does not update to the enums of DL4J
 		}
 		else {
-			lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
+			if(labelling.getClassCount() > 2){
+				lossFunction = LossFunction.MCXENT;
+			} else {
+				lossFunction = LossFunction.NEGATIVELOGLIKELIHOOD;
+			}
 			activationFunction = "softmax";
 		}
 
