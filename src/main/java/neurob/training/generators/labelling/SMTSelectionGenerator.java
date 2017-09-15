@@ -112,7 +112,7 @@ public class SMTSelectionGenerator implements PredicateLabelGenerator {
 	public double[] translateLabelling(DumpData dumpData) {
 		long[] labellings = Arrays.stream(dumpData.getLabellings())
 				.mapToLong(d->new Double(d).longValue()).toArray();
-		return new double[]{getLabellingByTimes(labellings[0], labellings[1])};
+		return new double[]{getLabellingByTimes(labellings[0], labellings[2])};
 	}
 
 }

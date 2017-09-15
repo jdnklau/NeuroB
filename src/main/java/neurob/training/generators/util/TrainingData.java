@@ -34,7 +34,6 @@ public class TrainingData {
 	public double[] getFeatures(){return features;}
 	/**
 	 * @return The label vector
-	 * @see #getClassificationLabels()
 	 */
 	public double[] getLabels(){return labels;}
 	/**
