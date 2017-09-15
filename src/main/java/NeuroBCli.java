@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import neurob.core.features.*;
 import neurob.core.features.interfaces.RNNFeatures;
+import neurob.core.nets.NeuroBModels;
 import neurob.core.nets.NeuroBRecurrentNet;
 import neurob.core.nets.search.NeuroBModelSpace;
 import neurob.latex.hyperparametersearch.SearchResultCrawler;
@@ -183,6 +184,9 @@ public class NeuroBCli {
 					+ "loadnet -dl4jdata <modeldirectory> [-seconds <seconds>] [-net <features> <labels>]\n"
 					+ "\tLoad stats of an already trained model into the DL4J UI\n"
 					+ "\tThe data will be available for the specified amount of seconds (default: 60)\n"
+
+					+ "loadnet -model <model.zip> -test <test directory> [-net <features> <labels>]\n"
+					+ "\tLoad an already present model an measure its performance on a given test set\n"
 
 					+ "libraryIODef -dir <directory>\n"
 					+ "\tDistributes the LibraryIO.def file in <directory>\n"
@@ -408,6 +412,11 @@ public class NeuroBCli {
 				}
 				loadDL4JData(dl4jData, sleepyTime);
 			}
+			else if(ops.containsKey("model") && ops.containsKey("test")){
+				Path model = Paths.get(ops.get("model").get(0));
+				Path testDir = Paths.get(ops.get("test").get(0));
+				testModel(model,testDir);
+			}
 			else {
 				System.out.println("loadnet: missing -dl4jdata parameter");
 			}
@@ -471,6 +480,28 @@ public class NeuroBCli {
 		}
 
 		System.exit(0); // ensure that all ProBCli processes are closed after everything is done.
+	}
+
+	private static void testModel(Path model, Path testDir) {
+		FeatureGenerator fg = getFeatureGenerator();
+		LabelGenerator lg = getLabelGenerator();
+
+		NeuroBNet nbn = null;
+		try {
+			nbn = new NeuroBNet(model,fg,lg);
+		} catch (NeuroBException e) {
+			e.printStackTrace();
+		}
+
+		NeuroB nb = new NeuroB(nbn);
+
+		try {
+			nb.test(testDir);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void crawlModelSearch(Path dir, int n) {

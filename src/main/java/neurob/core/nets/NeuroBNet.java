@@ -186,7 +186,7 @@ public class NeuroBNet {
 			// read seed
 			BufferedReader seedReader =
 					Files.newBufferedReader(modelDirectory.resolve("seed.txt"));
-			this.seed = Integer.valueOf(seedReader.readLine());
+			this.seed = (int) model.getDefaultConfiguration().getSeed();
 		} catch (Exception e) {
 			throw new NeuroBException("Could not correctly load model located in "
 				+ modelDirectory, e);
