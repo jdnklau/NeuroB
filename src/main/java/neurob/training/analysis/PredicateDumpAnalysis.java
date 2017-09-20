@@ -9,6 +9,8 @@ import neurob.training.TrainingSetAnalyser;
 import neurob.training.generators.interfaces.LabelGenerator;
 import neurob.training.generators.labelling.PredicateDumpLabelGenerator;
 import neurob.training.generators.util.DumpData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PredicateDumpAnalysis extends RegressionAnalysis {
 	// trimming utility
@@ -24,6 +26,8 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 	private long[] negSamples;
 	private final static int solversAccountedFor = PredicateDumpLabelGenerator.solversAccountedFor;
 	private double[] decidabilityDist; // Distribution of decidability of samples between solvers
+	// logger
+	private final static Logger log = LoggerFactory.getLogger(PredicateDumpAnalysis.class);
 
 
 	/**
@@ -32,6 +36,9 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 	 * <br>Indices through each dimension are: 0 ProB, 1 KodKod, 2 Z3, 3 ProB+Z3
 	 */
 	private int[][] decidabilityMatrix;
+	private double totalPredicateLength=0;
+	private int minPredicateLength=Integer.MAX_VALUE;
+	private int maxPredicateLength=Integer.MIN_VALUE;
 
 	public PredicateDumpAnalysis(){
 		this((SolverType) null);
@@ -84,6 +91,11 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 			res.append("\nOf these were ").append(emptyFilesSeen).append(" seemingly empty\n");
 		}
 		res.append("Samples seen: ").append(samplesSeen).append("\n");
+		res.append("Predicate metrics:\n");
+		res.append("\tminimum length: ").append(minPredicateLength)
+				.append("; maximum length: ").append(maxPredicateLength);
+		res.append("\n\taverage predicate length: ").append(totalPredicateLength/samplesSeen)
+				.append("\n");
 
 		// info per solver
 		for(int i=0; i<solversAccountedFor; i++){
@@ -185,7 +197,7 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 	}
 
 	@Override
-	public void analyseSample(double[] features, double[] labels) {
+	public void analyseSample(double[] featureStatistics, double[] labels) {
 		if(wrappedAnalysis){
 			wrappedData.analyseSample(
 					new double[]{},
@@ -232,7 +244,19 @@ public class PredicateDumpAnalysis extends RegressionAnalysis {
 	public void analyseTrainingDataSample(String sampleString) {
 		if(sampleString.startsWith("#"))
 			return; // ignore commented lines
-		double[] labels = Arrays.stream(sampleString.split(":")[0].split(","))
+		// Split predicate
+		int idx = sampleString.indexOf(":");
+		String labelString = sampleString.substring(0,idx);
+		String pred = sampleString.substring(idx+1);
+		// Collect predicate metrics
+		int predlen = pred.length();
+		totalPredicateLength += predlen;
+		if(predlen < minPredicateLength)
+			minPredicateLength = predlen;
+		else if(predlen > maxPredicateLength)
+			maxPredicateLength = predlen;
+
+		double[] labels = Arrays.stream(labelString.split(","))
 				.mapToDouble(Double::parseDouble).toArray();
 		analyseSample(null, labels);
 	}
