@@ -70,6 +70,7 @@ public class NeuroBNet {
 	public NeuroBNet(MultiLayerNetwork model, FeatureGenerator features, LabelGenerator labelling) {
 		this(features, labelling);
 		this.model = model;
+		this.model.init();
 		useNormalizer = true;
 		setUpNormalizer();
 	}
