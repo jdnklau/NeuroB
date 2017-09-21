@@ -193,6 +193,10 @@ public class NeuroBNet {
 		}
 	}
 
+	public MultiLayerNetwork getModel(){
+		return model;
+	}
+
 	/**
 	 * Saves the NeuroBNet to disc.
 	 * <p>
