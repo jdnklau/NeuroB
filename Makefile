@@ -4,17 +4,8 @@ EXAMPLES = examples/prob_examples/public_examples
 PDUMPDIR = training_data/PredicateDump
 PDUMPPROBTRIM = $(PDUMPDIR)_trim/PROB
 
-all : neurob dev unzip_examples distributedlibraryfile 
+all : neurob distributedlibraryfile
 	@echo "Done."
-
-examples/prob_examples :
-	@echo "***** Cloning prob_examples; if this fails, you do not have permission"
-	@echo "      You can still use NeuroB though"
-	@git clone git@tuatara.cs.uni-duesseldorf.de:prob/prob_examples.git examples/prob_examples/
-	
-unzip_examples : examples/prob_examples
-	@echo "***** unzipping eventb machines"
-	@find examples/prob_examples/public_examples/ -iname *.zip -exec unzip -uo -d "{}_unpacked" {} \;
 
 neurob :
 	@echo "***** Create NeuroB binary"
@@ -25,12 +16,6 @@ clean :
 	@echo "***** Clean gradle"
 	@./gradlew -q clean
 	@echo "*****/ Cleaned"
-
-dev :
-	@echo "***** Setting up eclipse project"
-	@./gradlew cleanEclipse
-	@./gradlew eclipse --refresh-dependencies
-	@echo "*****/ Eclipse project set up"
 
 # how to run stuff
 trainingset : predicatedump
