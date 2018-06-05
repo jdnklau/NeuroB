@@ -1,0 +1,49 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+project.version = '0.47.0-SNAPSHOT'
+project.group = 'de.hhu.stups'
+project.archivesBaseName = "NeuroB"
+
+project.sourceCompatibility = '1.8'
+project.targetCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+    maven {
+        name "sonatype snapshots"
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+    maven {
+        name "sonatype releases"
+        url "https://oss.sonatype.org/content/repositories/releases"
+    }
+}
+
+dependencies {
+    // ProB dependencies
+    compile 'commons-cli:commons-cli:1.2'
+    compile (group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '3.2.2')
+
+    // DeepLearning4J dependencies
+    compile 'org.nd4j:nd4j-native-platform:0.8.0'
+    compile 'org.deeplearning4j:deeplearning4j-core:0.8.0'
+    // arbiter for random search and grid search utility
+    compile 'org.deeplearning4j:arbiter-deeplearning4j:0.8.0'
+    // user interface of deeplearning4j
+    compile 'org.deeplearning4j:deeplearning4j-ui_2.10:0.8.0'
+
+    // for logging
+    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+
+    testCompile 'junit:junit:4.12'
+}
+
+configurations {
+    all*.exclude group: 'org.bytedeco', module: 'javacpp-presets'
+}
+
+task wrapper(type:Wrapper) {
+    gradleVersion = '3.1'
+}

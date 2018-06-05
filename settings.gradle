@@ -1,0 +1,6 @@
+rootProject.name = 'NeuroB'
+include 'core'
+include 'cli'
+include 'core'
+include 'cli'
+
