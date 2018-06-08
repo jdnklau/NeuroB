@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.api;
 
+import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 
 import java.util.List;

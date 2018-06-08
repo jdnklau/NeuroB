@@ -1,4 +1,4 @@
-package de.hhu.stups.neurob.core.api;
+package de.hhu.stups.neurob.core.features;
 
 public interface Features {
 

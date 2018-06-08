@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.training.data;
 
-import de.hhu.stups.neurob.core.api.Features;
+import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.api.Labelling;
 
 import java.nio.file.Path;
