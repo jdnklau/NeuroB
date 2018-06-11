@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.generation;
 
+import de.hhu.stups.neurob.core.features.FeatureGenerating;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.api.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
@@ -17,14 +18,16 @@ import java.util.stream.Stream;
 public abstract class TrainingDataGenerator<F extends Features, L extends Labelling> {
 
     protected final TrainingDataFormat format;
-    protected F features;
-    protected L labelling;
+    protected final FeatureGenerating<F,?> featureGenerator;
 
     protected static final Logger log =
             LoggerFactory.getLogger(TrainingDataGenerator.class);
 
-    public TrainingDataGenerator(TrainingDataFormat format) {
+    public TrainingDataGenerator(
+            FeatureGenerating<F,?>  featureGenerator,
+            TrainingDataFormat format) {
         this.format = format;
+        this.featureGenerator = featureGenerator;
     }
 
     /**
@@ -62,10 +65,10 @@ public abstract class TrainingDataGenerator<F extends Features, L extends Labell
     public void generateTrainingData(Path source, Path targetDir,
             boolean lazy) throws IOException {
 
-        // Set target dir to targetDir/labelling/features/
-        final Path fullTargetDir = targetDir
-                .resolve(labelling.getClass().getSimpleName())
-                .resolve(features.getClass().getSimpleName());
+        // TODO: Set target dir to targetDir/labelling/features/
+        final Path fullTargetDir = targetDir;
+//                .resolve(labelling.getClass().getSimpleName())
+//                .resolve(features.getClass().getSimpleName());
         log.info("Generating training data from {}, storing in {}",
                 source, fullTargetDir);
 
@@ -77,8 +80,7 @@ public abstract class TrainingDataGenerator<F extends Features, L extends Labell
                     // Only create if non-lazy or non-existent
                     .filter(file -> !lazy && !dataAlreadyExists(file,
                             format.getTargetLocation(file, fullTargetDir)))
-                    .map(file ->
-                            streamSamplesFromFile(file))
+                    .map(file -> streamSamplesFromFile(file))
                     .forEach(samples ->
                             format.writeSamples(samples, fullTargetDir));
         }
@@ -114,6 +116,7 @@ public abstract class TrainingDataGenerator<F extends Features, L extends Labell
      *
      * @return
      */
-    public abstract boolean dataAlreadyExists(Path sourceFile, Path targetLocation);
+    public abstract boolean dataAlreadyExists(Path sourceFile,
+            Path targetLocation);
 
 }

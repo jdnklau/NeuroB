@@ -9,4 +9,7 @@ public interface Features {
 
     Double[] getFeatureArray();
 
+    @Override
+    String toString();
+
 }
