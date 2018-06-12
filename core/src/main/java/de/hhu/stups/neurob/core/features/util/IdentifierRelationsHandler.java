@@ -71,6 +71,9 @@ public class IdentifierRelationsHandler {
      * <code>boundary = boundary | setBoundary</code>.
      * Once a boundary was set, it cannot be unset.
      * </p>
+     * <p>
+     * If the identifier is not yet added, it will be.
+     * </p>
      *
      * @param setLowerBound true iff the identifier shall be lower
      *         bounded
@@ -79,6 +82,7 @@ public class IdentifierRelationsHandler {
      */
     public void addDomainBoundaries(String id, boolean setLowerBound,
             boolean setUpperBound) {
+        addIdentifier(id);
         adjacencyList.addDomainBoundaries(id, setLowerBound, setUpperBound);
     }
 

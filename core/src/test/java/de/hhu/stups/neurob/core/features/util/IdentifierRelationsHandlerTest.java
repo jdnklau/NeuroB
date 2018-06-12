@@ -39,6 +39,28 @@ public class IdentifierRelationsHandlerTest {
     }
 
     @Test
+    public void shouldIdentifyLowerDomainBoundaryAsSemiBoundedDomain() {
+        IdentifierRelationsHandler h = new IdentifierRelationsHandler();
+        String id = "a";
+
+        h.addDomainBoundaries(id, true, false);
+
+        assertEquals(1, h.getSemiBoundedDomainsCount(),
+                "Identifier should be semi-bounded");
+    }
+
+    @Test
+    public void shouldIdentifyUpperDomainBoundaryAsSemiBoundedDomain() {
+        IdentifierRelationsHandler h = new IdentifierRelationsHandler();
+        String id = "a";
+
+        h.addDomainBoundaries(id, false, true);
+
+        assertEquals(1, h.getSemiBoundedDomainsCount(),
+                "Identifier should be semi-bounded");
+    }
+
+    @Test
     public void shouldCountBoundedDomainsNotAsSemiBoundedDomainsAsWell() {
         IdentifierRelationsHandler h = new IdentifierRelationsHandler();
         String id1 = "a", id2 = "b";
@@ -78,7 +100,6 @@ public class IdentifierRelationsHandlerTest {
                         "Amount of unbounded domains does not match")
         );
     }
-
 
     @Test
     public void shouldNotTreatLowerBoundRelationsAsDomainBoundaries() {

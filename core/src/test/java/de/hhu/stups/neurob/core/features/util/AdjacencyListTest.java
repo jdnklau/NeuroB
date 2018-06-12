@@ -29,8 +29,17 @@ class AdjacencyListTest {
                         "Does not contain with trailing space"),
                 () -> assertTrue(al.containsId(" a "),
                         "Does not contain with surrounding space")
-
         );
+    }
+
+    @Test
+    public void shouldTrimIdentifierNameWhenAddingNewIdentifier() {
+        AdjacencyList al = new AdjacencyList();
+
+        al.addNode("a "); // note space at end
+
+        assertTrue(al.containsId("a"),
+                "Identifier should be accessible without trailing space");
     }
 
     @Test

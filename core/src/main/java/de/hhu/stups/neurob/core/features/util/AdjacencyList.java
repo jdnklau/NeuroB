@@ -24,6 +24,7 @@ public class AdjacencyList {
      * @param identifier Identifier to add
      */
     public void addNode(String identifier) {
+        identifier = identifier.trim();
         if (!idMap.containsKey(identifier)) {
             idMap.put(identifier, new AdjacencyNode(identifier));
         }
