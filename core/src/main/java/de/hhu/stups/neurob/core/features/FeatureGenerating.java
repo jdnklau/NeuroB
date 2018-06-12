@@ -1,5 +1,7 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
+
 /**
  * Functional interface for a feature generation step.
  * <p>
@@ -13,6 +15,6 @@ package de.hhu.stups.neurob.core.features;
 @FunctionalInterface
 public interface FeatureGenerating<F extends Features, In> {
 
-    F generate(In source);
+    F generate(In source) throws FeatureCreationException;
 
 }
