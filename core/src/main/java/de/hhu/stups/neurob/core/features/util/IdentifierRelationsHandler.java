@@ -86,6 +86,25 @@ public class IdentifierRelationsHandler {
         adjacencyList.addDomainBoundaries(id, setLowerBound, setUpperBound);
     }
 
+    /**
+     * Add knowledge of whether the domain type of {@code id} is a known one.
+     * <p>
+     * What exactly a known type is, is up to the semantics of the algorithm
+     * making use of this. E.g. a feature set might only accept native B types
+     * as known ones, where as another might also accept enumerated sets.
+     * </p>
+     * <p>
+     * The knowledge is added cumulatively, i.e. once set to true it should
+     * not fall back to false.
+     * </p>
+     *
+     * @param id
+     * @param isDomainTypeKnown
+     */
+    public void addTypeKnowledge(String id, boolean isDomainTypeKnown) {
+        adjacencyList.addTypeKnowledge(id, isDomainTypeKnown);
+    }
+
     public boolean containsId(String id) {
         return adjacencyList.containsId(id);
     }
@@ -137,7 +156,8 @@ public class IdentifierRelationsHandler {
      */
     public int getSemiBoundedIdCount() {
         return (int) adjacencyList.getNodeSet().stream()
-                .filter(n -> n.isSemiBounded()).count();
+                .filter(AdjacencyList.AdjacencyNode::isSemiBounded)
+                .count();
     }
 
     /**
@@ -152,7 +172,7 @@ public class IdentifierRelationsHandler {
      */
     public int getBoundedIdCount() {
         return (int) adjacencyList.getNodeSet().stream()
-                .filter(n -> n.isBounded()).count();
+                .filter(AdjacencyList.AdjacencyNode::isBounded).count();
     }
 
     /**
@@ -160,7 +180,8 @@ public class IdentifierRelationsHandler {
      */
     public int getUnboundedDomainsCount() {
         return (int) adjacencyList.getNodeSet().stream()
-                .filter(n -> n.hasUnboundedDomain()).count();
+                .filter(AdjacencyList.AdjacencyNode::hasUnboundedDomain)
+                .count();
     }
 
     /**
@@ -169,7 +190,8 @@ public class IdentifierRelationsHandler {
      */
     public int getSemiBoundedDomainsCount() {
         return (int) adjacencyList.getNodeSet().stream()
-                .filter(n -> n.hasSemiBoundedDomain()).count();
+                .filter(AdjacencyList.AdjacencyNode::hasSemiBoundedDomain)
+                .count();
     }
 
     /**
@@ -177,7 +199,26 @@ public class IdentifierRelationsHandler {
      */
     public int getBoundedDomainsCount() {
         return (int) adjacencyList.getNodeSet().stream()
-                .filter(n -> n.hasBoundedDomain()).count();
+                .filter(AdjacencyList.AdjacencyNode::hasBoundedDomain)
+                .count();
+    }
+
+    /**
+     * @return Amount of identifiers with a domain marked as of unknown type.
+     */
+    public int getUnknownTypedCount() {
+        return (int) adjacencyList.getNodeSet().stream()
+                .filter(node -> !node.hasKnownType())
+                .count();
+    }
+
+    /**
+     * @return Amount of identifiers with a domain marked as of known type.
+     */
+    public int getKnownTypedCount() {
+        return (int) adjacencyList.getNodeSet().stream()
+                .filter(AdjacencyList.AdjacencyNode::hasKnownType)
+                .count();
     }
 
     /**
@@ -185,7 +226,8 @@ public class IdentifierRelationsHandler {
      */
     public int getIdRelationsCount() {
         return adjacencyList.getNodeSet().stream()
-                       .mapToInt(n -> n.getRelatedIds().size()).sum() / 2;
+                       .mapToInt(n -> n.getRelatedIds().size())
+                       .sum() / 2;
         // Note division by two: the upper expression counts each relation twice
         // (once for each identifier of the relation in question)
     }

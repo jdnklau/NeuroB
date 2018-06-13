@@ -131,6 +131,33 @@ public class AdjacencyList {
         return n1.getRelatedIds().contains(n2);
     }
 
+    /**
+     * Add knowledge of whether the domain type of {@code id} is a known one.
+     * <p>
+     * What exactly a known type is, is up to the semantics of the algorithm
+     * making use of this. E.g. a feature set might only accept native B types
+     * as known ones, where as another might also accept enumerated sets.
+     * </p>
+     * <p>
+     * The knowledge is added cumulatively, i.e. once set to true it should
+     * not fall back to false.
+     * </p>
+     *
+     * @param id
+     * @param isDomainTypeKnown
+     */
+    public void addTypeKnowledge(String id, boolean isDomainTypeKnown) {
+        getIdentifier(id).setTypeKnown(isDomainTypeKnown);
+    }
+
+    /**
+     * @param id
+     * @return Whether {@code id} has its domain type marked as being known.
+     */
+    public boolean hasKnownType(String id) {
+        return getIdentifier(id).hasKnownType();
+    }
+
     public AdjacencyNode getIdentifier(String id) {
         return idMap.get(id.trim());
     }
@@ -146,13 +173,19 @@ public class AdjacencyList {
     public static class AdjacencyNode {
         private String id;
         // boundaries
-        private boolean hasLowerBoundedDomain = false; // whether the domain is lower bounded
-        private boolean hasUpperBoundedDomain = false; // whether the domain is upper bounded
-        private boolean hasLowerBoundaries = false; // whether other identifiers pose a lower bound
-        private boolean hasUpperBoundaries = false; // whether other identifiers pose an upper bound
+        /** Whether the domain is lower bounded */
+        private boolean hasLowerBoundedDomain = false;
+        /** Whether the domain is upper bounded */
+        private boolean hasUpperBoundedDomain = false;
+        /** Whether other identifiers pose a lower bound */
+        private boolean hasLowerBoundaries = false;
+        /** Whether other identifiers pose an upper bound */
+        private boolean hasUpperBoundaries = false;
         private Set<AdjacencyNode> lowerBoundaries;
         private Set<AdjacencyNode> upperBoundaries;
         private Set<AdjacencyNode> relatedIds;
+        /** Whether the type of the identifier is known or not */
+        private boolean hasKnownType = false;
 
         public AdjacencyNode(String identifier) {
             id = identifier.trim();
@@ -355,6 +388,34 @@ public class AdjacencyList {
          */
         public boolean isUnbounded() {
             return !(hasLowerBoundaries || hasUpperBoundaries);
+        }
+
+        /**
+         * Set information about whether the type of the variable is known or
+         * not.
+         * <p>
+         * Once true, the type cannot be unknown again. Update rule is
+         * <code>hasKnownType = hasKnownType | known</code>.
+         * </p>
+         *
+         * @param known
+         */
+        public void setTypeKnown(boolean known) {
+            hasKnownType = hasKnownType | known;
+            // propagate information through boundary hierarchy
+            lowerBoundaries.stream()
+                    .filter(id -> hasKnownType != id.hasKnownType)
+                    .forEach(id -> id.setTypeKnown(true));
+            upperBoundaries.stream()
+                    .filter(id -> hasKnownType != id.hasKnownType)
+                    .forEach(id -> id.setTypeKnown(true));
+        }
+
+        /**
+         * @return Whether the domain of the identifier is of known type.
+         */
+        public boolean hasKnownType() {
+            return hasKnownType;
         }
 
         public String getId() {

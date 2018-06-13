@@ -172,4 +172,73 @@ class AdjacencyListTest {
                         "Third identifier should have implied bounded domain")
         );
     }
+
+    @Test
+    public void shouldMarkDomainAsKnownType() {
+        AdjacencyList al = new AdjacencyList();
+        String id = "a";
+        String id2 = "b";
+
+        al.addNode(id);
+        al.addNode(id2);
+
+        al.getIdentifier("a").setTypeKnown(true);
+
+        assertAll(
+                () -> assertTrue(al.getIdentifier(id).hasKnownType(),
+                        "Domain type should be marked as known"),
+                () -> assertFalse(al.getIdentifier(id2).hasKnownType(),
+                        "Domain type should be marked as unknown")
+        );
+
+    }
+
+    @Test
+    public void shouldKeepKnowledgeOfTypeIfSpecifiedAsKnownOnce() {
+        AdjacencyList al = new AdjacencyList();
+        String id = "a";
+
+        al.addNode(id);
+        al.getIdentifier(id).setTypeKnown(true);
+        al.getIdentifier(id).setTypeKnown(false);
+
+        assertTrue(al.getIdentifier(id).hasKnownType(),
+                "Domain type should be marked as known");
+    }
+
+    @Test
+    public void shouldPropagateTypeKnowledgeInformationWhenBoundedByOtherIds() {
+        AdjacencyList al = new AdjacencyList();
+        String id1 = "a";
+        String id2 = "b";
+
+        al.addNode(id1);
+        al.addNode(id2);
+
+        al.addLowerBoundRelation(id1, id2); // a < b
+        al.addTypeKnowledge(id1, true);
+
+        assertTrue(al.getIdentifier(id2).hasKnownType(),
+                "Identifier should have known type due to boundary relation");
+    }
+
+    @Test
+    public void shouldPropagateTypeKnowledgeWhenOnlyPassivelyRelatedOverThirdNode() {
+        AdjacencyList al = new AdjacencyList();
+        String id1 = "a";
+        String id2 = "b";
+        String id3 = "c";
+
+        al.addNode(id1);
+        al.addNode(id2);
+        al.addNode(id3);
+
+        // b and c only related over same lower bound
+        al.addLowerBoundRelation(id1, id2); // a < b
+        al.addLowerBoundRelation(id1, id3); // a < c
+        al.addTypeKnowledge(id2, true); // type of b is known
+
+        assertTrue(al.getIdentifier(id3).hasKnownType(),
+                "Identifier should have known type due to boundary relation");
+    }
 }

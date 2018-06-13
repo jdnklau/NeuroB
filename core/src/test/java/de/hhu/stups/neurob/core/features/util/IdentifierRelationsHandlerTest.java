@@ -121,5 +121,38 @@ public class IdentifierRelationsHandlerTest {
         );
     }
 
+    @Test
+    public void shouldCountThreeUnknownTypes() {
+        IdentifierRelationsHandler h = new IdentifierRelationsHandler();
+        String id1 = "a", id2 = "b", id3 = "c";
+
+        h.addIdentifier(id1);
+        h.addIdentifier(id2);
+        h.addIdentifier(id3);
+
+        assertEquals(3, h.getUnknownTypedCount(),
+                "Amount of unknown typed ids does not match");
+    }
+
+    @Test
+    public  void shouldCountTwoKnownTypes() {
+        IdentifierRelationsHandler h = new IdentifierRelationsHandler();
+        String id1 = "a", id2 = "b", id3 = "c";
+
+        h.addIdentifier(id1);
+        h.addIdentifier(id2);
+        h.addIdentifier(id3);
+
+        h.addUpperBoundRelation(id1, id2); // a < b
+        h.addTypeKnowledge(id1, true);
+
+        assertAll(
+                () -> assertEquals(2, h.getKnownTypedCount(),
+                        "Identifiers a and b should be of known type"),
+                () -> assertEquals(1, h.getUnknownTypedCount(),
+                        "Identifier c should be of unknown type")
+        );
+    }
+
 
 }
