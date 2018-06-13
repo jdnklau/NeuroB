@@ -94,11 +94,5 @@ public class TheoryFeatures implements PredicateFeatures {
                 throws FeatureCreationException {
             return new TheoryFeatures(predicate, ss);
         }
-
-        @Override
-        public TheoryFeatures generate(String predicate)
-                throws FeatureCreationException {
-            return new TheoryFeatures(predicate);
-        }
     }
 }
