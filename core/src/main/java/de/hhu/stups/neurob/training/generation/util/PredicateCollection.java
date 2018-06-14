@@ -30,10 +30,8 @@ public class PredicateCollection {
     private List<String> invariants;
     private List<String> operations;
     private Map<String, List<String>> preconditions;
-    private List<String> axioms;
-    private List<String> properties;
-    private List<String> assertions;
-    private List<String> theorems;
+    private List<String> properties; // also contains axioms of EventB
+    private List<String> assertions; // also contains theorems of EventB
     private Map<String, String> beforeAfterPredicates;
     private Map<String, Map<String, String>> weakestPreconditions;
     private Map<String, String> primedInvariants;
@@ -52,10 +50,8 @@ public class PredicateCollection {
         invariants = new ArrayList<>();
         operations = new ArrayList<>();
         preconditions = new HashMap<>();
-        axioms = new ArrayList<>();
         properties = new ArrayList<>();
         assertions = new ArrayList<>();
-        theorems = new ArrayList<>();
         beforeAfterPredicates = new HashMap<>();
         weakestPreconditions = new HashMap<>();
         primedInvariants = new HashMap<>();
@@ -76,7 +72,7 @@ public class PredicateCollection {
         log.debug("Collecting invariants");
         for (Invariant x : comp.getChildrenOfType(Invariant.class)) {
             if (x.isTheorem())
-                theorems.add(x.getFormula().getCode());
+                assertions.add(x.getFormula().getCode());
             else
                 invariants.add(x.getFormula().getCode());
 
@@ -103,7 +99,7 @@ public class PredicateCollection {
         // axioms
         log.debug("Collecting axioms");
         for (Axiom x : comp.getChildrenOfType(Axiom.class)) {
-            axioms.add(x.getFormula().getCode());
+            properties.add(x.getFormula().getCode());
         }
 
         // set up invariants as commands for below
@@ -201,10 +197,6 @@ public class PredicateCollection {
 
     public List<String> getAssertions() {
         return assertions;
-    }
-
-    public List<String> getTheorems() {
-        return theorems;
     }
 
     /**

@@ -148,22 +148,27 @@ class PredicateCollectionTest {
                 "Weakest Preconditions do not match");
     }
 
-
     @Test
     @Disabled("Test needs to be for an EventB machine")
-    public void shouldLoadTheorems() {
+    public void shouldLoadTheoremsAsAssertionsWhenEventB() {
         fail();
     }
 
     @Test
     @Disabled("Test needs to be for an EventB machine")
-    public void shouldLoadBeforeAfterPredicatesWhenEventBOnly() {
+    public void shouldLoadBeforeAfterPredicatesWhenEventB() {
         fail();
     }
 
     @Test
     @Disabled("Test needs to be for an EventB machine")
-    public void shouldLoadPrimedInvariantsWhenEventBOnly() {
+    public void shouldLoadPrimedInvariantsWhenEventB() {
+        fail();
+    }
+
+    @Test
+    @Disabled("Test needs to be for an EventB machine")
+    public void shouldLoadAxiomsAsPropertiesWhenEventB() {
         fail();
     }
 }
