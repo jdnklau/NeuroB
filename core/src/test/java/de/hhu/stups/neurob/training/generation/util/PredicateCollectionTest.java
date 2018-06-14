@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.generation.util;
 
+import de.hhu.stups.neurob.testharness.TestMachines;
 import de.prob.Main;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
@@ -18,18 +19,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PredicateCollectionTest {
 
-    private final String FORMULAE_GEN_MCH =
-            getClass().getClassLoader()
-                    .getResource("machines/formulae_generation.mch")
-                    .getFile();
-
     private PredicateCollection pc;
 
     @BeforeAll
     public void loadPredicateCollection() throws Exception {
 
         Api api = Main.getInjector().getInstance(Api.class);
-        StateSpace ss = api.b_load(FORMULAE_GEN_MCH);
+        StateSpace ss = api.b_load(TestMachines.FORMULAE_GEN_MCH);
 
         pc = new PredicateCollection(ss);
         ss.kill();
