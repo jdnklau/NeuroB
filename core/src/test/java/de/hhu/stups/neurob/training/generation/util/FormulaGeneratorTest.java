@@ -250,6 +250,33 @@ public class FormulaGeneratorTest {
     }
 
     @Test
+    public void shouldNotGenerateEnablingRelationsWhenNoPreconditionsExist() {
+        // need to mock personalised PredicateCollection
+        PredicateCollection pc = mock(PredicateCollection.class);
+        // ... with neither properties nor invariants
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        List<String> invariants = new ArrayList<>();
+        invariants.add("invariant"); // only one invariant
+        when(pc.getInvariants()).thenReturn(invariants);
+        when(pc.getOperationNames()).thenReturn(operations);
+        // preconditions -- none
+        Map<String, List<String>> preconditions = new HashMap<>();
+        when(pc.getPreconditions()).thenReturn(preconditions);
+        // before/after predicates
+        Map<String, String> beforeAfter = new HashMap<>();
+        beforeAfter.put("operation1", "beforeAfter1");
+        beforeAfter.put("operation2", "beforeAfter2");
+        when(pc.getBeforeAfterPredicates()).thenReturn(beforeAfter);
+        // only makes sense for EventB
+        when(pc.getMachineType()).thenReturn(MachineType.EVENTB);
+
+        List<String> formulae = FormulaGenerator.enablingRelationships(pc);
+
+        assertEquals(0, formulae.size(),
+                "Created predicates but should not have done so");
+    }
+
+    @Test
     public void shouldGenerateInvariantPreservationPredicates() {
         List<String> formulae = FormulaGenerator.invariantPreservations(pc);
 
