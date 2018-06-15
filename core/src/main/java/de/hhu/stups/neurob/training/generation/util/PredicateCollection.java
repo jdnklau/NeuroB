@@ -75,8 +75,9 @@ public class PredicateCollection {
                 assertions.add(x.getFormula().getCode());
             else
                 invariants.add(x.getFormula().getCode());
-
         }
+        String invariantConcat =
+                FormulaGenerator.getStringConjunction(invariants);
 
         log.debug("Collecting assertions");
         for (Assertion x : comp.getChildrenOfType(Assertion.class)) {
@@ -106,12 +107,23 @@ public class PredicateCollection {
         Map<String, IBEvalElement> invCmds = new HashMap<>();
         for (String inv : invariants) {
             try {
-                invCmds.put(inv, FormulaGenerator.generateBCommandByMachineType(ss, inv));
+                invCmds.put(inv,
+                        FormulaGenerator.generateBCommandByMachineType(ss, inv));
             } catch (FormulaException e) {
                 log.warn("Could not set up EvalElement from {} for "
                          + "weakest precondition calculation or priming",
                         inv, e);
             }
+        }
+        // command for concatenation of invariants
+        try {
+            invCmds.put(invariantConcat,
+                    FormulaGenerator.generateBCommandByMachineType(ss,
+                            invariantConcat));
+        } catch (FormulaException e) {
+            log.warn("Could not set up weakest precondition command for "
+                     + "concatenation of invariants {]",
+                    invariantConcat, e);
         }
 
         // weakest preconditions for each invariant
@@ -137,6 +149,9 @@ public class PredicateCollection {
 
             }
             weakestPreconditions.put(x.getName(), wpcs);
+
+            // build weakest precondition for invariant concatenation
+
         }
 
         if (machineType != MachineType.EVENTB)

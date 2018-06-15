@@ -124,24 +124,28 @@ class PredicateCollectionTest {
         opWeak.put("y:NAT", "x=y & z<20 & y:NAT");
         opWeak.put("x:NATURAL", "x=y & z<20 & x+1:NATURAL");
         opWeak.put("z:INT", "x=y & z<20 & z+1:INT");
+        opWeak.put("(x:NATURAL) & (y:NAT) & (z:INT)", "x=y & z<20 & (x+1:NATURAL & y:NAT & z+1:INT)");
         weakestPres.put("incx", opWeak);
         // incy
         opWeak = new HashMap<>();
         opWeak.put("y:NAT", "y<x & z<20 & y+2:NAT");
         opWeak.put("x:NATURAL", "y<x & z<20 & x:NATURAL");
         opWeak.put("z:INT", "y<x & z<20 & z+1:INT");
+        opWeak.put("(x:NATURAL) & (y:NAT) & (z:INT)", "y<x & z<20 & (x:NATURAL & y+2:NAT & z+1:INT)");
         weakestPres.put("incy", opWeak);
         // sqrx
         opWeak = new HashMap<>();
         opWeak.put("y:NAT", "x<y & y:NAT");
         opWeak.put("x:NATURAL", "x<y & x*x:NATURAL");
         opWeak.put("z:INT", "x<y & z+1:INT");
+        opWeak.put("(x:NATURAL) & (y:NAT) & (z:INT)", "x<y & (x*x:NATURAL & y:NAT & z+1:INT)");
         weakestPres.put("sqrx", opWeak);
         // reset
         opWeak = new HashMap<>();
         opWeak.put("y:NAT", "z>=20 or x>1000 & 1:NAT");
         opWeak.put("x:NATURAL", "z>=20 or x>1000 & 1:NATURAL");
         opWeak.put("z:INT", "z>=20 or x>1000 & 1:INT");
+        opWeak.put("(x:NATURAL) & (y:NAT) & (z:INT)", "z>=20 or x>1000 & (1:NATURAL & 1:NAT & 1:INT)");
         weakestPres.put("reset", opWeak);
 
         assertEquals(weakestPres, pc.getWeakestPreConditions(),
