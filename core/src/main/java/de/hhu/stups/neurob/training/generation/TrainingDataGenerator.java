@@ -2,7 +2,7 @@ package de.hhu.stups.neurob.training.generation;
 
 import de.hhu.stups.neurob.core.features.FeatureGenerating;
 import de.hhu.stups.neurob.core.features.Features;
-import de.hhu.stups.neurob.core.api.Labelling;
+import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import org.slf4j.Logger;
