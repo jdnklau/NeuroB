@@ -1,5 +1,7 @@
 package de.hhu.stups.neurob.core.labelling;
 
+import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
+
 /**
  * Functional interface for a labelling step.
  * <p>
@@ -12,5 +14,5 @@ package de.hhu.stups.neurob.core.labelling;
  */
 @FunctionalInterface
 public interface LabelGenerating<L extends Labelling, In> {
-    L generate(In source);
+    L generate(In source) throws LabelCreationException;
 }

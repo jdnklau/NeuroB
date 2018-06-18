@@ -1,16 +1,18 @@
 package de.hhu.stups.neurob.core.labelling;
 
+import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.prob.statespace.StateSpace;
 
 /**
  * Generates a labelling for a given predicate.
+ *
  * @param <L> Labelling class to be generated.
  */
 @FunctionalInterface
 public interface PredicateLabelGenerating<L extends PredicateLabelling>
         extends LabelGenerating<L, String> {
     @Override
-    default L generate(String predicate) {
+    default L generate(String predicate) throws LabelCreationException {
         return generate(predicate, null);
     }
 
@@ -23,5 +25,5 @@ public interface PredicateLabelGenerating<L extends PredicateLabelling>
      *
      * @return
      */
-    L generate(String predicate, StateSpace ss);
+    L generate(String predicate, StateSpace ss) throws LabelCreationException;
 }
