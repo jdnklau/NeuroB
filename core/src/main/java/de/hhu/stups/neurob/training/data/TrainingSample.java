@@ -29,11 +29,28 @@ public class TrainingSample<F extends Features, L extends Labelling> {
         return labelling;
     }
 
+    public Path getSourceFile() {
+        return sourceFile;
+    }
+
     @Override
     public String toString() {
         return "(<" + features.toString()
                + ">, <"
                + labelling.toString() + ">)";
+    }
+
+    @Override
+    public boolean equals(Object sample) {
+        if (sample.getClass().equals(this.getClass())) {
+            TrainingSample trainingSample = (TrainingSample) sample;
+            return features.equals(trainingSample.getFeatures())
+                   && labelling.equals(trainingSample.getLabelling())
+                   && ((sourceFile != null)
+                    ? sourceFile.equals(trainingSample.getSourceFile())
+                    : trainingSample.getSourceFile() == null);
+        }
+        return false;
     }
 
 }
