@@ -63,13 +63,13 @@ public class PredicateCollection {
     private void collectPredicates() {
         AbstractElement comp = ss.getMainComponent();
         // properties
-        log.debug("Collecting properties");
+        log.trace("Collecting properties");
         for (Property x : comp.getChildrenOfType(Property.class)) {
             properties.add(x.getFormula().getCode());
         }
 
         // add invariants
-        log.debug("Collecting invariants");
+        log.trace("Collecting invariants");
         for (Invariant x : comp.getChildrenOfType(Invariant.class)) {
             if (x.isTheorem())
                 assertions.add(x.getFormula().getCode());
@@ -79,17 +79,17 @@ public class PredicateCollection {
         String invariantConcat =
                 FormulaGenerator.getStringConjunction(invariants);
 
-        log.debug("Collecting assertions");
+        log.trace("Collecting assertions");
         for (Assertion x : comp.getChildrenOfType(Assertion.class)) {
             assertions.add(x.getFormula().getCode());
         }
 
         // for each event collect preconditions
-        log.debug("Collecting operations and preconditions");
+        log.trace("Collecting operations and preconditions");
         for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
             operations.add(x.getName());
 
-            log.debug("Collecting preconditions for {}", x.getName());
+            log.trace("Collecting preconditions for {}", x.getName());
             ArrayList<String> event = new ArrayList<String>();
             for (Guard g : x.getChildrenOfType(Guard.class)) {
                 event.add(g.getFormula().getCode());
@@ -98,7 +98,7 @@ public class PredicateCollection {
                 preconditions.put(x.getName(), event);
         }
         // axioms
-        log.debug("Collecting axioms");
+        log.trace("Collecting axioms");
         for (Axiom x : comp.getChildrenOfType(Axiom.class)) {
             properties.add(x.getFormula().getCode());
         }
@@ -127,7 +127,7 @@ public class PredicateCollection {
         }
 
         // weakest preconditions for each invariant
-        log.debug("Building weakest preconditions");
+        log.trace("Building weakest preconditions");
         for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
             if (x.getName().equals("INITIALISATION"))
                 continue; // None for initialisation
@@ -158,7 +158,7 @@ public class PredicateCollection {
             return; // FIXME: allow usage of classical B, too
 
         // Before/After predicates
-        log.debug("Building before/after predicates");
+        log.trace("Building before/after predicates");
         for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
             if (x.getName().equals("INITIALISATION"))
                 continue; // None for initialisation
@@ -177,7 +177,7 @@ public class PredicateCollection {
         }
 
         // primed invariants
-        log.debug("Building primed invariants");
+        log.trace("Building primed invariants");
         for (String inv : invCmds.keySet()) {
             IBEvalElement invCmd = invCmds.get(inv);
             try {
