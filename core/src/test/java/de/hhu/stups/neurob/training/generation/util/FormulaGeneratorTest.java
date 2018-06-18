@@ -404,4 +404,89 @@ public class FormulaGeneratorTest {
         );
     }
 
+    @Test
+    public void shouldNotUseInvariantConcatenationAsWellWhenOnlyOneInvariantExists() {
+        PredicateCollection pc = mock(PredicateCollection.class);
+        List<String> invariant = new ArrayList<>();
+        when(pc.getMachineType()).thenReturn(MachineType.EVENTB);
+        // Invariant and primed invariant
+        invariant.add("invariant");
+        when(pc.getInvariants()).thenReturn(invariant);
+        List<String> primedInvariant = new ArrayList<>();
+        primedInvariant.add("primed");
+        Map<String, String> primedMap = new HashMap<>();
+        primedMap.put("invariant", "primed");
+        primedMap.put("(invariant)", "primedconcat"); // primed concatenation
+        when(pc.getPrimedInvariants()).thenReturn(primedMap);
+        // Preconditions and before/after predicates
+        List<String> precondition = new ArrayList<>();
+        precondition.add("precondition");
+        Map<String, List<String>> operationPrecondition = new HashMap<>();
+        operationPrecondition.put("operation", precondition);
+        when(pc.getPreconditions()).thenReturn(operationPrecondition);
+        Map<String, String> beforeAfter = new HashMap<>();
+        beforeAfter.put("operation", "beforeAfter");
+        when(pc.getBeforeAfterPredicates()).thenReturn(beforeAfter);
+        // Necessary Stubs that are called but may be empty
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        when(pc.getWeakestPreConditions()).thenReturn(new HashMap<>());
+
+        List<String> expected = new ArrayList<>();
+        expected.add("invariant & (precondition) & beforeAfter & primed");
+        expected.add("invariant & (precondition) & beforeAfter & not(primed)");
+        expected.add("(not(invariant & (precondition) & beforeAfter) => primed)");
+        expected.add("(not(invariant & (precondition) & beforeAfter) => not(primed))");
+
+        List<String> actual = FormulaGenerator.invariantPreservations(pc);
+
+        expected.sort(Comparator.naturalOrder());
+        actual.sort(Comparator.naturalOrder());
+
+        assertEquals(expected, actual,
+                "Generated invariant preservations do not match");
+    }
+
+    @Test
+    public void shouldNotUseAssertionConcatenationWhenOnlyOneAssertionExists() {
+        PredicateCollection pc = mock(PredicateCollection.class);
+        List<String> assertions = new ArrayList<>();
+        assertions.add("assertion");
+        when(pc.getAssertions()).thenReturn(assertions);
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        when(pc.getInvariants()).thenReturn(new ArrayList<>());
+
+        List<String> expected = new ArrayList<>();
+        expected.add("assertion");
+        expected.add("not(assertion)");
+        List<String> actual = FormulaGenerator.assertions(pc);
+
+        assertEquals(expected, actual,
+                "Should only have generated one assertion"
+                + " and its negation");
+    }
+
+    @Test
+    public void shouldGenerateAssertionsWithConcatenationWhenMoreThenOneExist() {
+        PredicateCollection pc = mock(PredicateCollection.class);
+        List<String> assertions = new ArrayList<>();
+        assertions.add("assertion1");
+        assertions.add("assertion2");
+        when(pc.getAssertions()).thenReturn(assertions);
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        when(pc.getInvariants()).thenReturn(new ArrayList<>());
+
+        List<String> expected = new ArrayList<>();
+        expected.add("assertion1");
+        expected.add("not(assertion1)");
+        expected.add("assertion2");
+        expected.add("not(assertion2)");
+        expected.add("(assertion1) & (assertion2)");
+        expected.add("not((assertion1) & (assertion2))");
+        List<String> actual = FormulaGenerator.assertions(pc);
+
+        assertEquals(expected, actual,
+                "Should generate formulae for each assertion and their "
+                + "concatenation");
+    }
+
 }

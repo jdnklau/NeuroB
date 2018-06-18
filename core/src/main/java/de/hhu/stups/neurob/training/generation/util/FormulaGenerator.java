@@ -184,7 +184,8 @@ public class FormulaGenerator {
     }
 
     /**
-     * Generates multiple formulae containing each possible pairing of preconditions
+     * Generates multiple formulae containing each possible pairing of
+     * preconditions
      *
      * @param predicateCollection
      *
@@ -229,8 +230,10 @@ public class FormulaGenerator {
      * Let g1, g2 be preconditions of two operations,
      * Let ba be the before/after predicate for the operation of g1.
      * <ul>
-     * <li> P & g1 & ba & g2 [Preconditions enabled after executing another first]
-     * <li> P & g1 & ba & ~g2 [Preconditions disabled after executing another first]
+     * <li> P & g1 & ba & g2 [Preconditions enabled after executing another
+     * first]
+     * <li> P & g1 & ba & ~g2 [Preconditions disabled after executing another
+     * first]
      * <li> P & ~(g1 & ba) & g2
      * <li> P & ~(g1 & ba) & ~g2
      * <li> P & (~(g1 & ba) => g2)
@@ -336,7 +339,8 @@ public class FormulaGenerator {
      * <li> P & (~i => ~W)
      * </ul>
      * <p>
-     * Further, let g be the precondition of an operation and ba the operations before/after
+     * Further, let g be the precondition of an operation and ba the operations
+     * before/after
      * predicate.
      * Let j be the invariant after the operation (j:=i')
      * <br>
@@ -397,10 +401,12 @@ public class FormulaGenerator {
                 predicateCollection.getPrimedInvariants();
 
         if (!primedInvsMap.isEmpty()) { // do only if the map is not empty
-            // Collect all invariants plus their concatenation
+            // Collect all invariants plus their concatenation if more than 1
             List<String> invariants = new ArrayList<>();
-            invariants.add(Invs);
             invariants.addAll(predicateCollection.getInvariants());
+            if (invariants.size() > 1) {
+                invariants.add(Invs);
+            }
             for (String unprimedInv : invariants) {
 
                 String primedInv = primedInvsMap.get(unprimedInv);
@@ -470,7 +476,11 @@ public class FormulaGenerator {
         if (assertionsList.isEmpty()) {
             return formulae;
         }
-        assertionsList.add(getStringConjunction(assertionsList));
+
+        // If more than one assertion, add conjunction to list as well
+        if (assertionsList.size() > 1) {
+            assertionsList.add(getStringConjunction(assertionsList));
+        }
 
         if (propsAndInv.isEmpty()) {
             for (String a : assertionsList) {
