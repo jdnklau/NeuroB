@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.training.generation;
 
 import de.hhu.stups.neurob.core.features.FeatureGenerating;
 import de.hhu.stups.neurob.core.features.Features;
+import de.hhu.stups.neurob.core.labelling.LabelGenerating;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
@@ -19,15 +20,18 @@ public abstract class TrainingDataGenerator<F extends Features, L extends Labell
 
     protected final TrainingDataFormat format;
     protected final FeatureGenerating<F,?> featureGenerator;
+    protected final LabelGenerating<L, ?> labelGenerator;
 
     protected static final Logger log =
             LoggerFactory.getLogger(TrainingDataGenerator.class);
 
     public TrainingDataGenerator(
             FeatureGenerating<F,?>  featureGenerator,
+            LabelGenerating<L, ?> labelGenerator,
             TrainingDataFormat format) {
         this.format = format;
         this.featureGenerator = featureGenerator;
+        this.labelGenerator = labelGenerator;
     }
 
     /**
