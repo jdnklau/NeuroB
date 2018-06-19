@@ -128,10 +128,6 @@ class PredicateTrainingGeneratorTest {
         expected.add(singleSample);
         expected.add(singleSample);
 
-        // Mock file access
-        Path mockedFile = mock(Path.class);
-        when(mockedFile.toString()).thenReturn("/not/existent/file");
-
         Stream<TrainingSample<PredicateFeatures, PredicateLabelling>> actualStream =
                 generator.streamSamplesFromFile(null);
         List<TrainingSample> actual = actualStream.collect(Collectors.toList());
