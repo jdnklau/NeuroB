@@ -257,6 +257,38 @@ class PredicateTrainingGeneratorTest {
                 "Training Sample does not match");
     }
 
+    @Test
+    public void shouldStreamSamplesWithSourceInformationWhenCreatingFromFile()
+            throws Exception {
+        Path file = Paths.get("/not/existent/path");
+
+        PredicateFeatures features = mock(PredicateFeatures.class);
+        when(features.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
+
+        PredicateLabelling labelling = mock(PredicateLabelling.class);
+        when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
+
+        // Partial Mock of generator
+        // Generating functions throw exceptions for certain predicates
+        generator = spy(
+                new PredicateTrainingGenerator<>(
+                        (predicate, ss) -> features,
+                        (predicate, ss) -> labelling,
+                        null)
+        );
+        List<String> predicates = predList("predicate");
+        doReturn(predicates.stream()).when(generator).streamPredicatesFromFile(any());
+        doReturn(predicates.stream()).when(generator).streamPredicatesFromFile(any(), any());
+        StateSpace ss = mock(StateSpace.class);
+        doReturn(ss).when(generator).loadStateSpace(any());
+
+        Path actual = generator.streamSamplesFromFile(file)
+                .findFirst().get().getSourceFile();
+
+        assertEquals(file, actual,
+                "Training sample contains no information about source file");
+    }
+
     /**
      * Helper to quickly generate a list containing corresponding predicates.
      *

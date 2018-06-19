@@ -74,7 +74,12 @@ public class PredicateTrainingGenerator
         // Close StateSpace
         ss.kill();
 
-        return samples.filter(Objects::nonNull);
+        return samples.filter(Objects::nonNull)
+                // add source file information
+                .map(sample -> new TrainingSample<>(
+                        sample.getFeatures(),
+                        sample.getLabelling(),
+                        file));
     }
 
     /**
@@ -118,7 +123,6 @@ public class PredicateTrainingGenerator
         log.debug("Generating labelling for {}", predicate);
         L labelling = ((PredicateLabelGenerating<L>) labelGenerator)
                 .generate(predicate, ss);
-
 
         return new TrainingSample<>(features, labelling);
     }
