@@ -48,4 +48,16 @@ class TheoryFeaturesTest {
                 "String representation does not match");
     }
 
+    @Test
+    public void shouldCreateNewFeaturesWithGenerator() throws Exception {
+        TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
+
+        Double[] expected = new Double[]{0., 5., 1., 1., 9., 0., 0., 0., 6.,
+                0., 0., 6., 4., 2., 0., 1., 0.};
+        Double[] actual = features.getFeatureArray();
+
+        assertArrayEquals(expected, actual,
+                "Feature arrays do not match");
+    }
+
 }

@@ -9,23 +9,23 @@ import de.prob.statespace.StateSpace;
  * <p>
  * There are 17 features, are the number of
  * <ul>
- *     <li>arithmetic operators,</li>
- *     <li>comparisons,</li>
- *     <li>universal quantifiers,</li>
- *     <li>existential quantifiers,</li>
- *     <li>conjunctions,</li>
- *     <li>disjunctions,</li>
- *     <li>negations,</li>
- *     <li>set operations,</li>
- *     <li>set memberships,</li>
- *     <li>functions,</li>
- *     <li>relation operators,</li>
- *     <li>unique identifiers,</li>
- *     <li>identifiers with finite domains,</li>
- *     <li>identifiers with infinite domains,</li>
- *     <li>identifier with no domain information whatsoever,</li>
- *     <li>implications, and</li>
- *     <li>equivalences.</li>
+ * <li>arithmetic operators,</li>
+ * <li>comparisons,</li>
+ * <li>universal quantifiers,</li>
+ * <li>existential quantifiers,</li>
+ * <li>conjunctions,</li>
+ * <li>disjunctions,</li>
+ * <li>negations,</li>
+ * <li>set operations,</li>
+ * <li>set memberships,</li>
+ * <li>functions,</li>
+ * <li>relation operators,</li>
+ * <li>unique identifiers,</li>
+ * <li>identifiers with finite domains,</li>
+ * <li>identifiers with infinite domains,</li>
+ * <li>identifier with no domain information whatsoever,</li>
+ * <li>implications, and</li>
+ * <li>equivalences.</li>
  * </ul>
  * </p>
  */
@@ -88,7 +88,8 @@ public class TheoryFeatures implements PredicateFeatures {
      * An instance of this can be used in a
      * {@link de.hhu.stups.neurob.training.generation.TrainingDataGenerator}.
      */
-    public class Generator implements PredicateFeatureGenerating<TheoryFeatures> {
+    public static class Generator
+            implements PredicateFeatureGenerating<TheoryFeatures> {
         @Override
         public TheoryFeatures generate(String predicate, StateSpace ss)
                 throws FeatureCreationException {
