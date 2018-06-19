@@ -161,8 +161,12 @@ public class PredicateTrainingGenerator
                 ss = loadStateSpace(file);
                 killStateSpace = true; // we opened it, we kill it again.
             }
+
             pc = new PredicateCollection(ss);
-            ss.kill();
+
+            if (killStateSpace) {
+                ss.kill();
+            }
         } catch (MachineAccessException e) {
             log.warn("Could not load {}; no predicates generated", file, e);
             return Stream.empty();
