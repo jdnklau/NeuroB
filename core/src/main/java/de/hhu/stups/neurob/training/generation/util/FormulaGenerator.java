@@ -36,7 +36,7 @@ public class FormulaGenerator {
      * respect to the machine type.
      * <p>
      * If you are using a state space of a B machine, it is advised to use
-     * {@link #generateBCommandByMachineType(StateSpace, String)}
+     * {@link #generateBCommand(StateSpace, String)}
      * instead
      *
      * @param mt Machine type the command should get parsed in
@@ -44,9 +44,9 @@ public class FormulaGenerator {
      *
      * @return
      *
-     * @see #generateBCommandByMachineType(StateSpace, String)
+     * @see #generateBCommand(StateSpace, String)
      */
-    public static IBEvalElement generateBCommandByMachineType(MachineType mt,
+    public static IBEvalElement generateBCommand(MachineType mt,
             String formula) throws FormulaException {
         IBEvalElement cmd;
         try {
@@ -70,7 +70,7 @@ public class FormulaGenerator {
      * respect to a given StateSpace.
      * <p>
      * If you got no StateSpace, use
-     * {@link #generateBCommandByMachineType(MachineType, String)}.
+     * {@link #generateBCommand(MachineType, String)}.
      *
      * @param ss StateSpace over which the eval element will be created
      * @param formula Formula to create an evaluation element from
@@ -78,9 +78,9 @@ public class FormulaGenerator {
      * @return
      *
      * @throws FormulaException
-     * @see #generateBCommandByMachineType(MachineType, String)
+     * @see #generateBCommand(MachineType, String)
      */
-    public static IBEvalElement generateBCommandByMachineType(StateSpace ss,
+    public static IBEvalElement generateBCommand(StateSpace ss,
             String formula) throws FormulaException {
         try {
             return (IBEvalElement) ss.getModel().parseFormula(formula);
@@ -107,7 +107,7 @@ public class FormulaGenerator {
     public static String generatePrimedPredicate(StateSpace ss,
             String predicate) throws FormulaException {
         return generatePrimedPredicate(ss,
-                generateBCommandByMachineType(ss, predicate));
+                generateBCommand(ss, predicate));
     }
 
     /**

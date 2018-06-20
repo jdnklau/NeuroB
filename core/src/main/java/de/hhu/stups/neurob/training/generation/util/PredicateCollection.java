@@ -108,7 +108,7 @@ public class PredicateCollection {
         for (String inv : invariants) {
             try {
                 invCmds.put(inv,
-                        FormulaGenerator.generateBCommandByMachineType(ss, inv));
+                        FormulaGenerator.generateBCommand(ss, inv));
             } catch (FormulaException e) {
                 log.warn("Could not set up EvalElement from {} for "
                          + "weakest precondition calculation or priming",
@@ -118,7 +118,7 @@ public class PredicateCollection {
         // command for concatenation of invariants
         try {
             invCmds.put(invariantConcat,
-                    FormulaGenerator.generateBCommandByMachineType(ss,
+                    FormulaGenerator.generateBCommand(ss,
                             invariantConcat));
         } catch (FormulaException e) {
             log.warn("Could not set up weakest precondition command for "

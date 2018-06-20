@@ -160,7 +160,7 @@ public class FormulaGeneratorTest {
         String pred = "x>y & y>x";
 
         IBEvalElement evalElem = FormulaGenerator
-                .generateBCommandByMachineType(MachineType.CLASSICALB, pred);
+                .generateBCommand(MachineType.CLASSICALB, pred);
 
         assertEquals(ClassicalB.class, evalElem.getClass(),
                 "Wrong object created!");
@@ -172,7 +172,7 @@ public class FormulaGeneratorTest {
         String pred = "x>y & y>x";
 
         IBEvalElement evalElem = FormulaGenerator
-                .generateBCommandByMachineType(MachineType.EVENTB, pred);
+                .generateBCommand(MachineType.EVENTB, pred);
 
         assertEquals(EventB.class, evalElem.getClass(),
                 "Wrong object created!");
