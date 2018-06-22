@@ -12,6 +12,33 @@ class TheoryFeaturesTest {
             + " & # y . (y < x) & ! z . (z < 15 => x > 3)";
 
     @Test
+    public void shouldReturnPredicateFromInstantiation() throws Exception {
+        TheoryFeatures features = new TheoryFeatures(predicate);
+
+        assertEquals(predicate, features.getPredicate());
+    }
+
+    @Test
+    public void shouldHave17Features() throws Exception {
+        TheoryFeatures features = new TheoryFeatures(predicate);
+
+        int expected = 17;
+        int actual = features.getFeatureDimension();
+
+        assertEquals(expected, actual, "Feature dimension does not match");
+    }
+
+    @Test
+    public void shouldReturnArrayWith17Entries() throws Exception {
+        TheoryFeatures features = new TheoryFeatures(predicate);
+
+        int expected = 17;
+        int actual = features.getFeatureArray().length;
+
+        assertEquals(expected, actual, "Feature dimension does not match");
+    }
+
+    @Test
     public void shouldMatchExpectedFeatureArray() throws Exception {
         TheoryFeatures features = new TheoryFeatures(predicate);
 
