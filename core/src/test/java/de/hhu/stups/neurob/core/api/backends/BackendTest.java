@@ -2,7 +2,10 @@ package de.hhu.stups.neurob.core.api.backends;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.prob.animator.command.CbcSolveCommand;
 import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.ComputationNotCompletedResult;
+import de.prob.animator.domainobjects.EvalResult;
 import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.statespace.StateSpace;
@@ -47,7 +50,6 @@ class BackendTest {
         assertEquals(EventB.class, evalElem.getClass(),
                 "Wrong object created!");
     }
-
 
     @Test
     public void shouldMeasureNonNegativeTimeWhenPredicateIsDecidable()
@@ -126,5 +128,40 @@ class BackendTest {
 
         assertFalse(backend.isDecidable("predicate", stateSpace),
                 "Predicate was not detected as undecidable.");
+    }
+
+    @Test
+    public void shouldReturnTrueWhenCbcSolveCommandIsEvalResult() throws Exception {
+        CbcSolveCommand cmd = mock(CbcSolveCommand.class);
+        when(cmd.getValue()).thenReturn(mock(EvalResult.class));
+
+        Backend backend = mock(Backend.class);
+        when(backend.decidePredicate("predicate", stateSpace)).thenCallRealMethod();
+        when(backend.createCbcSolveCommand("predicate", stateSpace))
+                .thenReturn(cmd);
+
+        Boolean expected = true;
+        Boolean actual = backend.decidePredicate("predicate", stateSpace);
+
+        assertEquals(expected, actual,
+                "Predicate was not detected as decidable");
+    }
+
+    @Test
+    public void shouldReturnFalseWhenCbcSolveCommandIsComputationNotCompleted()
+            throws Exception {
+        CbcSolveCommand cmd = mock(CbcSolveCommand.class);
+        when(cmd.getValue()).thenReturn(mock(ComputationNotCompletedResult.class));
+
+        Backend backend = mock(Backend.class);
+        when(backend.decidePredicate("predicate", stateSpace)).thenCallRealMethod();
+        when(backend.createCbcSolveCommand("predicate", stateSpace))
+                .thenReturn(cmd);
+
+        Boolean expected = false;
+        Boolean actual = backend.decidePredicate("predicate", stateSpace);
+
+        assertEquals(expected, actual,
+                "Predicate was not detected as undecidable");
     }
 }
