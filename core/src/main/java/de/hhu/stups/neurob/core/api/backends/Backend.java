@@ -1,12 +1,14 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
-import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
 import de.prob.animator.command.CbcSolveCommand;
 import de.prob.animator.command.CbcSolveCommand.Solvers;
 import de.prob.animator.domainobjects.AbstractEvalResult;
+import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.ComputationNotCompletedResult;
 import de.prob.animator.domainobjects.EvalResult;
+import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.exception.ProBError;
 import de.prob.statespace.StateSpace;
@@ -170,10 +172,68 @@ public abstract class Backend {
 
     public CbcSolveCommand createCbcSolveCommand(String predicate,
             StateSpace stateSpace) throws FormulaException {
-        // FIXME: Api should not have dependency on training generation
-        IBEvalElement formula = FormulaGenerator.generateBCommand(stateSpace,
-                predicate);
+        IBEvalElement formula = generateBFormula(predicate, stateSpace);
         return new CbcSolveCommand(formula, toCbcEnum());
     }
+
+    /**
+     * Creates an {@link IBEvalElement} for command creation for ProB2 with
+     * respect to the machine type.
+     * <p>
+     * If you are using a state space of a B machine, it is advised to use
+     * {@link #generateBFormula(String, StateSpace)}
+     * instead
+     *
+     * @param predicate Predicate to create an evaluation element from
+     * @param mt Machine type the command should get parsed in
+     *
+     * @return
+     *
+     * @see #generateBFormula(String, StateSpace)
+     */
+     public static IBEvalElement generateBFormula(String predicate,
+             MachineType mt) throws FormulaException {
+        IBEvalElement cmd;
+        try {
+            switch (mt) {
+                case EVENTB:
+                    cmd = new EventB(predicate);
+                    break;
+                default:
+                case CLASSICALB:
+                    cmd = new ClassicalB(predicate);
+            }
+        } catch (Exception e) {
+            throw new FormulaException("Could not translate to IBEvalElement "
+                                       + "from formula " + predicate, e);
+        }
+        return cmd;
+    }
+
+    /**
+     * Creates an {@link IBEvalElement} for command creation for ProB2 with
+     * respect to a given StateSpace.
+     * <p>
+     * If no StateSpace exists, use
+     * {@link #generateBFormula(String, MachineType)}.
+     *
+     * @param predicate Predicate to create an evaluation element from
+     * @param ss StateSpace over which the eval element will be created
+     *
+     * @return
+     *
+     * @throws FormulaException
+     * @see #generateBFormula(String, MachineType)
+     */
+     public static IBEvalElement generateBFormula(String predicate,
+             StateSpace ss) throws FormulaException {
+        try {
+            return (IBEvalElement) ss.getModel().parseFormula(predicate);
+        } catch (Exception e) {
+            throw new FormulaException("Could not translate to IBEvalElement "
+                                       + "from predicate " + predicate, e);
+        }
+    }
+
 
 }

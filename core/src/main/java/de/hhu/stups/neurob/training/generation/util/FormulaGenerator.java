@@ -8,13 +8,12 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import de.hhu.stups.neurob.core.api.MachineType;
+import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.prob.animator.command.PrimePredicateCommand;
-import de.prob.animator.domainobjects.ClassicalB;
-import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.statespace.StateSpace;
 
@@ -30,65 +29,6 @@ public class FormulaGenerator {
 
     private static final Logger log =
             LoggerFactory.getLogger(FormulaGenerator.class);
-
-    /**
-     * Creates an {@link IBEvalElement} for command creation for ProB2 with
-     * respect to the machine type.
-     * <p>
-     * If you are using a state space of a B machine, it is advised to use
-     * {@link #generateBCommand(StateSpace, String)}
-     * instead
-     *
-     * @param mt Machine type the command should get parsed in
-     * @param formula Formula to create an evaluation element from
-     *
-     * @return
-     *
-     * @see #generateBCommand(StateSpace, String)
-     */
-    public static IBEvalElement generateBCommand(MachineType mt,
-            String formula) throws FormulaException {
-        IBEvalElement cmd;
-        try {
-            switch (mt) {
-                case EVENTB:
-                    cmd = new EventB(formula);
-                    break;
-                default:
-                case CLASSICALB:
-                    cmd = new ClassicalB(formula);
-            }
-        } catch (Exception e) {
-            throw new FormulaException("Could not set up command for evaluation "
-                                       + "from formula " + formula, e);
-        }
-        return cmd;
-    }
-
-    /**
-     * Creates an {@link IBEvalElement} for command creation for ProB2 with
-     * respect to a given StateSpace.
-     * <p>
-     * If you got no StateSpace, use
-     * {@link #generateBCommand(MachineType, String)}.
-     *
-     * @param ss StateSpace over which the eval element will be created
-     * @param formula Formula to create an evaluation element from
-     *
-     * @return
-     *
-     * @throws FormulaException
-     * @see #generateBCommand(MachineType, String)
-     */
-    public static IBEvalElement generateBCommand(StateSpace ss,
-            String formula) throws FormulaException {
-        try {
-            return (IBEvalElement) ss.getModel().parseFormula(formula);
-        } catch (Exception e) {
-            throw new FormulaException("Could not set up command for evaluation "
-                                       + "from formula " + formula, e);
-        }
-    }
 
     /**
      * Takes a given predicate and primes the identifiers.
@@ -107,7 +47,7 @@ public class FormulaGenerator {
     public static String generatePrimedPredicate(StateSpace ss,
             String predicate) throws FormulaException {
         return generatePrimedPredicate(ss,
-                generateBCommand(ss, predicate));
+                Backend.generateBFormula(predicate, ss));
     }
 
     /**

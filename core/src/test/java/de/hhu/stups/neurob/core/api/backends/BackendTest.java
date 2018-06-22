@@ -1,14 +1,15 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,31 @@ class BackendTest {
     public void mockStateSpace() {
         stateSpace = mock(StateSpace.class);
     }
+
+    @Test
+    public void shouldGenerateClassicalBInstanceForMachineTypeClassicalB()
+            throws Exception {
+        String pred = "x>y & y>x";
+
+        IBEvalElement evalElem = Backend.generateBFormula(pred,
+                MachineType.CLASSICALB);
+
+        assertEquals(ClassicalB.class, evalElem.getClass(),
+                "Wrong object created!");
+    }
+
+    @Test
+    public void shouldGenerateEventBInstanceForMachineTypeEventB()
+            throws Exception {
+        String pred = "x>y & y>x";
+
+        IBEvalElement evalElem = Backend.generateBFormula(pred,
+                MachineType.EVENTB);
+
+        assertEquals(EventB.class, evalElem.getClass(),
+                "Wrong object created!");
+    }
+
 
     @Test
     public void shouldMeasureNonNegativeTimeWhenPredicateIsDecidable()

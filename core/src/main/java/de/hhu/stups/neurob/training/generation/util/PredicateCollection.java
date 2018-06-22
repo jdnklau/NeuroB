@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.hhu.stups.neurob.core.api.MachineType;
+import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,7 +109,7 @@ public class PredicateCollection {
         for (String inv : invariants) {
             try {
                 invCmds.put(inv,
-                        FormulaGenerator.generateBCommand(ss, inv));
+                        Backend.generateBFormula(inv, ss));
             } catch (FormulaException e) {
                 log.warn("Could not set up EvalElement from {} for "
                          + "weakest precondition calculation or priming",
@@ -118,8 +119,7 @@ public class PredicateCollection {
         // command for concatenation of invariants
         try {
             invCmds.put(invariantConcat,
-                    FormulaGenerator.generateBCommand(ss,
-                            invariantConcat));
+                    Backend.generateBFormula(invariantConcat, ss));
         } catch (FormulaException e) {
             log.warn("Could not set up weakest precondition command for "
                      + "concatenation of invariants {]",

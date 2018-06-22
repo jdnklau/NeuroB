@@ -3,9 +3,7 @@ package de.hhu.stups.neurob.training.generation.util;
 import de.hhu.stups.neurob.core.api.MachineType;
 
 import de.prob.animator.command.PrimePredicateCommand;
-import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.EventB;
-import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.model.representation.AbstractModel;
 import de.prob.parser.ISimplifiedROMap;
 import de.prob.prolog.term.CompoundPrologTerm;
@@ -152,30 +150,6 @@ public class FormulaGeneratorTest {
             return null;
         }).when(ss).execute(any(PrimePredicateCommand.class));
 
-    }
-
-    @Test
-    public void shouldGenerateClassicalBInstanceForMachineTypeClassicalB()
-            throws Exception {
-        String pred = "x>y & y>x";
-
-        IBEvalElement evalElem = FormulaGenerator
-                .generateBCommand(MachineType.CLASSICALB, pred);
-
-        assertEquals(ClassicalB.class, evalElem.getClass(),
-                "Wrong object created!");
-    }
-
-    @Test
-    public void shouldGenerateEventBInstanceForMachineTypeEventB()
-            throws Exception {
-        String pred = "x>y & y>x";
-
-        IBEvalElement evalElem = FormulaGenerator
-                .generateBCommand(MachineType.EVENTB, pred);
-
-        assertEquals(EventB.class, evalElem.getClass(),
-                "Wrong object created!");
     }
 
     @Test
