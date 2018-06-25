@@ -1,5 +1,6 @@
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'idea'
 
     project.version = '0.47.0-SNAPSHOT'
     project.group = 'de.hhu.stups'
@@ -17,6 +18,22 @@ subprojects {
         maven {
             name "sonatype releases"
             url "https://oss.sonatype.org/content/repositories/releases"
+        }
+    }
+
+    sourceSets {
+        integrationTest {
+            java.srcDir file('src/it/java')
+            resources.srcDir file('src/it/resources')
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+        }
+    }
+
+    idea {
+        module {
+            testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
+            testSourceDirs += project.sourceSets.integrationTest.resources.srcDirs
         }
     }
 
@@ -38,11 +55,33 @@ subprojects {
         testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
     }
 
+
+    configurations {
+        all*.exclude group: 'org.bytedeco', module: 'javacpp-presets'
+
+        integrationTestCompile.extendsFrom(testCompile)
+        integrationTestRuntime.extendsFrom(testRuntime)
+    }
+
+    task integrationTest(type: Test) {
+        description = "Run integration tests"
+
+        testClassesDirs = sourceSets.integrationTest.output.classesDirs
+        classpath = sourceSets.integrationTest.runtimeClasspath
+        outputs.upToDateWhen { false }
+
+        mustRunAfter(test)
+    }
+
+    task wrapper(type: Wrapper) {
+        gradleVersion = '4.8'
+    }
+    
     test {
         useJUnitPlatform()
 
         testLogging {
-            events "passed", "skipped", "failed"
+            events "skipped", "failed"
         }
 
         reports {
@@ -50,11 +89,18 @@ subprojects {
         }
     }
 
-    configurations {
-        all*.exclude group: 'org.bytedeco', module: 'javacpp-presets'
+    integrationTest {
+        useJUnitPlatform()
+
+        testLogging {
+            events "skipped", "failed"
+        }
+
+        reports {
+            html.enabled = true
+        }
+
     }
 
-    task wrapper(type: Wrapper) {
-        gradleVersion = '4.8'
-    }
+    check.dependsOn(integrationTest)
 }
