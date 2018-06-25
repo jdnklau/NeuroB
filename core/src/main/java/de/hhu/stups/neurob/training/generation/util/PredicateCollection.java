@@ -77,8 +77,12 @@ public class PredicateCollection {
             else
                 invariants.add(x.getFormula().getCode());
         }
-        String invariantConcat =
-                FormulaGenerator.getStringConjunction(invariants);
+        // Conjunct invariants if more then one
+        if (invariants.size() > 1) {
+            String invariantConcat =
+                    FormulaGenerator.getStringConjunction(invariants);
+            invariants.add(invariantConcat);
+        }
 
         log.trace("Collecting assertions");
         for (Assertion x : comp.getChildrenOfType(Assertion.class)) {
@@ -116,15 +120,6 @@ public class PredicateCollection {
                         inv, e);
             }
         }
-        // command for concatenation of invariants
-        try {
-            invCmds.put(invariantConcat,
-                    Backend.generateBFormula(invariantConcat, ss));
-        } catch (FormulaException e) {
-            log.warn("Could not set up weakest precondition command for "
-                     + "concatenation of invariants {]",
-                    invariantConcat, e);
-        }
 
         // weakest preconditions for each invariant
         log.trace("Building weakest preconditions");
@@ -149,9 +144,6 @@ public class PredicateCollection {
 
             }
             weakestPreconditions.put(x.getName(), wpcs);
-
-            // build weakest precondition for invariant concatenation
-
         }
 
         if (machineType != MachineType.EVENTB)
