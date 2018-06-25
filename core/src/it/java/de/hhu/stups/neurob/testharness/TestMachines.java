@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.testharness;
 
-/** Unified convenience access to the machines in src/test/resources/machines */
+/** Unified convenience access to the machines in src/it/resources/machines */
 public class TestMachines {
     public static String FORMULAE_GEN_MCH =
             getMachinePath("formulae_generation.mch");
