@@ -92,6 +92,8 @@ public class PredicateCollection {
         // for each event collect preconditions
         log.trace("Collecting operations and preconditions");
         for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
+            if (x.getName().equals("INITIALISATION"))
+                continue; // None for initialisation
             operations.add(x.getName());
 
             log.trace("Collecting preconditions for {}", x.getName());
