@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,6 +75,8 @@ class BackendTest {
                 .thenReturn(false); // undecidable
         when(backend.measureEvalTime("predicate", stateSpace))
                 .thenCallRealMethod();
+        when(backend.measureEvalTime("predicate", stateSpace, 0L, null))
+                .thenCallRealMethod();
 
         Long expected = -1L;
         Long actual = backend.measureEvalTime("predicate", stateSpace);
@@ -89,6 +92,8 @@ class BackendTest {
         when(backend.decidePredicate("predicate", stateSpace))
                 .thenReturn(true); // decidable
         when(backend.isDecidable("predicate", stateSpace))
+                .thenCallRealMethod();
+        when(backend.isDecidable("predicate", stateSpace, 2L, TimeUnit.SECONDS))
                 .thenCallRealMethod();
         when(backend.getTimeOutValue()).thenReturn(2L);
         when(backend.getTimeOutUnit()).thenReturn(TimeUnit.SECONDS);
@@ -163,5 +168,28 @@ class BackendTest {
 
         assertEquals(expected, actual,
                 "Predicate was not detected as undecidable");
+    }
+
+    @Test
+    public void shouldNotUseConstructorTimeOutWhenParametersAreSupplied() throws FormulaException {
+        Backend backend = mock(Backend.class);
+        when(backend.getTimeOutValue()).thenReturn(20L);
+        when(backend.getTimeOutUnit()).thenReturn(TimeUnit.SECONDS);
+
+        // Decision runs for 10 seconds
+        when(backend.decidePredicate("predicate", stateSpace))
+                .then(invocation -> {
+                    Thread.sleep(10_000);
+                    return true;
+                });
+        // Use real methods where needed
+        when(backend.isDecidable("predicate", stateSpace, 0L, TimeUnit.MILLISECONDS))
+                .thenCallRealMethod();
+
+        Boolean isDecidable = backend.isDecidable("predicate", stateSpace,
+                0L, TimeUnit.MILLISECONDS);
+
+        assertFalse(isDecidable,
+                "Timeout did nothing");
     }
 }

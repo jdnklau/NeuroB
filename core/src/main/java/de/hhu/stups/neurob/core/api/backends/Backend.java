@@ -83,6 +83,23 @@ public abstract class Backend {
      */
     public Boolean isDecidable(String predicate, StateSpace stateSpace)
             throws FormulaException {
+        return isDecidable(predicate, stateSpace,
+                getTimeOutValue(), getTimeOutUnit());
+    }
+
+    /**
+     * Checks if the predicate given is decidable or not by the given solver
+     * with respect to the time out specified in the constructor.
+     *
+     * @param predicate
+     * @param stateSpace
+     * @param timeOutValue Time until the backend shall time out
+     * @param timeOutUnit Unit of the time out
+     *
+     * @return
+     */
+    public Boolean isDecidable(String predicate, StateSpace stateSpace,
+            Long timeOutValue, TimeUnit timeOutUnit) throws FormulaException {
         // Set up thread for timeout check
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Boolean> futureRes = executor.submit(
@@ -91,7 +108,7 @@ public abstract class Backend {
         // Start thread and check for errors
         try {
             log.debug("{}: Deciding predicate {}", this.toString(), predicate);
-            return futureRes.get(getTimeOutValue(), getTimeOutUnit());
+            return futureRes.get(timeOutValue, timeOutUnit);
         } catch (IllegalStateException e) {
             stateSpace.sendInterrupt();
             throw e;
@@ -125,8 +142,28 @@ public abstract class Backend {
      */
     public Long measureEvalTime(String predicate, StateSpace stateSpace)
             throws FormulaException {
+        return measureEvalTime(predicate, stateSpace,
+                getTimeOutValue(), getTimeOutUnit());
+    }
+
+    /**
+     * Measures time needed to decide whether the predicate is decidable or not.
+     *
+     * @param predicate The predicate to decide
+     * @param stateSpace The StateSpace the predicate gets decided in
+     * @param timeOutValue Time until the backend shall time out
+     * @param timeOutUnit Unit of the time out
+     *
+     * @return Time needed in nano seconds or -1 if it could not be decided
+     *
+     * @throws FormulaException
+     */
+    public Long measureEvalTime(String predicate, StateSpace stateSpace,
+            Long timeOutValue, TimeUnit timeOutUnit)
+            throws FormulaException {
         Long start = System.nanoTime();
-        Boolean isDecidable = isDecidable(predicate, stateSpace);
+        Boolean isDecidable =
+                isDecidable(predicate, stateSpace, timeOutValue, timeOutUnit);
         Long duration = System.nanoTime() - start;
 
         return (isDecidable) ? duration : -1;
@@ -188,8 +225,8 @@ public abstract class Backend {
      *
      * @see #generateBFormula(String, StateSpace)
      */
-     public static IBEvalElement generateBFormula(String predicate,
-             MachineType mt) throws FormulaException {
+    public static IBEvalElement generateBFormula(String predicate,
+            MachineType mt) throws FormulaException {
         IBEvalElement cmd;
         try {
             switch (mt) {
@@ -222,8 +259,8 @@ public abstract class Backend {
      * @throws FormulaException
      * @see #generateBFormula(String, MachineType)
      */
-     public static IBEvalElement generateBFormula(String predicate,
-             StateSpace ss) throws FormulaException {
+    public static IBEvalElement generateBFormula(String predicate,
+            StateSpace ss) throws FormulaException {
         try {
             return (IBEvalElement) ss.getModel().parseFormula(predicate);
         } catch (Exception e) {
