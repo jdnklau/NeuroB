@@ -22,9 +22,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-/**
- * Enum of all supported backends of ProBBackend used in NeuroB.
- */
 public abstract class Backend {
 
     protected final long timeOutValue;
