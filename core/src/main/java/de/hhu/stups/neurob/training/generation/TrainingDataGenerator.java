@@ -13,20 +13,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class TrainingDataGenerator<F extends Features, L extends Labelling> {
 
     protected final TrainingDataFormat format;
-    protected final FeatureGenerating<F,?> featureGenerator;
+    protected final FeatureGenerating<F, ?> featureGenerator;
     protected final LabelGenerating<L, ?> labelGenerator;
 
     protected static final Logger log =
             LoggerFactory.getLogger(TrainingDataGenerator.class);
 
     public TrainingDataGenerator(
-            FeatureGenerating<F,?>  featureGenerator,
+            FeatureGenerating<F, ?> featureGenerator,
             LabelGenerating<L, ?> labelGenerator,
             TrainingDataFormat format) {
         this.format = format;
@@ -77,14 +78,14 @@ public abstract class TrainingDataGenerator<F extends Features, L extends Labell
                 source, fullTargetDir);
 
         // TODO: add statistics?
-        try (Stream<Path> sourceFiles = Files.list(source)) {
+        try (Stream<Path> sourceFiles = Files.walk(source)) {
             sourceFiles
                     .parallel()
                     .filter(Files::isRegularFile)
                     // Only create if non-lazy or non-existent
                     .filter(file -> !lazy && !dataAlreadyExists(file,
                             format.getTargetLocation(file, fullTargetDir)))
-                    .map(file -> streamSamplesFromFile(file))
+                    .map(this::streamSamplesFromFile)
                     .forEach(samples ->
                             format.writeSamples(samples, fullTargetDir));
         }
