@@ -112,7 +112,8 @@ public class DecisionTimings implements PredicateLabelling {
         for (int i = 0; i < sampleSize; i++) {
             Long timing = null;
             try {
-                timing = backend.measureEvalTime(predicate, ss);
+                timing = backend.measureEvalTime(predicate, ss,
+                        timeOut, timeUnit);
             } catch (FormulaException e) {
                 throw new LabelCreationException(
                         "Could not create timing sample #" + i
