@@ -71,18 +71,19 @@ class BackendTest {
             throws FormulaException {
         Backend backend = mock(Backend.class);
 
-        when(backend.isDecidable("predicate", stateSpace))
+        when(backend.decidePredicate("predicate", stateSpace))
                 .thenReturn(false); // undecidable
         when(backend.measureEvalTime("predicate", stateSpace))
                 .thenCallRealMethod();
-        when(backend.measureEvalTime("predicate", stateSpace, 0L, null))
+        when(backend.measureEvalTime(any(), any(), any(), any()))
                 .thenCallRealMethod();
+        when(backend.getTimeOutValue()).thenReturn(20L);
+        when(backend.getTimeOutUnit()).thenReturn(TimeUnit.SECONDS);
 
-        Long expected = -1L;
         Long actual = backend.measureEvalTime("predicate", stateSpace);
 
-        assertEquals(expected, actual,
-                "Measured time for decidable predicates needs non-negative");
+        assertTrue(actual < 0,
+                "Measured time for decidable predicates not negative");
     }
 
     @Test
@@ -184,6 +185,8 @@ class BackendTest {
                 });
         // Use real methods where needed
         when(backend.isDecidable("predicate", stateSpace, 0L, TimeUnit.MILLISECONDS))
+                .thenCallRealMethod();
+        when(backend.measureEvalTime("predicate", stateSpace, 0L, TimeUnit.MILLISECONDS))
                 .thenCallRealMethod();
 
         Boolean isDecidable = backend.isDecidable("predicate", stateSpace,

@@ -100,34 +100,9 @@ public abstract class Backend {
      */
     public Boolean isDecidable(String predicate, StateSpace stateSpace,
             Long timeOutValue, TimeUnit timeOutUnit) throws FormulaException {
-        // Set up thread for timeout check
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<Boolean> futureRes = executor.submit(
-                () -> decidePredicate(predicate, stateSpace));
-
-        // Start thread and check for errors
-        try {
-            log.debug("{}: Deciding predicate {}", this.toString(), predicate);
-            return futureRes.get(timeOutValue, timeOutUnit);
-        } catch (IllegalStateException e) {
-            stateSpace.sendInterrupt();
-            throw e;
-        } catch (ProBError e) {
-            stateSpace.sendInterrupt();
-            throw new FormulaException(
-                    "ProBBackend encountered Problems with " + predicate, e);
-        } catch (TimeoutException e) {
-            stateSpace.sendInterrupt();
-            log.warn("Timeout after {} {} for predicate {}",
-                    getTimeOutValue(), getTimeOutUnit(), predicate);
-            return false;
-        } catch (InterruptedException | ExecutionException e) {
-            stateSpace.sendInterrupt();
-            throw new FormulaException(
-                    "Execution interrupted: " + e.getMessage(), e);
-        } finally {
-            executor.shutdown();
-        }
+        // True if it can be decided in a non-negative time
+        return measureEvalTime(predicate, stateSpace,
+                timeOutValue, timeOutUnit) >= 0;
     }
 
     /**
@@ -161,10 +136,38 @@ public abstract class Backend {
     public Long measureEvalTime(String predicate, StateSpace stateSpace,
             Long timeOutValue, TimeUnit timeOutUnit)
             throws FormulaException {
-        Long start = System.nanoTime();
-        Boolean isDecidable =
-                isDecidable(predicate, stateSpace, timeOutValue, timeOutUnit);
-        Long duration = System.nanoTime() - start;
+        // Set up thread for timeout check
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Boolean> futureRes = executor.submit(
+                () -> decidePredicate(predicate, stateSpace));
+
+        // Start thread and check for errors
+        Boolean isDecidable;
+        Long start, duration;
+        try {
+            log.debug("{}: Deciding predicate {}", this.toString(), predicate);
+            start = System.nanoTime(); // start measuring time
+            isDecidable = futureRes.get(timeOutValue, timeOutUnit);
+            duration = System.nanoTime() - start; // stop measuring
+        } catch (IllegalStateException e) {
+            stateSpace.sendInterrupt();
+            throw e;
+        } catch (ProBError e) {
+            stateSpace.sendInterrupt();
+            throw new FormulaException(
+                    "ProBBackend encountered Problems with " + predicate, e);
+        } catch (TimeoutException e) {
+            stateSpace.sendInterrupt();
+            log.warn("Timeout after {} {} for predicate {}",
+                    getTimeOutValue(), getTimeOutUnit(), predicate);
+            return -1L;
+        } catch (InterruptedException | ExecutionException e) {
+            stateSpace.sendInterrupt();
+            throw new FormulaException(
+                    "Execution interrupted: " + e.getMessage(), e);
+        } finally {
+            executor.shutdown();
+        }
 
         return (isDecidable) ? duration : -1;
     }
