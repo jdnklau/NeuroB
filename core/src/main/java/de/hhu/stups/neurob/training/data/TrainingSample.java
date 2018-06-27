@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 
 public class TrainingSample<F extends Features, L extends Labelling> {
 
@@ -42,14 +43,39 @@ public class TrainingSample<F extends Features, L extends Labelling> {
 
     @Override
     public boolean equals(Object sample) {
+        if (sample == null) {
+            return false;
+        }
+
         if (sample.getClass().equals(this.getClass())) {
             TrainingSample trainingSample = (TrainingSample) sample;
-            return features.equals(trainingSample.getFeatures())
-                   && labelling.equals(trainingSample.getLabelling())
-                   && ((sourceFile != null)
-                    ? sourceFile.equals(trainingSample.getSourceFile())
-                    : trainingSample.getSourceFile() == null);
+
+            // Check for each value pair whether exactly one value is null
+            if (features == null ^ trainingSample.features == null) {
+                return false;
+            }
+            if (labelling == null ^ trainingSample.labelling == null) {
+                return false;
+            }
+            if (sourceFile == null ^ trainingSample.sourceFile == null) {
+                return false;
+            }
+
+            // Due to check above, if features are nonnull
+            // then trainingSample.features are also nonnull
+            if (features != null && labelling != null) {
+                return Arrays.equals(features.getFeatureArray(),
+                        trainingSample.features.getFeatureArray())
+                       && Arrays.equals(features.getFeatureArray(),
+                        trainingSample.features.getFeatureArray())
+                       && ((sourceFile == null)
+                           || sourceFile.equals(trainingSample.sourceFile));
+            } else {
+                return sourceFile == null
+                        || sourceFile.equals(trainingSample.sourceFile);
+            }
         }
+
         return false;
     }
 
