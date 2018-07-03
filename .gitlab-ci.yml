@@ -1,4 +1,4 @@
-image: java:8
+image: $CI_REGISTRY_IMAGE
 
 # Disable the Gradle daemon
 variables:
