@@ -8,6 +8,7 @@ import java.util.Map;
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.prob.model.eventb.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,12 +58,22 @@ public class PredicateCollection {
         weakestPreconditions = new HashMap<>();
         primedInvariants = new HashMap<>();
 
-        collectPredicates();
+        collectFromMachine(ss.getMainComponent());
+
+        // for EventB, check Context as well
+        // TODO: Check whether each EventB machine only has one context at max
+        // maybe we do not need to loop over all;
+        // also check how a state space behaves for refinements
+
+        if (machineType == MachineType.EVENTB) {
+            for (Context bcc : ss.getModel().getChildrenOfType(Context.class)) {
+                collectFromContext(bcc);
+            }
+        }
 
     }
 
-    private void collectPredicates() {
-        AbstractElement comp = ss.getMainComponent();
+    private void collectFromMachine(AbstractElement comp) {
         // properties
         log.trace("Collecting properties");
         for (Property x : comp.getChildrenOfType(Property.class)) {
@@ -103,11 +114,6 @@ public class PredicateCollection {
             }
             if (!event.isEmpty())
                 preconditions.put(x.getName(), event);
-        }
-        // axioms
-        log.trace("Collecting axioms");
-        for (Axiom x : comp.getChildrenOfType(Axiom.class)) {
-            properties.add(x.getFormula().getCode());
         }
 
         // set up invariants as commands for below
@@ -180,6 +186,14 @@ public class PredicateCollection {
             } catch (Exception e) {
                 log.warn("Could not build primed invariant from {}", inv, e);
             }
+        }
+    }
+
+    private void collectFromContext(Context bcc) {
+        // axioms
+        log.trace("Collecting axioms");
+        for (Axiom x : bcc.getChildrenOfType(Axiom.class)) {
+            properties.add(x.getFormula().getCode());
         }
 
     }

@@ -23,6 +23,9 @@ public class TestMachines {
     public static String FEATURES_CHECK_MCH =
             getMachinePath("features_check.mch");
 
+    public static String EXAMPLE_BCM =
+            getMachinePath("event-b/example/example.bcm");
+
     private static Map<String, List<String>> expectedPredicates = new HashMap<>();
 
     /**

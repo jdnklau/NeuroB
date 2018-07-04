@@ -6,6 +6,7 @@ import de.prob.animator.command.WeakestPreconditionCommand;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.model.classicalb.Assertion;
 import de.prob.model.classicalb.Property;
+import de.prob.model.eventb.Context;
 import de.prob.model.eventb.EventBModel;
 import de.prob.model.representation.AbstractElement;
 import de.prob.model.representation.AbstractFormulaElement;
@@ -361,6 +362,8 @@ class PredicateCollectionTest {
         ModelElementList<BEvent> operations = generateOperations(0, 0);
         when(ss.getMainComponent().getChildrenOfType(BEvent.class))
                 .thenReturn(operations);
+        when(ss.getModel().getChildrenOfType(Context.class))
+                .thenReturn(new ModelElementList<>());
 
         // Stub stateSpace.execute call
         ISimplifiedROMap bindings = mock(ISimplifiedROMap.class);
@@ -395,6 +398,8 @@ class PredicateCollectionTest {
                 generatePredicates(Invariant.class, 2);
         when(ss.getMainComponent().getChildrenOfType(Invariant.class))
                 .thenReturn(invariants);
+        when(ss.getModel().getChildrenOfType(Context.class))
+                .thenReturn(new ModelElementList<>());
 
         // Stub stateSpace.execute call
         ISimplifiedROMap bindings = mock(ISimplifiedROMap.class);
@@ -424,22 +429,23 @@ class PredicateCollectionTest {
 
     @Test
     public void shouldLoadAxiomsAsProperties() {
-        ModelElementList<Property> properties =
-                generatePredicates(Property.class, 3);
+        EventBModel eventBMock = mock(EventBModel.class);
+        when(ss.getModel()).thenReturn(eventBMock);
+
+        // Set up context to return axioms
+        Context contextMock = mock(Context.class);
+        ModelElementList<Context> contexts =
+                new ModelElementList<Context>().addElement(contextMock);
+        when(ss.getModel().getChildrenOfType(Context.class))
+                .thenReturn(contexts);
         ModelElementList<Axiom> axioms =
                 generatePredicates(Axiom.class, 2);
-
-        when(ss.getMainComponent().getChildrenOfType(Property.class))
-                .thenReturn(properties);
-        when(ss.getMainComponent().getChildrenOfType(Axiom.class))
+        when(contextMock.getChildrenOfType(Axiom.class))
                 .thenReturn(axioms);
 
         PredicateCollection pc = new PredicateCollection(ss);
 
         List<String> expected = new ArrayList<>();
-        expected.add("Property-1");
-        expected.add("Property-2");
-        expected.add("Property-3");
         expected.add("Axiom-1");
         expected.add("Axiom-2");
 

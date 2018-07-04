@@ -4,9 +4,11 @@ import de.hhu.stups.neurob.testharness.TestMachines;
 import de.prob.Main;
 import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -16,17 +18,23 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PredicateCollectionIT {
 
     private PredicateCollection pc;
+    private PredicateCollection pcEventB;
 
-    @BeforeEach
+    @BeforeAll
     public void loadPredicateCollection() throws Exception {
 
         Api api = Main.getInjector().getInstance(Api.class);
-        StateSpace ss = api.b_load(TestMachines.FORMULAE_GEN_MCH);
 
+        StateSpace ss = api.b_load(TestMachines.FORMULAE_GEN_MCH);
         pc = new PredicateCollection(ss);
+        ss.kill();
+
+        ss = api.eventb_load(TestMachines.EXAMPLE_BCM);
+        pcEventB = new PredicateCollection(ss);
         ss.kill();
     }
 
@@ -45,7 +53,26 @@ class PredicateCollectionIT {
 
         assertEquals(invariants, actual,
                 "Collected invariants do not match");
+    }
 
+    @Test
+    public void shouldLoadInvariantWhenEventB() {
+        List<String> invariants = new ArrayList<>();
+        invariants.add("x:NAT");
+        invariants.add("y:NAT");
+        invariants.add("x<y");
+        invariants.add("y=1");
+        invariants.add("z:NAT");
+        invariants.add("z<2");
+        invariants.add("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)");
+
+        List<String> actual = pcEventB.getInvariants();
+
+        invariants.sort(Comparator.naturalOrder());
+        actual.sort(Comparator.naturalOrder());
+
+        assertEquals(invariants, actual,
+                "Collected invariants do not match");
     }
 
     @Test
@@ -82,6 +109,23 @@ class PredicateCollectionIT {
     }
 
     @Test
+    public void shouldLoadPreconditionsWhenEventB() {
+        Map<String, List<String>> pres = new HashMap<>();
+
+        // incx
+        List<String> pre = new ArrayList<>();
+        pre.add("z<2");
+        pres.put("incZ", pre);
+
+        assertAll("Included preconditions",
+                () -> assertEquals(pres.size(), pcEventB.getPreconditions().size(),
+                        "Number of preconditions does not match"),
+                () -> assertEquals(pres, pcEventB.getPreconditions(),
+                        "Colelcted preconditions do not match")
+        );
+    }
+
+    @Test
     public void shouldLoadOperationNamesWithoutInitialisationIncluded() {
         List<String> operations = new ArrayList<>();
         operations.add("incx");
@@ -92,6 +136,15 @@ class PredicateCollectionIT {
         // NOTE: list equality depends on order; maybe revisit test
 
         assertEquals(operations, pc.getOperationNames(),
+                "Not all operations included");
+    }
+
+    @Test
+    public void shouldLoadOperationNamesWithoutInitialisationIncludedWhenEventB() {
+        List<String> operations = new ArrayList<>();
+        operations.add("incZ");
+
+        assertEquals(operations, pcEventB.getOperationNames(),
                 "Not all operations included");
     }
 
@@ -155,26 +208,70 @@ class PredicateCollectionIT {
     }
 
     @Test
-    @Disabled("Test needs to be for an EventB machine")
+    public void shouldLoadWeakestPreConditionsWhenEventB() {
+        Map<String, Map<String, String>> weakestPres = new HashMap<>();
+        Map<String, String> opWeak;
+        opWeak = new HashMap<>();
+        opWeak.put("z<2", "/* @example:grd1 */ z < 2 => z + 1 < 2");
+        opWeak.put("z:NAT", "/* @example:grd1 */ z < 2 => z + 1 : NAT");
+        opWeak.put("y:NAT", "/* @example:grd1 */ z < 2 => y : NAT");
+        opWeak.put("x<y", "/* @example:grd1 */ z < 2 => x < y");
+        opWeak.put("x:NAT", "/* @example:grd1 */ z < 2 => x : NAT");
+        opWeak.put("y=1", "/* @example:grd1 */ z < 2 => y = 1");
+        opWeak.put("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)",
+                "/* @example:grd1 */ "
+                + "z < 2 => x : NAT & (y : NAT & (x < y & (y = 1 & (z + 1 : NAT "
+                + "& z + 1 < 2))))");
+        weakestPres.put("incZ", opWeak);
+
+        assertEquals(weakestPres, pcEventB.getWeakestPreConditions(),
+                "Weakest Preconditions do not match");
+    }
+
+    @Test
     public void shouldLoadTheoremsAsAssertionsWhenEventB() {
-        fail();
+        List<String> assertions = new ArrayList<>();
+        assertions.add("x=0");
+        assertions.add("z<2");
+
+        assertEquals(assertions, pcEventB.getAssertions(),
+                "Not loaded theorems as assertions");
     }
 
     @Test
-    @Disabled("Test needs to be for an EventB machine")
     public void shouldLoadBeforeAfterPredicatesWhenEventB() {
-        fail();
+        Map<String, String> baPreds = new HashMap<>();
+        baPreds.put("incZ",
+                "/* @example:grd1 */ "
+                + "z < 2 & z' = z + 1 & x' = x & y' = y & a' = a");
+
+        assertEquals(baPreds, pcEventB.getBeforeAfterPredicates(),
+                "Before After predicates do not match");
     }
 
     @Test
-    @Disabled("Test needs to be for an EventB machine")
     public void shouldLoadPrimedInvariantsWhenEventB() {
-        fail();
+        Map<String, String> primedInvs = new HashMap<>();
+        primedInvs.put("x:NAT", "x' : NAT");
+        primedInvs.put("y:NAT", "y' : NAT");
+        primedInvs.put("x<y", "x' < y'");
+        primedInvs.put("y=1", "y' = 1");
+        primedInvs.put("z:NAT", "z' : NAT");
+        primedInvs.put("z<2", "z' < 2");
+        // concat of whole invariant
+        primedInvs.put("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)",
+                "x' : NAT & (y' : NAT & (x' < y' & (y' = 1 & (z' : NAT & z' < 2))))");
+
+        assertEquals(primedInvs, pcEventB.getPrimedInvariants(),
+                "Primed invariants mismatch");
     }
 
     @Test
-    @Disabled("Test needs to be for an EventB machine")
     public void shouldLoadAxiomsAsPropertiesWhenEventB() {
-        fail();
+        List<String> properties = new ArrayList<>();
+        properties.add("a:NAT");
+
+        assertEquals(properties, pcEventB.getProperties(),
+                "Axioms not correctly loaded as properties");
     }
 }
