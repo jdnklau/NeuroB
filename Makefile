@@ -1,57 +1,24 @@
-# Shortcut to run the Cli of NeuroB
-RUNCLI = ./build/install/NeuroB/bin/NeuroB
-EXAMPLES = examples/prob_examples/public_examples
-PDUMPDIR = training_data/PredicateDump
-PDUMPPROBTRIM = $(PDUMPDIR)_trim/PROB
 
-all : neurob distributedlibraryfile
-	@echo "Done."
 
-neurob :
-	@echo "***** Create NeuroB binary"
-	@./gradlew installDist --refresh-dependencies
-	@echo "*****/ Created binary"
+.PHONY: all
+all: neurob
 
-clean :
-	@echo "***** Clean gradle"
-	@./gradlew -q clean
-	@echo "*****/ Cleaned"
+.PHONY: neurob
+neurob:
+	./gradlew core:assemble
 
-# how to run stuff
-trainingset : predicatedump
-	@echo "***** Beginning generation of training set"
-	@$(RUNCLI) pdump -translate $(PDUMPDIR)
-	@echo "*****/ Training set generated"
+.PHONY: clean
+clean:
+	./gradlew -q clean
 
-predicatedump : distributedlibraryfile
-	@echo "***** Generating general purpose training set"
-	@echo "This will take a while. Maybe just come back tomorrow."
-	@$(RUNCLI) pdump -dir $(EXAMPLES)
-	@echo "Ensuring the termination of all KodKod processes... the hard way:"
-	pkill -u $(USER) -f probkodkod
-	@echo "*****/ Done: Predicate Dump"
+.PHONY: test
+test:
+	./gradlew check
 
-trimpredicatedump :
-	@echo "***** trimming predicate dump wrt ProB"
-	@$(RUNCLI) pdump -trim $(PDUMPDIR) -target $(PDUMPPROBTRIM)/examples -solver prob
-	@echo "*****/ Done with trimming"
+.PHONY: unit-test
+unit-test:
+	./gradlew test
 
-splitpredicatedump :
-	@echo "***** splitting predicate dump to train, validation, and test set"
-	@$(RUNCLI) pdump -split $(PDUMPPROBTRIM)/examples -first $(PDUMPPROBTRIM)/notest -second $(PDUMPPROBTRIM)/test -ratio 0.8
-	@$(RUNCLI) pdump -split $(PDUMPPROBTRIM)/notest -first $(PDUMPPROBTRIM)/train -second $(PDUMPPROBTRIM)/validation -ratio 0.8
-	
-alltrainingsets : distributedlibraryfile
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solclass -solver prob
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solclass -solver kodkod
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf solsel
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predf soltime
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi solclass -solver prob -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi solclass -solver kodkod -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi solsel -size 32
-	@$(RUNCLI) trainingset -dir $(EXAMPLES) -net predi soltime -size 32
-
-distributedlibraryfile : examples/prob_examples
-	@echo "***** Ensuring existence of LibraryIO.def in respective directories"
-	@$(RUNCLI) libraryIODef -dir examples/prob_examples/public_examples/B/
-	@echo "*****/ Libraries made"
+.PHONY: it-test
+it-test:
+	./gradlew integrationTest
