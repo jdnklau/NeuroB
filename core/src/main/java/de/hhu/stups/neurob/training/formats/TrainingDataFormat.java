@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
-public interface TrainingDataFormat {
+public interface TrainingDataFormat<F extends Features> {
 
     /**
      * Generates the target location path to be written to at training data
@@ -29,7 +29,7 @@ public interface TrainingDataFormat {
      * @param targetDirectory location to populate with training data
      */
     default
-    <F extends Features, L extends Labelling>
+    <L extends Labelling>
     void writeSamples(List<TrainingSample<F, L>> samples,
             Path targetDirectory) {
         writeSamples(samples.stream(), targetDirectory);
@@ -42,7 +42,7 @@ public interface TrainingDataFormat {
      * @param samples Stream of training data samples
      * @param targetDirectory location to populate with training data
      */
-    <F extends Features, L extends Labelling>
+    <L extends Labelling>
     void writeSamples(Stream<TrainingSample<F, L>> samples,
             Path targetDirectory);
 

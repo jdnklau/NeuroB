@@ -37,7 +37,7 @@ public class PredicateTrainingGenerator
     public PredicateTrainingGenerator(
             PredicateFeatureGenerating<F> featureGenerator,
             PredicateLabelGenerating<L> labelGenerator,
-            TrainingDataFormat format) {
+            TrainingDataFormat<F> format) {
         super(featureGenerator, labelGenerator, format);
 
         api = Main.getInjector().getInstance(Api.class);
