@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -160,8 +161,29 @@ class PredicateTrainingGeneratorIT {
                 () -> assertEquals(firstPaths.size(),
                         TestMachines.loadExpectedPredicates(
                                 TestMachines.FORMULAE_GEN_MCH_PREDICATE_FILE)
-                        .size(),
+                                .size(),
                         "Number of samples does not match"));
+    }
+
+    @Test
+    public void shouldeEliminateCommonSourceDirectoryPattern() throws IOException {
+        Path sourceDir = Paths.get(TestMachines.TEST_MACHINE_DIR);
+        Path targetDir = Paths.get("non/existent");
+
+        List<Path> files = new ArrayList<>();
+        doAnswer(invocation -> {
+            TrainingData data = invocation.getArgument(0);
+            files.add(data.getSourceFile());
+            return null;
+        }).when(formatMock).writeSamples(any(TrainingData.class), any());
+
+        generator.generateTrainingData(sourceDir, targetDir, false);
+
+        assertAll("No file should contain the common source directory",
+                files.stream().map(file -> () ->
+                        assertFalse(file.startsWith(sourceDir),
+                                file.toString() + " starts with " + sourceDir)));
+
     }
 
 }

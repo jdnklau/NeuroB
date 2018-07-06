@@ -85,13 +85,21 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
                     // Only create if non-lazy or non-existent
                     .filter(file -> !lazy || !dataAlreadyExists(file,
                             format.getTargetLocation(file, fullTargetDir)))
-                    .map(file -> new TrainingData<>(file,
+                    .map(file -> new TrainingData<>(
+                            stripCommonSourceDir(file, source),
                             streamSamplesFromFile(file)))
                     .forEach(samples ->
                             format.writeSamples(samples, fullTargetDir));
         }
 
         log.info("Generation of training data: done");
+    }
+
+    private Path stripCommonSourceDir(Path sourceFile, Path commonSourceDir) {
+        if (commonSourceDir.equals(sourceFile)) {
+            return sourceFile;
+        }
+        return commonSourceDir.relativize(sourceFile);
     }
 
     /**
