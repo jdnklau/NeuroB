@@ -5,6 +5,7 @@ import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.testharness.TestMachines;
+import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import org.junit.jupiter.api.BeforeEach;
@@ -123,10 +124,10 @@ class PredicateTrainingGeneratorIT {
                 new ArrayList<>();
 
         doAnswer(invocation -> {
-            Stream<TrainingSample<PredicateFeatures, PredicateLabelling>> in =
+            TrainingData<PredicateFeatures, PredicateLabelling> in =
                     invocation.getArgument(0);
-            return samples.addAll(in.collect(Collectors.toList()));
-        }).when(formatMock).writeSamples(any(Stream.class), any());
+            return samples.addAll(in.getSamples().collect(Collectors.toList()));
+        }).when(formatMock).writeSamples(any(TrainingData.class), any());
 
         generator.generateTrainingData(srcDirectory, targetDir, false);
 

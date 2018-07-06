@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.core.features.FeatureGenerating;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.LabelGenerating;
 import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import org.slf4j.Logger;
@@ -85,7 +86,8 @@ public abstract class TrainingDataGenerator<F extends Features, L extends Labell
                     // Only create if non-lazy or non-existent
                     .filter(file -> !lazy && !dataAlreadyExists(file,
                             format.getTargetLocation(file, fullTargetDir)))
-                    .map(this::streamSamplesFromFile)
+                    .map(file -> new TrainingData<>(file,
+                            streamSamplesFromFile(file)))
                     .forEach(samples ->
                             format.writeSamples(samples, fullTargetDir));
         }
