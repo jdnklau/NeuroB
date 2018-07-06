@@ -36,9 +36,9 @@ public class TrainingSample<F extends Features, L extends Labelling> {
 
     @Override
     public String toString() {
-        return "(<" + features.toString()
+        return "(<" + features.getFeatureString()
                + ">, <"
-               + labelling.toString() + ">)";
+               + labelling.getLabellingString() + ">)";
     }
 
     @Override

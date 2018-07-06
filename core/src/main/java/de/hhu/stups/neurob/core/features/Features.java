@@ -13,7 +13,7 @@ public interface Features {
     Double[] getFeatureArray();
 
     /**
-     * @return String representation of the feature.
+     * @return Comma separated String of the feature values.
      */
     default String getFeatureString() {
         return String.join(",",
