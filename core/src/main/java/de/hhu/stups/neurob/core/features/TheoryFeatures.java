@@ -86,7 +86,7 @@ public class TheoryFeatures implements PredicateFeatures {
      * any of their constructors.
      * <p>
      * An instance of this can be used in a
-     * {@link de.hhu.stups.neurob.training.generation.TrainingDataGenerator}.
+     * {@link de.hhu.stups.neurob.training.generation.TrainingSetGenerator}
      */
     public static class Generator
             implements PredicateFeatureGenerating<TheoryFeatures> {

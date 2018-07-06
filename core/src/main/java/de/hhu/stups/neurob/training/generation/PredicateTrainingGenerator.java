@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 
 public class PredicateTrainingGenerator
         <F extends PredicateFeatures, L extends PredicateLabelling>
-        extends TrainingDataGenerator<F, L> {
+        extends TrainingSetGenerator<F, L> {
 
     private Api api;
 

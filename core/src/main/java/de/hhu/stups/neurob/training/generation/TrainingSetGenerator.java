@@ -14,20 +14,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class TrainingDataGenerator<F extends Features, L extends Labelling> {
+public abstract class TrainingSetGenerator<F extends Features, L extends Labelling> {
 
     protected final TrainingDataFormat format;
     protected final FeatureGenerating<F, ?> featureGenerator;
     protected final LabelGenerating<L, ?> labelGenerator;
 
     protected static final Logger log =
-            LoggerFactory.getLogger(TrainingDataGenerator.class);
+            LoggerFactory.getLogger(TrainingSetGenerator.class);
 
-    public TrainingDataGenerator(
+    public TrainingSetGenerator(
             FeatureGenerating<F, ?> featureGenerator,
             LabelGenerating<L, ?> labelGenerator,
             TrainingDataFormat<F> format) {
