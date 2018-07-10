@@ -1,7 +1,6 @@
 package de.hhu.stups.neurob.training.generation;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
@@ -44,18 +43,22 @@ class PredicateTrainingGeneratorIT {
     private
     PredicateTrainingGenerator<PredicateFeatures, PredicateLabelling> generator;
 
-    private TrainingDataFormat formatMock;
+    private TrainingDataFormat<PredicateFeatures> formatMock;
+    private PredicateFeatureGenerating<PredicateFeatures> featureGen;
+    private PredicateLabelGenerating<PredicateLabelling> labelGen;
 
     @BeforeEach
-    public void setUpGenerator() {
-        PredicateFeatureGenerating<PredicateFeatures> featureGen =
-                (pred, ss) -> generateMockedFeatures(pred);
-        PredicateLabelGenerating<PredicateLabelling> labelGen =
-                (pred, ss) -> generateMockedLabels(pred);
+    public void setUpMocks() {
+        featureGen = (pred, ss) -> generateMockedFeatures(pred);
+        labelGen = (pred, ss) -> generateMockedLabels(pred);
         formatMock = mock(TrainingDataFormat.class);
 
-        generator = new PredicateTrainingGenerator<>(
-                featureGen, labelGen, formatMock);
+        // NOTE: Generator should be set to null before each test to ensure no
+        // test might accidentally run on one initialised by another test.
+        // Actually, the generator might better be declared in the tests
+        // themselves, but due to generics the signature is waaay to long
+        // and would only hurt readability.
+        generator = null;
     }
 
     private PredicateFeatures generateMockedFeatures(String pred) {
@@ -75,6 +78,9 @@ class PredicateTrainingGeneratorIT {
     @Test
     public void shouldStreamSamplesWithSourcePredicateWhenStreamingFromFile()
             throws IOException {
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock);
+
         List<String> expected = TestMachines.loadExpectedPredicates(
                 TestMachines.FORMULAE_GEN_MCH_PREDICATE_FILE);
 
@@ -92,6 +98,9 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     public void shouldStreamSamplesWithSourceFileWhenStreamingFromFile() {
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock);
+
         Path srcPath = Paths.get(TestMachines.FORMULAE_GEN_MCH);
 
 
@@ -107,6 +116,8 @@ class PredicateTrainingGeneratorIT {
     @Test
     public void shouldWriteSamplesToSourceMatchingFileWhenFromRecursiveDirectory()
             throws IOException {
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock);
 
         // Set up source directory and target directory
         Path srcDirectory = Files.createTempDirectory("tmpSource");
@@ -178,6 +189,9 @@ class PredicateTrainingGeneratorIT {
         Path sourceDir = Paths.get(TestMachines.TEST_MACHINE_DIR);
         Path targetDir = Paths.get("non/existent");
 
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock);
+
         List<Path> files = new ArrayList<>();
         doAnswer(invocation -> {
             TrainingData data = invocation.getArgument(0);
@@ -197,6 +211,9 @@ class PredicateTrainingGeneratorIT {
     public void shouldReturnOnlyFileNameWhenSourceIsButOneFile() throws IOException {
         Path sourceDir = Paths.get(TestMachines.FORMULAE_GEN_MCH);
         Path targetDir = Paths.get("non/existent");
+
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock);
 
         List<Path> files = new ArrayList<>();
         doAnswer(invocation -> {
