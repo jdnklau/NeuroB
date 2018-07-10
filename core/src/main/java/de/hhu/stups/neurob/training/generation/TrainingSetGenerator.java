@@ -83,7 +83,7 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
                     .parallel()
                     .filter(Files::isRegularFile)
                     // Only create if non-lazy or non-existent
-                    .filter(file -> !lazy && !dataAlreadyExists(file,
+                    .filter(file -> !lazy || !dataAlreadyExists(file,
                             format.getTargetLocation(file, fullTargetDir)))
                     .map(file -> new TrainingData<>(file,
                             streamSamplesFromFile(file)))
