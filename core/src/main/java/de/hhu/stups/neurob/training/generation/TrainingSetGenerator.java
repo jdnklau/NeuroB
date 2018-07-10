@@ -89,7 +89,14 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
                             stripCommonSourceDir(file, source),
                             streamSamplesFromFile(file)))
                     .forEach(samples ->
-                            format.writeSamples(samples, fullTargetDir));
+                    {
+                        try {
+                            format.writeSamples(samples, fullTargetDir);
+                        } catch (IOException e) {
+                            log.warn("Could not write all samples for {}",
+                                    samples.getSourceFile());
+                        }
+                    });
         }
 
         log.info("Generation of training data: done");
