@@ -183,6 +183,24 @@ class PredicateTrainingGeneratorIT {
                 files.stream().map(file -> () ->
                         assertFalse(file.startsWith(sourceDir),
                                 file.toString() + " starts with " + sourceDir)));
+    }
+
+    @Test
+    public void shouldReturnOnlyFileNameWhenSourceIsButOneFile() throws IOException {
+        Path sourceDir = Paths.get(TestMachines.FORMULAE_GEN_MCH);
+        Path targetDir = Paths.get("non/existent");
+
+        List<Path> files = new ArrayList<>();
+        doAnswer(invocation -> {
+            TrainingData data = invocation.getArgument(0);
+            files.add(data.getSourceFile());
+            return null;
+        }).when(formatMock).writeSamples(any(TrainingData.class), any());
+
+        generator.generateTrainingData(sourceDir, targetDir, false);
+
+        Path expected = sourceDir.getFileName();
+        assertEquals(expected, files.get(0));
 
     }
 

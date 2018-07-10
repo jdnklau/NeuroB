@@ -97,7 +97,7 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
 
     private Path stripCommonSourceDir(Path sourceFile, Path commonSourceDir) {
         if (commonSourceDir.equals(sourceFile)) {
-            return sourceFile;
+            return sourceFile.getFileName();
         }
         return commonSourceDir.relativize(sourceFile);
     }
