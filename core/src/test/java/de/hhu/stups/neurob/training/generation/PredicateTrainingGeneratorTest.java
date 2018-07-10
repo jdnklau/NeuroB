@@ -2,11 +2,14 @@ package de.hhu.stups.neurob.training.generation;
 
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
+import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.util.PredicateCollection;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,9 +38,36 @@ class PredicateTrainingGeneratorTest {
     private
     PredicateTrainingGenerator<PredicateFeatures, PredicateLabelling> generator;
 
+    private TrainingDataFormat<PredicateFeatures> formatMock;
+    private PredicateFeatureGenerating<PredicateFeatures> featureGen;
+    private PredicateLabelGenerating<PredicateLabelling> labelGen;
+
     @BeforeEach
-    public void mockPredicateTrainingGenerator() {
-        generator = mock(PredicateTrainingGenerator.class);
+    public void setUpMocks() {
+        featureGen = (pred, ss) -> generateMockedFeatures(pred);
+        labelGen = (pred, ss) -> generateMockedLabels(pred);
+        formatMock = mock(TrainingDataFormat.class);
+
+        // NOTE: Generator should be set to null before each test to ensure no
+        // test might accidentally run on one initialised by another test.
+        // Actually, the generator might better be declared in the tests
+        // themselves, but due to generics the signature is waaay to long
+        // and would only hurt readability.
+        generator = null;
+    }
+
+    private PredicateFeatures generateMockedFeatures(String pred) {
+        PredicateFeatures f = mock(PredicateFeatures.class);
+        when(f.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
+        when(f.getPredicate()).thenReturn(pred);
+        return f;
+    }
+
+    private PredicateLabelling generateMockedLabels(String pred) {
+        PredicateLabelling f = mock(PredicateLabelling.class);
+        when(f.getLabellingArray()).thenReturn(new Double[]{1., 2., 3.});
+        when(f.getPredicate()).thenReturn(pred);
+        return f;
     }
 
     @Test
@@ -77,8 +107,8 @@ class PredicateTrainingGeneratorTest {
         expected.add("(invariant)");
         // ... no additional ones as no preconditions exist
 
-        // Stub generator
-        when(generator.streamPredicatesFromCollection(pc)).thenCallRealMethod();
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock);
 
         Stream<String> stream = generator.streamPredicatesFromCollection(pc);
         List<String> predicates = stream.collect(Collectors.toList());
@@ -99,22 +129,21 @@ class PredicateTrainingGeneratorTest {
         PredicateLabelling labelling = mock(PredicateLabelling.class);
         when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
 
-        generator = spy(
-                new PredicateTrainingGenerator<>(
-                        (predicate, ss) -> features,
-                        (predicate, ss) -> labelling,
-                        null)
-        );
-
-        // Stream 5 "generated" predicates
+        // Prepare 5 predicates to stream
         List<String> predicates = new ArrayList<>();
         predicates.add("predicate1");
         predicates.add("predicate2");
         predicates.add("predicate3");
         predicates.add("predicate4");
         predicates.add("predicate5");
-        doReturn(predicates.stream()).when(generator).streamPredicatesFromFile(any());
-        doReturn(predicates.stream()).when(generator).streamPredicatesFromFile(any(), any());
+
+        // Set up spy
+        generator = spy(new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock));
+        doReturn(predicates.stream())
+                .when(generator).streamPredicatesFromFile(any());
+        doReturn(predicates.stream())
+                .when(generator).streamPredicatesFromFile(any(), any());
         doReturn(mock(StateSpace.class)).when(generator).loadStateSpace(any());
 
         // Expecting 5 training samples (all the same)
@@ -145,29 +174,29 @@ class PredicateTrainingGeneratorTest {
         PredicateLabelling labelling = mock(PredicateLabelling.class);
         when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
 
-        // Partial Mock of generator
         // Generating functions throw exceptions for certain predicates
-        generator = spy(
-                new PredicateTrainingGenerator<>(
-                        (predicate, ss) -> {
-                            if (predicate.equals("featureException"))
-                                throw new FeatureCreationException();
-                            return features;
-                        },
-                        (predicate, ss) -> {
-                            if (predicate.equals("labelException"))
-                                throw new LabelCreationException();
-                            return labelling;
-                        },
-                        null)
+        generator = spy(new PredicateTrainingGenerator<>(
+                (predicate, ss) -> {
+                    if (predicate.equals("featureException"))
+                        throw new FeatureCreationException();
+                    return features;
+                },
+                (predicate, ss) -> {
+                    if (predicate.equals("labelException"))
+                        throw new LabelCreationException();
+                    return labelling;
+                },
+                null)
         );
         List<String> predicates = new ArrayList<>();
         predicates.add("predicate");
         predicates.add("featureException");
         predicates.add("labelException");
         predicates.add("predicate");
-        doReturn(predicates.stream()).when(generator).streamPredicatesFromFile(any());
-        doReturn(predicates.stream()).when(generator).streamPredicatesFromFile(any(), any());
+        doReturn(predicates.stream())
+                .when(generator).streamPredicatesFromFile(any());
+        doReturn(predicates.stream())
+                .when(generator).streamPredicatesFromFile(any(), any());
         StateSpace ss = mock(StateSpace.class);
         doReturn(ss).when(generator).loadStateSpace(any());
 
@@ -190,20 +219,17 @@ class PredicateTrainingGeneratorTest {
     @Test
     public void shouldUseGeneratorsToGenerateTrainingSample() throws Exception {
         // Mock features
-        PredicateFeatures features = mock(PredicateFeatures.class);
-        when(features.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
+        PredicateFeatures features = generateMockedFeatures("");
         // Mock labelling
-        PredicateLabelling labelling = mock(PredicateLabelling.class);
-        when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
+        PredicateLabelling labelling = generateMockedLabels("");
 
         TrainingSample<PredicateFeatures, Labelling> expected =
                 new TrainingSample<>(features, labelling);
 
-        TrainingSample actual =
-                new PredicateTrainingGenerator<>(
-                        (predicate, ss) -> features,
-                        (predicate, ss) -> labelling,
-                        null).generateSample("predicate");
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock);
+
+        TrainingSample actual = generator.generateSample("predicate");
 
         assertEquals(expected, actual,
                 "Training Sample does not match");
@@ -212,23 +238,17 @@ class PredicateTrainingGeneratorTest {
     @Test
     public void shouldUseGeneratorsToGenerateTrainingSampleWhenStateSpaceSupplied()
             throws Exception {
-        // Mock features
-        PredicateFeatures features = mock(PredicateFeatures.class);
-        when(features.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
-        // Mock labelling
-        PredicateLabelling labelling = mock(PredicateLabelling.class);
-        when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
         // Mock StateSpace
         StateSpace stateSpace = mock(StateSpace.class);
 
-        TrainingSample<PredicateFeatures, Labelling> expected =
-                new TrainingSample<>(features, labelling);
+        TrainingSample<PredicateFeatures, PredicateLabelling> expected =
+                new TrainingSample<>(
+                        generateMockedFeatures(""),
+                        generateMockedLabels(""));
 
-        TrainingSample actual =
-                new PredicateTrainingGenerator<>(
-                        (predicate, ss) -> features,
-                        (predicate, ss) -> labelling,
-                        null).generateSample("predicate", stateSpace);
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, null);
+        TrainingSample actual = generator.generateSample("pred", stateSpace);
 
         assertEquals(expected, actual,
                 "Training Sample does not match");
@@ -238,20 +258,17 @@ class PredicateTrainingGeneratorTest {
     public void shouldUseGeneratorsForTrainingSampleWhenStateSpaceIsNull()
             throws Exception {
         // Mock features
-        PredicateFeatures features = mock(PredicateFeatures.class);
-        when(features.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
+        PredicateFeatures features = generateMockedFeatures("");
         // Mock labelling
-        PredicateLabelling labelling = mock(PredicateLabelling.class);
-        when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
+        PredicateLabelling labelling = generateMockedLabels("");
 
         TrainingSample<PredicateFeatures, Labelling> expected =
                 new TrainingSample<>(features, labelling);
 
-        TrainingSample actual =
-                new PredicateTrainingGenerator<>(
-                        (predicate, ss) -> features,
-                        (predicate, ss) -> labelling,
-                        null).generateSample("predicate", null);
+        generator = new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock);
+
+        TrainingSample actual = generator.generateSample("predicate", null);
 
         assertEquals(expected, actual,
                 "Training Sample does not match");
@@ -268,17 +285,14 @@ class PredicateTrainingGeneratorTest {
         PredicateLabelling labelling = mock(PredicateLabelling.class);
         when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
 
-        // Partial Mock of generator
-        // Generating functions throw exceptions for certain predicates
-        generator = spy(
-                new PredicateTrainingGenerator<>(
-                        (predicate, ss) -> features,
-                        (predicate, ss) -> labelling,
-                        null)
-        );
+        generator = spy(new PredicateTrainingGenerator<>(
+                featureGen, labelGen, formatMock));
+
         List<String> predicates = predList("predicate");
-        doReturn(predicates.stream()).when(generator).streamPredicatesFromFile(any());
-        doReturn(predicates.stream()).when(generator).streamPredicatesFromFile(any(), any());
+        doReturn(predicates.stream())
+                .when(generator).streamPredicatesFromFile(any());
+        doReturn(predicates.stream())
+                .when(generator).streamPredicatesFromFile(any(), any());
         StateSpace ss = mock(StateSpace.class);
         doReturn(ss).when(generator).loadStateSpace(any());
 
