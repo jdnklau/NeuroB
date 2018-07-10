@@ -3,6 +3,7 @@ package de.hhu.stups.neurob.training.generation;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
+import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
@@ -37,7 +38,7 @@ public class PredicateTrainingGenerator
     public PredicateTrainingGenerator(
             PredicateFeatureGenerating<F> featureGenerator,
             PredicateLabelGenerating<L> labelGenerator,
-            TrainingDataFormat<F> format) {
+            TrainingDataFormat<? extends Features> format) {
         super(featureGenerator, labelGenerator, format);
 
         api = Main.getInjector().getInstance(Api.class);

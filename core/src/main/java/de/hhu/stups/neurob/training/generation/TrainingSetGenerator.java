@@ -29,7 +29,7 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
     public TrainingSetGenerator(
             FeatureGenerating<F, ?> featureGenerator,
             LabelGenerating<L, ?> labelGenerator,
-            TrainingDataFormat<F> format) {
+            TrainingDataFormat<? extends Features> format) {
         this.format = format;
         this.featureGenerator = featureGenerator;
         this.labelGenerator = labelGenerator;
