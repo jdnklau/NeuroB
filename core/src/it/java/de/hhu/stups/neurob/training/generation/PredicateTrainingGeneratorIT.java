@@ -1,13 +1,20 @@
 package de.hhu.stups.neurob.training.generation;
 
+import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.features.TheoryFeatures;
+import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.testharness.TestMachines;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
+import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -201,6 +209,32 @@ class PredicateTrainingGeneratorIT {
 
         Path expected = sourceDir.getFileName();
         assertEquals(expected, files.get(0));
+    }
+
+    @Test
+    void shouldCreateCsvFileWhenGeneratingTheoryFeaturesAndDecisionTimings()
+            throws FormulaException, IOException {
+        Backend backend = mock(Backend.class);
+        when(backend.measureEvalTime(anyString(), any(StateSpace.class)))
+                .thenReturn(1L);
+
+        CsvFormat format = new CsvFormat();
+        TrainingSetGenerator<TheoryFeatures, DecisionTimings> generator =
+                new PredicateTrainingGenerator<>(
+                        new TheoryFeatures.Generator(),
+                        new DecisionTimings.Generator(1, backend),
+                        format
+                );
+
+        Path source = Paths.get(TestMachines.FORMULAE_GEN_MCH);
+        Path targetDir = Files.createTempDirectory("neurob-it");
+        Path targetFile = format.getTargetLocation(source.getFileName(), targetDir);
+
+        generator.generateTrainingData(source, targetDir);
+
+        assertAll("File created and contents match",
+                () -> assertTrue(Files.exists(targetFile),
+                        "CSV not created: " + targetFile));
 
     }
 
