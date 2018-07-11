@@ -2,7 +2,7 @@ package de.hhu.stups.neurob.testharness;
 
 import de.hhu.stups.neurob.core.features.Features;
 
-public class TestFeatures implements Features {
+public class TestFeatures extends Features {
     private final Double[] features;
 
     public TestFeatures(Double... features) {

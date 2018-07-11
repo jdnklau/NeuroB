@@ -29,15 +29,12 @@ import de.prob.statespace.StateSpace;
  * </ul>
  * </p>
  */
-public class TheoryFeatures implements PredicateFeatures {
+public class TheoryFeatures extends PredicateFeatures {
 
     public static final int featureDimension = 17;
 
     /** The StateSpaces serving as context for the predicate and may be null */
     private final StateSpace ss;
-    private final String predicate;
-    private final Double[] featureArray;
-
 
     public TheoryFeatures(String predicate) throws FeatureCreationException {
         this(predicate, null);
@@ -52,33 +49,9 @@ public class TheoryFeatures implements PredicateFeatures {
      * @param stateSpace
      */
     public TheoryFeatures(String predicate, StateSpace stateSpace) throws FeatureCreationException {
-        this.predicate = predicate;
+        super(predicate,
+                TheoryFeatureCollector.collect(predicate, stateSpace).toArray());
         this.ss = stateSpace;
-
-        // Create features
-        featureArray =
-                TheoryFeatureCollector.collect(predicate, stateSpace).toArray();
-
-    }
-
-    @Override
-    public int getFeatureDimension() {
-        return featureDimension;
-    }
-
-    @Override
-    public Double[] getFeatureArray() {
-        return featureArray;
-    }
-
-    @Override
-    public String toString() {
-        return getFeatureString();
-    }
-
-    @Override
-    public String getPredicate() {
-        return predicate;
     }
 
     /**

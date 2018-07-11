@@ -2,10 +2,10 @@ package de.hhu.stups.neurob.core.features;
 
 import java.awt.image.BufferedImage;
 
-public interface CnnFeatures extends Features {
+public abstract class CnnFeatures extends Features {
 
 
-    BufferedImage getFeatureImage();
+    abstract BufferedImage getFeatureImage();
 
     /**
      * Returns the total count of data points/features.
@@ -17,5 +17,5 @@ public interface CnnFeatures extends Features {
      *
      * @return Total count of data points.
      */
-    int getPixelCount();
+    abstract int getPixelCount();
 }
