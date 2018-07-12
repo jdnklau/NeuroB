@@ -3,23 +3,35 @@ package de.hhu.stups.neurob.core.labelling;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public interface Labelling {
+public class Labelling {
+
+    private final Double[] labellingArray;
+    private final int labellingDimension;
+
+    public Labelling(Double... labellingArray) {
+        this.labellingArray = labellingArray;
+        this.labellingDimension = labellingArray.length;
+    }
 
     /**
      * @return the Labelling in array form.
      */
-    Double[] getLabellingArray();
+    public Double[] getLabellingArray() {
+        return labellingArray;
+    }
 
     /**
      * @return Number of entries in the labelling array form.
      */
-    int getLabellingDimension();
+    public int getLabellingDimension() {
+        return labellingDimension;
+    }
 
     /**
      * Returns a comma separated String of the labelling array.
      * @return
      */
-    default String getLabellingString() {
+    public String getLabellingString() {
         return String.join(",",
                 Arrays.stream(getLabellingArray())
                         .map(d -> Double.toString(d))

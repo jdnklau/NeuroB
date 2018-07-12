@@ -2,7 +2,7 @@ package de.hhu.stups.neurob.testharness;
 
 import de.hhu.stups.neurob.core.labelling.Labelling;
 
-public class TestLabelling implements Labelling {
+public class TestLabelling extends Labelling {
     private final Double[] labels;
 
     public TestLabelling(Double... labels) {

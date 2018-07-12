@@ -21,9 +21,8 @@ import java.util.concurrent.TimeUnit;
  * dictated by {@link DecisionTimings#defaultTimeout}
  * and {@link DecisionTimings#defaultTimeoutUnit}.
  */
-public class DecisionTimings implements PredicateLabelling {
+public class DecisionTimings extends PredicateLabelling {
 
-    private final String predicate;
     private final Double[] timingArray;
     /** Number of times each timing is run; final timing is average of all calls */
     private final int sampleSize;
@@ -77,7 +76,8 @@ public class DecisionTimings implements PredicateLabelling {
             Long timeOut, TimeUnit timeOutUnit,
             StateSpace stateSpace, Backend... backends)
             throws LabelCreationException {
-        this.predicate = predicate;
+        super(predicate);
+
         this.sampleSize = sampleSize;
         this.usedBackends = backends;
 
@@ -130,11 +130,6 @@ public class DecisionTimings implements PredicateLabelling {
         }
 
         return sampled / sampleSize;
-    }
-
-    @Override
-    public String getPredicate() {
-        return predicate;
     }
 
     /**
