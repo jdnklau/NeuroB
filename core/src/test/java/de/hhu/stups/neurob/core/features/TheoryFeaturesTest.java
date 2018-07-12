@@ -13,14 +13,14 @@ class TheoryFeaturesTest {
 
     @Test
     public void shouldReturnPredicateFromInstantiation() throws Exception {
-        TheoryFeatures features = new TheoryFeatures(predicate);
+        PredicateFeatures features = new TheoryFeatures().generate(predicate);
 
         assertEquals(predicate, features.getPredicate());
     }
 
     @Test
     public void shouldHave17Features() throws Exception {
-        TheoryFeatures features = new TheoryFeatures(predicate);
+        PredicateFeatures features = new TheoryFeatures().generate(predicate);
 
         int expected = 17;
         int actual = features.getFeatureDimension();
@@ -30,7 +30,7 @@ class TheoryFeaturesTest {
 
     @Test
     public void shouldReturnArrayWith17Entries() throws Exception {
-        TheoryFeatures features = new TheoryFeatures(predicate);
+        PredicateFeatures features = new TheoryFeatures().generate(predicate);
 
         int expected = 17;
         int actual = features.getFeatureArray().length;
@@ -40,7 +40,7 @@ class TheoryFeaturesTest {
 
     @Test
     public void shouldMatchExpectedFeatureArray() throws Exception {
-        TheoryFeatures features = new TheoryFeatures(predicate);
+        PredicateFeatures features = new TheoryFeatures().generate(predicate);
 
         Double[] expected = new Double[]{0., 5., 1., 1., 9., 0., 0., 0., 6.,
                 0., 0., 6., 4., 2., 0., 1., 0.};
@@ -52,7 +52,7 @@ class TheoryFeaturesTest {
 
     @Test
     public void shouldHaveMatchingDimensions() throws Exception {
-        TheoryFeatures features = new TheoryFeatures(predicate);
+        PredicateFeatures features = new TheoryFeatures().generate(predicate);
 
         int expected = TheoryFeatures.featureDimension;
         int actual = features.getFeatureArray().length;
@@ -64,7 +64,7 @@ class TheoryFeaturesTest {
     @Test
     public void shouldConcatFeaturesWithCommaForStringRepresentation()
             throws Exception{
-        TheoryFeatures features = new TheoryFeatures(predicate);
+        PredicateFeatures features = new TheoryFeatures().generate(predicate);
 
         String expected =
                 "0.0,5.0,1.0,1.0,9.0,0.0,0.0,0.0,"
@@ -77,7 +77,7 @@ class TheoryFeaturesTest {
 
     @Test
     public void shouldCreateNewFeaturesWithGenerator() throws Exception {
-        TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
+        PredicateFeatures features = new TheoryFeatures.Generator().generate(predicate);
 
         Double[] expected = new Double[]{0., 5., 1., 1., 9., 0., 0., 0., 6.,
                 0., 0., 6., 4., 2., 0., 1., 0.};

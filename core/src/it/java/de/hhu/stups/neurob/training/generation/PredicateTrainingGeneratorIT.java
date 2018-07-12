@@ -236,7 +236,7 @@ class PredicateTrainingGeneratorIT {
                 .thenReturn(1L);
 
         CsvFormat format = new CsvFormat();
-        TrainingSetGenerator<TheoryFeatures, DecisionTimings> generator =
+        TrainingSetGenerator<PredicateFeatures, DecisionTimings> generator =
                 new PredicateTrainingGenerator<>(
                         new TheoryFeatures.Generator(),
                         new DecisionTimings.Generator(1, backend),

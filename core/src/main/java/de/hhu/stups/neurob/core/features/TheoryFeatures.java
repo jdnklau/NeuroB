@@ -29,29 +29,14 @@ import de.prob.statespace.StateSpace;
  * </ul>
  * </p>
  */
-public class TheoryFeatures extends PredicateFeatures {
+public class TheoryFeatures implements PredicateFeatureGenerating<PredicateFeatures> {
 
     public static final int featureDimension = 17;
 
-    /** The StateSpaces serving as context for the predicate and may be null */
-    private final StateSpace ss;
-
-    public TheoryFeatures(String predicate) throws FeatureCreationException {
-        this(predicate, null);
-    }
-
-    /**
-     * Create new TheoryFeatures from the given predicate.
-     * The state space <code>stateSpace</code> hereby serves as a context
-     * for the predicate, as it needs to be parsed for feature extraction.
-     *
-     * @param predicate
-     * @param stateSpace
-     */
-    public TheoryFeatures(String predicate, StateSpace stateSpace) throws FeatureCreationException {
-        super(predicate,
-                TheoryFeatureCollector.collect(predicate, stateSpace).toArray());
-        this.ss = stateSpace;
+    @Override
+    public PredicateFeatures generate(String predicate, StateSpace ss) throws FeatureCreationException {
+        Double[] features = TheoryFeatureCollector.collect(predicate, ss).toArray();
+        return new PredicateFeatures(predicate, features);
     }
 
     /**
@@ -62,11 +47,11 @@ public class TheoryFeatures extends PredicateFeatures {
      * {@link de.hhu.stups.neurob.training.generation.TrainingSetGenerator}
      */
     public static class Generator
-            implements PredicateFeatureGenerating<TheoryFeatures> {
+            implements PredicateFeatureGenerating<PredicateFeatures> {
         @Override
-        public TheoryFeatures generate(String predicate, StateSpace ss)
+        public PredicateFeatures generate(String predicate, StateSpace ss)
                 throws FeatureCreationException {
-            return new TheoryFeatures(predicate, ss);
+            return new TheoryFeatures().generate(predicate, ss);
         }
     }
 }
