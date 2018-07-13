@@ -16,9 +16,12 @@ class PredicateLabellingTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenNoPredicateIsGiven() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new PredicateLabelling(null, 1.));
+    public void shouldReturnEmptyPredicateWhenInstantiatedWithNull() {
+        PredicateLabelling l = new PredicateLabelling(null, 1.);
+
+        String expected = "";
+
+        assertEquals(expected, l.getPredicate());
     }
 
 }

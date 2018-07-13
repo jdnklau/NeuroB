@@ -1,7 +1,5 @@
 package de.hhu.stups.neurob.core.labelling;
 
-import javax.annotation.Nonnull;
-
 /**
  * Labelling of B-Predicates.
  */
@@ -9,9 +7,9 @@ public class PredicateLabelling extends Labelling {
 
     protected final String predicate;
 
-    public PredicateLabelling(@Nonnull String predicate, Double... labellingArray) {
+    public PredicateLabelling(String predicate, Double... labellingArray) {
         super(labellingArray);
-        this.predicate = predicate;
+        this.predicate = (predicate != null) ? predicate : "";
     }
 
     /**
