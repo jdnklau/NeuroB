@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 class PredicateTrainingGeneratorTest {
     private
-    PredicateTrainingGenerator<PredicateFeatures, PredicateLabelling> generator;
+    PredicateTrainingGenerator generator;
 
     private TrainingDataFormat<PredicateFeatures> formatMock;
     private PredicateFeatureGenerating<PredicateFeatures> featureGen;
@@ -107,7 +107,7 @@ class PredicateTrainingGeneratorTest {
         expected.add("(invariant)");
         // ... no additional ones as no preconditions exist
 
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
         Stream<String> stream = generator.streamPredicatesFromCollection(pc);
@@ -138,7 +138,7 @@ class PredicateTrainingGeneratorTest {
         predicates.add("predicate5");
 
         // Set up spy
-        generator = spy(new PredicateTrainingGenerator<>(
+        generator = spy(new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock));
         doReturn(predicates.stream())
                 .when(generator).streamPredicatesFromFile(any());
@@ -157,7 +157,7 @@ class PredicateTrainingGeneratorTest {
         expected.add(singleSample);
         expected.add(singleSample);
 
-        Stream<TrainingSample<PredicateFeatures, PredicateLabelling>> actualStream =
+        Stream<TrainingSample> actualStream =
                 generator.streamSamplesFromFile(null);
         List<TrainingSample> actual = actualStream.collect(Collectors.toList());
 
@@ -175,7 +175,7 @@ class PredicateTrainingGeneratorTest {
         when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
 
         // Generating functions throw exceptions for certain predicates
-        generator = spy(new PredicateTrainingGenerator<>(
+        generator = spy(new PredicateTrainingGenerator(
                 (predicate, ss) -> {
                     if (predicate.equals("featureException"))
                         throw new FeatureCreationException();
@@ -206,6 +206,7 @@ class PredicateTrainingGeneratorTest {
 
         List<String> actual = generator.streamSamplesFromFile(null)
                 .map(TrainingSample::getFeatures)
+                .map(f -> (PredicateFeatures) f)
                 .map(PredicateFeatures::getPredicate)
                 .collect(Collectors.toList());
 
@@ -226,7 +227,7 @@ class PredicateTrainingGeneratorTest {
         TrainingSample<PredicateFeatures, Labelling> expected =
                 new TrainingSample<>(features, labelling);
 
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
         TrainingSample actual = generator.generateSample("predicate");
@@ -246,7 +247,7 @@ class PredicateTrainingGeneratorTest {
                         generateMockedFeatures(""),
                         generateMockedLabels(""));
 
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, null);
         TrainingSample actual = generator.generateSample("pred", stateSpace);
 
@@ -265,7 +266,7 @@ class PredicateTrainingGeneratorTest {
         TrainingSample<PredicateFeatures, Labelling> expected =
                 new TrainingSample<>(features, labelling);
 
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
         TrainingSample actual = generator.generateSample("predicate", null);
@@ -285,7 +286,7 @@ class PredicateTrainingGeneratorTest {
         PredicateLabelling labelling = mock(PredicateLabelling.class);
         when(labelling.getLabellingArray()).thenReturn(new Double[]{1., 0.});
 
-        generator = spy(new PredicateTrainingGenerator<>(
+        generator = spy(new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock));
 
         List<String> predicates = predList("predicate");

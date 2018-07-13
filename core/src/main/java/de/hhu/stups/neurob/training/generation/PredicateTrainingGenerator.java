@@ -6,6 +6,7 @@ import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
@@ -27,25 +28,25 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class PredicateTrainingGenerator
-        <F extends PredicateFeatures, L extends PredicateLabelling>
-        extends TrainingSetGenerator<F, L> {
+        extends TrainingSetGenerator {
 
     private Api api;
 
     private static Logger log =
             LoggerFactory.getLogger(PredicateFeatureGenerating.class);
 
-    public PredicateTrainingGenerator(
+    public <F extends PredicateFeatures, L extends PredicateLabelling>
+    PredicateTrainingGenerator(
             PredicateFeatureGenerating<F> featureGenerator,
             PredicateLabelGenerating<L> labelGenerator,
-            TrainingDataFormat<? extends Features> format) {
+            TrainingDataFormat<? super F> format) {
         super(featureGenerator, labelGenerator, format);
 
         api = Main.getInjector().getInstance(Api.class);
     }
 
     @Override
-    public Stream<TrainingSample<F, L>> streamSamplesFromFile(Path file) {
+    public Stream<TrainingSample> streamSamplesFromFile(Path file) {
         log.info("Loading training samples from {}", file);
 
         // Try to access machine or return empty stream
@@ -60,7 +61,7 @@ public class PredicateTrainingGenerator
         }
 
         // Stream training samples
-        Stream<TrainingSample<F, L>> samples = predicates.map(predicate -> {
+        Stream<TrainingSample> samples = predicates.map(predicate -> {
             try {
                 return generateSample(predicate, ss);
             } catch (FeatureCreationException e) {
@@ -96,7 +97,7 @@ public class PredicateTrainingGenerator
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample<F, L> generateSample(String predicate)
+    public TrainingSample generateSample(String predicate)
             throws FeatureCreationException, LabelCreationException {
         return generateSample(predicate, null);
     }
@@ -115,14 +116,14 @@ public class PredicateTrainingGenerator
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample<F, L> generateSample(String predicate, StateSpace ss)
+    public TrainingSample generateSample(String predicate, StateSpace ss)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
-        F features = ((PredicateFeatureGenerating<F>) featureGenerator)
+        Features features = ((PredicateFeatureGenerating) featureGenerator)
                 .generate(predicate, ss);
 
         log.debug("Generating labelling for {}", predicate);
-        L labelling = ((PredicateLabelGenerating<L>) labelGenerator)
+        Labelling labelling = ((PredicateLabelGenerating) labelGenerator)
                 .generate(predicate, ss);
 
         return new TrainingSample<>(features, labelling);

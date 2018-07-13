@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 class PredicateTrainingGeneratorIT {
 
     private
-    PredicateTrainingGenerator<PredicateFeatures, PredicateLabelling> generator;
+    PredicateTrainingGenerator generator;
 
     private TrainingDataFormat<PredicateFeatures> formatMock;
     private PredicateFeatureGenerating<PredicateFeatures> featureGen;
@@ -78,7 +78,7 @@ class PredicateTrainingGeneratorIT {
     @Test
     public void shouldStreamSamplesWithSourcePredicateWhenStreamingFromFile()
             throws IOException {
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
         List<String> expected = TestMachines.loadExpectedPredicates(
@@ -86,7 +86,8 @@ class PredicateTrainingGeneratorIT {
 
         List<String> actual = generator.streamSamplesFromFile(
                 Paths.get(TestMachines.FORMULAE_GEN_MCH))
-                .map(sample -> sample.getFeatures().getPredicate())
+                .map(sample -> ((PredicateFeatures) sample.getFeatures())
+                        .getPredicate())
                 .collect(Collectors.toList());
 
         expected.sort(Comparator.naturalOrder());
@@ -98,7 +99,7 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     public void shouldStreamSamplesWithSourceFileWhenStreamingFromFile() {
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
         Path srcPath = Paths.get(TestMachines.FORMULAE_GEN_MCH);
@@ -116,7 +117,7 @@ class PredicateTrainingGeneratorIT {
     @Test
     public void shouldWriteSamplesToSourceMatchingFileWhenFromRecursiveDirectory()
             throws IOException {
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
         // Set up source directory and target directory
@@ -189,7 +190,7 @@ class PredicateTrainingGeneratorIT {
         Path sourceDir = Paths.get(TestMachines.TEST_MACHINE_DIR);
         Path targetDir = Paths.get("non/existent");
 
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
         List<Path> files = new ArrayList<>();
@@ -212,7 +213,7 @@ class PredicateTrainingGeneratorIT {
         Path sourceDir = Paths.get(TestMachines.FORMULAE_GEN_MCH);
         Path targetDir = Paths.get("non/existent");
 
-        generator = new PredicateTrainingGenerator<>(
+        generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
         List<Path> files = new ArrayList<>();
@@ -236,8 +237,8 @@ class PredicateTrainingGeneratorIT {
                 .thenReturn(1L);
 
         CsvFormat format = new CsvFormat();
-        TrainingSetGenerator<PredicateFeatures, DecisionTimings> generator =
-                new PredicateTrainingGenerator<>(
+        TrainingSetGenerator generator =
+                new PredicateTrainingGenerator(
                         new TheoryFeatures.Generator(),
                         new DecisionTimings.Generator(1, backend),
                         format

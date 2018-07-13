@@ -17,19 +17,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class TrainingSetGenerator<F extends Features, L extends Labelling> {
+public abstract class TrainingSetGenerator {
 
     protected final TrainingDataFormat format;
-    protected final FeatureGenerating<F, ?> featureGenerator;
-    protected final LabelGenerating<L, ?> labelGenerator;
+    protected final FeatureGenerating featureGenerator;
+    protected final LabelGenerating labelGenerator;
 
     protected static final Logger log =
             LoggerFactory.getLogger(TrainingSetGenerator.class);
 
-    public TrainingSetGenerator(
+    public <F extends Features, L extends Labelling>
+    TrainingSetGenerator(
             FeatureGenerating<F, ?> featureGenerator,
             LabelGenerating<L, ?> labelGenerator,
-            TrainingDataFormat<? extends Features> format) {
+            TrainingDataFormat<? super F> format) {
         this.format = format;
         this.featureGenerator = featureGenerator;
         this.labelGenerator = labelGenerator;
@@ -67,7 +68,8 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
      * @param lazy whether existing training data should be kept
      *         (<code>true</code>) or freshly generated.
      */
-    public void generateTrainingData(Path source, Path targetDir,
+    public <F extends Features, L extends Labelling>
+    void generateTrainingData(Path source, Path targetDir,
             boolean lazy) throws IOException {
 
         // TODO: Set target dir to targetDir/labelling/features/
@@ -85,7 +87,7 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
                     // Only create if non-lazy or non-existent
                     .filter(file -> !lazy || !dataAlreadyExists(file,
                             format.getTargetLocation(file, fullTargetDir)))
-                    .map(file -> new TrainingData<>(
+                    .map(file -> new TrainingData(
                             stripCommonSourceDir(file, source),
                             streamSamplesFromFile(file)))
                     .forEach(samples ->
@@ -114,7 +116,7 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
      *
      * @param file
      */
-    public List<TrainingSample<F, L>> generateSamplesFromFile(
+    public List<TrainingSample> generateSamplesFromFile(
             Path file) {
         return streamSamplesFromFile(file).collect(Collectors.toList());
     }
@@ -124,7 +126,7 @@ public abstract class TrainingSetGenerator<F extends Features, L extends Labelli
      *
      * @param file
      */
-    public abstract Stream<TrainingSample<F, L>> streamSamplesFromFile(
+    public abstract Stream<TrainingSample> streamSamplesFromFile(
             Path file);
 
 
