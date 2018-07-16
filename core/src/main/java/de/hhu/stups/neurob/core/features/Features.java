@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 
 public class Features {
 
-    private final Double[] features;
-    private final int featureDimension;
+    protected final Double[] features;
+    protected final int featureDimension;
 
     public Features(Double... features) {
         this.features = features;
@@ -30,8 +30,8 @@ public class Features {
     public String getFeatureString() {
         return String.join(",",
                 Arrays.stream(getFeatureArray())
-                .map(d -> Double.toString(d))
-                .collect(Collectors.toList())
+                        .map(d -> Double.toString(d))
+                        .collect(Collectors.toList())
         );
     }
 
