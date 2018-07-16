@@ -2,6 +2,8 @@ package de.hhu.stups.neurob.training.data;
 
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.testharness.TestFeatures;
+import de.hhu.stups.neurob.testharness.TestLabelling;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
@@ -19,17 +21,7 @@ class TrainingSampleTest {
      * @return
      */
     private Features createFeature(Double... features) {
-        return new Features() {
-            @Override
-            public int getFeatureDimension() {
-                return features.length;
-            }
-
-            @Override
-            public Double[] getFeatureArray() {
-                return features;
-            }
-        };
+        return new TestFeatures(features);
     }
 
     /**
@@ -41,17 +33,7 @@ class TrainingSampleTest {
      * @return
      */
     private Labelling createLabelling(Double... labels) {
-        return new Labelling() {
-            @Override
-            public Double[] getLabellingArray() {
-                return labels;
-            }
-
-            @Override
-            public int getLabellingDimension() {
-                return labels.length;
-            }
-        };
+        return new TestLabelling(labels);
     }
 
     @Test

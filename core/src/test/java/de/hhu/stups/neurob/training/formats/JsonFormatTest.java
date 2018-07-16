@@ -2,6 +2,8 @@ package de.hhu.stups.neurob.training.formats;
 
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.testharness.TestFeatures;
+import de.hhu.stups.neurob.testharness.TestLabelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import org.junit.jupiter.api.Test;
 
@@ -150,32 +152,10 @@ class JsonFormatTest {
     }
 
     private Features createFeatures(Double... features) {
-        return new Features() {
-            private Double[] featureArray = features;
-
-            @Override
-            public int getFeatureDimension() {
-                return features.length;
-            }
-
-            @Override
-            public Double[] getFeatureArray() {
-                return features;
-            }
-        };
+        return new TestFeatures(features);
     }
 
     private Labelling createLabels(Double... labels) {
-        return new Labelling() {
-            @Override
-            public Double[] getLabellingArray() {
-                return labels;
-            }
-
-            @Override
-            public int getLabellingDimension() {
-                return labels.length;
-            }
-        };
+        return new TestLabelling(labels);
     }
 }
