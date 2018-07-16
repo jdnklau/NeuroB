@@ -1,6 +1,5 @@
 package de.hhu.stups.neurob.core.features;
 
-import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.Test;
 
