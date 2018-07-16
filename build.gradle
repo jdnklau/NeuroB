@@ -81,7 +81,7 @@ subprojects {
         useJUnitPlatform()
 
         testLogging {
-            events "skipped", "failed"
+            events "skipped", "failed", "passed"
         }
 
         reports {
@@ -93,7 +93,7 @@ subprojects {
         useJUnitPlatform()
 
         testLogging {
-            events "skipped", "failed"
+            events "skipped", "failed", "passed"
         }
 
         reports {
