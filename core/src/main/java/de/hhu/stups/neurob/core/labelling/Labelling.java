@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 
 public class Labelling {
 
-    private final Double[] labellingArray;
-    private final int labellingDimension;
+    protected final Double[] labellingArray;
+    protected final int labellingDimension;
 
     public Labelling(Double... labellingArray) {
         this.labellingArray = labellingArray;
