@@ -33,19 +33,42 @@ public class TheoryFeatures extends PredicateFeatures {
 
     public static final int featureDimension = 17;
 
+    /**
+     * Generates the TheoryFeatures from the given predicate.
+     *
+     * @param predicate
+     * @throws FeatureCreationException
+     */
     public TheoryFeatures(String predicate) throws FeatureCreationException {
         this(predicate, (StateSpace) null);
     }
 
+    /**
+     * Generates the TheoryFeatures from the given predicate in the
+     * given StateSpace.
+     * @param predicate
+     * @param ss
+     * @throws FeatureCreationException
+     */
     public TheoryFeatures(String predicate, StateSpace ss)
             throws FeatureCreationException {
         super(predicate, new Generator().generateArray(predicate, ss));
     }
 
+    /**
+     * Wraps the given feature array in a TheoryFeature instance.
+     * The features must be exactly {@link #featureDimension} entries long.
+     * @param features
+     */
     public TheoryFeatures(Double... features) {
         this(null, features);
     }
 
+    /**
+     * Wraps the given feature array in a TheoryFeature instance.
+     * The features must be exactly {@link #featureDimension} entries long.
+     * @param features
+     */
     public TheoryFeatures(String predicate, Double... features) {
         super(predicate, features);
         // Check feature length
