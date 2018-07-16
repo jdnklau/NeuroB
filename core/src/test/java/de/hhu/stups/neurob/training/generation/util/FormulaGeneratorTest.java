@@ -11,7 +11,6 @@ import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -43,7 +42,7 @@ public class FormulaGeneratorTest {
     private Map<String, String> primedInvariants;
 
     @BeforeAll
-    public void stubPredicateCollection() throws Exception {
+    public void stubPredicateCollection() {
         pc = mock(PredicateCollection.class);
 
         // Stub predicate collection
@@ -143,9 +142,9 @@ public class FormulaGeneratorTest {
         ISimplifiedROMap bindings = mock(ISimplifiedROMap.class);
         when(bindings.get(any()))
                 .thenReturn(new CompoundPrologTerm("primed-operation"));
-        doAnswer((Answer) invocation -> {
+        doAnswer(invocation -> {
             PrimePredicateCommand ppc =
-                    (PrimePredicateCommand) invocation.getArgument(0);
+                    invocation.getArgument(0);
             ppc.processResult(bindings);
             return null;
         }).when(ss).execute(any(PrimePredicateCommand.class));

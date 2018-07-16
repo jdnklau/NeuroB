@@ -312,8 +312,7 @@ class PredicateTrainingGeneratorTest {
      * @return
      */
     private List<String> predList(String... preds) {
-        List<String> predicates = new ArrayList<>();
-        predicates.addAll(Arrays.asList(preds));
+        List<String> predicates = new ArrayList<>(Arrays.asList(preds));
         return predicates;
     }
 }

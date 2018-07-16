@@ -126,7 +126,7 @@ public class IdentifierRelationsHandler {
      * @return Amount of distinct identifiers added to this handler
      */
     public int getIdCount() {
-        return (int) adjacencyList.getIdentiferSet().stream().count();
+        return adjacencyList.getIdentiferSet().size();
     }
 
     /**
@@ -140,7 +140,7 @@ public class IdentifierRelationsHandler {
      */
     public int getUnboundedIdCount() {
         return (int) adjacencyList.getNodeSet().stream()
-                .filter(n -> n.isUnbounded()).count();
+                .filter(AdjacencyList.AdjacencyNode::isUnbounded).count();
     }
 
     /**

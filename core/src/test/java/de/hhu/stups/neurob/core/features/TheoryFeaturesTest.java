@@ -29,7 +29,7 @@ class TheoryFeaturesTest {
     }
 
     @Test
-    public void shouldWrapWhenUsingDoubleConstructor() throws Exception {
+    public void shouldWrapWhenUsingDoubleConstructor() {
         TheoryFeatures features = new TheoryFeatures(expectedFeatures);
 
         assertArrayEquals(expectedFeatures, features.getFeatureArray());
@@ -109,10 +109,7 @@ class TheoryFeaturesTest {
     public void shouldMatchExpectedFeatureArray() throws Exception {
         TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
 
-        Double[] expected = expectedFeatures;
-        Double[] actual = features.getFeatureArray();
-
-        assertArrayEquals(expected, actual,
+        assertArrayEquals(expectedFeatures, features.getFeatureArray(),
                 "Feature arrays do not match");
     }
 

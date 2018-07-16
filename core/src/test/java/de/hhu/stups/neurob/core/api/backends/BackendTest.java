@@ -149,7 +149,7 @@ class BackendTest {
         Boolean expected = true;
         Boolean actual = backend.decidePredicate("predicate", stateSpace);
 
-        assertEquals(expected, actual,
+        assertEquals(true, actual,
                 "Predicate was not detected as decidable");
     }
 

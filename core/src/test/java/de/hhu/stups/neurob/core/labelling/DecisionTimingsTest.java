@@ -3,15 +3,11 @@ package de.hhu.stups.neurob.core.labelling;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
-import de.prob.animator.command.CbcSolveCommand;
 import de.prob.animator.command.CbcSolveCommand.Solvers;
-import de.prob.animator.domainobjects.EvalResult;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertAll;

@@ -3,12 +3,9 @@ package de.hhu.stups.neurob.training.formats;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
-import de.hhu.stups.neurob.training.data.TrainingSample;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Stream;
 
 public interface TrainingDataFormat<F extends Features> {
 

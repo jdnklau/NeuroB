@@ -1,7 +1,5 @@
 package de.hhu.stups.neurob.training.formats;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
@@ -9,7 +7,6 @@ import de.hhu.stups.neurob.training.data.TrainingSample;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -93,8 +90,6 @@ public class JsonFormat implements TrainingDataFormat<Features> {
      */
     public <L extends Labelling>
     String createJsonEntry(TrainingSample<Features, L> sample) {
-        Gson gson = new Gson();
-
         Features features = sample.getFeatures();
         Labelling labels = sample.getLabelling();
 

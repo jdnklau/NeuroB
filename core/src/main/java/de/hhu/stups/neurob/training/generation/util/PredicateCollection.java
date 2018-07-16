@@ -108,7 +108,7 @@ public class PredicateCollection {
             operations.add(x.getName());
 
             log.trace("Collecting preconditions for {}", x.getName());
-            ArrayList<String> event = new ArrayList<String>();
+            ArrayList<String> event = new ArrayList<>();
             for (Guard g : x.getChildrenOfType(Guard.class)) {
                 event.add(g.getFormula().getCode());
             }

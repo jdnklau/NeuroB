@@ -222,11 +222,11 @@ public class AdjacencyList {
             // compare old with new, update related domains accordingly
             if (hadLowerBoundedDomain ^ hasLowerBoundedDomain) {
                 // add lower domain boundary to upper boundaries
-                upperBoundaries.stream().forEach(n -> n.addDomainBoundaries(true, false));
+                upperBoundaries.forEach(n -> n.addDomainBoundaries(true, false));
             }
             if (hadUpperBoundedDomain ^ hasUpperBoundedDomain) {
                 // add upper domain boundary to lower boundaries
-                lowerBoundaries.stream().forEach(n -> n.addDomainBoundaries(false, true));
+                lowerBoundaries.forEach(n -> n.addDomainBoundaries(false, true));
             }
         }
 

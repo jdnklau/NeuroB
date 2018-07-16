@@ -20,7 +20,6 @@ import de.prob.parser.ISimplifiedROMap;
 import de.prob.prolog.term.CompoundPrologTerm;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

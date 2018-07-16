@@ -93,6 +93,8 @@ public class DecisionTimings extends PredicateLabelling {
 
         // TODO: set timeout inside of state space as well
 
+        log.debug("Sample timings for the backends {} over predicate {}",
+                backends, predicate);
         for (Backend backend : backends) {
             timings.put(backend, sampleTimings(ss, backend));
         }
@@ -103,11 +105,19 @@ public class DecisionTimings extends PredicateLabelling {
     private Double sampleTimings(StateSpace ss, Backend backend)
             throws LabelCreationException {
         Double sampled = 0.;
+        log.trace("Sampling timing over backend {}; {} times",
+                backend, sampleSize);
         for (int i = 0; i < sampleSize; i++) {
-            Long timing = null;
             try {
-                timing = backend.measureEvalTime(predicate, ss,
+                Long timing = backend.measureEvalTime(predicate, ss,
                         timeOut, timeUnit);
+                // stop if already not decidable
+                if (timing < 0) {
+                    sampled = -1.;
+                    break;
+                }
+                sampled += timing;
+
             } catch (FormulaException e) {
                 throw new LabelCreationException(
                         "Could not create timing sample #" + i
@@ -115,12 +125,6 @@ public class DecisionTimings extends PredicateLabelling {
                         + predicate,
                         e);
             }
-            // stop if already not decidable
-            if (timing < 0) {
-                sampled = -1.;
-                break;
-            }
-            sampled += timing;
         }
 
         return sampled / sampleSize;

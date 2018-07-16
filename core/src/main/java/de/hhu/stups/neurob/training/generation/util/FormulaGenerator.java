@@ -133,7 +133,7 @@ public class FormulaGenerator {
      */
     public static List<String> multiPreconditionFormulae(
             PredicateCollection predicateCollection) {
-        ArrayList<String> formulae = new ArrayList<String>();
+        ArrayList<String> formulae = new ArrayList<>();
 
         String propsAndInvsPre = getPropsAndInvsPre(predicateCollection);
 
@@ -315,9 +315,6 @@ public class FormulaGenerator {
 
         // - for each operation
         for (Entry<String, Map<String, String>> opEntry : weakestPreMap.entrySet()) {
-            // collect all for this operation to concatenate later
-            List<String> weakestPres = new ArrayList<>();
-
             // - for each invariant
             for (Entry<String, String> invEntry : opEntry.getValue().entrySet()) {
                 String inv = invEntry.getKey();
@@ -327,8 +324,6 @@ public class FormulaGenerator {
                 formulae.add(PropsPre + "(not(" + inv + ") => " + wpc + ")");
                 formulae.add(PropsPre + inv + " & not(" + wpc + ")");
                 formulae.add(PropsPre + "(not(" + inv + ") => not(" + wpc + "))");
-
-                weakestPres.add(wpc);
             }
         }
 
@@ -342,8 +337,7 @@ public class FormulaGenerator {
 
         if (!primedInvsMap.isEmpty()) { // do only if the map is not empty
             // Collect all invariants plus their concatenation if more than 1
-            List<String> invariants = new ArrayList<>();
-            invariants.addAll(predicateCollection.getInvariants());
+            List<String> invariants = new ArrayList<>(predicateCollection.getInvariants());
             if (invariants.size() > 1) {
                 invariants.add(Invs);
             }
@@ -410,8 +404,7 @@ public class FormulaGenerator {
         String propsAndInv = getPropertyAndInvariantString(predicateCollection);
         ArrayList<String> formulae = new ArrayList<>();
 
-        List<String> assertionsList = new ArrayList<>();
-        assertionsList.addAll(predicateCollection.getAssertions());
+        List<String> assertionsList = new ArrayList<>(predicateCollection.getAssertions());
         // If no assertions, then return empty list
         if (assertionsList.isEmpty()) {
             return formulae;
@@ -533,7 +526,7 @@ public class FormulaGenerator {
         // preconditions
         List<List<String>> allPreconditionsList = allPreconditions.entrySet()
                 .stream()
-                .map(e -> e.getValue())
+                .map(Entry::getValue)
                 .collect(Collectors.toList());
 
         for (List<String> preconditions : allPreconditionsList) {

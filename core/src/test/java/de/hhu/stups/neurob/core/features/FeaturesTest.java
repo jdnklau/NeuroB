@@ -88,8 +88,7 @@ class FeaturesTest {
         Features f1 = new Features(1., 2., 3.);
         Features f2 = new Features(1., 2., 3.);
 
-        assertTrue(f1.equals(f2),
-                "Feature instances are not equal");
+        assertEquals(f1, f2, "Feature instances are not equal");
     }
 
     @Test
@@ -97,8 +96,7 @@ class FeaturesTest {
         Features f1 = new Features(1., 2., 3.);
         Features f2 = new Features(4., 5., 6.);
 
-        assertFalse(f1.equals(f2),
-                "Feature instances are equal");
+        assertNotEquals(f1, f2, "Feature instances are equal");
     }
 
     @Test

@@ -53,7 +53,7 @@ public class TheoryFeatureData {
     @Override
     public String toString() {
         return Arrays.stream(toArray())
-                .map(feature -> feature.toString())
+                .map(Object::toString)
                 .collect(Collectors.joining(","));
     }
 
