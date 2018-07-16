@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class DecisionTimings extends PredicateLabelling {
 
-    private final Double[] timingArray;
     /** Number of times each timing is run; final timing is average of all calls */
     private final int sampleSize;
 
@@ -38,8 +37,6 @@ public class DecisionTimings extends PredicateLabelling {
 
     private final Backend[] usedBackends;
     private Map<Backend, Double> timings;
-
-    private final int labellingDimension;
 
     private static final Logger log =
             LoggerFactory.getLogger(DecisionTimings.class);
@@ -76,20 +73,17 @@ public class DecisionTimings extends PredicateLabelling {
             Long timeOut, TimeUnit timeOutUnit,
             StateSpace stateSpace, Backend... backends)
             throws LabelCreationException {
-        super(predicate);
+        super(predicate, new Double[backends.length]);
 
         this.sampleSize = sampleSize;
         this.usedBackends = backends;
-
-        this.labellingDimension = backends.length;
 
         this.timeOut = timeOut;
         this.timeUnit = timeOutUnit;
         this.timings = createTimings(stateSpace, backends);
 
-        this.timingArray = new Double[labellingDimension];
         for (int i = 0; i < labellingDimension; i++) {
-            timingArray[i] = timings.get(backends[i]);
+            labellingArray[i] = timings.get(backends[i]);
         }
     }
 
@@ -146,7 +140,7 @@ public class DecisionTimings extends PredicateLabelling {
      */
     @Override
     public Double[] getLabellingArray() {
-        return timingArray;
+        return labellingArray;
     }
 
     /**
