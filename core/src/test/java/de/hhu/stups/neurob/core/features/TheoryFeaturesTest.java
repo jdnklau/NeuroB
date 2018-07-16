@@ -1,5 +1,7 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
+import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,17 +12,55 @@ class TheoryFeaturesTest {
             "x : NATURAL & y : INTEGER & z : NATURAL"
             + " & z < 20 & a : NAT & b : NAT1 & a < 7 & c : INT"
             + " & # y . (y < x) & ! z . (z < 15 => x > 3)";
+    private static final Double[] expectedFeatures =
+            {0., 5., 1., 1., 9., 0., 0., 0., 6., 0., 0., 6., 4., 2., 0., 1., 0.};
+
+    @Test
+    public void shouldGenerateWhenUsingPredicateConstructor() throws Exception {
+        TheoryFeatures features = new TheoryFeatures(predicate);
+
+        assertArrayEquals(expectedFeatures, features.getFeatureArray());
+    }
+
+    @Test
+    public void shouldGenerateWhenUsingPredicateAndStateSpaceConstructor() throws Exception {
+        TheoryFeatures features = new TheoryFeatures(predicate, (StateSpace) null);
+
+        assertArrayEquals(expectedFeatures, features.getFeatureArray());
+    }
+
+    @Test
+    public void shouldWrapWhenUsingDoubleConstructor() throws Exception {
+        TheoryFeatures features = new TheoryFeatures(expectedFeatures);
+
+        assertArrayEquals(expectedFeatures, features.getFeatureArray());
+    }
+
+    @Test
+    public void shouldContainNullPredicateWhenUsingDoubleconstructor() {
+        TheoryFeatures features = new TheoryFeatures(expectedFeatures);
+
+        assertEquals(null, features.getPredicate());
+    }
 
     @Test
     public void shouldReturnPredicateFromInstantiation() throws Exception {
-        PredicateFeatures features = new TheoryFeatures().generate(predicate);
+        TheoryFeatures features = new TheoryFeatures(predicate);
+
+        assertEquals(predicate, features.getPredicate());
+    }
+
+    @Test
+    public void shouldReturnPredicateFromInstantiationWhenUsingGenerator()
+            throws Exception {
+        TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
 
         assertEquals(predicate, features.getPredicate());
     }
 
     @Test
     public void shouldHave17Features() throws Exception {
-        PredicateFeatures features = new TheoryFeatures().generate(predicate);
+        TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
 
         int expected = 17;
         int actual = features.getFeatureDimension();
@@ -30,7 +70,7 @@ class TheoryFeaturesTest {
 
     @Test
     public void shouldReturnArrayWith17Entries() throws Exception {
-        PredicateFeatures features = new TheoryFeatures().generate(predicate);
+        TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
 
         int expected = 17;
         int actual = features.getFeatureArray().length;
@@ -39,11 +79,38 @@ class TheoryFeaturesTest {
     }
 
     @Test
-    public void shouldMatchExpectedFeatureArray() throws Exception {
-        PredicateFeatures features = new TheoryFeatures().generate(predicate);
+    public void shouldThrowExceptionWhenInputHasMoreThan17Entries() {
+        Double[] eighteenEntries = new Double[18];
+        assertThrows(IllegalArgumentException.class,
+                () -> new TheoryFeatures(eighteenEntries));
+    }
 
-        Double[] expected = new Double[]{0., 5., 1., 1., 9., 0., 0., 0., 6.,
-                0., 0., 6., 4., 2., 0., 1., 0.};
+    @Test
+    public void shouldThrowExceptionWhenInputHasMoreThan17EntriesAndPredicate() {
+        Double[] eighteenEntries = new Double[18];
+        assertThrows(IllegalArgumentException.class,
+                () -> new TheoryFeatures("predicate", eighteenEntries));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenInputHasLessThan17Entries() {
+        Double[] eighteenEntries = new Double[16];
+        assertThrows(IllegalArgumentException.class,
+                () -> new TheoryFeatures(eighteenEntries));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenInputHasLessThan17EntriesAndPredicate() {
+        Double[] eighteenEntries = new Double[16];
+        assertThrows(IllegalArgumentException.class,
+                () -> new TheoryFeatures("predicate", eighteenEntries));
+    }
+
+    @Test
+    public void shouldMatchExpectedFeatureArray() throws Exception {
+        TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
+
+        Double[] expected = expectedFeatures;
         Double[] actual = features.getFeatureArray();
 
         assertArrayEquals(expected, actual,
@@ -52,7 +119,7 @@ class TheoryFeaturesTest {
 
     @Test
     public void shouldHaveMatchingDimensions() throws Exception {
-        PredicateFeatures features = new TheoryFeatures().generate(predicate);
+        TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
 
         int expected = TheoryFeatures.featureDimension;
         int actual = features.getFeatureArray().length;
@@ -63,8 +130,8 @@ class TheoryFeaturesTest {
 
     @Test
     public void shouldConcatFeaturesWithCommaForStringRepresentation()
-            throws Exception{
-        PredicateFeatures features = new TheoryFeatures().generate(predicate);
+            throws Exception {
+        TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
 
         String expected =
                 "0.0,5.0,1.0,1.0,9.0,0.0,0.0,0.0,"
@@ -76,11 +143,23 @@ class TheoryFeaturesTest {
     }
 
     @Test
-    public void shouldCreateNewFeaturesWithGenerator() throws Exception {
-        PredicateFeatures features = new TheoryFeatures.Generator().generate(predicate);
+    public void shouldCreateNewFeaturesWithStaticGenerator() throws Exception {
+        TheoryFeatures features = TheoryFeatures.generate(predicate);
 
         Double[] expected = new Double[]{0., 5., 1., 1., 9., 0., 0., 0., 6.,
                 0., 0., 6., 4., 2., 0., 1., 0.};
+        Double[] actual = features.getFeatureArray();
+
+        assertArrayEquals(expected, actual,
+                "Feature arrays do not match");
+    }
+
+    @Test
+    public void shouldCreateNewFeaturesWithStaticGeneratorWhenStateSpaceIsNull()
+            throws Exception {
+        TheoryFeatures features = TheoryFeatures.generate(predicate, null);
+
+        Double[] expected = expectedFeatures;
         Double[] actual = features.getFeatureArray();
 
         assertArrayEquals(expected, actual,

@@ -29,14 +29,42 @@ import de.prob.statespace.StateSpace;
  * </ul>
  * </p>
  */
-public class TheoryFeatures implements PredicateFeatureGenerating<PredicateFeatures> {
+public class TheoryFeatures extends PredicateFeatures {
 
     public static final int featureDimension = 17;
 
-    @Override
-    public PredicateFeatures generate(String predicate, StateSpace ss) throws FeatureCreationException {
-        Double[] features = TheoryFeatureCollector.collect(predicate, ss).toArray();
-        return new PredicateFeatures(predicate, features);
+    public TheoryFeatures(String predicate) throws FeatureCreationException {
+        this(predicate, (StateSpace) null);
+    }
+
+    public TheoryFeatures(String predicate, StateSpace ss)
+            throws FeatureCreationException {
+        super(predicate, new Generator().generateArray(predicate, ss));
+    }
+
+    public TheoryFeatures(Double... features) {
+        this(null, features);
+    }
+
+    public TheoryFeatures(String predicate, Double... features) {
+        super(predicate, features);
+        // Check feature length
+        if (features.length != featureDimension) {
+            throw new IllegalArgumentException(
+                    "TheoryFeatures need exactly "
+                    + featureDimension + " entries, "
+                    + "but received " + features.length);
+        }
+    }
+
+    public static TheoryFeatures generate(String predicate)
+            throws FeatureCreationException {
+        return generate(predicate, null);
+    }
+
+    public static TheoryFeatures generate(String predicate, StateSpace ss)
+            throws FeatureCreationException {
+        return new Generator().generate(predicate, ss);
     }
 
     /**
@@ -47,11 +75,17 @@ public class TheoryFeatures implements PredicateFeatureGenerating<PredicateFeatu
      * {@link de.hhu.stups.neurob.training.generation.TrainingSetGenerator}
      */
     public static class Generator
-            implements PredicateFeatureGenerating<PredicateFeatures> {
+            implements PredicateFeatureGenerating<TheoryFeatures> {
         @Override
-        public PredicateFeatures generate(String predicate, StateSpace ss)
+        public TheoryFeatures generate(String predicate, StateSpace ss)
                 throws FeatureCreationException {
-            return new TheoryFeatures().generate(predicate, ss);
+            return new TheoryFeatures(predicate, generateArray(predicate, ss));
         }
+
+        public Double[] generateArray(String predicate, StateSpace ss)
+                throws FeatureCreationException {
+            return TheoryFeatureCollector.collect(predicate, ss).toArray();
+        }
+
     }
 }
