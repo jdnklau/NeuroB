@@ -29,6 +29,7 @@ public class Labelling {
 
     /**
      * Returns a comma separated String of the labelling array.
+     *
      * @return
      */
     public String getLabellingString() {
@@ -39,4 +40,16 @@ public class Labelling {
         );
     }
 
+    @Override
+    public String toString() {
+        return getLabellingString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Labelling) {
+            return Arrays.equals(labellingArray, ((Labelling) o).labellingArray);
+        }
+        return false;
+    }
 }

@@ -68,4 +68,28 @@ class LabellingTest {
 
         assertEquals(expected, l.getLabellingString());
     }
+
+    @Test
+    public void shouldBeEqual() {
+        Labelling l1 = new Labelling(1., 2.);
+        Labelling l2 = new Labelling(1., 2.);
+
+        assertEquals(l1, l2);
+    }
+
+    @Test
+    public void shouldBeEqualWhenEmpty() {
+        Labelling l1 = new Labelling();
+        Labelling l2 = new Labelling();
+
+        assertEquals(l1, l2);
+    }
+
+    @Test
+    public void shouldBeUnequal() {
+        Labelling l1 = new Labelling(1., 2., 3.);
+        Labelling l2 = new Labelling(1., 2., 4.);
+
+        assertNotEquals(l1, l2);
+    }
 }
