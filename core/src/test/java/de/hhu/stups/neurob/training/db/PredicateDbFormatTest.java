@@ -5,6 +5,7 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -272,6 +273,7 @@ class PredicateDbFormatTest {
     }
 
     @Test
+    @Ignore("Functionality not yet implemented")
     public void shouldWriteSample() throws IOException {
         PredicateFeatures features = new PredicateFeatures("pred");
         Labelling labels = new Labelling(3., 1., -1., 2.);
@@ -279,8 +281,6 @@ class PredicateDbFormatTest {
 
         TrainingSample<PredicateFeatures, Labelling> sample =
                 new TrainingSample<>(features, labels, source);
-
-        
 
         fail();
     }
