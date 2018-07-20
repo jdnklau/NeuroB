@@ -1,6 +1,5 @@
 package de.hhu.stups.neurob.training.db;
 
-import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
@@ -26,12 +25,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BPredicate> {
 
     private final TrainingDataFormat<? super PredicateFeatures> internalFormat;
+    private final String[] backendsUsed = {
+            "KodkodBackend",
+            "ProBBackend",
+            "SmtBackend",
+            "Z3Backend",
+    };
 
     private static final Logger log =
             LoggerFactory.getLogger(PredicateDbFormat.class);
@@ -63,28 +70,93 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
     public <L extends Labelling>
     void writeSamples(TrainingData<PredicateFeatures, L> trainingData, Path targetDirectory)
             throws IOException {
-        // TODO
+        Path sourceFile = trainingData.getSourceFile();
+        Path targetFile = getTargetLocation(sourceFile, targetDirectory);
+
+        // Ensure target subdirectory exists
+        Path targetSubdir = targetFile.getParent();
+        try {
+            log.trace("Creating directory {}", targetSubdir);
+            Files.createDirectories(targetSubdir);
+        } catch (IOException e) {
+            log.error("Could not create target directory {}",
+                    targetSubdir, e);
+            return;
+        }
+
+        try {
+            log.info("Writing samples from {} to {}",
+                    sourceFile, targetFile);
+            writeSamples(trainingData,
+                    Files.newBufferedWriter(targetFile));
+        } catch (IOException e) {
+            log.warn("Could not create samples", e);
+        }
     }
 
     public <L extends Labelling>
-    void writeSample(TrainingSample<PredicateFeatures, L> trainingData, Writer writer)
-            throws IOException {
-        // TODO
+    void writeSamples(TrainingData<PredicateFeatures, L> trainingData,
+            Writer writer) throws IOException {
+        // Header
+        writer.write("{\"samples\"=[");
+        trainingData.getSamples()
+                .map(this::translateSampleToJsonObject)
+                // Interleave with separating comma
+                .flatMap(sample -> Stream.of(",", sample))
+                .skip(1) // skip leading comma
+                .forEach(sample -> {
+                    try {
+                        writer.write(sample);
+                    } catch (IOException e) {
+                        if (",".equals(sample)) {
+                            log.error(
+                                    "Unable to write separator between samples. "
+                                    + "Resulting Data base file might be faulty",
+                                    e);
+                            throw new IllegalStateException(
+                                    "Could not add separator between samples");
+                        }
+                        log.warn("Unable to write the sample {}", sample, e);
+                    }
+                });
+        // Footer
+        writer.write("]}");
+        writer.flush();
     }
 
-    public static class DataSpliterator extends Spliterators.AbstractSpliterator<DbSample<BPredicate>> {
+    public <L extends Labelling>
+    String translateSampleToJsonObject(TrainingSample<PredicateFeatures, L> sample) {
+        // Extract meta data from the sample
+        String predicate = sample.getFeatures().getPredicate();
+        boolean isSourceDefined = sample.getSourceFile() != null;
+        String source = (isSourceDefined) ? sample.getSourceFile().toString() : "";
 
-        private JsonReader reader;
-
-        public DataSpliterator(JsonReader reader) {
-            super(Long.MAX_VALUE, 0);
-            this.reader = reader;
+        // Extract Backend Data
+        Map<String, String> backendTimes = new HashMap<>();
+        Double[] labelTimes = sample.getLabelling().getLabellingArray();
+        // Safety check: number of entries must match
+        if (labelTimes.length != backendsUsed.length) {
+            throw new IllegalArgumentException(
+                    "Provided TrainingSample does not allow a 1:1 mapping of "
+                    + "its contained labelled times to the expected backends "
+                    + "in use.");
         }
+        String timings = IntStream.range(0, backendsUsed.length)
+                .mapToObj(index ->
+                        "\"" + backendsUsed[index] + "\":" + labelTimes[index])
+                .collect(Collectors.joining(","));
 
-        @Override
-        public boolean tryAdvance(Consumer<? super DbSample<BPredicate>> consumer) {
-            return false;
-        }
+        // Concatenate everything into one Json Object
+        String sourceEntry = (isSourceDefined)
+                ? "\"source\":\"" + source + "\","
+                : "";
+        String json = "{"
+                      + "\"predicate\":\"" + predicate + "\","
+                      + sourceEntry
+                      + "\"timings\":{" + timings + "}"
+                      + "}";
+
+        return json;
     }
 
     public static class PredicateDbIterator implements Iterator<DbSample<BPredicate>> {
@@ -174,7 +246,7 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
         public Labelling translateTimings(String timings) {
             String[] solverTimes = timings.split(",");
             Double[] labels = new Double[solverTimes.length];
-            for (int i=0; i<solverTimes.length; i++) {
+            for (int i = 0; i < solverTimes.length; i++) {
                 String[] timeSplit = solverTimes[i].split(":");
                 Double time = Double.parseDouble(timeSplit[1]);
                 labels[i] = time;

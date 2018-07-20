@@ -4,12 +4,14 @@ import com.google.gson.stream.JsonReader;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -17,10 +19,41 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class PredicateDbFormatTest {
+
+    /**
+     * Entry of a single sample wrt this unit test context.
+     * Used for assertions.
+     */
+    private final String SINGLE_JSON_ENTRY =
+            "{"
+            + "\"predicate\":\"pred\","
+            + "\"source\":\"non/existent.mch\","
+            + "\"timings\":{"
+            + "\"KodkodBackend\":3.0,"
+            + "\"ProBBackend\":1.0,"
+            + "\"SmtBackend\":-1.0,"
+            + "\"Z3Backend\":2.0"
+            + "}}";
+
+    /**
+     * Entry of a single sample wrt this unit test context, but without a
+     * source defined.
+     * Used for assertions.
+     */
+    private final String SINGLE_JSON_ENTRY_WITHOUT_SOURCE =
+            "{"
+            + "\"predicate\":\"pred\","
+            + "\"timings\":{"
+            + "\"KodkodBackend\":3.0,"
+            + "\"ProBBackend\":1.0,"
+            + "\"SmtBackend\":-1.0,"
+            + "\"Z3Backend\":2.0"
+            + "}}";
 
     @Test
     public void shouldGiveJsonPathWhenMch() {
@@ -273,32 +306,101 @@ class PredicateDbFormatTest {
     }
 
     @Test
-    @Disabled("Functionality not yet implemented")
     public void shouldWriteSample() throws IOException {
+        // Prepare training sample to write
         PredicateFeatures features = new PredicateFeatures("pred");
         Labelling labels = new Labelling(3., 1., -1., 2.);
         Path source = Paths.get("non/existent.mch");
-
         TrainingSample<PredicateFeatures, Labelling> sample =
                 new TrainingSample<>(features, labels, source);
 
-        fail();
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        String expected = SINGLE_JSON_ENTRY;
+        String actual = format.translateSampleToJsonObject(sample);
+
+        assertEquals(expected, actual,
+                "Written JSON does not match");
+    }
+
+    @Test
+    public void shouldWriteSampleWhenNoSourceExists() throws IOException {
+        // Prepare training sample to write
+        PredicateFeatures features = new PredicateFeatures("pred");
+        Labelling labels = new Labelling(3., 1., -1., 2.);
+        TrainingSample<PredicateFeatures, Labelling> sample =
+                new TrainingSample<>(features, labels);
+
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        String expected = SINGLE_JSON_ENTRY_WITHOUT_SOURCE;
+        String actual = format.translateSampleToJsonObject(sample);
+
+        assertEquals(expected, actual,
+                "Written JSON does not match");
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenLessLabelsThanBackends() throws IOException {
+        // Prepare training sample to write
+        PredicateFeatures features = new PredicateFeatures("pred");
+        Labelling labels = new Labelling(1., 2., 3.);
+        TrainingSample<PredicateFeatures, Labelling> sample =
+                new TrainingSample<>(features, labels);
+
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> format.translateSampleToJsonObject(sample));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenMoreLabelsThanBackends() throws IOException {
+        // Prepare training sample to write
+        PredicateFeatures features = new PredicateFeatures("pred");
+        Labelling labels = new Labelling(1., 2., 3., 4., 5.);
+        TrainingSample<PredicateFeatures, Labelling> sample =
+                new TrainingSample<>(features, labels);
+
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> format.translateSampleToJsonObject(sample));
+    }
+
+    @Test
+    public void shouldWriteStreamedSamplesToWriter() throws IOException {
+        // Prepare training sample data to encapsulate
+        PredicateFeatures features = new PredicateFeatures("pred");
+        Labelling labels = new Labelling(3., 1., -1., 2.);
+        Path source = Paths.get("non/existent.mch");
+        Stream<TrainingSample<PredicateFeatures, Labelling>> sampleStream =
+                Stream.of(
+                        new TrainingSample<>(features, labels, source),
+                        new TrainingSample<>(features, labels),
+                        new TrainingSample<>(features, labels, source));
+        TrainingData<PredicateFeatures, Labelling> trainingData =
+                new TrainingData<>(source, sampleStream);
+
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        StringWriter writer = new StringWriter();
+        format.writeSamples(trainingData, writer);
+
+        String expected = "{\"samples\"=["
+                          + SINGLE_JSON_ENTRY + ","
+                          + SINGLE_JSON_ENTRY_WITHOUT_SOURCE + ","
+                          + SINGLE_JSON_ENTRY + "]}";
+        String actual = writer.toString();
+
+        assertEquals(expected, actual);
     }
 
     private String getSampleJson(int numEntries) {
         String json = "{\"samples\":[";
         List<String> entries = new ArrayList<>();
         for (int i = 0; i < numEntries; i++) {
-            entries.add(
-                    "{"
-                    + "\"predicate\":\"pred\","
-                    + "\"source\":\"non/existent.mch\","
-                    + "\"timings\":{"
-                    + "\"ProBBackend\":1.0,"
-                    + "\"Z3Backend\":2.0,"
-                    + "\"KodkodBackend\":3.0,"
-                    + "\"SmtBackend\":-1"
-                    + "}}");
+            entries.add(SINGLE_JSON_ENTRY);
         }
         json += String.join(",", entries);
         json += "]}";
