@@ -387,7 +387,7 @@ class PredicateDbFormatTest {
         StringWriter writer = new StringWriter();
         format.writeSamples(trainingData, writer);
 
-        String expected = "{\"samples\"=["
+        String expected = "{\"samples\":["
                           + SINGLE_JSON_ENTRY + ","
                           + SINGLE_JSON_ENTRY_WITHOUT_SOURCE + ","
                           + SINGLE_JSON_ENTRY + "]}";

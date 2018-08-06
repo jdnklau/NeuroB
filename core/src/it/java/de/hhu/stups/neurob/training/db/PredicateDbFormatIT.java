@@ -48,7 +48,7 @@ class PredicateDbFormatIT {
                 + "\"SmtBackend\":-1.0,"
                 + "\"Z3Backend\":2.0"
                 + "}}";
-        String expected = "{\"samples\"=["
+        String expected = "{\"samples\":["
                           + singleJsonEntry + ","
                           + singleJsonEntry + "]}";
         String actual = Files.lines(targetFile).collect(Collectors.joining());

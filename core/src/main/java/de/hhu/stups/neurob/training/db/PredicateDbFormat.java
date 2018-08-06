@@ -98,7 +98,7 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
     void writeSamples(TrainingData<PredicateFeatures, L> trainingData,
             Writer writer) throws IOException {
         // Header
-        writer.write("{\"samples\"=[");
+        writer.write("{\"samples\":[");
         trainingData.getSamples()
                 .map(this::translateSampleToJsonObject)
                 // Interleave with separating comma
