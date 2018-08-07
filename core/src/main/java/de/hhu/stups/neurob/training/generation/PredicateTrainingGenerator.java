@@ -61,20 +61,19 @@ public class PredicateTrainingGenerator
         }
 
         // Stream training samples
-        Stream<TrainingSample> samples = predicates.map(predicate -> {
-            try {
-                return generateSample(predicate, ss);
-            } catch (FeatureCreationException e) {
-                log.warn("Could not create features from {}", predicate, e);
-            } catch (LabelCreationException e) {
-                log.warn("Could not create labelling for {}", predicate, e);
-            }
-            // If any exceptions occur, return nothing
-            return null;
-        });
-
-        // Close StateSpace
-        ss.kill();
+        Stream<TrainingSample> samples = predicates.map(
+                predicate -> {
+                    try {
+                        return generateSample(predicate, ss);
+                    } catch (FeatureCreationException e) {
+                        log.warn("Could not create features from {}", predicate, e);
+                    } catch (LabelCreationException e) {
+                        log.warn("Could not create labelling for {}", predicate, e);
+                    }
+                    // If any exceptions occur, return nothing
+                    return null;
+                })
+                .onClose(ss::kill);
 
         return samples.filter(Objects::nonNull)
                 // add source file information
@@ -264,3 +263,4 @@ public class PredicateTrainingGenerator
 
     }
 }
+
