@@ -1,6 +1,10 @@
 package de.hhu.stups.neurob.training.generation;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.api.backends.SmtBackend;
+import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
@@ -11,6 +15,7 @@ import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.testharness.TestMachines;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.prob.statespace.StateSpace;
@@ -30,11 +35,14 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 
@@ -253,7 +261,112 @@ class PredicateTrainingGeneratorIT {
         assertAll("File created and contents match",
                 () -> assertTrue(Files.exists(targetFile),
                         "CSV not created: " + targetFile));
+        // TODO: Check whether contents match
 
+    }
+
+    @Test
+    void shouldCreateJsonDbFiles() throws IOException, FormulaException {
+        KodKodBackend kodkod = new KodKodBackend();
+        ProBBackend prob = new ProBBackend();
+        SmtBackend smt = new SmtBackend();
+        Z3Backend z3 = new Z3Backend();
+
+        TrainingSetGenerator gen =
+                new PredicateTrainingGenerator(
+                        (pred, ss) -> new PredicateFeatures(pred),
+                        new DecisionTimings.Generator(
+                                1, kodkod, prob, smt, z3),
+                        new PredicateDbFormat()
+                );
+
+        // Set up working directory
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path mchDir = tmpDir.resolve("mch");
+        Path targetDir = tmpDir.resolve("target");
+        Files.createDirectories(mchDir);
+        Files.createDirectories(targetDir);
+
+        // Copy machines to work with
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH),
+                mchDir.resolve("first.mch"));
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH),
+                mchDir.resolve("second.mch"));
+
+        // Generate data
+        gen.generateTrainingData(mchDir, targetDir);
+
+        assertAll("All db files exist",
+                () -> assertTrue(Files.exists(targetDir.resolve("first.json")),
+                        "first.json was not created"),
+                () -> assertTrue(Files.exists(targetDir.resolve("second.json")),
+                        "second.json was not created"));
+    }
+
+    @Test
+    void shouldContainAllPredicatesAsEntriesInDb() throws IOException {
+        KodKodBackend kodkod = new KodKodBackend();
+        ProBBackend prob = new ProBBackend();
+        SmtBackend smt = new SmtBackend();
+        Z3Backend z3 = new Z3Backend();
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        TrainingSetGenerator gen =
+                new PredicateTrainingGenerator(
+                        (pred, ss) -> new PredicateFeatures(pred),
+                        new DecisionTimings.Generator(
+                                1, kodkod, prob, smt, z3),
+                        new PredicateDbFormat()
+                );
+
+        // Set up working directory
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path mchDir = tmpDir.resolve("mch");
+        Path targetDir = tmpDir.resolve("target");
+        Files.createDirectories(mchDir);
+        Files.createDirectories(targetDir);
+
+        // Copy machines to work with
+        Files.copy(Paths.get(TestMachines.FORMULAE_GEN_MCH),
+                mchDir.resolve("first.mch"));
+
+        // Generate data
+        gen.generateTrainingData(mchDir, targetDir);
+
+        // Count data points
+        long expected = TestMachines.loadExpectedPredicates(
+                TestMachines.FORMULAE_GEN_MCH_PREDICATE_FILE).size();
+        long actual = format.loadSamples(targetDir.resolve("first.json")).count();
+
+        assertEquals(expected, actual,
+                "Number of generated samples does not match");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenNotEnoughLabelsAreProvided() throws IOException {
+        KodKodBackend kodkod = new KodKodBackend();
+        ProBBackend prob = new ProBBackend();
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        TrainingSetGenerator gen =
+                new PredicateTrainingGenerator(
+                        (pred, ss) -> new PredicateFeatures(pred),
+                        new DecisionTimings.Generator(
+                                1, kodkod, prob),
+                        new PredicateDbFormat()
+                );
+
+        // Set up target directory
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path targetDir = tmpDir.resolve("target");
+
+        // File to use
+        Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> gen.generateTrainingData(mch, targetDir),
+                "Number of BackEnds should not match and thus cause "
+                + "an exception.");
     }
 
 }
