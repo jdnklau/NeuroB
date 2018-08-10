@@ -84,6 +84,9 @@ public abstract class TrainingSetGenerator {
             sourceFiles
                     .parallel()
                     .filter(Files::isRegularFile)
+                    .peek(System.out::println)
+                    .filter(file -> file.toString().endsWith(".mch")
+                                    || file.toString().endsWith(".bcm"))
                     // Only create if non-lazy or non-existent
                     .filter(file -> !lazy || !dataAlreadyExists(file,
                             format.getTargetLocation(file, fullTargetDir)))

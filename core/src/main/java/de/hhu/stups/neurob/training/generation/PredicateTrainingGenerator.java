@@ -229,7 +229,7 @@ public class PredicateTrainingGenerator
 
     /**
      * Loads a {@link StateSpace} from the given file.
-     * Only supports *.mch (Classical B) and *.bpm (EventB) files.
+     * Only supports *.mch (Classical B) and *.bcm (EventB) files.
      *
      * @param file Path to the machine file to load.
      *
@@ -243,7 +243,7 @@ public class PredicateTrainingGenerator
             if (machineFile.endsWith(".mch")) {
                 log.info("Load State Space for Classical B machine {}", file);
                 return api.b_load(machineFile);
-            } else if (machineFile.endsWith("*.bpm")) {
+            } else if (machineFile.endsWith("*.bcm")) {
                 log.info("Load State Space for EventB machine {}", file);
                 return api.eventb_load(machineFile);
             } else {
