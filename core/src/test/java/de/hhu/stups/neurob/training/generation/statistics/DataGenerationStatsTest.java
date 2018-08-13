@@ -15,6 +15,8 @@ class DataGenerationStatsTest {
                         "Should be 0: files created"),
                 () -> assertEquals(0, stats.getFilesSeen(),
                         "Should be 0: files seen"),
+                () -> assertEquals(0, stats.getFilesInaccessible(),
+                        "Should be 0: files inaccessible"),
                 () -> assertEquals(0, stats.getSamplesWritten(),
                         "Should be 0: samples written"),
                 () -> assertEquals(0, stats.getSamplesFailed(),
@@ -23,13 +25,15 @@ class DataGenerationStatsTest {
 
     @Test
     public void shouldUseConstructorParams() {
-        DataGenerationStats stats = new DataGenerationStats(1, 2, 3, 4);
+        DataGenerationStats stats = new DataGenerationStats(1, 2, 5, 3, 4);
 
         assertAll(
                 () -> assertEquals(2, stats.getFilesCreated(),
                         "Should be 2: files created"),
                 () -> assertEquals(1, stats.getFilesSeen(),
                         "Should be 1: files seen"),
+                () -> assertEquals(5, stats.getFilesInaccessible(),
+                        "Should be 5: files inaccessible"),
                 () -> assertEquals(3, stats.getSamplesWritten(),
                         "Should be 3: samples written"),
                 () -> assertEquals(4, stats.getSamplesFailed(),
@@ -67,6 +71,21 @@ class DataGenerationStatsTest {
     }
 
     @Test
+    public void shouldIncreaseFilesInaccessible() {
+        DataGenerationStats stats = new DataGenerationStats();
+
+        int expected = 3;
+        stats.increaseFilesInaccessible();
+        int actual = stats.increaseFilesInaccessible(2);
+
+        assertAll("Files inaccessible should be increased",
+                () -> assertEquals(expected, actual,
+                        "Return type does not match"),
+                () -> assertEquals(expected, stats.getFilesInaccessible(),
+                        "Getter does not match"));
+    }
+
+    @Test
     public void shouldIncreaseSamplesWritten() {
         DataGenerationStats stats = new DataGenerationStats();
 
@@ -98,8 +117,8 @@ class DataGenerationStatsTest {
 
     @Test
     public void shouldSumIndividualValuesWhenMergingTwoStatistics() {
-        DataGenerationStats stats1 = new DataGenerationStats(1, 2, 3, 4);
-        DataGenerationStats stats2 = new DataGenerationStats(5, 6, 7, 8);
+        DataGenerationStats stats1 = new DataGenerationStats(1, 2, 9, 3, 4);
+        DataGenerationStats stats2 = new DataGenerationStats(5, 6, 10, 7, 8);
 
         DataGenerationStats stats = stats1.mergeWith(stats2);
 
@@ -108,6 +127,8 @@ class DataGenerationStatsTest {
                         "Should be 8: files created"),
                 () -> assertEquals(6, stats.getFilesSeen(),
                         "Should be 6: files seen"),
+                () -> assertEquals(19, stats.getFilesInaccessible(),
+                        "Should be 19: files inaccessible"),
                 () -> assertEquals(10, stats.getSamplesWritten(),
                         "Should be 10: samples written"),
                 () -> assertEquals(12, stats.getSamplesFailed(),

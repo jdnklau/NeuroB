@@ -5,29 +5,33 @@ package de.hhu.stups.neurob.training.generation.statistics;
  * training set generation.
  */
 public class DataGenerationStats {
-    /** Number of distinct files used by this generation step */
+    /** Number of total files seen by this generation step */
     private int filesSeen;
     /** Number of distinct files created by this generation step */
     private int filesCreated;
+    /** Number of distinct files that were inaccessible during training generation */
+    private int filesInaccessible;
     /** Number of samples that were successfully written to a file */
     private int samplesWritten;
     /** Number of samples that failed to be created due to encountered errors */
     private int samplesFailed;
 
     public DataGenerationStats() {
-        this(0, 0, 0, 0);
+        this(0, 0, 0, 0, 0);
     }
 
     /**
      * @param filesSeen Number of distinct files used by this generation step
      * @param filesCreated Number of distinct files created by this generation step
+     * @param filesInaccessible Number of distinct files that were inaccessible during
+     *         training generation
      * @param samplesWritten Number of samples that were successfully written to a file
      * @param samplesFailed Number of samples that failed to be created due to encountered
-     *         errors
      */
-    public DataGenerationStats(int filesSeen, int filesCreated, int samplesWritten, int samplesFailed) {
+    public DataGenerationStats(int filesSeen, int filesCreated, int filesInaccessible, int samplesWritten, int samplesFailed) {
         this.filesSeen = filesSeen;
         this.filesCreated = filesCreated;
+        this.filesInaccessible = filesInaccessible;
         this.samplesWritten = samplesWritten;
         this.samplesFailed = samplesFailed;
     }
@@ -80,6 +84,31 @@ public class DataGenerationStats {
     public int increaseFilesCreated(int amount) {
         filesCreated += amount;
         return filesCreated;
+    }
+
+    public int getFilesInaccessible() {
+        return filesInaccessible;
+    }
+
+    /**
+     * Number of distinct files that were inaccessible during training generation
+     *
+     * @return New number of files created
+     */
+    public int increaseFilesInaccessible() {
+        return increaseFilesInaccessible(1);
+    }
+
+    /**
+     * Number of distinct files that were inaccessible during training generation
+     *
+     * @param amount How many additional files were inaccessible
+     *
+     * @return New number of inaccessible files
+     */
+    public int increaseFilesInaccessible(int amount) {
+        filesInaccessible += amount;
+        return filesInaccessible;
     }
 
     public int getSamplesWritten() {
@@ -142,6 +171,7 @@ public class DataGenerationStats {
     public DataGenerationStats mergeWith(DataGenerationStats other) {
         filesSeen += other.filesSeen;
         filesCreated += other.filesCreated;
+        filesInaccessible += other.filesInaccessible;
         samplesWritten += other.samplesWritten;
         samplesFailed += other.samplesFailed;
 
@@ -153,7 +183,8 @@ public class DataGenerationStats {
         StringBuilder builder = new StringBuilder();
 
         builder.append("Files seen: ").append(filesSeen).append("; ")
-                .append("Files created: ").append(filesCreated).append("; ")
+                .append("Files inaccessible: ").append(filesCreated).append("; ")
+                .append("Training files created: ").append(filesCreated).append("; ")
                 .append("Training samples written: ").append(samplesWritten).append("; ")
                 .append("Training samples that lead to errors: ").append(samplesFailed);
 
