@@ -55,6 +55,10 @@ class PredicateTrainingGeneratorIT {
     private PredicateFeatureGenerating<PredicateFeatures> featureGen;
     private PredicateLabelGenerating<PredicateLabelling> labelGen;
 
+    private final String DB_RESOURCE_DIR =
+            PredicateTrainingGeneratorIT.class.getClassLoader()
+            .getResource("db/").getFile();
+
     @BeforeEach
     public void setUpMocks() {
         featureGen = (pred, ss) -> generateMockedFeatures(pred);
@@ -367,6 +371,59 @@ class PredicateTrainingGeneratorIT {
                 () -> gen.generateTrainingData(mch, targetDir),
                 "Number of BackEnds should not match and thus cause "
                 + "an exception.");
+    }
+
+    @Test
+    public void shouldRecogniseNonexistenceWhenDbFileNonexistent() throws IOException {
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path targetDir = tmpDir.resolve("target");
+        TrainingDataFormat format = new PredicateDbFormat();
+
+        // File to use
+        Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
+        Path target = format.getTargetLocation(mch, targetDir);
+
+        // Make sure target really does not exist
+        Files.deleteIfExists(target);
+
+        TrainingSetGenerator gen = new PredicateTrainingGenerator();
+
+        assertFalse(gen.dataAlreadyExists(mch, target),
+                "Data should not be existent");
+    }
+
+    @Test
+    public void shouldRecogniseExistenceWhenDbFileExistent() throws IOException {
+        TrainingDataFormat format = new PredicateDbFormat();
+
+        // File to use
+        Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
+        Path targetDir = Paths.get(TestMachines.getDbPath(""));
+        Path target = format.getTargetLocation(mch.getFileName(), targetDir);
+
+        TrainingSetGenerator gen = new PredicateTrainingGenerator();
+
+        assertTrue(gen.dataAlreadyExists(mch, target),
+                "Data should be existent");
+    }
+
+    @Test
+    public void shouldStateNonexistentWhenSourceDataIsNewerThanTarget() throws IOException {
+        TrainingDataFormat format = new PredicateDbFormat();
+
+        // Copy file to emulate fresh version
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
+        Path newMch = Files.copy(mch, tmpDir.resolve(mch.getFileName()));
+
+        // Set up targets
+        Path targetDir = Paths.get(TestMachines.getDbPath(""));
+        Path target = format.getTargetLocation(mch.getFileName(), targetDir);
+
+        TrainingSetGenerator gen = new PredicateTrainingGenerator();
+
+        assertFalse(gen.dataAlreadyExists(newMch, target),
+                "Data should be marked as nonexistent existent");
     }
 
 }

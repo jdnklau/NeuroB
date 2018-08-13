@@ -1,15 +1,21 @@
 package de.hhu.stups.neurob.training.generation;
 
+import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.api.backends.SmtBackend;
+import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
 import de.hhu.stups.neurob.training.generation.util.PredicateCollection;
@@ -20,7 +26,11 @@ import de.prob.statespace.StateSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -43,6 +53,22 @@ public class PredicateTrainingGenerator
         super(featureGenerator, labelGenerator, format);
 
         api = Main.getInjector().getInstance(Api.class);
+    }
+
+    /**
+     * Constructor for creating a data base of predicates.
+     */
+    public PredicateTrainingGenerator() {
+        this(
+                (pred, ss) -> new PredicateFeatures(pred),
+                // Todo: short cut for this?
+                new DecisionTimings.Generator(3,
+                        new KodKodBackend(),
+                        new ProBBackend(),
+                        new SmtBackend(),
+                        new Z3Backend()),
+                new PredicateDbFormat()
+        );
     }
 
     @Override
@@ -130,7 +156,24 @@ public class PredicateTrainingGenerator
 
     @Override
     public boolean dataAlreadyExists(Path sourceFile, Path targetLocation) {
-        // TODO
+        if (Files.exists(targetLocation, LinkOption.NOFOLLOW_LINKS)) {
+            try {
+                FileTime sourceLastModified = Files.getLastModifiedTime(
+                        sourceFile, LinkOption.NOFOLLOW_LINKS);
+                FileTime targetLastModified = Files.getLastModifiedTime(
+                        targetLocation, LinkOption.NOFOLLOW_LINKS);
+
+                // last edit source file <= last edit target file -> nothing to do here
+                if (sourceLastModified.compareTo(targetLastModified) <= 0) {
+                    return true;
+                }
+            } catch (IOException e) {
+                log.warn("Could not determine whether for the source file {} "
+                         + "the target location {} is up to date or not. "
+                         + "Generating data anyway.",
+                        sourceFile, targetLocation, e);
+            }
+        }
         return false;
     }
 

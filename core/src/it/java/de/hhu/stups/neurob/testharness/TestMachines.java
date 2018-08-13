@@ -22,6 +22,8 @@ public class TestMachines {
 
     public static String FEATURES_CHECK_MCH =
             getMachinePath("features_check.mch");
+    public static String FEATURES_CHECK_DB =
+            getDbPath("features_check.json");
 
     public static String EXAMPLE_BCM =
             getMachinePath("event-b/example/example.bcm");
@@ -38,6 +40,19 @@ public class TestMachines {
      */
     public static String getMachinePath(String machineName) {
         String machineSubPath = "machines/" + machineName;
+        return TestMachines.class.getClassLoader()
+                .getResource(machineSubPath).getFile();
+    }
+    /**
+     * Generates the path to the src/it/resources/db/dbName file.
+     *
+     * @param dbName Name of the machine without the "machine/"
+     *         direcotry prefix.
+     *
+     * @return Correct path to machine resource at runtime.
+     */
+    public static String getDbPath(String dbName) {
+        String machineSubPath = "db/" + dbName;
         return TestMachines.class.getClassLoader()
                 .getResource(machineSubPath).getFile();
     }
