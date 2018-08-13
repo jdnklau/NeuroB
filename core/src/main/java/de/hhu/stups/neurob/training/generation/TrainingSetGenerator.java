@@ -7,6 +7,7 @@ import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +51,9 @@ public abstract class TrainingSetGenerator {
      *
      * @see #generateTrainingData(Path, Path, boolean)
      */
-    public void generateTrainingData(Path source, Path targetDir)
+    public DataGenerationStats generateTrainingData(Path source, Path targetDir)
             throws IOException {
-        generateTrainingData(source, targetDir, true);
+        return generateTrainingData(source, targetDir, true);
     }
 
     /**
@@ -69,7 +70,7 @@ public abstract class TrainingSetGenerator {
      *         (<code>true</code>) or freshly generated.
      */
     public <F extends Features, L extends Labelling>
-    void generateTrainingData(Path source, Path targetDir,
+    DataGenerationStats generateTrainingData(Path source, Path targetDir,
             boolean lazy) throws IOException {
 
         // TODO: Set target dir to targetDir/labelling/features/
@@ -79,7 +80,7 @@ public abstract class TrainingSetGenerator {
         log.info("Generating training data from {}, storing in {}",
                 source, fullTargetDir);
 
-        // TODO: add statistics?
+        DataGenerationStats stats = new DataGenerationStats();
         try (Stream<Path> sourceFiles = Files.walk(source)) {
             sourceFiles
                     .parallel()
@@ -96,15 +97,18 @@ public abstract class TrainingSetGenerator {
                     .forEach(samples ->
                     {
                         try {
-                            format.writeSamples(samples, fullTargetDir);
+                            DataGenerationStats writeStats = format.writeSamples(samples, fullTargetDir);
+                            stats.mergeWith(writeStats);
                         } catch (IOException e) {
                             log.warn("Could not write all samples for {}",
                                     samples.getSourceFile());
+                            stats.increaseFilesInaccessible();
                         }
                     });
         }
 
         log.info("Generation of training data: done");
+        return stats;
     }
 
     private Path stripCommonSourceDir(Path sourceFile, Path commonSourceDir) {
