@@ -398,8 +398,12 @@ class PredicateTrainingGeneratorIT {
 
         // File to use
         Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
-        Path targetDir = Paths.get(TestMachines.getDbPath(""));
+
+        // Copy target file to ensure it is newer than the source
+        Path origTarget = Paths.get(TestMachines.FEATURES_CHECK_DB);
+        Path targetDir = Files.createTempDirectory("neurob-it");
         Path target = format.getTargetLocation(mch.getFileName(), targetDir);
+        Files.copy(origTarget, target);
 
         TrainingSetGenerator gen = new PredicateTrainingGenerator();
 
@@ -423,7 +427,7 @@ class PredicateTrainingGeneratorIT {
         TrainingSetGenerator gen = new PredicateTrainingGenerator();
 
         assertFalse(gen.dataAlreadyExists(newMch, target),
-                "Data should be marked as nonexistent existent");
+                "Data should be marked as nonexistent");
     }
 
 }
