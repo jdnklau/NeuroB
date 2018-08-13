@@ -3,6 +3,7 @@ package de.hhu.stups.neurob.training.formats;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -28,7 +29,7 @@ public interface TrainingDataFormat<F extends Features> {
      * @param targetDirectory Location to populate with training data
      */
     <L extends Labelling>
-    void writeSamples(TrainingData<F, L> trainingData,
+    DataGenerationStats writeSamples(TrainingData<F, L> trainingData,
             Path targetDirectory) throws IOException;
 
 }

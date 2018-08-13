@@ -9,6 +9,7 @@ import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.formats.JsonFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,10 +69,13 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
 
     @Override
     public <L extends Labelling>
-    void writeSamples(TrainingData<PredicateFeatures, L> trainingData, Path targetDirectory)
+    DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData, Path targetDirectory)
             throws IOException {
         Path sourceFile = trainingData.getSourceFile();
         Path targetFile = getTargetLocation(sourceFile, targetDirectory);
+
+        DataGenerationStats stats = new DataGenerationStats();
+        stats.increaseFilesSeen();
 
         // Ensure target subdirectory exists
         Path targetSubdir = targetFile.getParent();
@@ -81,22 +85,30 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
         } catch (IOException e) {
             log.error("Could not create target directory {}",
                     targetSubdir, e);
-            return;
+            return stats;
         }
 
         try {
             log.info("Writing samples from {} to {}",
                     sourceFile, targetFile);
-            writeSamples(trainingData,
-                    Files.newBufferedWriter(targetFile));
+            DataGenerationStats writeStats =
+                    writeSamples(trainingData, Files.newBufferedWriter(targetFile));
+
+            stats.increaseFilesCreated();
+            stats.mergeWith(writeStats);
         } catch (IOException e) {
             log.warn("Could not create samples", e);
         }
+
+        return stats;
     }
 
     public <L extends Labelling>
-    void writeSamples(TrainingData<PredicateFeatures, L> trainingData,
+    DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData,
             Writer writer) throws IOException {
+        // Set up stats
+        DataGenerationStats stats = new DataGenerationStats();
+
         // Header
         writer.write("{\"samples\":[");
         trainingData.getSamples()
@@ -107,6 +119,9 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
                 .forEach(sample -> {
                     try {
                         writer.write(sample);
+                        if (!",".equals(sample)) {
+                            stats.increaseSamplesWritten();
+                        }
                     } catch (IOException e) {
                         if (",".equals(sample)) {
                             log.error(
@@ -117,11 +132,14 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
                                     "Could not add separator between samples");
                         }
                         log.warn("Unable to write the sample {}", sample, e);
+                        stats.increaseSamplesFailed();
                     }
                 });
         // Footer
         writer.write("]}");
         writer.flush();
+
+        return stats;
     }
 
     public <L extends Labelling>

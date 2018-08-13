@@ -5,6 +5,7 @@ import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -55,6 +56,35 @@ class PredicateDbFormatIT {
 
         assertEquals(expected, actual,
                 "File contents do not match");
+    }
+
+    @Test
+    public void shouldCalculateStatistics() throws IOException {
+        // Prepare training sample data to encapsulate
+        PredicateFeatures features = new PredicateFeatures("pred");
+        Labelling labels = new Labelling(3., 1., -1., 2.);
+        Path source = Paths.get("non/existent.mch");
+        Stream<TrainingSample<PredicateFeatures, Labelling>> sampleStream =
+                Stream.of(
+                        new TrainingSample<>(features, labels, source),
+                        new TrainingSample<>(features, labels, source));
+        TrainingData<PredicateFeatures, Labelling> trainingData =
+                new TrainingData<>(source, sampleStream);
+
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        Path targetDir = Files.createTempDirectory("neurob-it");
+        Path targetFile = format.getTargetLocation(source, targetDir);
+
+        DataGenerationStats stats = format.writeSamples(trainingData, targetDir);
+
+        assertAll("Predicate DB statistics",
+                () -> assertEquals(1, stats.getFilesSeen(),
+                        "Should only have seen one file"),
+                () -> assertEquals(1, stats.getFilesCreated(),
+                        "Should only have created one file"),
+                () -> assertEquals(2, stats.getSamplesWritten(),
+                        "Should have written two samples"));
     }
 
     protected DbSample<BPredicate> getSample() {

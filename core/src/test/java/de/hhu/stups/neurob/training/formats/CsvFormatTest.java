@@ -6,6 +6,7 @@ import de.hhu.stups.neurob.testharness.TestFeatures;
 import de.hhu.stups.neurob.testharness.TestLabelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -79,6 +80,29 @@ class CsvFormatTest {
         String actual = writer.toString();
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldCountSamplesWritten() throws IOException {
+        Features f = new TestFeatures(1., 2., 3.);
+        Labelling l = new TestLabelling(4., 5.);
+
+        Stream<TrainingSample<Features, Labelling>> sampleStream =
+                Stream.of(new TrainingSample<>(f, l),
+                        new TrainingSample<>(f, l),
+                        new TrainingSample<>(f, l));
+
+        StringWriter writer = new StringWriter();
+        CsvFormat format = new CsvFormat(writer);
+
+        DataGenerationStats stats = format.writeSamples(new TrainingData<>(null, sampleStream), null);
+
+        int expected = 3;
+        int actual = stats.getSamplesWritten();
+
+        assertEquals(expected, actual,
+                "Count of written samples does not match");
+
     }
 
 }

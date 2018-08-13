@@ -6,6 +6,7 @@ import de.hhu.stups.neurob.testharness.TestFeatures;
 import de.hhu.stups.neurob.testharness.TestLabelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -109,6 +110,34 @@ class JsonFormatIT {
         String actual = Files.lines(targetFile).collect(Collectors.joining());
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldCalculateStatistics()
+            throws IOException {
+        Features features = createFeatures(1., 2.);
+        Labelling labels = createLabels(3., 4., 5.);
+
+        TrainingSample<Features, Labelling> sample =
+                new TrainingSample<>(features, labels);
+
+        Path source = Paths.get("non/existent.mch");
+        JsonFormat format = new JsonFormat();
+
+        Path targetDir = Files.createTempDirectory("neurob");
+        Path targetFile = targetDir.resolve("non/existent.json");
+
+        DataGenerationStats stats = format.writeSamples(
+                new TrainingData<>(source, Stream.of(sample, sample, sample, sample)),
+                targetDir);
+
+        assertAll("Json statistics",
+                () -> assertEquals(1, stats.getFilesSeen(),
+                        "Should only have seen one file"),
+                () -> assertEquals(1, stats.getFilesCreated(),
+                        "Should only have created one file"),
+                () -> assertEquals(4, stats.getSamplesWritten(),
+                        "Should have written two samples"));
     }
 
     private Features createFeatures(Double... features) {

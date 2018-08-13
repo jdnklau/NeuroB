@@ -6,6 +6,7 @@ import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -392,6 +393,31 @@ class PredicateDbFormatTest {
                           + SINGLE_JSON_ENTRY_WITHOUT_SOURCE + ","
                           + SINGLE_JSON_ENTRY + "]}";
         String actual = writer.toString();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldCountWrittenSamplesInStatistics() throws IOException {
+        // Prepare training sample data to encapsulate
+        PredicateFeatures features = new PredicateFeatures("pred");
+        Labelling labels = new Labelling(3., 1., -1., 2.);
+        Path source = Paths.get("non/existent.mch");
+        Stream<TrainingSample<PredicateFeatures, Labelling>> sampleStream =
+                Stream.of(
+                        new TrainingSample<>(features, labels, source),
+                        new TrainingSample<>(features, labels),
+                        new TrainingSample<>(features, labels, source));
+        TrainingData<PredicateFeatures, Labelling> trainingData =
+                new TrainingData<>(source, sampleStream);
+
+        PredicateDbFormat format = new PredicateDbFormat();
+
+        StringWriter writer = new StringWriter();
+        DataGenerationStats stats = format.writeSamples(trainingData, writer);
+
+        int expected = 3;
+        int actual = stats.getSamplesWritten();
 
         assertEquals(expected, actual);
     }

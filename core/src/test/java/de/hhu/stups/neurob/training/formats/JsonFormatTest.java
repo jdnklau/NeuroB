@@ -5,6 +5,7 @@ import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.testharness.TestFeatures;
 import de.hhu.stups.neurob.testharness.TestLabelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -147,6 +148,25 @@ class JsonFormatTest {
                 + "\"labelling\":[3.0,4.0,5.0]}"
                 + "]}";
         String actual = out.toString();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldCountWrittenSamplesForStatistics() throws IOException {
+        Features features = createFeatures(1., 2.);
+        Labelling labels = createLabels(3., 4., 5.);
+
+        TrainingSample<Features, Labelling> sample =
+                new TrainingSample<>(features, labels);
+
+        JsonFormat format = new JsonFormat();
+
+        StringWriter out = new StringWriter();
+        DataGenerationStats stats = format.writeSamples(Stream.of(sample, sample), out);
+
+        int expected = 2;
+        int actual = stats.getSamplesWritten();
 
         assertEquals(expected, actual);
     }

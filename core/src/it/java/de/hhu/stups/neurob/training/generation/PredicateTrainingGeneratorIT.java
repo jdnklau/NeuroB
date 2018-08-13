@@ -159,7 +159,8 @@ class PredicateTrainingGeneratorIT {
         doAnswer(invocation -> {
             TrainingData<PredicateFeatures, PredicateLabelling> in =
                     invocation.getArgument(0);
-            return samples.addAll(in.getSamples().collect(Collectors.toList()));
+            samples.addAll(in.getSamples().collect(Collectors.toList()));
+            return null;
         }).when(formatMock).writeSamples(any(TrainingData.class), any());
 
         generator.generateTrainingData(srcDirectory, targetDir, false);

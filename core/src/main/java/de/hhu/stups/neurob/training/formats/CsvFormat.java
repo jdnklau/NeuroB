@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +43,10 @@ public class CsvFormat implements TrainingDataFormat<Features> {
 
     @Override
     public <L extends Labelling>
-    void writeSamples(TrainingData<Features, L> trainingData,
+    DataGenerationStats writeSamples(TrainingData<Features, L> trainingData,
             Path targetDirectory) throws IOException {
+        // Set up statistics
+        DataGenerationStats stats = new DataGenerationStats();
 
         // get target writer
         Writer out;
@@ -54,18 +57,22 @@ public class CsvFormat implements TrainingDataFormat<Features> {
                     targetDirectory);
             out = Files.newBufferedWriter(targetFile);
             log.info("Writing to {}", targetFile);
+            stats.increaseFilesCreated();
         }
 
         trainingData.getSamples().map(this::generateCsvEntry).forEach(
                 entry -> {
                     try {
                         out.write(entry + "\n");
+                        stats.increaseSamplesWritten();
                     } catch (IOException e) {
                         log.warn("Could not add entry {}",
                                 entry);
+                        stats.increaseSamplesFailed();
                     }
                 });
 
+        return stats;
     }
 
     public String generateCsvEntry(TrainingSample sample) {
