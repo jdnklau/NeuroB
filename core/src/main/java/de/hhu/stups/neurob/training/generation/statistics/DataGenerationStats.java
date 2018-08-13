@@ -148,4 +148,15 @@ public class DataGenerationStats {
         return this;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("Files seen: ").append(filesSeen).append("; ")
+                .append("Files created: ").append(filesCreated).append("; ")
+                .append("Training samples written: ").append(samplesWritten).append("; ")
+                .append("Training samples that lead to errors: ").append(samplesFailed);
+
+        return builder.toString();
+    }
 }
