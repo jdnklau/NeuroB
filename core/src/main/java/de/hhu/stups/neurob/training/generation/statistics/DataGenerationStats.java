@@ -133,18 +133,19 @@ public class DataGenerationStats {
     }
 
     /**
-     * Combines two generation statistics into a new one.
-     * This instance remains unchanged.
+     * Merges the given statistics into this one, i.e. adding up the values.
+     *
      * @param other
+     *
      * @return
      */
     public DataGenerationStats mergeWith(DataGenerationStats other) {
-        return new DataGenerationStats(
-                filesSeen + other.filesSeen,
-                filesCreated + other.filesCreated,
-                samplesWritten + other.samplesWritten,
-                samplesFailed + other.samplesFailed
-        );
+        filesSeen += other.filesSeen;
+        filesCreated += other.filesCreated;
+        samplesWritten += other.samplesWritten;
+        samplesFailed += other.samplesFailed;
+
+        return this;
     }
 
 }
