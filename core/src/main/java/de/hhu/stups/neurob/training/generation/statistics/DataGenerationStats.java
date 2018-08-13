@@ -1,0 +1,150 @@
+package de.hhu.stups.neurob.training.generation.statistics;
+
+/**
+ * Statistics class holding information about results from
+ * training set generation.
+ */
+public class DataGenerationStats {
+    /** Number of distinct files used by this generation step */
+    private int filesSeen;
+    /** Number of distinct files created by this generation step */
+    private int filesCreated;
+    /** Number of samples that were successfully written to a file */
+    private int samplesWritten;
+    /** Number of samples that failed to be created due to encountered errors */
+    private int samplesFailed;
+
+    public DataGenerationStats() {
+        this(0, 0, 0, 0);
+    }
+
+    /**
+     * @param filesSeen Number of distinct files used by this generation step
+     * @param filesCreated Number of distinct files created by this generation step
+     * @param samplesWritten Number of samples that were successfully written to a file
+     * @param samplesFailed Number of samples that failed to be created due to encountered
+     *         errors
+     */
+    public DataGenerationStats(int filesSeen, int filesCreated, int samplesWritten, int samplesFailed) {
+        this.filesSeen = filesSeen;
+        this.filesCreated = filesCreated;
+        this.samplesWritten = samplesWritten;
+        this.samplesFailed = samplesFailed;
+    }
+
+    public int getFilesSeen() {
+        return filesSeen;
+    }
+
+    /**
+     * Increase number of distinct files used by this generation step.
+     *
+     * @return New number of files used.
+     */
+    public int increaseFilesSeen() {
+        return increaseFilesSeen(1);
+    }
+
+    /**
+     * Increase number of distinct files used by this generation step.
+     *
+     * @param amount How many files were seen additionally
+     *
+     * @return New number of files used.
+     */
+    public int increaseFilesSeen(int amount) {
+        filesSeen += amount;
+        return filesSeen;
+    }
+
+    public int getFilesCreated() {
+        return filesCreated;
+    }
+
+    /**
+     * Increase number of distinct files created by this generation step.
+     *
+     * @return New number of files created
+     */
+    public int increaseFilesCreated() {
+        return increaseFilesCreated(1);
+    }
+
+    /**
+     * Increase number of distinct files created by this generation step.
+     *
+     * @param amount How many additional files were created
+     *
+     * @return New number of files created
+     */
+    public int increaseFilesCreated(int amount) {
+        filesCreated += amount;
+        return filesCreated;
+    }
+
+    public int getSamplesWritten() {
+        return samplesWritten;
+    }
+
+    /**
+     * Increase number of samples that were successfully written to a file.
+     *
+     * @return New number of samples written
+     */
+    public int increaseSamplesWritten() {
+        return increaseSamplesWritten(1);
+    }
+
+    /**
+     * Increase number of samples that were successfully written to a file.
+     *
+     * @param amount How many additional samples were successfully written
+     *
+     * @return New number of samples written
+     */
+    public int increaseSamplesWritten(int amount) {
+        samplesWritten += amount;
+        return samplesWritten;
+    }
+
+    public int getSamplesFailed() {
+        return samplesFailed;
+    }
+
+    /**
+     * Increase number of samples that failed to be created due to encountered errors.
+     *
+     * @return New number of samples that encountered errors
+     */
+    public int increaseSamplesFailed() {
+        return increaseSamplesFailed(1);
+    }
+
+    /**
+     * Increase number of samples that failed to be created due to encountered errors.
+     *
+     * @param amount How many additional samples caused an error
+     *
+     * @return New number of samples that encountered errors
+     */
+    public int increaseSamplesFailed(int amount) {
+        samplesFailed += amount;
+        return samplesFailed;
+    }
+
+    /**
+     * Combines two generation statistics into a new one.
+     * This instance remains unchanged.
+     * @param other
+     * @return
+     */
+    public DataGenerationStats mergeWith(DataGenerationStats other) {
+        return new DataGenerationStats(
+                filesSeen + other.filesSeen,
+                filesCreated + other.filesCreated,
+                samplesWritten + other.samplesWritten,
+                samplesFailed + other.samplesFailed
+        );
+    }
+
+}
