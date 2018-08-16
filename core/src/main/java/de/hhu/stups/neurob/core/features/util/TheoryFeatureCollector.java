@@ -3,6 +3,7 @@ package de.hhu.stups.neurob.core.features.util;
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.node.Node;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
+import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.statespace.StateSpace;
 
@@ -19,7 +20,8 @@ public class TheoryFeatureCollector {
         try {
             // Try to parse directly over the state space, if given
             if (ss != null) {
-                ast = ((IBEvalElement) ss.getModel().parseFormula(pred)).getAst();
+                ast = ((IBEvalElement) ss.getModel()
+                        .parseFormula(pred, FormulaExpand.EXPAND)).getAst();
             } else {
                 BParser parser = new BParser();
                 String input = BParser.PREDICATE_PREFIX + pred;

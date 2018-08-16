@@ -9,6 +9,7 @@ import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.ComputationNotCompletedResult;
 import de.prob.animator.domainobjects.EvalResult;
 import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.exception.ProBError;
 import de.prob.statespace.StateSpace;
@@ -145,7 +146,7 @@ public abstract class Backend {
         Boolean isDecidable;
         Long start, duration;
         try {
-            log.debug("{}: Deciding predicate {}", this.toString(), predicate);
+            log.trace("{}: Deciding predicate {}", this.toString(), predicate);
             start = System.nanoTime(); // start measuring time
             isDecidable = futureRes.get(timeOutValue, timeOutUnit);
             duration = System.nanoTime() - start; // stop measuring
@@ -234,11 +235,11 @@ public abstract class Backend {
         try {
             switch (mt) {
                 case EVENTB:
-                    cmd = new EventB(predicate);
+                    cmd = new EventB(predicate, FormulaExpand.EXPAND);
                     break;
                 default:
                 case CLASSICALB:
-                    cmd = new ClassicalB(predicate);
+                    cmd = new ClassicalB(predicate, FormulaExpand.EXPAND);
             }
         } catch (Exception e) {
             throw new FormulaException("Could not translate to IBEvalElement "
@@ -265,7 +266,7 @@ public abstract class Backend {
     public static IBEvalElement generateBFormula(String predicate,
             StateSpace ss) throws FormulaException {
         try {
-            return (IBEvalElement) ss.getModel().parseFormula(predicate);
+            return (IBEvalElement) ss.getModel().parseFormula(predicate, FormulaExpand.EXPAND);
         } catch (Exception e) {
             throw new FormulaException("Could not translate to IBEvalElement "
                                        + "from predicate " + predicate, e);
