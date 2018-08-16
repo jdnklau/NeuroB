@@ -143,7 +143,10 @@ public class PredicateCollection {
                     WeakestPreconditionCommand wpcc =
                             new WeakestPreconditionCommand(x.getName(), invCmd);
                     ss.execute(wpcc);
-                    wpcs.put(inv, wpcc.getWeakestPrecondition().getCode());
+                    // FIXME: Erase comment, probably should not be returned by ProB to begin with
+                    String code = wpcc.getWeakestPrecondition().getCode()
+                            .replaceAll("/\\*.*\\*/ *", "");
+                    wpcs.put(inv, code);
                 } catch (Exception e) {
                     log.warn("Could not build weakest precondition"
                              + "for {} by operation {}.",
@@ -167,8 +170,10 @@ public class PredicateCollection {
                 BeforeAfterPredicateCommand bapc =
                         new BeforeAfterPredicateCommand(x.getName());
                 ss.execute(bapc);
-                beforeAfterPredicates.put(x.getName(),
-                        bapc.getBeforeAfterPredicate().getCode());
+                // FIXME: Erase comment, probably should not be returned by ProB to begin with
+                String code = bapc.getBeforeAfterPredicate().getCode()
+                        .replaceAll("/\\*.*\\*/ *", "");
+                beforeAfterPredicates.put(x.getName(), code);
             } catch (Exception e) {
                 log.warn("Could not build Before After Predicate for event {}.",
                         x.getName(), e);

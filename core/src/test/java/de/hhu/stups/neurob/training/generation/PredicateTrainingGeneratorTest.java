@@ -93,13 +93,13 @@ class PredicateTrainingGeneratorTest {
         // assertions
         expected.add("(invariant) & assertion");
         expected.add("(invariant) & not(assertion)");
-        expected.add("not((invariant)) => assertion");
+        expected.add("not((invariant)) => (assertion)");
         // enabling relations
         // ... none as no preconditions exist
         // invariant preservation
         expected.add("invariant & weakest");
         expected.add("invariant & not(weakest)");
-        expected.add("(not(invariant) => weakest)");
+        expected.add("(not(invariant) => (weakest))");
         expected.add("(not(invariant) => not(weakest))");
         // multi precondition formulae
         // ... none as no preconditions exist

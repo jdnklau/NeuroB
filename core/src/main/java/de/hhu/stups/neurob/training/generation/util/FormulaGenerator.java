@@ -152,7 +152,7 @@ public class FormulaGenerator {
                 String g2 = allPreconditions.get(j);
 
                 formulae.add(propsAndInvsPre + g1 + " & " + g2);
-                formulae.add(propsAndInvsPre + "(not(" + g1 + ") => " + g2 + ")");
+                formulae.add(propsAndInvsPre + "(not(" + g1 + ") => (" + g2 + "))");
                 formulae.add(propsAndInvsPre + g1 + " & not(" + g2 + ")");
                 formulae.add(propsAndInvsPre + "(" + g1 + " => not(" + g2 + "))");
             }
@@ -255,7 +255,7 @@ public class FormulaGenerator {
 
                 formulae.add(PropsAndInvsPre + "not(" + g1AndBa + ") & " + g2 + "");
                 formulae.add(PropsAndInvsPre + "not(" + g1AndBa + ") & not(" + g2 + ")");
-                formulae.add(PropsAndInvsPre + "(not(" + g1AndBa + ") => " + g2 + ")");
+                formulae.add(PropsAndInvsPre + "(not(" + g1AndBa + ") => (" + g2 + "))");
                 formulae.add(PropsAndInvsPre + "(not(" + g1AndBa + ") => not(" + g2 + "))");
             }
         }
@@ -321,7 +321,7 @@ public class FormulaGenerator {
                 String wpc = invEntry.getValue();
 
                 formulae.add(PropsPre + inv + " & " + wpc);
-                formulae.add(PropsPre + "(not(" + inv + ") => " + wpc + ")");
+                formulae.add(PropsPre + "(not(" + inv + ") => (" + wpc + "))");
                 formulae.add(PropsPre + inv + " & not(" + wpc + ")");
                 formulae.add(PropsPre + "(not(" + inv + ") => not(" + wpc + "))");
             }
@@ -368,7 +368,7 @@ public class FormulaGenerator {
                     formulae.add(PropsPre + unprimedInv + " & " + gAndBa
                                  + " & " + primedInv);
                     formulae.add(PropsPre + "(not(" + unprimedInv + " & "
-                                 + gAndBa + ") => " + primedInv + ")");
+                                 + gAndBa + ") => (" + primedInv + "))");
                     formulae.add(PropsPre + unprimedInv + " & " + gAndBa
                                  + " & not(" + primedInv + ")");
                     formulae.add(PropsPre + "(not(" + unprimedInv + " & "
@@ -425,7 +425,7 @@ public class FormulaGenerator {
             for (String a : assertionsList) {
                 formulae.add(propsAndInv + " & " + a);
                 formulae.add(propsAndInv + " & not(" + a + ")");
-                formulae.add("not(" + propsAndInv + ") => " + a);
+                formulae.add("not(" + propsAndInv + ") => (" + a + ")");
             }
         }
 

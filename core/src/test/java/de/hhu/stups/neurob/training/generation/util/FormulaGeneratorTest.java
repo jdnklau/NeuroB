@@ -168,7 +168,7 @@ public class FormulaGeneratorTest {
 
         expected.add(propertyInvariantPre + pre2 + " & " + pre1);
         expected.add(propertyInvariantPre +
-                     "(not(" + pre2 + ") => " + pre1 + ")");
+                     "(not(" + pre2 + ") => (" + pre1 + "))");
         expected.add(propertyInvariantPre + pre2 + " & not(" + pre1 + ")");
         expected.add(propertyInvariantPre +
                      "(" + pre2 + " => not(" + pre1 + "))");
@@ -204,7 +204,7 @@ public class FormulaGeneratorTest {
 
                 expected.add(P + "not(" + op + ") & " + primed + "");
                 expected.add(P + "not(" + op + ") & not(" + primed + ")");
-                expected.add(P + "(not(" + op + ") => " + primed + ")");
+                expected.add(P + "(not(" + op + ") => (" + primed + "))");
                 expected.add(P + "(not(" + op + ") => not(" + primed + "))");
             }
         }
@@ -273,8 +273,8 @@ public class FormulaGeneratorTest {
                 expected.add(P + " & " + inv + " & " + wps.get(inv));
                 expected.add(P + " & " + inv + " & "
                              + "not(" + wps.get(inv) + ")");
-                expected.add(P + " & (not(" + inv + ") => "
-                             + wps.get(inv) + ")");
+                expected.add(P + " & (not(" + inv + ") => ("
+                             + wps.get(inv) + "))");
                 expected.add(P + " & (not(" + inv + ") => "
                              + "not(" + wps.get(inv) + "))");
 
@@ -291,8 +291,8 @@ public class FormulaGeneratorTest {
                              + primedInvariants.get(inv));
                 expected.add(P + " & " + invAndBA + " & "
                              + "not(" + primedInvariants.get(inv) + ")");
-                expected.add(P + " & (not(" + invAndBA + ") => "
-                             + primedInvariants.get(inv) + ")");
+                expected.add(P + " & (not(" + invAndBA + ") => ("
+                             + primedInvariants.get(inv) + "))");
                 expected.add(P + " & (not(" + invAndBA + ") => "
                              + "not(" + primedInvariants.get(inv) + "))");
 
@@ -322,16 +322,16 @@ public class FormulaGeneratorTest {
         expected.add(P + "assertion1");
         expected.add(P + "not(assertion1)");
         expected.add("not((" + propertyConcatenation + ") & "
-                     + invariantConcatenation + ") => assertion1");
+                     + invariantConcatenation + ") => (assertion1)");
         expected.add(P + "assertion2");
         expected.add(P + "not(assertion2)");
         expected.add("not((" + propertyConcatenation + ") & "
-                     + invariantConcatenation + ") => assertion2");
+                     + invariantConcatenation + ") => (assertion2)");
         expected.add(P + "(assertion1) & (assertion2)");
         expected.add(P + "not((assertion1) & (assertion2))");
         expected.add("not((" + propertyConcatenation + ") & "
                      + invariantConcatenation +
-                     ") => (assertion1) & (assertion2)");
+                     ") => ((assertion1) & (assertion2))");
 
         // Sort for equality comparison
         expected.sort(Comparator.naturalOrder());
@@ -407,7 +407,7 @@ public class FormulaGeneratorTest {
         List<String> expected = new ArrayList<>();
         expected.add("invariant & (precondition) & beforeAfter & primed");
         expected.add("invariant & (precondition) & beforeAfter & not(primed)");
-        expected.add("(not(invariant & (precondition) & beforeAfter) => primed)");
+        expected.add("(not(invariant & (precondition) & beforeAfter) => (primed))");
         expected.add("(not(invariant & (precondition) & beforeAfter) => not(primed))");
 
         List<String> actual = FormulaGenerator.invariantPreservations(pc);

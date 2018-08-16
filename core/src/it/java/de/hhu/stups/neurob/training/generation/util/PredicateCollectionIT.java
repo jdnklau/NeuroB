@@ -210,15 +210,14 @@ class PredicateCollectionIT {
         Map<String, Map<String, String>> weakestPres = new HashMap<>();
         Map<String, String> opWeak;
         opWeak = new HashMap<>();
-        opWeak.put("z<2", "/* @example:grd1 */ z < 2 => z + 1 < 2");
-        opWeak.put("z:NAT", "/* @example:grd1 */ z < 2 => z + 1 : NAT");
-        opWeak.put("y:NAT", "/* @example:grd1 */ z < 2 => y : NAT");
-        opWeak.put("x<y", "/* @example:grd1 */ z < 2 => x < y");
-        opWeak.put("x:NAT", "/* @example:grd1 */ z < 2 => x : NAT");
-        opWeak.put("y=1", "/* @example:grd1 */ z < 2 => y = 1");
+        opWeak.put("z<2", "z < 2 => z + 1 < 2");
+        opWeak.put("z:NAT", "z < 2 => z + 1 : NAT");
+        opWeak.put("y:NAT", "z < 2 => y : NAT");
+        opWeak.put("x<y", "z < 2 => x < y");
+        opWeak.put("x:NAT", "z < 2 => x : NAT");
+        opWeak.put("y=1", "z < 2 => y = 1");
         opWeak.put("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)",
-                "/* @example:grd1 */ "
-                + "z < 2 => x : NAT & (y : NAT & (x < y & (y = 1 & (z + 1 : NAT "
+                "z < 2 => x : NAT & (y : NAT & (x < y & (y = 1 & (z + 1 : NAT "
                 + "& z + 1 < 2))))");
         weakestPres.put("incZ", opWeak);
 
@@ -240,8 +239,7 @@ class PredicateCollectionIT {
     public void shouldLoadBeforeAfterPredicatesWhenEventB() {
         Map<String, String> baPreds = new HashMap<>();
         baPreds.put("incZ",
-                "/* @example:grd1 */ "
-                + "z < 2 & z' = z + 1 & x' = x & y' = y & a' = a");
+                "z < 2 & z' = z + 1 & x' = x & y' = y & a' = a");
 
         assertEquals(baPreds, pcEventB.getBeforeAfterPredicates(),
                 "Before After predicates do not match");
