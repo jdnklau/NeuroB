@@ -108,6 +108,7 @@ public abstract class TrainingSetGenerator {
         }
 
         log.info("Generation of training data: done");
+        log.info("Generation statistics: {}", stats);
         return stats;
     }
 
