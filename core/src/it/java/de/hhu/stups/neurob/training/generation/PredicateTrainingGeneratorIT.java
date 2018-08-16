@@ -18,6 +18,7 @@ import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,7 @@ class PredicateTrainingGeneratorIT {
             .getResource("db/").getFile();
 
     @BeforeEach
-    public void setUpMocks() {
+    public void setUpMocks() throws IOException {
         featureGen = (pred, ss) -> generateMockedFeatures(pred);
         labelGen = (pred, ss) -> generateMockedLabels(pred);
         formatMock = mock(TrainingDataFormat.class);
@@ -160,7 +161,7 @@ class PredicateTrainingGeneratorIT {
             TrainingData<PredicateFeatures, PredicateLabelling> in =
                     invocation.getArgument(0);
             samples.addAll(in.getSamples().collect(Collectors.toList()));
-            return null;
+            return new DataGenerationStats();
         }).when(formatMock).writeSamples(any(TrainingData.class), any());
 
         generator.generateTrainingData(srcDirectory, targetDir, false);
@@ -199,7 +200,7 @@ class PredicateTrainingGeneratorIT {
     }
 
     @Test
-    public void shouldeEliminateCommonSourceDirectoryPattern() throws IOException {
+    public void shouldEliminateCommonSourceDirectoryPattern() throws IOException {
         Path sourceDir = Paths.get(TestMachines.TEST_MACHINE_DIR);
         Path targetDir = Paths.get("non/existent");
 
@@ -210,7 +211,7 @@ class PredicateTrainingGeneratorIT {
         doAnswer(invocation -> {
             TrainingData data = invocation.getArgument(0);
             files.add(data.getSourceFile());
-            return null;
+            return new DataGenerationStats();
         }).when(formatMock).writeSamples(any(TrainingData.class), any());
 
         generator.generateTrainingData(sourceDir, targetDir, false);
@@ -233,7 +234,7 @@ class PredicateTrainingGeneratorIT {
         doAnswer(invocation -> {
             TrainingData data = invocation.getArgument(0);
             files.add(data.getSourceFile());
-            return null;
+            return new DataGenerationStats();
         }).when(formatMock).writeSamples(any(TrainingData.class), any());
 
         generator.generateTrainingData(sourceDir, targetDir, false);
