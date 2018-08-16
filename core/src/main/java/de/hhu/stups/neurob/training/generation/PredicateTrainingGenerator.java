@@ -286,7 +286,7 @@ public class PredicateTrainingGenerator
             if (machineFile.endsWith(".mch")) {
                 log.info("Load State Space for Classical B machine {}", file);
                 return api.b_load(machineFile);
-            } else if (machineFile.endsWith("*.bcm")) {
+            } else if (machineFile.endsWith(".bcm")) {
                 log.info("Load State Space for EventB machine {}", file);
                 return api.eventb_load(machineFile);
             } else {
