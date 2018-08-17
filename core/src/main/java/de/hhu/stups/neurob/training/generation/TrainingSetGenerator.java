@@ -88,8 +88,16 @@ public abstract class TrainingSetGenerator {
                     .filter(file -> file.toString().endsWith(".mch")
                                     || file.toString().endsWith(".bcm"))
                     // Only create if non-lazy or non-existent
-                    .filter(file -> !lazy || !dataAlreadyExists(file,
-                            format.getTargetLocation(file, fullTargetDir)))
+                    .filter(file -> {
+                        boolean nonexistent = !lazy || !dataAlreadyExists(file,
+                                format.getTargetLocation(
+                                        stripCommonSourceDir(file, source),
+                                        fullTargetDir));
+                        if (!nonexistent) {
+                            log.info("Skipping {}: Data already present", file);
+                        }
+                        return nonexistent;
+                    })
                     .map(file -> new TrainingData(
                             stripCommonSourceDir(file, source),
                             streamSamplesFromFile(file)))
