@@ -17,4 +17,7 @@
   <logger name="de.hhu.stups.neurob" level="DEBUG">
     <appender-ref ref="STDERR" />
   </logger>
+  <logger name="de.prob" level="INFO">
+    <appender-ref ref="STDERR" />
+  </logger>
 </configuration>
