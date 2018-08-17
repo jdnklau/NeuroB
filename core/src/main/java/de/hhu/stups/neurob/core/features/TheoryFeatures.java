@@ -1,8 +1,8 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.features.util.TheoryFeatureCollector;
-import de.prob.statespace.StateSpace;
 
 /**
  * Small feature set over B predicates. Initial feature set for NeuroB.
@@ -40,19 +40,19 @@ public class TheoryFeatures extends PredicateFeatures {
      * @throws FeatureCreationException
      */
     public TheoryFeatures(String predicate) throws FeatureCreationException {
-        this(predicate, (StateSpace) null);
+        this(predicate, (MachineAccess) null);
     }
 
     /**
      * Generates the TheoryFeatures from the given predicate in the
-     * given StateSpace.
+     * given B machine.
      * @param predicate
-     * @param ss
+     * @param bMachine Access to the B machine the predicate gets decided over
      * @throws FeatureCreationException
      */
-    public TheoryFeatures(String predicate, StateSpace ss)
+    public TheoryFeatures(String predicate, MachineAccess bMachine)
             throws FeatureCreationException {
-        super(predicate, new Generator().generateArray(predicate, ss));
+        super(predicate, new Generator().generateArray(predicate, bMachine));
     }
 
     /**
@@ -85,9 +85,9 @@ public class TheoryFeatures extends PredicateFeatures {
         return generate(predicate, null);
     }
 
-    public static TheoryFeatures generate(String predicate, StateSpace ss)
+    public static TheoryFeatures generate(String predicate, MachineAccess bMachine)
             throws FeatureCreationException {
-        return new Generator().generate(predicate, ss);
+        return new Generator().generate(predicate, bMachine);
     }
 
     /**
@@ -100,14 +100,14 @@ public class TheoryFeatures extends PredicateFeatures {
     public static class Generator
             implements PredicateFeatureGenerating<TheoryFeatures> {
         @Override
-        public TheoryFeatures generate(String predicate, StateSpace ss)
+        public TheoryFeatures generate(String predicate, MachineAccess bMachine)
                 throws FeatureCreationException {
-            return new TheoryFeatures(predicate, generateArray(predicate, ss));
+            return new TheoryFeatures(predicate, generateArray(predicate, bMachine));
         }
 
-        public Double[] generateArray(String predicate, StateSpace ss)
+        public Double[] generateArray(String predicate, MachineAccess bMachine)
                 throws FeatureCreationException {
-            return TheoryFeatureCollector.collect(predicate, ss).toArray();
+            return TheoryFeatureCollector.collect(predicate, bMachine).toArray();
         }
 
     }

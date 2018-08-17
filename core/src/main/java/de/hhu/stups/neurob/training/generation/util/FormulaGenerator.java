@@ -9,13 +9,13 @@ import java.util.stream.Collectors;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.domainobjects.IBEvalElement;
-import de.prob.statespace.StateSpace;
 
 /**
  * This class provides access to reusable methods to get different formulas
@@ -37,17 +37,17 @@ public class FormulaGenerator {
      * <p>
      * This is mainly useful for before-after predicates.
      *
-     * @param ss
+     * @param bMachine Access to the B machine the predicate belongs to
      * @param predicate
      *
      * @return
      *
      * @throws FormulaException
      */
-    public static String generatePrimedPredicate(StateSpace ss,
+    public static String generatePrimedPredicate(MachineAccess bMachine,
             String predicate) throws FormulaException {
-        return generatePrimedPredicate(ss,
-                Backend.generateBFormula(predicate, ss));
+        return generatePrimedPredicate(bMachine,
+                Backend.generateBFormula(predicate, bMachine));
     }
 
     /**
@@ -57,18 +57,18 @@ public class FormulaGenerator {
      * <p>
      * This is mainly useful for before-after predicates.
      *
-     * @param ss
+     * @param bMachine Access to the B machine the predicate belongs to
      * @param evalElement
      *
      * @return
      *
      * @throws FormulaException
      */
-    public static String generatePrimedPredicate(StateSpace ss,
+    public static String generatePrimedPredicate(MachineAccess bMachine,
             IBEvalElement evalElement) throws FormulaException {
         try {
             PrimePredicateCommand ppc = new PrimePredicateCommand(evalElement);
-            ss.execute(ppc);
+            bMachine.execute(ppc);
             return ppc.getPrimedPredicate().getCode();
         } catch (Exception e) {
             throw new FormulaException("Could not build primed predicate from "
@@ -228,7 +228,7 @@ public class FormulaGenerator {
             }
             try {
                 primedPreconditions.put(operation, generatePrimedPredicate(
-                        predicateCollection.accessStateSpace(),
+                        predicateCollection.getBMachine(),
                         getStringConjunction(preconditionConjuncts.get(operation))));
             } catch (FormulaException e) {
                 log.warn("{}", e.getMessage(), e);

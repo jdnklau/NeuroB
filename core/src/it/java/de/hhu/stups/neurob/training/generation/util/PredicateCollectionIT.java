@@ -1,13 +1,12 @@
 package de.hhu.stups.neurob.training.generation.util;
 
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.testharness.TestMachines;
-import de.prob.Main;
-import de.prob.scripting.Api;
-import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -24,16 +23,14 @@ class PredicateCollectionIT {
 
     @BeforeAll
     public void loadPredicateCollection() throws Exception {
+        MachineAccess bMachine =
+                new MachineAccess(Paths.get(TestMachines.FORMULAE_GEN_MCH));
+        pc = new PredicateCollection(bMachine);
+        bMachine.close();
 
-        Api api = Main.getInjector().getInstance(Api.class);
-
-        StateSpace ss = api.b_load(TestMachines.FORMULAE_GEN_MCH);
-        pc = new PredicateCollection(ss);
-        ss.kill();
-
-        ss = api.eventb_load(TestMachines.EXAMPLE_BCM);
-        pcEventB = new PredicateCollection(ss);
-        ss.kill();
+        bMachine = new MachineAccess(Paths.get(TestMachines.EXAMPLE_BCM));
+        pcEventB = new PredicateCollection(bMachine);
+        bMachine.close();
     }
 
     @Test

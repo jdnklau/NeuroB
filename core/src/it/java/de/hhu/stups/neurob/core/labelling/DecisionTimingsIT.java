@@ -3,27 +3,24 @@ package de.hhu.stups.neurob.core.labelling;
 import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
+import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.testharness.TestMachines;
-import de.prob.Main;
-import de.prob.scripting.Api;
-import de.prob.scripting.ModelTranslationError;
-import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DecisionTimingsIT {
 
-    private StateSpace ss;
+    private MachineAccess bMachine;
 
     @BeforeEach
-    public void loadStateSpace() throws IOException, ModelTranslationError {
-        Api api = Main.getInjector().getInstance(Api.class);
-        ss = api.b_load(TestMachines.FORMULAE_GEN_MCH);
+    public void loadBMachine() throws MachineAccessException {
+        bMachine = new MachineAccess(Paths.get(TestMachines.FORMULAE_GEN_MCH));
     }
 
     @Test
@@ -32,7 +29,7 @@ class DecisionTimingsIT {
 
         ProBBackend prob = new ProBBackend();
 
-        DecisionTimings timings = new DecisionTimings(pred, 1, ss,
+        DecisionTimings timings = new DecisionTimings(pred, 1, bMachine,
                 prob);
 
         assertTrue(timings.getTiming(prob) < 0,
@@ -45,7 +42,7 @@ class DecisionTimingsIT {
 
         Z3Backend backend = new Z3Backend();
 
-        DecisionTimings timings = new DecisionTimings(pred, 1, ss,
+        DecisionTimings timings = new DecisionTimings(pred, 1, bMachine,
                 backend);
 
         assertFalse(timings.getTiming(backend) < 0,
@@ -61,7 +58,7 @@ class DecisionTimingsIT {
         Z3Backend z3 = new Z3Backend();
         KodKodBackend kodkod = new KodKodBackend();
 
-        DecisionTimings timings = new DecisionTimings(pred, 1, ss,
+        DecisionTimings timings = new DecisionTimings(pred, 1, bMachine,
                 prob, z3, kodkod);
 
         assertAll("Generating for multiple backends",

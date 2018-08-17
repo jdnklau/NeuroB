@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.core.features;
 
-import de.prob.statespace.StateSpace;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,8 +22,8 @@ class TheoryFeaturesTest {
     }
 
     @Test
-    public void shouldGenerateWhenUsingPredicateAndStateSpaceConstructor() throws Exception {
-        TheoryFeatures features = new TheoryFeatures(predicate, (StateSpace) null);
+    public void shouldGenerateWhenUsingPredicateAndMachineAccessConstructor() throws Exception {
+        TheoryFeatures features = new TheoryFeatures(predicate, (MachineAccess) null);
 
         assertArrayEquals(expectedFeatures, features.getFeatureArray());
     }
@@ -151,7 +151,7 @@ class TheoryFeaturesTest {
     }
 
     @Test
-    public void shouldCreateNewFeaturesWithStaticGeneratorWhenStateSpaceIsNull()
+    public void shouldCreateNewFeaturesWithStaticGeneratorWhenMachineAccessIsNull()
             throws Exception {
         TheoryFeatures features = TheoryFeatures.generate(predicate, null);
 

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.prob.model.eventb.Context;
 import org.slf4j.Logger;
@@ -22,11 +23,10 @@ import de.prob.model.representation.Axiom;
 import de.prob.model.representation.BEvent;
 import de.prob.model.representation.Guard;
 import de.prob.model.representation.Invariant;
-import de.prob.statespace.StateSpace;
 
 /**
  * Collection of invariants, properties, preconditions, etc. found in a
- * {@link StateSpace}.
+ * B machine.
  */
 public class PredicateCollection {
     private List<String> invariants;
@@ -38,16 +38,13 @@ public class PredicateCollection {
     private Map<String, Map<String, String>> weakestPreconditions;
     private Map<String, String> primedInvariants;
 
-    private StateSpace ss;
-
-    private MachineType machineType;
+    private MachineAccess bMachine;
 
     private static final Logger log =
             LoggerFactory.getLogger(PredicateCollection.class);
 
-    public PredicateCollection(StateSpace ss) {
-        this.ss = ss;
-        machineType = MachineType.getTypeFromStateSpace(ss);
+    public PredicateCollection(MachineAccess bMachine) {
+        this.bMachine = bMachine;
 
         invariants = new ArrayList<>();
         operations = new ArrayList<>();
@@ -58,22 +55,23 @@ public class PredicateCollection {
         weakestPreconditions = new HashMap<>();
         primedInvariants = new HashMap<>();
 
-        collectFromMachine(ss.getMainComponent());
+        collectFromMachine(bMachine);
 
         // for EventB, check Context as well
         // TODO: Check whether each EventB machine only has one context at max
         // maybe we do not need to loop over all;
         // also check how a state space behaves for refinements
 
-        if (machineType == MachineType.EVENTB) {
-            for (Context bcc : ss.getModel().getChildrenOfType(Context.class)) {
+        if (bMachine.getMachineType() == MachineType.EVENTB) {
+            for (Context bcc : bMachine.getStateSpace().getModel().getChildrenOfType(Context.class)) {
                 collectFromContext(bcc);
             }
         }
 
     }
 
-    private void collectFromMachine(AbstractElement comp) {
+    private void collectFromMachine(MachineAccess bMachine) {
+        AbstractElement comp = bMachine.getStateSpace().getMainComponent();
         // properties
         log.trace("Collecting properties");
         for (Property x : comp.getChildrenOfType(Property.class)) {
@@ -121,7 +119,7 @@ public class PredicateCollection {
         for (String inv : invariants) {
             try {
                 invCmds.put(inv,
-                        Backend.generateBFormula(inv, ss));
+                        Backend.generateBFormula(inv, bMachine));
             } catch (FormulaException e) {
                 log.warn("Could not set up EvalElement from {} for "
                          + "weakest precondition calculation or priming",
@@ -142,7 +140,7 @@ public class PredicateCollection {
                 try {
                     WeakestPreconditionCommand wpcc =
                             new WeakestPreconditionCommand(x.getName(), invCmd);
-                    ss.execute(wpcc);
+                    bMachine.execute(wpcc);
                     // FIXME: Erase comment, probably should not be returned by ProB to begin with
                     String code = wpcc.getWeakestPrecondition().getCode()
                             .replaceAll("/\\*.*\\*/ *", "");
@@ -157,7 +155,7 @@ public class PredicateCollection {
             weakestPreconditions.put(x.getName(), wpcs);
         }
 
-        if (machineType != MachineType.EVENTB)
+        if (bMachine.getMachineType() != MachineType.EVENTB)
             return; // FIXME: allow usage of classical B, too
 
         // Before/After predicates
@@ -169,7 +167,7 @@ public class PredicateCollection {
             try {
                 BeforeAfterPredicateCommand bapc =
                         new BeforeAfterPredicateCommand(x.getName());
-                ss.execute(bapc);
+                bMachine.execute(bapc);
                 // FIXME: Erase comment, probably should not be returned by ProB to begin with
                 String code = bapc.getBeforeAfterPredicate().getCode()
                         .replaceAll("/\\*.*\\*/ *", "");
@@ -187,7 +185,7 @@ public class PredicateCollection {
             IBEvalElement invCmd = invCmds.get(inv);
             try {
                 primedInvariants.put(inv,
-                        FormulaGenerator.generatePrimedPredicate(ss, invCmd));
+                        FormulaGenerator.generatePrimedPredicate(bMachine, invCmd));
             } catch (Exception e) {
                 log.warn("Could not build primed invariant from {}", inv, e);
             }
@@ -259,11 +257,11 @@ public class PredicateCollection {
 
 
     public MachineType getMachineType() {
-        return machineType;
+        return bMachine.getMachineType();
     }
 
-    public StateSpace accessStateSpace() {
-        return ss;
+    public MachineAccess getBMachine() {
+        return bMachine;
     }
 
 }

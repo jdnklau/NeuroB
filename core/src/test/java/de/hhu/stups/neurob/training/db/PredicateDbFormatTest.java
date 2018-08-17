@@ -7,7 +7,6 @@ import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -307,7 +306,7 @@ class PredicateDbFormatTest {
     }
 
     @Test
-    public void shouldWriteSample() throws IOException {
+    public void shouldWriteSample() {
         // Prepare training sample to write
         PredicateFeatures features = new PredicateFeatures("pred");
         Labelling labels = new Labelling(3., 1., -1., 2.);
@@ -325,7 +324,7 @@ class PredicateDbFormatTest {
     }
 
     @Test
-    public void shouldWriteSampleWhenNoSourceExists() throws IOException {
+    public void shouldWriteSampleWhenNoSourceExists() {
         // Prepare training sample to write
         PredicateFeatures features = new PredicateFeatures("pred");
         Labelling labels = new Labelling(3., 1., -1., 2.);
@@ -342,7 +341,7 @@ class PredicateDbFormatTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenLessLabelsThanBackends() throws IOException {
+    public void shouldThrowExceptionWhenLessLabelsThanBackends() {
         // Prepare training sample to write
         PredicateFeatures features = new PredicateFeatures("pred");
         Labelling labels = new Labelling(1., 2., 3.);
@@ -356,7 +355,7 @@ class PredicateDbFormatTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenMoreLabelsThanBackends() throws IOException {
+    public void shouldThrowExceptionWhenMoreLabelsThanBackends() {
         // Prepare training sample to write
         PredicateFeatures features = new PredicateFeatures("pred");
         Labelling labels = new Labelling(1., 2., 3., 4., 5.);

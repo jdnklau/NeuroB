@@ -1,9 +1,9 @@
 package de.hhu.stups.neurob.core.labelling;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
-import de.prob.statespace.StateSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,31 +47,29 @@ public class DecisionTimings extends PredicateLabelling {
      * @param predicate
      * @param sampleSize Number of times each timing is run; final time
      *         is taken from the average.
-     * @param stateSpace StateSpace over which the predicate shall be
-     *         decided.
+     * @param bMachine Access to the B machine the predicate belongs to
      * @param backends List of backend for which the labelling is
      *         created.
      */
     public DecisionTimings(String predicate, int sampleSize,
-            StateSpace stateSpace,
+            MachineAccess bMachine,
             Backend... backends)
             throws LabelCreationException {
         this(predicate, sampleSize, defaultTimeout, defaultTimeoutUnit,
-                stateSpace, backends);
+                bMachine, backends);
     }
 
     /**
      * @param predicate
      * @param sampleSize Number of times each timing is run; final time
      *         is taken from the average.
-     * @param stateSpace StateSpace over which the predicate shall be
-     *         decided.
+     * @param bMachine Access to the B machine the predicate belongs to
      * @param backends List of backend for which the labelling is
      *         created.
      */
     public DecisionTimings(String predicate, int sampleSize,
             Long timeOut, TimeUnit timeOutUnit,
-            StateSpace stateSpace, Backend... backends)
+            MachineAccess bMachine, Backend... backends)
             throws LabelCreationException {
         super(predicate, new Double[backends.length]);
 
@@ -80,14 +78,14 @@ public class DecisionTimings extends PredicateLabelling {
 
         this.timeOut = timeOut;
         this.timeUnit = timeOutUnit;
-        this.timings = createTimings(stateSpace, backends);
+        this.timings = createTimings(bMachine, backends);
 
         for (int i = 0; i < labellingDimension; i++) {
             labellingArray[i] = timings.get(backends[i]);
         }
     }
 
-    private Map<Backend, Double> createTimings(StateSpace ss, Backend... backends)
+    private Map<Backend, Double> createTimings(MachineAccess bMachine, Backend... backends)
             throws LabelCreationException {
         Map<Backend, Double> timings = new HashMap<>();
 
@@ -96,20 +94,20 @@ public class DecisionTimings extends PredicateLabelling {
         log.debug("Sample timings for the backends {} over predicate {}",
                 backends, predicate);
         for (Backend backend : backends) {
-            timings.put(backend, sampleTimings(ss, backend));
+            timings.put(backend, sampleTimings(bMachine, backend));
         }
 
         return timings;
     }
 
-    private Double sampleTimings(StateSpace ss, Backend backend)
+    private Double sampleTimings(MachineAccess bMachine, Backend backend)
             throws LabelCreationException {
         Double sampled = 0.;
         log.trace("Sampling timing over backend {}; {} times",
                 backend, sampleSize);
         for (int i = 0; i < sampleSize; i++) {
             try {
-                Long timing = backend.measureEvalTime(predicate, ss,
+                Long timing = backend.measureEvalTime(predicate, bMachine,
                         timeOut, timeUnit);
                 // stop if already not decidable
                 if (timing < 0) {
@@ -221,10 +219,10 @@ public class DecisionTimings extends PredicateLabelling {
         }
 
         @Override
-        public DecisionTimings generate(String predicate, StateSpace ss)
+        public DecisionTimings generate(String predicate, MachineAccess bMachine)
                 throws LabelCreationException {
             return new DecisionTimings(predicate, sampleSize,
-                    timeout, timeoutUnit, ss, backends);
+                    timeout, timeoutUnit, bMachine, backends);
         }
     }
 

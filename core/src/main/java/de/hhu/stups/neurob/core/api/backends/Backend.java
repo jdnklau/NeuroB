@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.core.api.backends;
 
 import de.hhu.stups.neurob.core.api.MachineType;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.prob.animator.command.CbcSolveCommand;
 import de.prob.animator.command.CbcSolveCommand.Solvers;
@@ -12,7 +13,6 @@ import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.exception.ProBError;
-import de.prob.statespace.StateSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,13 +78,13 @@ public abstract class Backend {
      * with respect to the time out specified in the constructor.
      *
      * @param predicate
-     * @param stateSpace
+     * @param bMachine Access to the B machine the predicate gets decided over
      *
      * @return
      */
-    public Boolean isDecidable(String predicate, StateSpace stateSpace)
+    public Boolean isDecidable(String predicate, MachineAccess bMachine)
             throws FormulaException {
-        return isDecidable(predicate, stateSpace,
+        return isDecidable(predicate, bMachine,
                 getTimeOutValue(), getTimeOutUnit());
     }
 
@@ -93,16 +93,16 @@ public abstract class Backend {
      * with respect to the time out specified in the constructor.
      *
      * @param predicate
-     * @param stateSpace
+     * @param bMachine Access to the B machine the predicate gets decided over
      * @param timeOutValue Time until the backend shall time out
      * @param timeOutUnit Unit of the time out
      *
      * @return
      */
-    public Boolean isDecidable(String predicate, StateSpace stateSpace,
+    public Boolean isDecidable(String predicate, MachineAccess bMachine,
             Long timeOutValue, TimeUnit timeOutUnit) throws FormulaException {
         // True if it can be decided in a non-negative time
-        return measureEvalTime(predicate, stateSpace,
+        return measureEvalTime(predicate, bMachine,
                 timeOutValue, timeOutUnit) >= 0;
     }
 
@@ -110,15 +110,15 @@ public abstract class Backend {
      * Measures time needed to decide whether the predicate is decidable or not.
      *
      * @param predicate The predicate to decide
-     * @param stateSpace The StateSpace the predicate gets decided in
+     * @param bMachine Access to the B machine the predicate gets decided over
      *
      * @return Time needed in nano seconds or -1 if it could not be decided
      *
      * @throws FormulaException
      */
-    public Long measureEvalTime(String predicate, StateSpace stateSpace)
+    public Long measureEvalTime(String predicate, MachineAccess bMachine)
             throws FormulaException {
-        return measureEvalTime(predicate, stateSpace,
+        return measureEvalTime(predicate, bMachine,
                 getTimeOutValue(), getTimeOutUnit());
     }
 
@@ -126,7 +126,7 @@ public abstract class Backend {
      * Measures time needed to decide whether the predicate is decidable or not.
      *
      * @param predicate The predicate to decide
-     * @param stateSpace The StateSpace the predicate gets decided in
+     * @param bMachine Access to the B machine the predicate gets decided over
      * @param timeOutValue Time until the backend shall time out
      * @param timeOutUnit Unit of the time out
      *
@@ -134,13 +134,13 @@ public abstract class Backend {
      *
      * @throws FormulaException
      */
-    public Long measureEvalTime(String predicate, StateSpace stateSpace,
+    public Long measureEvalTime(String predicate, MachineAccess bMachine,
             Long timeOutValue, TimeUnit timeOutUnit)
             throws FormulaException {
         // Set up thread for timeout check
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Boolean> futureRes = executor.submit(
-                () -> decidePredicate(predicate, stateSpace));
+                () -> decidePredicate(predicate, bMachine));
 
         // Start thread and check for errors
         Boolean isDecidable;
@@ -151,19 +151,19 @@ public abstract class Backend {
             isDecidable = futureRes.get(timeOutValue, timeOutUnit);
             duration = System.nanoTime() - start; // stop measuring
         } catch (IllegalStateException e) {
-            stateSpace.sendInterrupt();
+            bMachine.sendInterrupt();
             throw e;
         } catch (ProBError e) {
-            stateSpace.sendInterrupt();
+            bMachine.sendInterrupt();
             throw new FormulaException(
                     "ProBBackend encountered Problems with " + predicate, e);
         } catch (TimeoutException e) {
-            stateSpace.sendInterrupt();
+            bMachine.sendInterrupt();
             log.warn("Timeout after {} {} for predicate {}",
                     getTimeOutValue(), getTimeOutUnit(), predicate);
             return -1L;
         } catch (InterruptedException | ExecutionException e) {
-            stateSpace.sendInterrupt();
+            bMachine.sendInterrupt();
             throw new FormulaException(
                     "Execution interrupted: " + e.getMessage(), e);
         } finally {
@@ -174,22 +174,22 @@ public abstract class Backend {
     }
 
     /**
-     * Tries to decide the given predicate in the given {@link StateSpace} over
+     * Tries to decide the given predicate in the given B machine over
      * this backend.
      *
      * @param predicate
-     * @param stateSpace State space to decide the predicate in.
+     * @param bMachine Access to the B machine the predicate gets decided over
      *
      * @return Whether or not backend could decide the predicate.
      *
      * @throws FormulaException
      */
-    public Boolean decidePredicate(String predicate, StateSpace stateSpace)
+    public Boolean decidePredicate(String predicate, MachineAccess bMachine)
             throws FormulaException {
         Boolean res;
-        CbcSolveCommand cmd = createCbcSolveCommand(predicate, stateSpace);
+        CbcSolveCommand cmd = createCbcSolveCommand(predicate, bMachine);
 
-        stateSpace.execute(cmd);
+        bMachine.execute(cmd);
 
         // get value for result
         AbstractEvalResult cmdres = cmd.getValue();
@@ -209,8 +209,8 @@ public abstract class Backend {
     }
 
     public CbcSolveCommand createCbcSolveCommand(String predicate,
-            StateSpace stateSpace) throws FormulaException {
-        IBEvalElement formula = generateBFormula(predicate, stateSpace);
+            MachineAccess bMachine) throws FormulaException {
+        IBEvalElement formula = generateBFormula(predicate, bMachine);
         return new CbcSolveCommand(formula, toCbcEnum());
     }
 
@@ -219,7 +219,7 @@ public abstract class Backend {
      * respect to the machine type.
      * <p>
      * If you are using a state space of a B machine, it is advised to use
-     * {@link #generateBFormula(String, StateSpace)}
+     * {@link #generateBFormula(String, MachineAccess)}
      * instead
      *
      * @param predicate Predicate to create an evaluation element from
@@ -227,7 +227,7 @@ public abstract class Backend {
      *
      * @return
      *
-     * @see #generateBFormula(String, StateSpace)
+     * @see #generateBFormula(String, MachineAccess)
      */
     public static IBEvalElement generateBFormula(String predicate,
             MachineType mt) throws FormulaException {
@@ -250,13 +250,11 @@ public abstract class Backend {
 
     /**
      * Creates an {@link IBEvalElement} for command creation for ProB2 with
-     * respect to a given StateSpace.
-     * <p>
-     * If no StateSpace exists, use
+     * respect to a given B machine.
      * {@link #generateBFormula(String, MachineType)}.
      *
      * @param predicate Predicate to create an evaluation element from
-     * @param ss StateSpace over which the eval element will be created
+     * @param bMachine Access to the B machine over which the eval element will be created
      *
      * @return
      *
@@ -264,9 +262,9 @@ public abstract class Backend {
      * @see #generateBFormula(String, MachineType)
      */
     public static IBEvalElement generateBFormula(String predicate,
-            StateSpace ss) throws FormulaException {
+            MachineAccess bMachine) throws FormulaException {
         try {
-            return (IBEvalElement) ss.getModel().parseFormula(predicate, FormulaExpand.EXPAND);
+            return (IBEvalElement) bMachine.parseFormula(predicate);
         } catch (Exception e) {
             throw new FormulaException("Could not translate to IBEvalElement "
                                        + "from predicate " + predicate, e);

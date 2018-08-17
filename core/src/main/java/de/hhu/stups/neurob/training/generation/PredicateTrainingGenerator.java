@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
@@ -19,10 +20,6 @@ import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
 import de.hhu.stups.neurob.training.generation.util.PredicateCollection;
-import de.prob.Main;
-import de.prob.scripting.Api;
-import de.prob.scripting.ModelTranslationError;
-import de.prob.statespace.StateSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +37,6 @@ import java.util.stream.Stream;
 public class PredicateTrainingGenerator
         extends TrainingSetGenerator {
 
-    private Api api;
 
     private static Logger log =
             LoggerFactory.getLogger(PredicateFeatureGenerating.class);
@@ -51,8 +47,6 @@ public class PredicateTrainingGenerator
             PredicateLabelGenerating<L> labelGenerator,
             TrainingDataFormat<? super F> format) {
         super(featureGenerator, labelGenerator, format);
-
-        api = Main.getInjector().getInstance(Api.class);
     }
 
     /**
@@ -73,14 +67,13 @@ public class PredicateTrainingGenerator
 
     @Override
     public Stream<TrainingSample> streamSamplesFromFile(Path file) {
-        log.info("Loading training samples from {}", file);
 
         // Try to access machine or return empty stream
         Stream<String> predicates;
-        StateSpace ss;
+        MachineAccess bMachine;
         try {
-            ss = loadStateSpace(file);
-            predicates = streamPredicatesFromFile(file, ss);
+            bMachine = new MachineAccess(file);
+            predicates = streamPredicatesFromFile(bMachine);
         } catch (MachineAccessException e) {
             log.warn("Unable to access {}: {}", file, e.getMessage(), e);
             return Stream.empty();
@@ -90,7 +83,7 @@ public class PredicateTrainingGenerator
         Stream<TrainingSample> samples = predicates.map(
                 predicate -> {
                     try {
-                        return generateSample(predicate, ss);
+                        return generateSample(predicate, bMachine);
                     } catch (FeatureCreationException e) {
                         log.warn("Could not create features from {}", predicate, e);
                     } catch (LabelCreationException e) {
@@ -99,7 +92,7 @@ public class PredicateTrainingGenerator
                     // If any exceptions occur, return nothing
                     return null;
                 })
-                .onClose(ss::kill);
+                .onClose(bMachine::close);
 
         return samples.filter(Objects::nonNull)
                 // add source file information
@@ -107,6 +100,35 @@ public class PredicateTrainingGenerator
                         sample.getFeatures(),
                         sample.getLabelling(),
                         file));
+    }
+
+    public Stream<TrainingSample> streamSamplesFromFile(MachineAccess bMachine) {
+        log.info("Loading training samples from {}", bMachine.getSource());
+
+        Stream<String> predicates = streamPredicatesFromFile(bMachine);
+
+        // Stream training samples
+        Stream<TrainingSample> samples = predicates.map(
+                predicate -> {
+                    try {
+                        return generateSample(predicate, bMachine);
+                    } catch (FeatureCreationException e) {
+                        log.warn("Could not create features from {}", predicate, e);
+                    } catch (LabelCreationException e) {
+                        log.warn("Could not create labelling for {}", predicate, e);
+                    }
+                    // If any exceptions occur, return nothing
+                    return null;
+                })
+                .onClose(bMachine::close);
+
+        return samples.filter(Objects::nonNull)
+                // add source file information
+                .map(sample -> new TrainingSample<>(
+                        sample.getFeatures(),
+                        sample.getLabelling(),
+                        bMachine.getSource()));
+
     }
 
     /**
@@ -134,22 +156,22 @@ public class PredicateTrainingGenerator
      *
      * @param predicate Predicate to be translated into a training
      *         sample.
-     * @param ss StateSpace the predicate belongs to.
+     * @param bMachine Access to the machine file the predicate belongs to.
      *
      * @return
      *
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample generateSample(String predicate, StateSpace ss)
+    public TrainingSample generateSample(String predicate, MachineAccess bMachine)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
         Features features = ((PredicateFeatureGenerating) featureGenerator)
-                .generate(predicate, ss);
+                .generate(predicate, bMachine);
 
         log.debug("Generating labelling for {}", predicate);
         Labelling labelling = ((PredicateLabelGenerating) labelGenerator)
-                .generate(predicate, ss);
+                .generate(predicate, bMachine);
 
         return new TrainingSample<>(features, labelling);
     }
@@ -179,48 +201,8 @@ public class PredicateTrainingGenerator
 
     /**
      * Generates predicates from given machine file.
-     * The given {@link StateSpace} represents the already loaded machine.
-     * If {@code ss} is {@code null}, a state space will be loaded at first.
-     * <p>
-     * The predicates are generated with the following functions:
-     * <ul>
-     * <li>{@link FormulaGenerator#assertions(PredicateCollection)}</li>
-     * <li>{@link FormulaGenerator#enablingRelationships(PredicateCollection)}</li>
-     * <li>{@link FormulaGenerator#invariantPreservations(PredicateCollection)}</li>
-     * <li>{@link FormulaGenerator#multiPreconditionFormulae(PredicateCollection)}</li>
-     * <li>{@link FormulaGenerator#extendedPreconditionFormulae(PredicateCollection)}</li>
-     * </ul>
-     *
-     * @param file B machine to access.
-     * @param ss Already loaded StateSpace from file
-     *
-     * @return Stream of generated predicates.
-     */
-    public Stream<String> streamPredicatesFromFile(Path file, StateSpace ss) {
-        // open StateSpace, collect predicates
-        PredicateCollection pc;
-        try {
-            boolean killStateSpace = false;
-            if (ss == null) {
-                ss = loadStateSpace(file);
-                killStateSpace = true; // we opened it, we kill it again.
-            }
-
-            pc = new PredicateCollection(ss);
-
-            if (killStateSpace) {
-                ss.kill();
-            }
-        } catch (MachineAccessException e) {
-            log.warn("Could not load {}; no predicates generated", file, e);
-            return Stream.empty();
-        }
-
-        return streamPredicatesFromCollection(pc);
-    }
-
-    /**
-     * Loads given B machine, generates predicates from it and stream them.
+     * The given {@link MachineAccess} belongs to the already loaded machine.
+     * If {@code bMachine} is {@code null}, an access will be opened first.
      * <p>
      * The predicates are generated with the following functions:
      * <ul>
@@ -236,7 +218,38 @@ public class PredicateTrainingGenerator
      * @return Stream of generated predicates.
      */
     public Stream<String> streamPredicatesFromFile(Path file) {
-        return streamPredicatesFromFile(file, null);
+        PredicateCollection pc;
+        try {
+            MachineAccess bMachine = new MachineAccess(file);
+            pc = new PredicateCollection(bMachine);
+            bMachine.close();
+        } catch (MachineAccessException e) {
+            log.warn("Could not load {}; no predicates generated", file, e);
+            return Stream.empty();
+        }
+
+        return streamPredicatesFromCollection(pc);
+    }
+
+    /**
+     * Generates predicates from given B machine.
+     * <p>
+     * The predicates are generated with the following functions:
+     * <ul>
+     * <li>{@link FormulaGenerator#assertions(PredicateCollection)}</li>
+     * <li>{@link FormulaGenerator#enablingRelationships(PredicateCollection)}</li>
+     * <li>{@link FormulaGenerator#invariantPreservations(PredicateCollection)}</li>
+     * <li>{@link FormulaGenerator#multiPreconditionFormulae(PredicateCollection)}</li>
+     * <li>{@link FormulaGenerator#extendedPreconditionFormulae(PredicateCollection)}</li>
+     * </ul>
+     *
+     * @param bMachine B machine to access.
+     *
+     * @return Stream of generated predicates.
+     */
+    public Stream<String> streamPredicatesFromFile(MachineAccess bMachine) {
+        PredicateCollection pc = new PredicateCollection(bMachine);
+        return streamPredicatesFromCollection(pc);
     }
 
     /**
@@ -268,42 +281,6 @@ public class PredicateTrainingGenerator
 
         return generations.stream().
                 flatMap(gen -> gen.apply(collection).stream());
-    }
-
-    /**
-     * Loads a {@link StateSpace} from the given file.
-     * Only supports *.mch (Classical B) and *.bcm (EventB) files.
-     *
-     * @param file Path to the machine file to load.
-     *
-     * @return
-     *
-     * @throws MachineAccessException
-     */
-    protected StateSpace loadStateSpace(Path file) throws MachineAccessException {
-        String machineFile = file.toString(); // only str version needed
-        try {
-            if (machineFile.endsWith(".mch")) {
-                log.info("Load State Space for Classical B machine {}", file);
-                return api.b_load(machineFile);
-            } else if (machineFile.endsWith(".bcm")) {
-                log.info("Load State Space for EventB machine {}", file);
-                return api.eventb_load(machineFile);
-            } else {
-                throw new MachineAccessException(
-                        "Loading state space for " + machineFile + " failed "
-                        + "due to not being able to detect correct formalism");
-            }
-        } catch (ModelTranslationError modelTranslationError) {
-            throw new MachineAccessException(
-                    "Unable to load state space for" + machineFile,
-                    modelTranslationError);
-        } catch (Exception e) {
-            throw new MachineAccessException(
-                    "Unexpected exception encountered during loading of "
-                    + "state space for " + machineFile, e);
-        }
-
     }
 }
 

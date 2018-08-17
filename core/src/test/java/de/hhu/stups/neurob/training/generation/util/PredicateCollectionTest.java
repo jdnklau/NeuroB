@@ -1,5 +1,7 @@
 package de.hhu.stups.neurob.training.generation.util;
 
+import de.hhu.stups.neurob.core.api.MachineType;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.prob.animator.command.BeforeAfterPredicateCommand;
 import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.command.WeakestPreconditionCommand;
@@ -7,7 +9,6 @@ import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.model.classicalb.Assertion;
 import de.prob.model.classicalb.Property;
 import de.prob.model.eventb.Context;
-import de.prob.model.eventb.EventBModel;
 import de.prob.model.representation.AbstractElement;
 import de.prob.model.representation.AbstractFormulaElement;
 import de.prob.model.representation.AbstractModel;
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 class PredicateCollectionTest {
 
+    private MachineAccess bMachine;
     private StateSpace ss;
 
     @BeforeEach
@@ -53,6 +55,10 @@ class PredicateCollectionTest {
         AbstractModel model = mock(AbstractModel.class);
         when(model.parseFormula(any())).thenAnswer(invocation -> null);
         when(ss.getModel()).thenReturn(model);
+
+        // mock machine access
+        bMachine = mock(MachineAccess.class);
+        when(bMachine.getStateSpace()).thenReturn(ss);
 
     }
 
@@ -124,7 +130,7 @@ class PredicateCollectionTest {
         when(ss.getMainComponent().getChildrenOfType(Invariant.class))
                 .thenReturn(invMock);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         List<String> expected = new ArrayList<>();
         expected.add("Invariant-1");
@@ -141,7 +147,7 @@ class PredicateCollectionTest {
         when(ss.getMainComponent().getChildrenOfType(Invariant.class))
                 .thenReturn(invMock);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         List<String> invariants = new ArrayList<>();
         invariants.add("Invariant-1");
@@ -164,7 +170,7 @@ class PredicateCollectionTest {
         when(ss.getMainComponent().getChildrenOfType(Invariant.class))
                 .thenReturn(invMock);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         List<String> invariants = new ArrayList<>();
         invariants.add("Invariant-2");
@@ -179,7 +185,7 @@ class PredicateCollectionTest {
         when(ss.getMainComponent().getChildrenOfType(BEvent.class))
                 .thenReturn(opMock);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         Map<String, List<String>> pres = new HashMap<>();
 
@@ -230,7 +236,7 @@ class PredicateCollectionTest {
         when(ss.getMainComponent().getChildrenOfType(BEvent.class))
                 .thenReturn(operations);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         List<String> expected = new ArrayList<>();
         expected.add("Operation-1");
@@ -248,7 +254,7 @@ class PredicateCollectionTest {
         when(ss.getMainComponent().getChildrenOfType(Property.class))
                 .thenReturn(properties);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         List<String> expected = new ArrayList<>();
         expected.add("Property-1");
@@ -265,7 +271,7 @@ class PredicateCollectionTest {
         when(ss.getMainComponent().getChildrenOfType(Assertion.class))
                 .thenReturn(assertions);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         List<String> asserts = new ArrayList<>();
         asserts.add("Assertion-1");
@@ -297,9 +303,9 @@ class PredicateCollectionTest {
                     invocation.getArgument(0);
             cmd.processResult(bindings);
             return null;
-        }).when(ss).execute(any(WeakestPreconditionCommand.class));
+        }).when(bMachine).execute(any(WeakestPreconditionCommand.class));
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         Map<String, Map<String, String>> weakestPres = new HashMap<>();
         // for each operation, the weakest pre for each invariant is expected
@@ -338,7 +344,7 @@ class PredicateCollectionTest {
         when(ss.getMainComponent().getChildrenOfType(Assertion.class))
                 .thenReturn(assertions);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         List<String> expected = new ArrayList<>();
         expected.add("Invariant-1");
@@ -355,8 +361,7 @@ class PredicateCollectionTest {
 
     @Test
     public void shouldLoadBeforeAfterPredicatesWhenEventB() {
-        EventBModel eventBMock = mock(EventBModel.class);
-        when(ss.getModel()).thenReturn(eventBMock);
+        when(bMachine.getMachineType()).thenReturn(MachineType.EVENTB);
 
         ModelElementList<BEvent> operations = generateOperations(0, 0);
         when(ss.getMainComponent().getChildrenOfType(BEvent.class))
@@ -374,9 +379,9 @@ class PredicateCollectionTest {
                     invocation.getArgument(0);
             cmd.processResult(bindings);
             return null;
-        }).when(ss).execute(any(BeforeAfterPredicateCommand.class));
+        }).when(bMachine).execute(any(BeforeAfterPredicateCommand.class));
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         Map<String, String> expected = new HashMap<>();
         expected.put("Operation-1", "before-after");
@@ -390,8 +395,7 @@ class PredicateCollectionTest {
 
     @Test
     public void shouldLoadPrimedInvariantsWhenEventB() {
-        EventBModel eventBMock = mock(EventBModel.class);
-        when(ss.getModel()).thenReturn(eventBMock);
+        when(bMachine.getMachineType()).thenReturn(MachineType.EVENTB);
 
         ModelElementList<Invariant> invariants =
                 generatePredicates(Invariant.class, 2);
@@ -410,9 +414,9 @@ class PredicateCollectionTest {
                     invocation.getArgument(0);
             cmd.processResult(bindings);
             return null;
-        }).when(ss).execute(any(PrimePredicateCommand.class));
+        }).when(bMachine).execute(any(PrimePredicateCommand.class));
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         Map<String, String> expected = new HashMap<>();
         expected.put("Invariant-1", "primed-invariant");
@@ -428,8 +432,7 @@ class PredicateCollectionTest {
 
     @Test
     public void shouldLoadAxiomsAsProperties() {
-        EventBModel eventBMock = mock(EventBModel.class);
-        when(ss.getModel()).thenReturn(eventBMock);
+        when(bMachine.getMachineType()).thenReturn(MachineType.EVENTB);
 
         // Set up context to return axioms
         Context contextMock = mock(Context.class);
@@ -442,7 +445,7 @@ class PredicateCollectionTest {
         when(contextMock.getChildrenOfType(Axiom.class))
                 .thenReturn(axioms);
 
-        PredicateCollection pc = new PredicateCollection(ss);
+        PredicateCollection pc = new PredicateCollection(bMachine);
 
         List<String> expected = new ArrayList<>();
         expected.add("Axiom-1");

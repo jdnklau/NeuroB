@@ -1,27 +1,23 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.testharness.TestMachines;
-import de.prob.Main;
-import de.prob.scripting.Api;
-import de.prob.scripting.ModelTranslationError;
-import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProBBackendIT {
 
-    private StateSpace stateSpace;
+    private MachineAccess bMachine;
 
     @BeforeEach
-    public void loadStateSpace() throws IOException, ModelTranslationError {
-        Api api = Main.getInjector().getInstance(Api.class);
-
-        stateSpace = api.b_load(TestMachines.FORMULAE_GEN_MCH);
+    public void loadBMachine() throws MachineAccessException {
+        bMachine = new MachineAccess(Paths.get(TestMachines.FORMULAE_GEN_MCH));
     }
 
     @Test
@@ -29,7 +25,7 @@ class ProBBackendIT {
         String pred = "1 > 0";
         ProBBackend prob = new ProBBackend();
 
-        Boolean isDecidable = prob.isDecidable(pred, stateSpace);
+        Boolean isDecidable = prob.isDecidable(pred, bMachine);
 
         assertTrue(isDecidable,
                 "ProB could not decide trivial predicate");
@@ -40,7 +36,7 @@ class ProBBackendIT {
         String pred = "x>y & y>x";
         ProBBackend prob = new ProBBackend();
 
-        Boolean isDecidable = prob.isDecidable(pred, stateSpace);
+        Boolean isDecidable = prob.isDecidable(pred, bMachine);
 
         assertFalse(isDecidable,
                 "ProB was unexpectedly able to decide " + pred);
@@ -51,7 +47,7 @@ class ProBBackendIT {
         String pred = "1 > 0";
         ProBBackend prob = new ProBBackend();
 
-        Long time = prob.measureEvalTime(pred, stateSpace);
+        Long time = prob.measureEvalTime(pred, bMachine);
 
         assertFalse(time < 0,
                 "ProB could not decide trivial predicate");
@@ -62,7 +58,7 @@ class ProBBackendIT {
         String pred = "x>y & y>x";
         ProBBackend prob = new ProBBackend();
 
-        Long time = prob.measureEvalTime(pred, stateSpace);
+        Long time = prob.measureEvalTime(pred, bMachine);
 
         assertTrue(time < 0,
                 "ProB was unexpectedly able to decide " + pred);

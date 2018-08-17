@@ -2,10 +2,9 @@ package de.hhu.stups.neurob.core.features.util;
 
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.node.Node;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
-import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.animator.domainobjects.IBEvalElement;
-import de.prob.statespace.StateSpace;
 
 /**
  * Utility class for collection data of
@@ -13,15 +12,14 @@ import de.prob.statespace.StateSpace;
  */
 public class TheoryFeatureCollector {
 
-    public static TheoryFeatureData collect(String pred, StateSpace ss)
+    public static TheoryFeatureData collect(String pred, MachineAccess bMachine)
             throws FeatureCreationException {
         Node ast;
 
         try {
             // Try to parse directly over the state space, if given
-            if (ss != null) {
-                ast = ((IBEvalElement) ss.getModel()
-                        .parseFormula(pred, FormulaExpand.EXPAND)).getAst();
+            if (bMachine != null) {
+                ast = ((IBEvalElement) bMachine.parseFormula(pred)).getAst();
             } else {
                 BParser parser = new BParser();
                 String input = BParser.PREDICATE_PREFIX + pred;

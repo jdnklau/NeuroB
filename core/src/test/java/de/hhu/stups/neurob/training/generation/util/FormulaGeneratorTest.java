@@ -2,6 +2,8 @@ package de.hhu.stups.neurob.training.generation.util;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
+import de.prob.animator.command.AbstractCommand;
 import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.domainobjects.EventB;
 import de.prob.model.representation.AbstractModel;
@@ -129,7 +131,15 @@ public class FormulaGeneratorTest {
                 "(operation2-precondition1) & (operation2-precondition2)"))
                 .thenReturn(new EventB("primedop2"));
         when(ss.getModel()).thenReturn(model); // Stub returned model
-        when(pc.accessStateSpace()).thenReturn(ss); // to use state space mock
+
+        MachineAccess bMachine = mock(MachineAccess.class);
+        when(bMachine.getStateSpace()).thenReturn(ss);
+        doAnswer(invocation -> {
+            ss.execute((AbstractCommand) invocation.getArgument(0));
+            return null;
+        }).when(bMachine).execute(any());
+
+        when(pc.getBMachine()).thenReturn(bMachine); // to use state space mock
         /*
          * Okay this is a bit tricky.
          * Calling FeatureGenerator.getPrimedPredicate(StateSpace, IBEvalElement)

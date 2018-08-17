@@ -5,6 +5,7 @@ import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
@@ -19,7 +20,6 @@ import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
-import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,9 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 
@@ -61,7 +59,7 @@ class PredicateTrainingGeneratorIT {
             .getResource("db/").getFile();
 
     @BeforeEach
-    public void setUpMocks() throws IOException {
+    public void setUpMocks() {
         featureGen = (pred, ss) -> generateMockedFeatures(pred);
         labelGen = (pred, ss) -> generateMockedLabels(pred);
         formatMock = mock(TrainingDataFormat.class);
@@ -247,7 +245,7 @@ class PredicateTrainingGeneratorIT {
     void shouldCreateCsvFileWhenGeneratingTheoryFeaturesAndDecisionTimings()
             throws FormulaException, IOException {
         Backend backend = mock(Backend.class);
-        when(backend.measureEvalTime(anyString(), any(StateSpace.class)))
+        when(backend.measureEvalTime(anyString(), any(MachineAccess.class)))
                 .thenReturn(1L);
 
         CsvFormat format = new CsvFormat();
@@ -272,7 +270,7 @@ class PredicateTrainingGeneratorIT {
     }
 
     @Test
-    void shouldCreateJsonDbFiles() throws IOException, FormulaException {
+    void shouldCreateJsonDbFiles() throws IOException {
         KodKodBackend kodkod = new KodKodBackend();
         ProBBackend prob = new ProBBackend();
         SmtBackend smt = new SmtBackend();

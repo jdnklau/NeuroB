@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.generation;
 
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
@@ -138,13 +139,13 @@ class PredicateTrainingGeneratorTest {
         predicates.add("predicate5");
 
         // Set up spy
+        MachineAccess bMachine = mock(MachineAccess.class);
         generator = spy(new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock));
         doReturn(predicates.stream())
-                .when(generator).streamPredicatesFromFile(any());
+                .when(generator).streamPredicatesFromFile(any(Path.class));
         doReturn(predicates.stream())
-                .when(generator).streamPredicatesFromFile(any(), any());
-        doReturn(mock(StateSpace.class)).when(generator).loadStateSpace(any());
+                .when(generator).streamPredicatesFromFile(any(MachineAccess.class));
 
         // Expecting 5 training samples (all the same)
         List<TrainingSample<PredicateFeatures, Labelling>> expected = new ArrayList<>();
@@ -158,7 +159,7 @@ class PredicateTrainingGeneratorTest {
         expected.add(singleSample);
 
         Stream<TrainingSample> actualStream =
-                generator.streamSamplesFromFile(null);
+                generator.streamSamplesFromFile(bMachine);
         List<TrainingSample> actual = actualStream.collect(Collectors.toList());
 
         assertEquals(expected, actual,
@@ -166,7 +167,7 @@ class PredicateTrainingGeneratorTest {
     }
 
     @Test
-    public void shouldNotStreamNullSamples() throws Exception {
+    public void shouldNotStreamNullSamples() {
         PredicateFeatures features = mock(PredicateFeatures.class);
         when(features.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
         when(features.getPredicate()).thenReturn("predicate");
@@ -194,17 +195,19 @@ class PredicateTrainingGeneratorTest {
         predicates.add("labelException");
         predicates.add("predicate");
         doReturn(predicates.stream())
-                .when(generator).streamPredicatesFromFile(any());
+                .when(generator).streamPredicatesFromFile(any(Path.class));
         doReturn(predicates.stream())
-                .when(generator).streamPredicatesFromFile(any(), any());
+                .when(generator).streamPredicatesFromFile(any(MachineAccess.class));
         StateSpace ss = mock(StateSpace.class);
-        doReturn(ss).when(generator).loadStateSpace(any());
+
+        MachineAccess bMachine = mock(MachineAccess.class);
+        doReturn(ss).when(bMachine).getStateSpace();
 
         List<String> expected = new ArrayList<>();
         expected.add("predicate");
         expected.add("predicate");
 
-        List<String> actual = generator.streamSamplesFromFile(null)
+        List<String> actual = generator.streamSamplesFromFile(bMachine)
                 .map(TrainingSample::getFeatures)
                 .map(f -> (PredicateFeatures) f)
                 .map(PredicateFeatures::getPredicate)
@@ -240,7 +243,7 @@ class PredicateTrainingGeneratorTest {
     public void shouldUseGeneratorsToGenerateTrainingSampleWhenStateSpaceSupplied()
             throws Exception {
         // Mock StateSpace
-        StateSpace stateSpace = mock(StateSpace.class);
+        MachineAccess bMachine = mock(MachineAccess.class);
 
         TrainingSample<PredicateFeatures, PredicateLabelling> expected =
                 new TrainingSample<>(
@@ -249,7 +252,7 @@ class PredicateTrainingGeneratorTest {
 
         generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, null);
-        TrainingSample actual = generator.generateSample("pred", stateSpace);
+        TrainingSample actual = generator.generateSample("pred", bMachine);
 
         assertEquals(expected, actual,
                 "Training Sample does not match");
@@ -276,8 +279,7 @@ class PredicateTrainingGeneratorTest {
     }
 
     @Test
-    public void shouldStreamSamplesWithSourceInformationWhenCreatingFromFile()
-            throws Exception {
+    public void shouldStreamSamplesWithSourceInformationWhenCreatingFromFile() {
         Path file = Paths.get("/not/existent/path");
 
         PredicateFeatures features = mock(PredicateFeatures.class);
@@ -291,13 +293,15 @@ class PredicateTrainingGeneratorTest {
 
         List<String> predicates = predList("predicate");
         doReturn(predicates.stream())
-                .when(generator).streamPredicatesFromFile(any());
+                .when(generator).streamPredicatesFromFile(any(Path.class));
         doReturn(predicates.stream())
-                .when(generator).streamPredicatesFromFile(any(), any());
+                .when(generator).streamPredicatesFromFile(any(MachineAccess.class));
         StateSpace ss = mock(StateSpace.class);
-        doReturn(ss).when(generator).loadStateSpace(any());
+        MachineAccess bMachine = mock(MachineAccess.class);
+        doReturn(ss).when(bMachine).getStateSpace();
+        when(bMachine.getSource()).thenReturn(file);
 
-        Path actual = generator.streamSamplesFromFile(file)
+        Path actual = generator.streamSamplesFromFile(bMachine)
                 .findFirst().get().getSourceFile();
 
         assertEquals(file, actual,

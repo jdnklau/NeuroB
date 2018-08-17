@@ -1,7 +1,7 @@
 package de.hhu.stups.neurob.core.labelling;
 
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
-import de.prob.statespace.StateSpace;
 
 /**
  * Generates a labelling for a given predicate.
@@ -17,13 +17,13 @@ public interface PredicateLabelGenerating<L extends PredicateLabelling>
     }
 
     /**
-     * Generate the labelling of the Predicate with help of the given {@link
-     * StateSpace}.
+     * Generate the labelling of the Predicate over the given
+     * {@link MachineAccess}.
      *
      * @param predicate
-     * @param ss
+     * @param bMachine
      *
      * @return
      */
-    L generate(String predicate, StateSpace ss) throws LabelCreationException;
+    L generate(String predicate, MachineAccess bMachine) throws LabelCreationException;
 }

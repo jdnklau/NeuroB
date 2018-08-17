@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Spliterators;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -69,8 +68,7 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
 
     @Override
     public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData, Path targetDirectory)
-            throws IOException {
+    DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData, Path targetDirectory) {
         Path sourceFile = trainingData.getSourceFile();
         Path targetFile = getTargetLocation(sourceFile, targetDirectory);
 
