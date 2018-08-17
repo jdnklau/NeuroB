@@ -97,6 +97,7 @@ public abstract class TrainingSetGenerator {
                     {
                         try {
                             DataGenerationStats writeStats = format.writeSamples(samples, fullTargetDir);
+                            samples.getSamples().close();
                             stats.mergeWith(writeStats);
                         } catch (IOException e) {
                             log.warn("Could not write all samples for {}",
@@ -130,6 +131,7 @@ public abstract class TrainingSetGenerator {
 
     /**
      * Creates a stream of training samples from the given file.
+     * The stream should be closed after use.
      *
      * @param file
      */

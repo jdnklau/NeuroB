@@ -106,6 +106,7 @@ public class MachineAccess {
      * Close connection to B machine.
      */
     public void close() {
+        log.debug("Closed access to {}", source);
         stateSpace.kill();
     }
 

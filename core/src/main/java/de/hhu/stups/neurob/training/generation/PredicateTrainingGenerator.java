@@ -67,50 +67,28 @@ public class PredicateTrainingGenerator
 
     @Override
     public Stream<TrainingSample> streamSamplesFromFile(Path file) {
+        log.info("Loading training samples from {}", file);
 
         // Try to access machine or return empty stream
-        Stream<String> predicates;
         MachineAccess bMachine;
         try {
             bMachine = new MachineAccess(file);
-            predicates = streamPredicatesFromFile(bMachine);
         } catch (MachineAccessException e) {
             log.warn("Unable to access {}: {}", file, e.getMessage(), e);
             return Stream.empty();
         }
 
-        // Stream training samples
-        Stream<TrainingSample> samples = predicates.map(
-                predicate -> {
-                    try {
-                        return generateSample(predicate, bMachine);
-                    } catch (FeatureCreationException e) {
-                        log.warn("Could not create features from {}", predicate, e);
-                    } catch (LabelCreationException e) {
-                        log.warn("Could not create labelling for {}", predicate, e);
-                    }
-                    // If any exceptions occur, return nothing
-                    return null;
-                })
-                .onClose(bMachine::close);
-
-        return samples.filter(Objects::nonNull)
-                // add source file information
-                .map(sample -> new TrainingSample<>(
-                        sample.getFeatures(),
-                        sample.getLabelling(),
-                        file));
+        return streamSamplesFromFile(bMachine);
     }
 
     public Stream<TrainingSample> streamSamplesFromFile(MachineAccess bMachine) {
-        log.info("Loading training samples from {}", bMachine.getSource());
-
         Stream<String> predicates = streamPredicatesFromFile(bMachine);
 
         // Stream training samples
         Stream<TrainingSample> samples = predicates.map(
                 predicate -> {
                     try {
+                        log.trace("Generating sample for {}", predicate);
                         return generateSample(predicate, bMachine);
                     } catch (FeatureCreationException e) {
                         log.warn("Could not create features from {}", predicate, e);
