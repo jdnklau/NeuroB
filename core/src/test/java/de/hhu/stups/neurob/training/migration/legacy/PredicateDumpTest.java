@@ -7,8 +7,6 @@ import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Paths;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class PredicateDumpTest {
