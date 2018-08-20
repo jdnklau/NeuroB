@@ -5,6 +5,7 @@ import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -16,7 +17,7 @@ import java.util.Map;
  */
 public class PredicateDump {
 
-    private final String predicate;
+    private final BPredicate predicate;
     private final Path source;
     private final Map<Class<? extends Backend>, Double> timings;
 
@@ -32,7 +33,7 @@ public class PredicateDump {
         // Split entry into labels and predicates
         int splitPos = predicateDumpEntry.indexOf(':');
 
-        this.predicate = predicateDumpEntry.substring(splitPos + 1);
+        this.predicate = new BPredicate(predicateDumpEntry.substring(splitPos + 1));
         this.source = sourceMachine;
 
         // Get timings
@@ -45,7 +46,7 @@ public class PredicateDump {
 
     }
 
-    public String getPredicate() {
+    public BPredicate getPredicate() {
         return predicate;
     }
 

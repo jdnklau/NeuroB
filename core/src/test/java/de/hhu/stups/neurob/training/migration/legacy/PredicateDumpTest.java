@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
@@ -17,8 +18,8 @@ class PredicateDumpTest {
         String entry = "1.23456789E8,2.23456789E8,3.23456789E8,-1.0:x>0";
         PredicateDump pdump = new PredicateDump(entry);
 
-        String expected = "x>0";
-        String actual = pdump.getPredicate();
+        BPredicate expected = new BPredicate("x>0");
+        BPredicate actual = pdump.getPredicate();
 
         assertEquals(expected, actual,
                 "Extracted Predicate does not match");
@@ -29,8 +30,8 @@ class PredicateDumpTest {
         String entry = "1.23456789E8,2.23456789E8,3.23456789E8,-1.0:x:NAT";
         PredicateDump pdump = new PredicateDump(entry);
 
-        String expected = "x:NAT";
-        String actual = pdump.getPredicate();
+        BPredicate expected = new BPredicate("x:NAT");
+        BPredicate actual = pdump.getPredicate();
 
         assertEquals(expected, actual,
                 "Extracted Predicate does not match");
