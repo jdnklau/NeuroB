@@ -5,9 +5,13 @@ import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.training.data.TrainingData;
+import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.DbSample;
-import de.hhu.stups.neurob.training.db.TrainingDbFormat;
+import de.hhu.stups.neurob.training.db.PredicateDbFormat;
+import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import de.hhu.stups.neurob.training.migration.legacy.PredicateDump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +28,75 @@ public class PredicateDumpMigration {
     private static final Logger log =
             LoggerFactory.getLogger(PredicateDumpMigration.class);
 
-    public void migrate(Path source, Path target, TrainingDbFormat format) {
-        // TODO implement
+    public DataGenerationStats migrate(Path source, Path targetDirectory, PredicateDbFormat format)
+            throws IOException {
+        DataGenerationStats stats = new DataGenerationStats();
+
+        Stream<Path> files = Files.walk(source);
+        files.filter(Files::isRegularFile)
+                .filter(file -> file.toString().endsWith(".pdump")) // only *.pdump
+                .forEach(pdump -> {
+                    try {
+                        TrainingData data = new TrainingData(
+                                stripCommonSourceDir(pdump, source),
+                                streamTranslatedSamples(pdump).map(this::translate));
+                        stats.increaseFilesSeen();
+                        stats.mergeWith(migrateFile(pdump, source, targetDirectory, format));
+                    } catch (IOException e) {
+                        log.warn("Unable to migrate {}", pdump, e);
+                        stats.increaseFilesInaccessible();
+                    }
+                });
+
+        return stats;
+    }
+
+    private Path stripCommonSourceDir(Path sourceFile, Path commonSourceDir) {
+        if (commonSourceDir.equals(sourceFile)) {
+            return sourceFile.getFileName();
+        }
+        return commonSourceDir.relativize(sourceFile);
+    }
+
+    /**
+     * Migrate the data into the target location in the respective format
+     *
+     * @param sourceFile *.pdump file containing data to be migrated.
+     * @param targetDirectory Directory into which the data will be migrated.
+     *         Depending on the format, this might result in a single file or multiple.
+     * @param format Target format the data shall be migrated into.
+     *
+     * @return Generation statistics
+     *
+     * @throws IOException
+     */
+    public DataGenerationStats migrateFile(Path sourceFile, Path targetDirectory,
+            PredicateDbFormat format) throws IOException {
+        return migrateFile(sourceFile, sourceFile.getParent(), targetDirectory, format);
+    }
+
+    /**
+     * Migrate the data into the target location in the respective format.
+     *
+     * @param sourceFile *.pdump file containing data to be migrated.
+     * @param commonSourceDirectory Leading path of the source file to be discarded
+     *         when calculating the name of the target location from the source.
+     * @param targetDirectory Directory into which the data will be migrated.
+     *         Depending on the format, this might result in a single file or multiple.
+     * @param format Target format the data shall be migrated into.
+     *
+     * @return Generation statistics
+     *
+     * @throws IOException
+     */
+    public DataGenerationStats migrateFile(Path sourceFile, Path commonSourceDirectory,
+            Path targetDirectory, PredicateDbFormat format) throws IOException {
+
+        TrainingData data = new TrainingData(
+                stripCommonSourceDir(sourceFile, commonSourceDirectory),
+                streamTranslatedSamples(sourceFile).map(this::translate));
+
+        return format.writeSamples(data, targetDirectory);
     }
 
     /**
@@ -46,6 +117,14 @@ public class PredicateDumpMigration {
         Path source = pdump.getSource();
 
         return new DbSample<>(predicate, labels, source);
+    }
+
+    public TrainingSample<PredicateFeatures, Labelling> translate(DbSample<BPredicate> dbSample) {
+        Path source = dbSample.getSourceMachine();
+        PredicateFeatures features = new PredicateFeatures(dbSample.getBElement().getPredicate());
+        Labelling labels = dbSample.getLabelling();
+
+        return new TrainingSample<>(features, labels, source);
     }
 
     /**
@@ -75,4 +154,5 @@ public class PredicateDumpMigration {
                 .map(entry -> new PredicateDump(entry, sourceMch.get()))
                 .map(this::translate);
     }
+
 }
