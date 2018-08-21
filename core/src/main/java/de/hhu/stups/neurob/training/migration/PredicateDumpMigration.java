@@ -148,7 +148,7 @@ public class PredicateDumpMigration {
                 // skip comments/annotation lines that are not source annotations
                 .filter(line -> !line.startsWith("#") || line.startsWith("#source:"))
                 .map(line -> translateEntry(line, sourceMch)) // FIXME ugly state manipulation in stream
-                .filter(Objects::nonNull)
+                .filter(Objects::nonNull) // due to statefull mapping, null is needed; filter it out
                 .map(this::translate);
     }
 
