@@ -135,4 +135,17 @@ class DataGenerationStatsTest {
                         "Should be 12: samples failed"));
 
     }
+
+    @Test
+    public void shouldPrintCorrectNumbersInStringRepresentation() {
+        DataGenerationStats stats = new DataGenerationStats(10, 4, 6, 20, 2);
+
+        String expected = "Files seen: 10; Files inaccessible: 6; "
+                          + "Training files created: 4; "
+                          + "Training samples written: 20; "
+                          + "Training samples that lead to errors: 2";
+        String actual = stats.toString();
+
+        assertEquals(expected, actual);
+    }
 }

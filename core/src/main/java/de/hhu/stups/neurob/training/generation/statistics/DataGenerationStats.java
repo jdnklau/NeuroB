@@ -183,7 +183,7 @@ public class DataGenerationStats {
         StringBuilder builder = new StringBuilder();
 
         builder.append("Files seen: ").append(filesSeen).append("; ")
-                .append("Files inaccessible: ").append(filesCreated).append("; ")
+                .append("Files inaccessible: ").append(filesInaccessible).append("; ")
                 .append("Training files created: ").append(filesCreated).append("; ")
                 .append("Training samples written: ").append(samplesWritten).append("; ")
                 .append("Training samples that lead to errors: ").append(samplesFailed);
