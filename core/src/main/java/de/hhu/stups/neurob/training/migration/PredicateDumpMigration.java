@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -144,18 +145,31 @@ public class PredicateDumpMigration {
         // lines; value is stored in sourceMch
         AtomicReference<Path> sourceMch = new AtomicReference<>();
         return entries
-                // Handle source annotations
-                .peek(line -> {
-                    if (line.startsWith("#source:")) {
-                        int splitPos = line.indexOf(":");
-                        String sourceEntry = line.substring(splitPos + 1);
-                        sourceMch.set(Paths.get(sourceEntry));
-                    }
-                })
-                // skip comments/annotation lines
-                .filter(line -> !line.startsWith("#"))
-                .map(entry -> new PredicateDump(entry, sourceMch.get()))
+                // skip comments/annotation lines that are not source annotations
+                .filter(line -> !line.startsWith("#") || line.startsWith("#source:"))
+                .map(line -> translateEntry(line, sourceMch)) // FIXME ugly state manipulation in stream
+                .filter(Objects::nonNull)
                 .map(this::translate);
+    }
+
+    /**
+     * Translates a predicate dump entry line into a {@link PredicateDump}
+     * data structure. If the entry happens to be a #source annotation,
+     * it instead changes the srcReference to the new source and returns null.
+     * @param entry
+     * @param srcReference
+     * @return A PredicateDump instance or null
+     */
+    private PredicateDump translateEntry(String entry, AtomicReference<Path> srcReference) {
+        if (entry.startsWith("#source:")) {
+            int splitPos = entry.indexOf(":");
+            String sourceEntry = entry.substring(splitPos + 1);
+            srcReference.set(Paths.get(sourceEntry));
+
+            return null;
+        }
+
+        return new PredicateDump(entry, srcReference.get());
     }
 
 }
