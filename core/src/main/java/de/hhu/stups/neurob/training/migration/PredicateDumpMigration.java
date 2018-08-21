@@ -44,7 +44,7 @@ public class PredicateDumpMigration {
                         stats.mergeWith(migrateFile(pdump, source, targetDirectory, format));
                     } catch (IOException e) {
                         log.warn("Unable to migrate {}", pdump, e);
-                        stats.increaseFilesInaccessible();
+                        stats.increaseFilesWithErrors();
                     }
                 });
 

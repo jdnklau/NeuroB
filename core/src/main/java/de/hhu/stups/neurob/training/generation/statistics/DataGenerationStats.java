@@ -9,8 +9,8 @@ public class DataGenerationStats {
     private int filesSeen;
     /** Number of distinct files created by this generation step */
     private int filesCreated;
-    /** Number of distinct files that were inaccessible during training generation */
-    private int filesInaccessible;
+    /** Number of distinct files that yielded errors during training generation */
+    private int filesWithErrors;
     /** Number of samples that were successfully written to a file */
     private int samplesWritten;
     /** Number of samples that failed to be created due to encountered errors */
@@ -31,7 +31,7 @@ public class DataGenerationStats {
     public DataGenerationStats(int filesSeen, int filesCreated, int filesInaccessible, int samplesWritten, int samplesFailed) {
         this.filesSeen = filesSeen;
         this.filesCreated = filesCreated;
-        this.filesInaccessible = filesInaccessible;
+        this.filesWithErrors = filesInaccessible;
         this.samplesWritten = samplesWritten;
         this.samplesFailed = samplesFailed;
     }
@@ -86,29 +86,29 @@ public class DataGenerationStats {
         return filesCreated;
     }
 
-    public int getFilesInaccessible() {
-        return filesInaccessible;
+    public int getFilesWithErrors() {
+        return filesWithErrors;
     }
 
     /**
-     * Number of distinct files that were inaccessible during training generation
+     * Number of distinct files that yielded errors during training generation
      *
      * @return New number of files created
      */
-    public int increaseFilesInaccessible() {
-        return increaseFilesInaccessible(1);
+    public int increaseFilesWithErrors() {
+        return increaseFilesWithErrors(1);
     }
 
     /**
-     * Number of distinct files that were inaccessible during training generation
+     * Number of distinct files that yielded errors during training generation
      *
      * @param amount How many additional files were inaccessible
      *
      * @return New number of inaccessible files
      */
-    public int increaseFilesInaccessible(int amount) {
-        filesInaccessible += amount;
-        return filesInaccessible;
+    public int increaseFilesWithErrors(int amount) {
+        filesWithErrors += amount;
+        return filesWithErrors;
     }
 
     public int getSamplesWritten() {
@@ -171,7 +171,7 @@ public class DataGenerationStats {
     public DataGenerationStats mergeWith(DataGenerationStats other) {
         filesSeen += other.filesSeen;
         filesCreated += other.filesCreated;
-        filesInaccessible += other.filesInaccessible;
+        filesWithErrors += other.filesWithErrors;
         samplesWritten += other.samplesWritten;
         samplesFailed += other.samplesFailed;
 
@@ -183,7 +183,7 @@ public class DataGenerationStats {
         StringBuilder builder = new StringBuilder();
 
         builder.append("Files seen: ").append(filesSeen).append("; ")
-                .append("Files inaccessible: ").append(filesInaccessible).append("; ")
+                .append("Files that lead to errors: ").append(filesWithErrors).append("; ")
                 .append("Training files created: ").append(filesCreated).append("; ")
                 .append("Training samples written: ").append(samplesWritten).append("; ")
                 .append("Training samples that lead to errors: ").append(samplesFailed);

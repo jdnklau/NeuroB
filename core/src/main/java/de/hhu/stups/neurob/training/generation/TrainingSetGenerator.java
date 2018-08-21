@@ -110,7 +110,7 @@ public abstract class TrainingSetGenerator {
                         } catch (IOException e) {
                             log.warn("Could not write all samples for {}",
                                     samples.getSourceFile());
-                            stats.increaseFilesInaccessible();
+                            stats.increaseFilesWithErrors();
                         }
                     });
         }

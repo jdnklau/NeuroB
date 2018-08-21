@@ -15,7 +15,7 @@ class DataGenerationStatsTest {
                         "Should be 0: files created"),
                 () -> assertEquals(0, stats.getFilesSeen(),
                         "Should be 0: files seen"),
-                () -> assertEquals(0, stats.getFilesInaccessible(),
+                () -> assertEquals(0, stats.getFilesWithErrors(),
                         "Should be 0: files inaccessible"),
                 () -> assertEquals(0, stats.getSamplesWritten(),
                         "Should be 0: samples written"),
@@ -32,7 +32,7 @@ class DataGenerationStatsTest {
                         "Should be 2: files created"),
                 () -> assertEquals(1, stats.getFilesSeen(),
                         "Should be 1: files seen"),
-                () -> assertEquals(5, stats.getFilesInaccessible(),
+                () -> assertEquals(5, stats.getFilesWithErrors(),
                         "Should be 5: files inaccessible"),
                 () -> assertEquals(3, stats.getSamplesWritten(),
                         "Should be 3: samples written"),
@@ -71,17 +71,17 @@ class DataGenerationStatsTest {
     }
 
     @Test
-    public void shouldIncreaseFilesInaccessible() {
+    public void shouldIncreaseFilesWithErrors() {
         DataGenerationStats stats = new DataGenerationStats();
 
         int expected = 3;
-        stats.increaseFilesInaccessible();
-        int actual = stats.increaseFilesInaccessible(2);
+        stats.increaseFilesWithErrors();
+        int actual = stats.increaseFilesWithErrors(2);
 
         assertAll("Files inaccessible should be increased",
                 () -> assertEquals(expected, actual,
                         "Return type does not match"),
-                () -> assertEquals(expected, stats.getFilesInaccessible(),
+                () -> assertEquals(expected, stats.getFilesWithErrors(),
                         "Getter does not match"));
     }
 
@@ -127,7 +127,7 @@ class DataGenerationStatsTest {
                         "Should be 8: files created"),
                 () -> assertEquals(6, stats.getFilesSeen(),
                         "Should be 6: files seen"),
-                () -> assertEquals(19, stats.getFilesInaccessible(),
+                () -> assertEquals(19, stats.getFilesWithErrors(),
                         "Should be 19: files inaccessible"),
                 () -> assertEquals(10, stats.getSamplesWritten(),
                         "Should be 10: samples written"),
@@ -140,7 +140,8 @@ class DataGenerationStatsTest {
     public void shouldPrintCorrectNumbersInStringRepresentation() {
         DataGenerationStats stats = new DataGenerationStats(10, 4, 6, 20, 2);
 
-        String expected = "Files seen: 10; Files inaccessible: 6; "
+        String expected = "Files seen: 10; "
+                          + "Files that lead to errors: 6; "
                           + "Training files created: 4; "
                           + "Training samples written: 20; "
                           + "Training samples that lead to errors: 2";
