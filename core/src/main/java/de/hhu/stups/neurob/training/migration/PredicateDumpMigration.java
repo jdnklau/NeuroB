@@ -32,15 +32,17 @@ public class PredicateDumpMigration {
             throws IOException {
         DataGenerationStats stats = new DataGenerationStats();
 
+        log.info("Migrating predicate dump from {} to {}", source, targetDirectory);
+
         Stream<Path> files = Files.walk(source);
         files.filter(Files::isRegularFile)
+                .parallel()
                 .filter(file -> file.toString().endsWith(".pdump")) // only *.pdump
                 .forEach(pdump -> {
                     try {
                         TrainingData data = new TrainingData(
                                 stripCommonSourceDir(pdump, source),
                                 streamTranslatedSamples(pdump).map(this::translate));
-                        stats.increaseFilesSeen();
                         stats.mergeWith(migrateFile(pdump, source, targetDirectory, format));
                     } catch (IOException e) {
                         log.warn("Unable to migrate {}", pdump, e);
@@ -48,6 +50,7 @@ public class PredicateDumpMigration {
                     }
                 });
 
+        log.info("Migration finished: {}", stats);
         return stats;
     }
 
