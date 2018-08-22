@@ -51,6 +51,9 @@
     - [ ] predicate AST features
 - [ ] Data augmentation utilities
   - [ ] PCA: whitening
+  - [ ] add type information to identifiers
+    - [ ] hungarian notation: "x + y" -> "xInt + yInt"
+    - [ ] joshua notation: "x + y" -> "i1 + i2"
 - [ ] Enhanced analysis of feature sets
   - [ ] feature dimensionality reduction
     - [ ] PCA
