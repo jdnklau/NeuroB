@@ -171,6 +171,12 @@ class JsonFormatTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void shouldIndicateJsonExtension() {
+        assertEquals("json", new JsonFormat().getFileExtension(),
+                "Promised file format does not match");
+    }
+
     private Features createFeatures(Double... features) {
         return new TestFeatures(features);
     }

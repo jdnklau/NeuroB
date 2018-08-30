@@ -19,17 +19,8 @@ public class JsonFormat implements TrainingDataFormat<Features> {
     private static final Logger log = LoggerFactory.getLogger(JsonFormat.class);
 
     @Override
-    public Path getTargetLocation(Path sourceFile, Path targetDirectory) {
-        if (sourceFile == null) {
-            return targetDirectory.resolve("null.json");
-        }
-
-        // change extension with .json
-        String source = sourceFile.toString();
-        int extPos = source.lastIndexOf('.');
-        String sourceJson = source.substring(0, extPos) + ".json";
-
-        return targetDirectory.resolve(sourceJson);
+    public String getFileExtension() {
+        return "json";
     }
 
     @Override

@@ -20,6 +20,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class CsvFormatTest {
 
     @Test
+    public void shouldIndicateCsvExtension() {
+        assertEquals("csv", new CsvFormat().getFileExtension(),
+                "Indicated file extension is not csv");
+    }
+
+    @Test
     public void shouldUseCsvExtensionWhenMchMachine() {
         Path source = Paths.get("non/existent.mch");
         Path targetDir = Paths.get("target/dir");

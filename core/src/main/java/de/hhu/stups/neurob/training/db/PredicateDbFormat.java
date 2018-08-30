@@ -67,6 +67,11 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
     }
 
     @Override
+    public String getFileExtension() {
+        return internalFormat.getFileExtension();
+    }
+
+    @Override
     public <L extends Labelling>
     DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData, Path targetDirectory) {
         Path sourceFile = trainingData.getSourceFile();

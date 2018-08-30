@@ -33,12 +33,8 @@ public class CsvFormat implements TrainingDataFormat<Features> {
     }
 
     @Override
-    public Path getTargetLocation(Path sourceFile, Path targetDirectory) {
-        String sourceName = sourceFile.toString();
-        int extensionPos = sourceName.lastIndexOf('.');
-        String extensionless = sourceName.substring(0, extensionPos);
-
-        return targetDirectory.resolve(extensionless + ".csv");
+    public String getFileExtension() {
+        return "csv";
     }
 
     @Override
