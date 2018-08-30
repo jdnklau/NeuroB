@@ -118,7 +118,6 @@ class PredicateDumpMigrationTest {
         when(format.writeSamples(any(TrainingData.class), any(Path.class)))
                 .thenAnswer(invocation -> {
                     TrainingData data = invocation.getArgument(0);
-                    System.out.println("foo");
                     data.getSamples().forEach(
                             sample ->
                                     writer.append(sample.toString()).write('\n'));
@@ -157,7 +156,6 @@ class PredicateDumpMigrationTest {
         when(format.writeSamples(any(TrainingData.class), any(Path.class)))
                 .thenAnswer(invocation -> {
                     TrainingData data = invocation.getArgument(0);
-                    System.out.println("foo");
                     data.getSamples().forEach(
                             sample ->
                                     writer.append(sample.toString()).write('\n'));
