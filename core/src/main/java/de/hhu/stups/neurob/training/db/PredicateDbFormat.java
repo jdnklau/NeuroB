@@ -62,11 +62,6 @@ public class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BP
 
 
     @Override
-    public Path getTargetLocation(Path sourceFile, Path targetDirectory) {
-        return internalFormat.getTargetLocation(sourceFile, targetDirectory);
-    }
-
-    @Override
     public String getFileExtension() {
         return internalFormat.getFileExtension();
     }
