@@ -9,6 +9,7 @@ import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.db.DbSample;
+import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.db.TrainingDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
@@ -24,7 +25,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-public class PredicateDumpFormat implements TrainingDbFormat<PredicateFeatures, BPredicate> {
+public class PredicateDumpFormat extends PredicateDbFormat {
 
     private static final Logger log =
             LoggerFactory.getLogger(PredicateDumpFormat.class);
@@ -47,7 +48,7 @@ public class PredicateDumpFormat implements TrainingDbFormat<PredicateFeatures, 
                 // skip comments/annotation lines that are not source annotations
                 .filter(line -> !line.startsWith("#") || line.startsWith("#source:"))
                 .map(line -> translateEntry(line, sourceMch)) // FIXME ugly state manipulation in stream
-                .filter(Objects::nonNull) // due to statefull mapping, null is needed; filter it out
+                .filter(Objects::nonNull) // due to stateful mapping, null is needed; filter it out
                 .map(this::translate);
     }
 
