@@ -59,56 +59,6 @@ class PredicateDumpMigrationTest {
     }
 
     @Test
-    public void shouldTranslatePredicateDumpIntoDbSample() {
-        PredicateDump pdump = new PredicateDump("1.0,2.0,3.0,-1.0:predicate:PREDICATES");
-
-        PredicateDumpMigration migration = new PredicateDumpMigration();
-
-        // Set up expected sample
-        DbSample<BPredicate> expected = new DbSample<>(
-                new BPredicate("predicate:PREDICATES"),
-                new Labelling(1.0, 2.0, 3.0, -1.0));
-        DbSample<BPredicate> actual = migration.translate(pdump);
-
-        assertEquals(expected, actual,
-                "Migration into DbSample failed");
-    }
-
-    @Test
-    public void shouldTranslatePredicateDumpWithSourceIntoDbSampleWithSource() {
-        PredicateDump pdump = new PredicateDump("1.0,2.0,3.0,-1.0:predicate:PREDICATES",
-                Paths.get("nonexistent/mch"));
-
-        PredicateDumpMigration migration = new PredicateDumpMigration();
-
-        // Set up expected sample
-        DbSample<BPredicate> expected = new DbSample<>(
-                new BPredicate("predicate:PREDICATES"),
-                new Labelling(1.0, 2.0, 3.0, -1.0),
-                Paths.get("nonexistent/mch"));
-        DbSample<BPredicate> actual = migration.translate(pdump);
-
-        assertEquals(expected, actual,
-                "Migration into DbSample failed");
-    }
-
-    @Test
-    public void shouldStreamDbSamplesFromPDumpFile() throws IOException {
-        PredicateDumpMigration migration = new PredicateDumpMigration();
-
-        List<DbSample<BPredicate>> expected = new ArrayList<>();
-        expected.add(sample0);
-        expected.add(sample1);
-        expected.add(sample2);
-        expected.add(sample3);
-
-        List<DbSample<BPredicate>> actual =
-                migration.streamTranslatedSamples(MIGRATION_SOURCE).collect(Collectors.toList());
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
     public void shouldMigrateFileToFormat() throws IOException {
         PredicateDumpMigration migration = new PredicateDumpMigration();
 

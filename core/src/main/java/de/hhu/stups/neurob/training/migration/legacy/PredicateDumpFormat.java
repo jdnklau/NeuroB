@@ -122,12 +122,15 @@ public class PredicateDumpFormat extends PredicateDbFormat {
         log.info("Writing samples from {} to {}", trainingData.getSourceFile(), targetFile);
 
         DataGenerationStats stats = new DataGenerationStats();
+        stats.increaseFilesSeen();
+
         try {
             // Ensure directory exists
             Files.createDirectories(targetFile.getParent());
             BufferedWriter out = Files.newBufferedWriter(targetFile);
             stats.increaseFilesCreated();
-            writeSamples(trainingData, out);
+            DataGenerationStats writeStats = writeSamples(trainingData, out);
+            stats.mergeWith(writeStats);
         } catch (IOException e) {
             log.error("Could not write predicate dump to {}", targetFile);
             stats.increaseFilesWithErrors();

@@ -1,0 +1,1 @@
+{"samples":[{"predicate":"first:PREDICATES","source":"machines/first.mch","timings":{"KodkodBackend":1.0,"ProBBackend":2.0,"SmtBackend":3.0,"Z3Backend":4.0}},{"predicate":"first:PREDICATES","source":"machines/first.mch","timings":{"KodkodBackend":1.0,"ProBBackend":2.0,"SmtBackend":3.0,"Z3Backend":4.0}}]}
