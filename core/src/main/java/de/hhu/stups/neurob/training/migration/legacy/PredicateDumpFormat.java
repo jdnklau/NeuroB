@@ -30,6 +30,26 @@ public class PredicateDumpFormat extends PredicateDbFormat {
     private static final Logger log =
             LoggerFactory.getLogger(PredicateDumpFormat.class);
 
+    @Override
+    public Path getTargetLocation(Path sourceFile, Path targetDirectory) {
+        // FIXME: Remove this once PredicateDbFormat is a valid interface
+        // If it is an interface, make use of default implementation
+
+        // Get String representation
+        String source;
+        if (sourceFile == null) {
+            source = "null." + getFileExtension();
+        } else {
+            source = sourceFile.toString();
+        }
+
+        // Replace extension
+        int extPos = source.lastIndexOf('.');
+        String target = source.substring(0, extPos +1 ) + getFileExtension();
+
+        return targetDirectory.resolve(target);
+    }
+
     /**
      * Streams the translated samples from the given *.pdump file.
      *
