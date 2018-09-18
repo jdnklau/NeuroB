@@ -41,10 +41,9 @@ public class PredicateDumpMigration {
                 .filter(file -> file.toString().endsWith(".pdump")) // only *.pdump
                 .forEach(pdump -> {
                     try {
-                        TrainingData data = new TrainingData(
-                                stripCommonSourceDir(pdump, source),
-                                streamTranslatedSamples(pdump).map(this::translate));
-                        stats.mergeWith(migrateFile(pdump, source, targetDirectory, format));
+                        DataGenerationStats fileStats =
+                                migrateFile(pdump, source, targetDirectory, format);
+                        stats.mergeWith(fileStats);
                     } catch (IOException e) {
                         log.warn("Unable to migrate {}", pdump, e);
                         stats.increaseFilesWithErrors();
@@ -156,8 +155,10 @@ public class PredicateDumpMigration {
      * Translates a predicate dump entry line into a {@link PredicateDump}
      * data structure. If the entry happens to be a #source annotation,
      * it instead changes the srcReference to the new source and returns null.
+     *
      * @param entry
      * @param srcReference
+     *
      * @return A PredicateDump instance or null
      */
     private PredicateDump translateEntry(String entry, AtomicReference<Path> srcReference) {
