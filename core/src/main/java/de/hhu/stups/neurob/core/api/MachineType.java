@@ -3,6 +3,8 @@ package de.hhu.stups.neurob.core.api;
 import de.prob.model.eventb.EventBModel;
 import de.prob.statespace.StateSpace;
 
+import java.nio.file.Path;
+
 public enum MachineType {
     CLASSICALB,
     EVENTB;
@@ -19,5 +21,19 @@ public enum MachineType {
             return EVENTB;
         }
         return CLASSICALB;
+    }
+
+    /**
+     * Predicts the machine type of the specified source by its file extension.
+     *
+     * @param location Path to a B machine file
+     *
+     * @return
+     */
+    public static MachineType predictTypeFromLocation(Path location) {
+        if (location.toString().endsWith(".bcm")) {
+            return MachineType.EVENTB;
+        }
+        return MachineType.CLASSICALB;
     }
 }
