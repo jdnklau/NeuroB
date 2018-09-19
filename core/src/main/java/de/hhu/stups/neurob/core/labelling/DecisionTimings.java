@@ -63,6 +63,8 @@ public class DecisionTimings extends PredicateLabelling {
      * @param predicate
      * @param sampleSize Number of times each timing is run; final time
      *         is taken from the average.
+     * @param timeOut Maximal runtime given for each backend to solve the predicate
+     * @param timeOutUnit Unit in which the time out is measured
      * @param bMachine Access to the B machine the predicate belongs to
      * @param backends List of backend for which the labelling is
      *         created.
@@ -82,6 +84,78 @@ public class DecisionTimings extends PredicateLabelling {
 
         for (int i = 0; i < labellingDimension; i++) {
             labellingArray[i] = timings.get(backends[i]);
+        }
+    }
+
+    /**
+     * Creates a labelling vector with respect to the given time mapping.
+     * <p>
+     * The listed backends dictate the order in which the entries of the vector will
+     * be sorted. Backends not present in the mapping receive the value of -1.0.
+     * Backends which are present in the mapping but not specifically listed for the
+     * ordering are ignored.
+     * <p>
+     * For example the call
+     * <pre>
+     * {@code new DecisionTimings("pred", {A=2, B=1, C=3}, B, A, D)}
+     * </pre>
+     * will result in the vector {@code <1.0, 2.0, -1.0>}.
+     * <p>
+     * Internally the timeout data used for generating the mapping are assumed to
+     * be {@link #defaultTimeout} and {@link #defaultTimeoutUnit},
+     * with a sampling size of 1.
+     *
+     * @param predicate
+     * @param timeMapping Mapping of backends to time measures. Will be translated into a
+     *         vector.
+     * @param backends List of backend for which the labelling is
+     *         created.
+     */
+    public DecisionTimings(String predicate, Map<Backend, Double> timeMapping,
+            Backend... backends) {
+        this(predicate, 1, defaultTimeout, defaultTimeoutUnit, timeMapping, backends);
+    }
+
+    /**
+     * Creates a labelling vector with respect to the given time mapping.
+     * <p>
+     * The listed backends dictate the order in which the entries of the vector will
+     * be sorted. Backends not present in the mapping receive the value of -1.0.
+     * Backends which are present in the mapping but not specifically listed for the
+     * ordering are ignored.
+     * <p>
+     * For example the call
+     * <pre>
+     * {@code new DecisionTimings("pred", {A=2, B=1, C=3}, B, A, D)}
+     * </pre>
+     * will result in the vector {@code <1.0, 2.0, -1.0>}.
+     *
+     * @param predicate
+     * @param sampleSize Number of times each timing was run; final time
+     *         is taken from the average.
+     * @param timeOut Maximal runtime given for each backend to solve the predicate
+     * @param timeOutUnit Unit in which the time out is measured
+     * @param timeMapping Mapping of backends to time measures. Will be translated into a
+     *         vector.
+     * @param backends List of backend for which the labelling is
+     *         created.
+     */
+    public DecisionTimings(String predicate, int sampleSize,
+            Long timeOut, TimeUnit timeOutUnit,
+            Map<Backend, Double> timeMapping, Backend[] backends) {
+        super(predicate, new Double[backends.length]);
+
+        this.sampleSize = sampleSize;
+        this.usedBackends = backends;
+
+        this.timeOut = timeOut;
+        this.timeUnit = timeOutUnit;
+
+        this.timings = timeMapping;
+
+        // Distribute timings to labelling array, in order
+        for (int i = 0; i < labellingDimension; i++) {
+            labellingArray[i] = timings.getOrDefault(backends[i], -1.);
         }
     }
 

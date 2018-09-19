@@ -1,6 +1,10 @@
 package de.hhu.stups.neurob.core.labelling;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.api.backends.SmtBackend;
+import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
@@ -8,9 +12,12 @@ import de.prob.animator.command.CbcSolveCommand.Solvers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,6 +71,67 @@ class DecisionTimingsTest {
                         "ProB backend not at index 0"),
                 () -> assertEquals(2, usedBackends.length,
                         "Number of backends does not match"));
+    }
+
+    @Test
+    public void shouldOrderLabelsAccordingToBackendOrder() {
+        Map<Backend, Double> input = new HashMap();
+        input.put(new ProBBackend(), 4.);
+        input.put(new KodKodBackend(), 3.);
+        input.put(new Z3Backend(), 2.);
+        input.put(new SmtBackend(), 1.);
+
+        DecisionTimings timings = new DecisionTimings("pred", input,
+                new SmtBackend(),
+                new Z3Backend(),
+                new KodKodBackend(),
+                new ProBBackend());
+
+        Double[] expected = {1., 2., 3., 4.};
+        Double[] actual = timings.getLabellingArray();
+
+        assertArrayEquals(expected, actual,
+                "Backends not in expected order");
+    }
+
+    @Test
+    public void shouldIgnoreUnlistedBackends() {
+        Map<Backend, Double> input = new HashMap();
+        input.put(new ProBBackend(), 4.);
+        input.put(new KodKodBackend(), 3.);
+        input.put(new Z3Backend(), 2.);
+        input.put(new SmtBackend(), 1.);
+
+        DecisionTimings timings = new DecisionTimings("pred", input,
+                new SmtBackend(),
+                new Z3Backend(),
+                new ProBBackend());
+
+        Double[] expected = {1., 2., 4.};
+        Double[] actual = timings.getLabellingArray();
+
+        assertArrayEquals(expected, actual,
+                "Backends not in expected order");
+    }
+
+    @Test
+    public void shouldSetTimeOfUnmappedBackendsToNegativeOne() {
+        Map<Backend, Double> input = new HashMap();
+        input.put(new ProBBackend(), 4.);
+        input.put(new Z3Backend(), 2.);
+        input.put(new SmtBackend(), 1.);
+
+        DecisionTimings timings = new DecisionTimings("pred", input,
+                new SmtBackend(),
+                new Z3Backend(),
+                new KodKodBackend(),
+                new ProBBackend());
+
+        Double[] expected = {1., 2., -1.0, 4.};
+        Double[] actual = timings.getLabellingArray();
+
+        assertArrayEquals(expected, actual,
+                "Backends not in expected order");
     }
 
     @Test
