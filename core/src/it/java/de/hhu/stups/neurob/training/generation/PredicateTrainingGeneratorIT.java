@@ -57,7 +57,7 @@ class PredicateTrainingGeneratorIT {
 
     private final String DB_RESOURCE_DIR =
             PredicateTrainingGeneratorIT.class.getClassLoader()
-            .getResource("db/").getFile();
+                    .getResource("db/").getFile();
 
     @BeforeEach
     public void setUpMocks() {
@@ -336,15 +336,18 @@ class PredicateTrainingGeneratorIT {
                 mchDir.resolve("first.mch"));
 
         // Generate data
-        gen.generateTrainingData(mchDir, targetDir);
+        DataGenerationStats stats = gen.generateTrainingData(mchDir, targetDir);
 
         // Count data points
         long expected = TestMachines.loadExpectedPredicates(
                 TestMachines.FORMULAE_GEN_MCH_PREDICATE_FILE).size();
         long actual = format.loadSamples(targetDir.resolve("first.json")).count();
 
-        assertEquals(expected, actual,
-                "Number of generated samples does not match");
+        assertAll("Number of samples",
+                () -> assertEquals(expected, actual,
+                        "Number of generated samples does not match"),
+                () -> assertEquals(expected, stats.getSamplesWritten(),
+                        "Number of samples in statistics does not match"));
     }
 
     @Test
