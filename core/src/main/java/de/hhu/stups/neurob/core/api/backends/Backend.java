@@ -271,5 +271,21 @@ public abstract class Backend {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        // Needs to be a backend at least
+        if (!(o instanceof Backend)) {
+            return false;
+        }
 
+        // Needs to be same backend
+        if (!this.getClass().equals(o.getClass())) {
+            return false;
+        }
+
+        Backend other = (Backend) o;
+
+        return this.timeOutValue == other.getTimeOutValue()
+                && this.timeOutUnit == other.getTimeOutUnit();
+    }
 }
