@@ -19,7 +19,7 @@ public class MachineAccess {
     private final MachineType machineType;
 
     private final Api api;
-    private StateSpace stateSpace;
+    private StateSpace stateSpace = null;
 
     private static final Logger log =
             LoggerFactory.getLogger(MachineAccess.class);
@@ -35,20 +35,9 @@ public class MachineAccess {
     }
 
     public MachineAccess(Path source) throws MachineAccessException {
-        this(source, extractMachineType(source));
+        this(source, MachineType.predictTypeFromLocation(source));
     }
 
-    /**
-     * Extracts the machine type of the specified source by its file ending.
-     * @param source Path to a B machine file
-     * @return
-     */
-    private static MachineType extractMachineType(Path source) {
-        if (source.toString().endsWith(".bcm")) {
-            return MachineType.EVENTB;
-        }
-        return MachineType.CLASSICALB;
-    }
 
     public Path getSource() {
         return source;
@@ -75,6 +64,7 @@ public class MachineAccess {
     protected StateSpace loadStateSpace(Path file) throws MachineAccessException {
         String machineFile = file.toString(); // only str version needed
         try {
+            // TODO: Make use of machine type
             if (machineFile.endsWith(".mch")) {
                 log.info("Load State Space for Classical B machine {}", file);
                 return api.b_load(machineFile);
