@@ -57,10 +57,10 @@ public class PredicateTrainingGenerator
                 (pred, ss) -> new PredicateFeatures(pred),
                 // Todo: short cut for this?
                 new DecisionTimings.Generator(3,
-                        new KodkodBackend(),
                         new ProBBackend(),
-                        new SmtBackend(),
-                        new Z3Backend()),
+                        new KodkodBackend(),
+                        new Z3Backend(),
+                        new SmtBackend()),
                 new JsonDbFormat()
         );
     }
