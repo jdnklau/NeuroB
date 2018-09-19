@@ -11,6 +11,7 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
@@ -41,12 +42,18 @@ public class JsonDbFormat implements PredicateDbFormat {
      * 2 - Z3
      * 3 - SMT_SUPPORTED_INTERPRETER
      */
-    private final static Backend[] backendOrderUsed = {
+    public final static Backend[] BACKENDS_USED = {
             new ProBBackend(),
             new KodkodBackend(),
             new Z3Backend(),
             new SmtBackend(),
     };
+
+    /**
+     * Label generator to get data for predicates.
+     */
+    public final static PredicateLabelGenerating<DecisionTimings> LABEL_GENERATOR =
+            new DecisionTimings.Generator(3, BACKENDS_USED);
 
 
     private static final Logger log =
@@ -156,15 +163,15 @@ public class JsonDbFormat implements PredicateDbFormat {
         Map<String, String> backendTimes = new HashMap<>();
         Double[] labelTimes = sample.getLabelling().getLabellingArray();
         // Safety check: number of entries must match
-        if (labelTimes.length != backendOrderUsed.length) {
+        if (labelTimes.length != BACKENDS_USED.length) {
             throw new IllegalArgumentException(
                     "Provided TrainingSample does not allow a 1:1 mapping of "
                     + "its contained labelled times to the expected backends "
                     + "in use.");
         }
-        String timings = IntStream.range(0, backendOrderUsed.length)
+        String timings = IntStream.range(0, BACKENDS_USED.length)
                 .mapToObj(index ->
-                        "\"" + backendOrderUsed[index].getClass().getSimpleName()
+                        "\"" + BACKENDS_USED[index].getClass().getSimpleName()
                         + "\":" + labelTimes[index])
                 .collect(Collectors.joining(","));
 
@@ -192,8 +199,8 @@ public class JsonDbFormat implements PredicateDbFormat {
 
             // Map from Key to Backend
             backendKeyMap = new HashMap<>();
-            for(int i = 0; i < backendOrderUsed.length; i++) {
-                Backend b = backendOrderUsed[i];
+            for(int i = 0; i < BACKENDS_USED.length; i++) {
+                Backend b = BACKENDS_USED[i];
                 backendKeyMap.put(b.getClass().getSimpleName(), b);
             }
 
@@ -285,7 +292,7 @@ public class JsonDbFormat implements PredicateDbFormat {
                 Double time = Double.parseDouble(timeSplit[1]);
                 timingMap.put(backendKeyMap.get(backendKey), time);
             }
-            return new DecisionTimings("", timingMap, backendOrderUsed);
+            return new DecisionTimings("", timingMap, BACKENDS_USED);
         }
 
 
@@ -324,7 +331,7 @@ public class JsonDbFormat implements PredicateDbFormat {
                 reader.endObject();
 
                 // Create ordered string
-                String solverString = Arrays.stream(backendOrderUsed)
+                String solverString = Arrays.stream(BACKENDS_USED)
                         .map(b ->
                                 b.getClass().getSimpleName()
                                 + ":" + timingMap.getOrDefault(b, -1.))

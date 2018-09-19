@@ -55,12 +55,7 @@ public class PredicateTrainingGenerator
     public PredicateTrainingGenerator() {
         this(
                 (pred, ss) -> new PredicateFeatures(pred),
-                // Todo: short cut for this?
-                new DecisionTimings.Generator(3,
-                        new ProBBackend(),
-                        new KodkodBackend(),
-                        new Z3Backend(),
-                        new SmtBackend()),
+                JsonDbFormat.LABEL_GENERATOR,
                 new JsonDbFormat()
         );
     }
