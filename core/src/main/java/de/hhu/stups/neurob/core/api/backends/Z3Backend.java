@@ -27,7 +27,9 @@ public class Z3Backend extends Backend {
     }
 
     @Override
-    public String toString() {
-        return "Z3";
+    public String getDescriptionString() {
+        String description =
+                "Z3, timeout: " + timeOutValue + timeOutUnit;
+        return description;
     }
 }

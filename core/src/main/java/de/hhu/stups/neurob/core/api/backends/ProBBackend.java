@@ -30,7 +30,9 @@ public class ProBBackend extends Backend {
     }
 
     @Override
-    public String toString() {
-        return "ProB";
+    public String getDescriptionString() {
+        String description =
+                "ProB, timeout: " + timeOutValue + timeOutUnit;
+        return description;
     }
 }

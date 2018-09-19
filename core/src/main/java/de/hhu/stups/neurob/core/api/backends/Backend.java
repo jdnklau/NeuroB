@@ -286,6 +286,28 @@ public abstract class Backend {
         Backend other = (Backend) o;
 
         return this.timeOutValue == other.getTimeOutValue()
-                && this.timeOutUnit == other.getTimeOutUnit();
+               && this.timeOutUnit == other.getTimeOutUnit();
+    }
+
+    /**
+     * Returns a string that states the backend's name and any settings made
+     * to it, so two instances of the same backend can be easily distinguished
+     * as differently configured by comparing this string.
+     * <p>
+     * For two backends b1 and b2 should hold:
+     * <pre>{@code b1.equals(b2) <=> b1.getDescriptionString().equals(b2.getDescriptionString())}</pre>
+     *
+     * @return String describing the backend
+     */
+    abstract public String getDescriptionString();
+
+    @Override
+    public int hashCode() {
+        return getDescriptionString().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return getDescriptionString();
     }
 }

@@ -31,7 +31,9 @@ public class SmtBackend extends Backend {
     }
 
     @Override
-    public String toString() {
-        return "SMT_SUPPORTED_INTERPRETER";
+    public String getDescriptionString() {
+        String description =
+                "SMT_SUPPORTED_INTERPRETER, timeout: " + timeOutValue + timeOutUnit;
+        return description;
     }
 }

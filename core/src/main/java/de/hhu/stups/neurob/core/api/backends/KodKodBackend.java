@@ -27,7 +27,9 @@ public class KodKodBackend extends Backend {
     }
 
     @Override
-    public String toString() {
-        return "KodKod";
+    public String getDescriptionString() {
+        String description =
+                "Kodkod, timeout: " + timeOutValue + timeOutUnit;
+        return description;
     }
 }
