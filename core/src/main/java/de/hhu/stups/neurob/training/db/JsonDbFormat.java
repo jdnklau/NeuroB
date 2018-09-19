@@ -22,12 +22,9 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -35,7 +32,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class JsonDbFormat extends PredicateDbFormat {
+public class JsonDbFormat implements PredicateDbFormat {
 
     /**
      * Array over backends in use, also providing an ordering by id.

@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-public class PredicateDumpFormat extends PredicateDbFormat {
+public class PredicateDumpFormat implements PredicateDbFormat {
 
     private static final Logger log =
             LoggerFactory.getLogger(PredicateDumpFormat.class);
