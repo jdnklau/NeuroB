@@ -2,13 +2,17 @@ package de.hhu.stups.neurob.training.db;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.api.backends.SmtBackend;
+import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
-import de.hhu.stups.neurob.training.formats.JsonFormat;
-import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,22 +35,25 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public abstract class PredicateDbFormat implements TrainingDbFormat<PredicateFeatures, BPredicate> {
+public class JsonDbFormat extends PredicateDbFormat {
 
-    private final TrainingDataFormat<? super PredicateFeatures> internalFormat;
-    private final String[] backendsUsed = {
-            "KodkodBackend",
-            "ProBBackend",
-            "SmtBackend",
-            "Z3Backend",
+    /**
+     * Array over backends in use, also providing an ordering by id.
+     * 0 - ProB
+     * 1 - Kodkod
+     * 2 - Z3
+     * 3 - SMT_SUPPORTED_INTERPRETER
+     */
+    private final static Backend[] backendOrderUsed = {
+            new ProBBackend(),
+            new KodkodBackend(),
+            new Z3Backend(),
+            new SmtBackend(),
     };
 
-    private static final Logger log =
-            LoggerFactory.getLogger(PredicateDbFormat.class);
 
-    public PredicateDbFormat() {
-        internalFormat = new JsonFormat();
-    }
+    private static final Logger log =
+            LoggerFactory.getLogger(JsonDbFormat.class);
 
     @Override
     public Stream<DbSample<BPredicate>> loadSamples(Path sourceFile)
@@ -63,7 +71,7 @@ public abstract class PredicateDbFormat implements TrainingDbFormat<PredicateFea
 
     @Override
     public String getFileExtension() {
-        return internalFormat.getFileExtension();
+        return "json";
     }
 
     @Override
@@ -151,15 +159,16 @@ public abstract class PredicateDbFormat implements TrainingDbFormat<PredicateFea
         Map<String, String> backendTimes = new HashMap<>();
         Double[] labelTimes = sample.getLabelling().getLabellingArray();
         // Safety check: number of entries must match
-        if (labelTimes.length != backendsUsed.length) {
+        if (labelTimes.length != backendOrderUsed.length) {
             throw new IllegalArgumentException(
                     "Provided TrainingSample does not allow a 1:1 mapping of "
                     + "its contained labelled times to the expected backends "
                     + "in use.");
         }
-        String timings = IntStream.range(0, backendsUsed.length)
+        String timings = IntStream.range(0, backendOrderUsed.length)
                 .mapToObj(index ->
-                        "\"" + backendsUsed[index] + "\":" + labelTimes[index])
+                        "\"" + backendOrderUsed[index].getClass().getSimpleName()
+                        + "\":" + labelTimes[index])
                 .collect(Collectors.joining(","));
 
         // Concatenate everything into one Json Object
@@ -178,10 +187,18 @@ public abstract class PredicateDbFormat implements TrainingDbFormat<PredicateFea
     public static class PredicateDbIterator implements Iterator<DbSample<BPredicate>> {
         private final JsonReader reader;
         private boolean hasEnded;
+        private final Map<String, Backend> backendKeyMap;
 
         public PredicateDbIterator(JsonReader reader) throws IOException {
             this.reader = reader;
             this.hasEnded = false;
+
+            // Map from Key to Backend
+            backendKeyMap = new HashMap<>();
+            for(int i = 0; i < backendOrderUsed.length; i++) {
+                Backend b = backendOrderUsed[i];
+                backendKeyMap.put(b.getClass().getSimpleName(), b);
+            }
 
             consumeHeader();
         }
@@ -261,13 +278,17 @@ public abstract class PredicateDbFormat implements TrainingDbFormat<PredicateFea
 
         public Labelling translateTimings(String timings) {
             String[] solverTimes = timings.split(",");
-            Double[] labels = new Double[solverTimes.length];
+
+            // Construct timing map
+            Map<Backend, Double> timingMap = new HashMap<>();
+
             for (int i = 0; i < solverTimes.length; i++) {
                 String[] timeSplit = solverTimes[i].split(":");
+                String backendKey = timeSplit[0];
                 Double time = Double.parseDouble(timeSplit[1]);
-                labels[i] = time;
+                timingMap.put(backendKeyMap.get(backendKey), time);
             }
-            return new Labelling(labels);
+            return new DecisionTimings("", timingMap, backendOrderUsed);
         }
 
 
@@ -293,18 +314,25 @@ public abstract class PredicateDbFormat implements TrainingDbFormat<PredicateFea
             if ("predicate".equals(property) || "source".equals(property)) {
                 data.put(property, reader.nextString());
             } else if ("timings".equals(property)) {
+                // Prepare data map
+                Map<Backend, Double> timingMap = new HashMap<>();
+
                 // Read entries
                 reader.beginObject();
-                List<String> solvers = new ArrayList<>();
                 while (JsonToken.NAME.equals(reader.peek())) {
-                    String solver = reader.nextName();
+                    String backendKey = reader.nextName();
                     Double time = reader.nextDouble();
-                    solvers.add(solver + ":" + time);
+                    timingMap.put(backendKeyMap.get(backendKey), time);
                 }
                 reader.endObject();
-                solvers.sort(Comparator.naturalOrder());
 
-                String solverString = String.join(",", solvers);
+                // Create ordered string
+                String solverString = Arrays.stream(backendOrderUsed)
+                        .map(b ->
+                                b.getClass().getSimpleName()
+                                + ":" + timingMap.getOrDefault(b, -1.))
+                        .collect(Collectors.joining(","));
+
                 data.put("timings", solverString);
             } else {
                 log.warn("Unknown property \"{}\"", property);
@@ -312,4 +340,5 @@ public abstract class PredicateDbFormat implements TrainingDbFormat<PredicateFea
             }
         }
     }
+
 }

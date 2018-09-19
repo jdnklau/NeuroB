@@ -16,6 +16,7 @@ import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.testharness.TestMachines;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
@@ -281,7 +282,7 @@ class PredicateTrainingGeneratorIT {
                         (pred, ss) -> new PredicateFeatures(pred),
                         new DecisionTimings.Generator(
                                 1, kodkod, prob, smt, z3),
-                        new PredicateDbFormat()
+                        new JsonDbFormat()
                 );
 
         // Set up working directory
@@ -313,14 +314,14 @@ class PredicateTrainingGeneratorIT {
         ProBBackend prob = new ProBBackend();
         SmtBackend smt = new SmtBackend();
         Z3Backend z3 = new Z3Backend();
-        PredicateDbFormat format = new PredicateDbFormat();
+        PredicateDbFormat format = new JsonDbFormat();
 
         TrainingSetGenerator gen =
                 new PredicateTrainingGenerator(
                         (pred, ss) -> new PredicateFeatures(pred),
                         new DecisionTimings.Generator(
                                 1, kodkod, prob, smt, z3),
-                        new PredicateDbFormat()
+                        new JsonDbFormat()
                 );
 
         // Set up working directory
@@ -350,14 +351,14 @@ class PredicateTrainingGeneratorIT {
     void shouldThrowExceptionWhenNotEnoughLabelsAreProvided() throws IOException {
         KodkodBackend kodkod = new KodkodBackend();
         ProBBackend prob = new ProBBackend();
-        PredicateDbFormat format = new PredicateDbFormat();
+        PredicateDbFormat format = new JsonDbFormat();
 
         TrainingSetGenerator gen =
                 new PredicateTrainingGenerator(
                         (pred, ss) -> new PredicateFeatures(pred),
                         new DecisionTimings.Generator(
                                 1, kodkod, prob),
-                        new PredicateDbFormat()
+                        new JsonDbFormat()
                 );
 
         // Set up target directory
@@ -377,7 +378,7 @@ class PredicateTrainingGeneratorIT {
     public void shouldRecogniseNonexistenceWhenDbFileNonexistent() throws IOException {
         Path tmpDir = Files.createTempDirectory("neurob-it");
         Path targetDir = tmpDir.resolve("target");
-        TrainingDataFormat format = new PredicateDbFormat();
+        TrainingDataFormat format = new JsonDbFormat();
 
         // File to use
         Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
@@ -394,7 +395,7 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     public void shouldRecogniseExistenceWhenDbFileExistent() throws IOException {
-        TrainingDataFormat format = new PredicateDbFormat();
+        TrainingDataFormat format = new JsonDbFormat();
 
         // File to use
         Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
@@ -413,7 +414,7 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     public void shouldStateNonexistentWhenSourceDataIsNewerThanTarget() throws IOException {
-        TrainingDataFormat format = new PredicateDbFormat();
+        TrainingDataFormat format = new JsonDbFormat();
 
         // Copy file to emulate fresh version
         Path tmpDir = Files.createTempDirectory("neurob-it");

@@ -6,6 +6,7 @@ import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.DbSample;
+import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class PredicateDbMigration implements TrainingSetMigration {
             LoggerFactory.getLogger(PredicateDbMigration.class);
 
     public PredicateDbMigration() {
-        this(new PredicateDbFormat());
+        this(new JsonDbFormat());
     }
 
     /**

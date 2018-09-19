@@ -1,1 +1,1 @@
-{"samples":[{"predicate":"second:PREDICATES","source":"machines/subdir/second.mch","timings":{"KodkodBackend":1.0,"ProBBackend":2.0,"SmtBackend":3.0,"Z3Backend":4.0}}]}
+{"samples":[{"predicate":"second:PREDICATES","source":"machines/subdir/second.mch","timings":{"KodkodBackend":2.0,"ProBBackend":1.0,"SmtBackend":4.0,"Z3Backend":3.0}}]}

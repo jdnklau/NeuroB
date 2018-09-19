@@ -16,7 +16,7 @@ import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
-import de.hhu.stups.neurob.training.db.PredicateDbFormat;
+import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
 import de.hhu.stups.neurob.training.generation.util.PredicateCollection;
@@ -61,7 +61,7 @@ public class PredicateTrainingGenerator
                         new ProBBackend(),
                         new SmtBackend(),
                         new Z3Backend()),
-                new PredicateDbFormat()
+                new JsonDbFormat()
         );
     }
 
