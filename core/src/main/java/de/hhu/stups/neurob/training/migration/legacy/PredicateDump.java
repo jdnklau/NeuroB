@@ -1,7 +1,7 @@
 package de.hhu.stups.neurob.training.migration.legacy;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
@@ -40,7 +40,7 @@ public class PredicateDump {
         this.timings = new HashMap<>();
         String[] timingLabels = predicateDumpEntry.substring(0, splitPos).split(",");
         this.timings.put(ProBBackend.class, Double.valueOf(timingLabels[0]));
-        this.timings.put(KodKodBackend.class, Double.valueOf(timingLabels[1]));
+        this.timings.put(KodkodBackend.class, Double.valueOf(timingLabels[1]));
         this.timings.put(Z3Backend.class, Double.valueOf(timingLabels[2]));
         this.timings.put(SmtBackend.class, Double.valueOf(timingLabels[3]));
 

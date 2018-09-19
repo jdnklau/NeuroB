@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.training.migration.legacy;
 
-import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
@@ -10,7 +10,6 @@ import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.db.DbSample;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
-import de.hhu.stups.neurob.training.db.TrainingDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +84,7 @@ public class PredicateDumpFormat extends PredicateDbFormat {
         BPredicate predicate = pdump.getPredicate();
         Labelling labels = new Labelling(
                 pdump.getTime(ProBBackend.class),
-                pdump.getTime(KodKodBackend.class),
+                pdump.getTime(KodkodBackend.class),
                 pdump.getTime(Z3Backend.class),
                 pdump.getTime(SmtBackend.class)
         );

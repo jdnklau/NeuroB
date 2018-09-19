@@ -1,7 +1,7 @@
 package de.hhu.stups.neurob.core.labelling;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
@@ -77,14 +77,14 @@ class DecisionTimingsTest {
     public void shouldOrderLabelsAccordingToBackendOrder() {
         Map<Backend, Double> input = new HashMap();
         input.put(new ProBBackend(), 4.);
-        input.put(new KodKodBackend(), 3.);
+        input.put(new KodkodBackend(), 3.);
         input.put(new Z3Backend(), 2.);
         input.put(new SmtBackend(), 1.);
 
         DecisionTimings timings = new DecisionTimings("pred", input,
                 new SmtBackend(),
                 new Z3Backend(),
-                new KodKodBackend(),
+                new KodkodBackend(),
                 new ProBBackend());
 
         Double[] expected = {1., 2., 3., 4.};
@@ -98,7 +98,7 @@ class DecisionTimingsTest {
     public void shouldIgnoreUnlistedBackends() {
         Map<Backend, Double> input = new HashMap();
         input.put(new ProBBackend(), 4.);
-        input.put(new KodKodBackend(), 3.);
+        input.put(new KodkodBackend(), 3.);
         input.put(new Z3Backend(), 2.);
         input.put(new SmtBackend(), 1.);
 
@@ -124,7 +124,7 @@ class DecisionTimingsTest {
         DecisionTimings timings = new DecisionTimings("pred", input,
                 new SmtBackend(),
                 new Z3Backend(),
-                new KodKodBackend(),
+                new KodkodBackend(),
                 new ProBBackend());
 
         Double[] expected = {1., 2., -1.0, 4.};

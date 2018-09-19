@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.core.labelling;
 
-import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
@@ -56,7 +56,7 @@ class DecisionTimingsIT {
 
         ProBBackend prob = new ProBBackend();
         Z3Backend z3 = new Z3Backend();
-        KodKodBackend kodkod = new KodKodBackend();
+        KodkodBackend kodkod = new KodkodBackend();
 
         DecisionTimings timings = new DecisionTimings(pred, 1, bMachine,
                 prob, z3, kodkod);

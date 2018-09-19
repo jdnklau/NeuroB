@@ -5,11 +5,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class KodKodBackendTest {
+class KodkodBackendTest {
 
     @Test
     public void shouldReturnProBEnum() {
-        Backend kodkod = new KodKodBackend();
+        Backend kodkod = new KodkodBackend();
 
         assertEquals(CbcSolveCommand.Solvers.KODKOD, kodkod.toCbcEnum());
     }

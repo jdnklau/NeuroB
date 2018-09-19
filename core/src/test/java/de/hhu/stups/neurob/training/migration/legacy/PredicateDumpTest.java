@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.training.migration.legacy;
 
-import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
@@ -46,7 +46,7 @@ class PredicateDumpTest {
                         1e-10,
                         "ProB timing is off"),
                 () -> assertEquals(2.23456789E8,
-                        pdump.getTime(KodKodBackend.class),
+                        pdump.getTime(KodkodBackend.class),
                         1e-10,
                         "Kodkod timing is off"),
                 () -> assertEquals(3.23456789E8,

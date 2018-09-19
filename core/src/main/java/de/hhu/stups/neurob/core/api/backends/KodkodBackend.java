@@ -4,20 +4,20 @@ import de.prob.animator.command.CbcSolveCommand;
 
 import java.util.concurrent.TimeUnit;
 
-public class KodKodBackend extends Backend {
+public class KodkodBackend extends Backend {
 
     /**
      * Sets default time out to {@link #defaultTimeOut}
      * with unit {@link #defaultTimeUnit}.
      */
-    public KodKodBackend() {
+    public KodkodBackend() {
     }
 
     /**
      * @param timeOutValue Maximum runtime
      * @param timeOutUnit
      */
-    public KodKodBackend(long timeOutValue, TimeUnit timeOutUnit) {
+    public KodkodBackend(long timeOutValue, TimeUnit timeOutUnit) {
         super(timeOutValue, timeOutUnit);
     }
 

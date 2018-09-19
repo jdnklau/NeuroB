@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.training.generation;
 
-import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
@@ -57,7 +57,7 @@ public class PredicateTrainingGenerator
                 (pred, ss) -> new PredicateFeatures(pred),
                 // Todo: short cut for this?
                 new DecisionTimings.Generator(3,
-                        new KodKodBackend(),
+                        new KodkodBackend(),
                         new ProBBackend(),
                         new SmtBackend(),
                         new Z3Backend()),

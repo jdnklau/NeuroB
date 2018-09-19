@@ -1,7 +1,7 @@
 package de.hhu.stups.neurob.training.generation;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.api.backends.KodKodBackend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
@@ -271,7 +271,7 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     void shouldCreateJsonDbFiles() throws IOException {
-        KodKodBackend kodkod = new KodKodBackend();
+        KodkodBackend kodkod = new KodkodBackend();
         ProBBackend prob = new ProBBackend();
         SmtBackend smt = new SmtBackend();
         Z3Backend z3 = new Z3Backend();
@@ -309,7 +309,7 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     void shouldContainAllPredicatesAsEntriesInDb() throws IOException {
-        KodKodBackend kodkod = new KodKodBackend();
+        KodkodBackend kodkod = new KodkodBackend();
         ProBBackend prob = new ProBBackend();
         SmtBackend smt = new SmtBackend();
         Z3Backend z3 = new Z3Backend();
@@ -348,7 +348,7 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     void shouldThrowExceptionWhenNotEnoughLabelsAreProvided() throws IOException {
-        KodKodBackend kodkod = new KodKodBackend();
+        KodkodBackend kodkod = new KodkodBackend();
         ProBBackend prob = new ProBBackend();
         PredicateDbFormat format = new PredicateDbFormat();
 
