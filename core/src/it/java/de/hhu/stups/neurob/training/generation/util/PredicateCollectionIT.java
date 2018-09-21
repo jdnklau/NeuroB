@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.generation.util;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.testharness.TestMachines;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,6 +13,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,7 +43,9 @@ class PredicateCollectionIT {
         invariants.add("z:INT");
         invariants.add("(x:NATURAL) & (y:NAT) & (z:INT)");
 
-        List<String> actual = pc.getInvariants();
+        List<String> actual = pc.getInvariants().stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         invariants.sort(Comparator.naturalOrder());
         actual.sort(Comparator.naturalOrder());
@@ -61,7 +65,9 @@ class PredicateCollectionIT {
         invariants.add("z<2");
         invariants.add("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)");
 
-        List<String> actual = pcEventB.getInvariants();
+        List<String> actual = pcEventB.getInvariants().stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         invariants.sort(Comparator.naturalOrder());
         actual.sort(Comparator.naturalOrder());
@@ -72,28 +78,28 @@ class PredicateCollectionIT {
 
     @Test
     public void shouldLoadPreconditions() {
-        Map<String, List<String>> pres = new HashMap<>();
+        Map<String, List<BPredicate>> pres = new HashMap<>();
 
         // incx
         List<String> pre = new ArrayList<>();
         pre.add("x=y");
         pre.add("z<20");
-        pres.put("incx", pre);
+        pres.put("incx", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
         // incy
         pre = new ArrayList<>();
         pre.add("y<x");
         pre.add("z<20");
-        pres.put("incy", pre);
+        pres.put("incy", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
         // sqrx
         pre = new ArrayList<>();
         pre.add("x<y");
-        pres.put("sqrx", pre);
+        pres.put("sqrx", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
         // reset
         pre = new ArrayList<>();
         pre.add("z>=20 or x>1000");
         pre.add("z>=20");
         pre.add("x>1000");
-        pres.put("reset", pre);
+        pres.put("reset", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
 
         assertAll("Included preconditions",
                 () -> assertEquals(pres.size(), pc.getPreconditions().size(),
@@ -105,11 +111,11 @@ class PredicateCollectionIT {
 
     @Test
     public void shouldLoadPreconditionsWhenEventB() {
-        Map<String, List<String>> pres = new HashMap<>();
+        Map<String, List<BPredicate>> pres = new HashMap<>();
 
         // incx
-        List<String> pre = new ArrayList<>();
-        pre.add("z<2");
+        List<BPredicate> pre = new ArrayList<>();
+        pre.add(BPredicate.of("z<2"));
         pres.put("incZ", pre);
 
         assertAll("Included preconditions",
@@ -145,9 +151,9 @@ class PredicateCollectionIT {
 
     @Test
     public void shouldLoadProperties() {
-        List<String> properties = new ArrayList<>();
-        properties.add("n=1");
-        properties.add("m=2*n");
+        List<BPredicate> properties = new ArrayList<>();
+        properties.add(BPredicate.of("n=1"));
+        properties.add(BPredicate.of("m=2*n"));
 
         assertEquals(properties, pc.getProperties(),
                 "Properties do not match");
@@ -160,42 +166,47 @@ class PredicateCollectionIT {
         asserts.add("y>z");
         asserts.add("x>z");
 
-        assertEquals(asserts, pc.getAssertions(),
+        List<BPredicate> expected = asserts.stream().map(BPredicate::new).collect(Collectors.toList());
+        assertEquals(expected, pc.getAssertions(),
                 "Assertions do not match");
     }
 
     @Test
     public void shouldLoadWeakestPreConditions() {
-        Map<String, Map<String, String>> weakestPres = new HashMap<>();
+        Map<String, Map<BPredicate, BPredicate>> weakestPres = new HashMap<>();
         // for each operation, the weakest pre for each invariant is expected
-        Map<String, String> opWeak;
+        Map<BPredicate, BPredicate> opWeak;
         // incx
         opWeak = new HashMap<>();
-        opWeak.put("y:NAT", "x=y & z<20 & y:NAT");
-        opWeak.put("x:NATURAL", "x=y & z<20 & x+1:NATURAL");
-        opWeak.put("z:INT", "x=y & z<20 & z+1:INT");
-        opWeak.put("(x:NATURAL) & (y:NAT) & (z:INT)", "x=y & z<20 & (x+1:NATURAL & y:NAT & z+1:INT)");
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("x=y & z<20 & y:NAT"));
+        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("x=y & z<20 & x+1:NATURAL"));
+        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("x=y & z<20 & z+1:INT"));
+        opWeak.put(BPredicate.of("(x:NATURAL) & (y:NAT) & (z:INT)"),
+                BPredicate.of("x=y & z<20 & (x+1:NATURAL & y:NAT & z+1:INT)"));
         weakestPres.put("incx", opWeak);
         // incy
         opWeak = new HashMap<>();
-        opWeak.put("y:NAT", "y<x & z<20 & y+2:NAT");
-        opWeak.put("x:NATURAL", "y<x & z<20 & x:NATURAL");
-        opWeak.put("z:INT", "y<x & z<20 & z+1:INT");
-        opWeak.put("(x:NATURAL) & (y:NAT) & (z:INT)", "y<x & z<20 & (x:NATURAL & y+2:NAT & z+1:INT)");
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("y<x & z<20 & y+2:NAT"));
+        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("y<x & z<20 & x:NATURAL"));
+        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("y<x & z<20 & z+1:INT"));
+        opWeak.put(BPredicate.of("(x:NATURAL) & (y:NAT) & (z:INT)"),
+                BPredicate.of("y<x & z<20 & (x:NATURAL & y+2:NAT & z+1:INT)"));
         weakestPres.put("incy", opWeak);
         // sqrx
         opWeak = new HashMap<>();
-        opWeak.put("y:NAT", "x<y & y:NAT");
-        opWeak.put("x:NATURAL", "x<y & x*x:NATURAL");
-        opWeak.put("z:INT", "x<y & z+1:INT");
-        opWeak.put("(x:NATURAL) & (y:NAT) & (z:INT)", "x<y & (x*x:NATURAL & y:NAT & z+1:INT)");
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("x<y & y:NAT"));
+        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("x<y & x*x:NATURAL"));
+        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("x<y & z+1:INT"));
+        opWeak.put(BPredicate.of("(x:NATURAL) & (y:NAT) & (z:INT)"),
+                BPredicate.of("x<y & (x*x:NATURAL & y:NAT & z+1:INT)"));
         weakestPres.put("sqrx", opWeak);
         // reset
         opWeak = new HashMap<>();
-        opWeak.put("y:NAT", "z>=20 or x>1000 & 1:NAT");
-        opWeak.put("x:NATURAL", "z>=20 or x>1000 & 1:NATURAL");
-        opWeak.put("z:INT", "z>=20 or x>1000 & 1:INT");
-        opWeak.put("(x:NATURAL) & (y:NAT) & (z:INT)", "z>=20 or x>1000 & (1:NATURAL & 1:NAT & 1:INT)");
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("z>=20 or x>1000 & 1:NAT"));
+        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("z>=20 or x>1000 & 1:NATURAL"));
+        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("z>=20 or x>1000 & 1:INT"));
+        opWeak.put(BPredicate.of("(x:NATURAL) & (y:NAT) & (z:INT)"),
+                BPredicate.of("z>=20 or x>1000 & (1:NATURAL & 1:NAT & 1:INT)"));
         weakestPres.put("reset", opWeak);
 
         assertEquals(weakestPres, pc.getWeakestPreConditions(),
@@ -204,18 +215,18 @@ class PredicateCollectionIT {
 
     @Test
     public void shouldLoadWeakestPreConditionsWhenEventB() {
-        Map<String, Map<String, String>> weakestPres = new HashMap<>();
-        Map<String, String> opWeak;
+        Map<String, Map<BPredicate, BPredicate>> weakestPres = new HashMap<>();
+        Map<BPredicate, BPredicate> opWeak;
         opWeak = new HashMap<>();
-        opWeak.put("z<2", "z < 2 => z + 1 < 2");
-        opWeak.put("z:NAT", "z < 2 => z + 1 : NAT");
-        opWeak.put("y:NAT", "z < 2 => y : NAT");
-        opWeak.put("x<y", "z < 2 => x < y");
-        opWeak.put("x:NAT", "z < 2 => x : NAT");
-        opWeak.put("y=1", "z < 2 => y = 1");
-        opWeak.put("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)",
-                "z < 2 => x : NAT & (y : NAT & (x < y & (y = 1 & (z + 1 : NAT "
-                + "& z + 1 < 2))))");
+        opWeak.put(BPredicate.of("z<2"), BPredicate.of("z < 2 => z + 1 < 2"));
+        opWeak.put(BPredicate.of("z:NAT"), BPredicate.of("z < 2 => z + 1 : NAT"));
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("z < 2 => y : NAT"));
+        opWeak.put(BPredicate.of("x<y"), BPredicate.of("z < 2 => x < y"));
+        opWeak.put(BPredicate.of("x:NAT"), BPredicate.of("z < 2 => x : NAT"));
+        opWeak.put(BPredicate.of("y=1"), BPredicate.of("z < 2 => y = 1"));
+        opWeak.put(BPredicate.of("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)"),
+                BPredicate.of("z < 2 => x : NAT & (y : NAT & (x < y & (y = 1 & (z + 1 : NAT "
+                              + "& z + 1 < 2))))"));
         weakestPres.put("incZ", opWeak);
 
         assertEquals(weakestPres, pcEventB.getWeakestPreConditions(),
@@ -224,9 +235,9 @@ class PredicateCollectionIT {
 
     @Test
     public void shouldLoadTheoremsAsAssertionsWhenEventB() {
-        List<String> assertions = new ArrayList<>();
-        assertions.add("x=0");
-        assertions.add("z<2");
+        List<BPredicate> assertions = new ArrayList<>();
+        assertions.add(BPredicate.of("x=0"));
+        assertions.add(BPredicate.of("z<2"));
 
         assertEquals(assertions, pcEventB.getAssertions(),
                 "Not loaded theorems as assertions");
@@ -234,9 +245,9 @@ class PredicateCollectionIT {
 
     @Test
     public void shouldLoadBeforeAfterPredicatesWhenEventB() {
-        Map<String, String> baPreds = new HashMap<>();
+        Map<String, BPredicate> baPreds = new HashMap<>();
         baPreds.put("incZ",
-                "z < 2 & z' = z + 1 & x' = x & y' = y & a' = a");
+                BPredicate.of("z < 2 & z' = z + 1 & x' = x & y' = y & a' = a"));
 
         assertEquals(baPreds, pcEventB.getBeforeAfterPredicates(),
                 "Before After predicates do not match");
@@ -244,16 +255,16 @@ class PredicateCollectionIT {
 
     @Test
     public void shouldLoadPrimedInvariantsWhenEventB() {
-        Map<String, String> primedInvs = new HashMap<>();
-        primedInvs.put("x:NAT", "x' : NAT");
-        primedInvs.put("y:NAT", "y' : NAT");
-        primedInvs.put("x<y", "x' < y'");
-        primedInvs.put("y=1", "y' = 1");
-        primedInvs.put("z:NAT", "z' : NAT");
-        primedInvs.put("z<2", "z' < 2");
+        Map<BPredicate, BPredicate> primedInvs = new HashMap<>();
+        primedInvs.put(BPredicate.of("x:NAT"), BPredicate.of("x' : NAT"));
+        primedInvs.put(BPredicate.of("y:NAT"), BPredicate.of("y' : NAT"));
+        primedInvs.put(BPredicate.of("x<y"), BPredicate.of("x' < y'"));
+        primedInvs.put(BPredicate.of("y=1"), BPredicate.of("y' = 1"));
+        primedInvs.put(BPredicate.of("z:NAT"), BPredicate.of("z' : NAT"));
+        primedInvs.put(BPredicate.of("z<2"), BPredicate.of("z' < 2"));
         // concat of whole invariant
-        primedInvs.put("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)",
-                "x' : NAT & (y' : NAT & (x' < y' & (y' = 1 & (z' : NAT & z' < 2))))");
+        primedInvs.put(BPredicate.of("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)"),
+                BPredicate.of("x' : NAT & (y' : NAT & (x' < y' & (y' = 1 & (z' : NAT & z' < 2))))"));
 
         assertEquals(primedInvs, pcEventB.getPrimedInvariants(),
                 "Primed invariants mismatch");
@@ -261,8 +272,8 @@ class PredicateCollectionIT {
 
     @Test
     public void shouldLoadAxiomsAsPropertiesWhenEventB() {
-        List<String> properties = new ArrayList<>();
-        properties.add("a:NAT");
+        List<BPredicate> properties = new ArrayList<>();
+        properties.add(BPredicate.of("a:NAT"));
 
         assertEquals(properties, pcEventB.getProperties(),
                 "Axioms not correctly loaded as properties");

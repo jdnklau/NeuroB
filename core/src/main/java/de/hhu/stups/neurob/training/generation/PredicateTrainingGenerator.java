@@ -240,7 +240,7 @@ public class PredicateTrainingGenerator
     public Stream<BPredicate> streamPredicatesFromCollection(
             PredicateCollection collection) {
         // stream different predicates created with FeatureGenerator
-        List<Function<PredicateCollection, List<String>>> generations =
+        List<Function<PredicateCollection, List<BPredicate>>> generations =
                 new ArrayList<>();
         generations.add(FormulaGenerator::assertions);
         generations.add(FormulaGenerator::enablingRelationships);
@@ -249,8 +249,7 @@ public class PredicateTrainingGenerator
         generations.add(FormulaGenerator::extendedPreconditionFormulae);
 
         return generations.stream()
-                .flatMap(gen -> gen.apply(collection).stream())
-                .map(BPredicate::new);
+                .flatMap(gen -> gen.apply(collection).stream());
     }
 }
 

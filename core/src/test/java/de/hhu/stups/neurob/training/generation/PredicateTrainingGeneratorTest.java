@@ -80,14 +80,14 @@ class PredicateTrainingGeneratorTest {
         when(pc.getAssertions()).thenReturn(predList("assertion"));
         when(pc.getInvariants()).thenReturn(predList("invariant"));
         when(pc.getProperties()).thenReturn(predList()); // no properties
-        when(pc.getOperationNames()).thenReturn(predList("operation"));
+        when(pc.getOperationNames()).thenReturn(predStringList("operation"));
         when(pc.getMachineType()).thenReturn(MachineType.EVENTB);
         when(pc.getPrimedInvariants()).thenReturn(new HashMap<>());
         when(pc.getBeforeAfterPredicates()).thenReturn(new HashMap<>());
         when(pc.getPreconditions()).thenReturn(new HashMap<>());
-        Map<String, String> weakPrecondition = new HashMap<>();
-        weakPrecondition.put("invariant", "weakest");
-        Map<String, Map<String, String>> weakestPreconditions = new HashMap<>();
+        Map<BPredicate, BPredicate> weakPrecondition = new HashMap<>();
+        weakPrecondition.put(BPredicate.of("invariant"), BPredicate.of("weakest"));
+        Map<String, Map<BPredicate, BPredicate>> weakestPreconditions = new HashMap<>();
         weakestPreconditions.put("operation", weakPrecondition);
         when(pc.getWeakestPreConditions()).thenReturn(weakestPreconditions);
 
@@ -293,10 +293,10 @@ class PredicateTrainingGeneratorTest {
         generator = spy(new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock));
 
-        List<String> predicates = predList("predicate");
-        doReturn(predicates.stream().map(BPredicate::new))
+        List<BPredicate> predicates = predList("predicate");
+        doReturn(predicates.stream())
                 .when(generator).streamPredicatesFromFile(any(Path.class));
-        doReturn(predicates.stream().map(BPredicate::new))
+        doReturn(predicates.stream())
                 .when(generator).streamPredicatesFromFile(any(MachineAccess.class));
         StateSpace ss = mock(StateSpace.class);
         MachineAccess bMachine = mock(MachineAccess.class);
@@ -317,8 +317,21 @@ class PredicateTrainingGeneratorTest {
      *
      * @return
      */
-    private List<String> predList(String... preds) {
-        List<String> predicates = new ArrayList<>(Arrays.asList(preds));
+    private List<BPredicate> predList(String... preds) {
+        List<BPredicate> predicates = Arrays.stream(preds)
+                .map(BPredicate::new)
+                .collect(Collectors.toList());
         return predicates;
+    }
+
+    /**
+     * Helper to quickly generate a list containing corresponding predicates as Strings.
+     *
+     * @param preds Predicates to be contained in the list.
+     *
+     * @return
+     */
+    private List<String> predStringList(String... preds) {
+        return Arrays.asList(preds);
     }
 }

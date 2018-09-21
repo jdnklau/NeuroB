@@ -30,14 +30,14 @@ import de.prob.model.representation.Invariant;
  * B machine.
  */
 public class PredicateCollection {
-    private List<String> invariants;
+    private List<BPredicate> invariants;
     private List<String> operations;
-    private Map<String, List<String>> preconditions;
-    private List<String> properties; // also contains axioms of EventB
-    private List<String> assertions; // also contains theorems of EventB
-    private Map<String, String> beforeAfterPredicates;
-    private Map<String, Map<String, String>> weakestPreconditions;
-    private Map<String, String> primedInvariants;
+    private Map<String, List<BPredicate>> preconditions;
+    private List<BPredicate> properties; // also contains axioms of EventB
+    private List<BPredicate> assertions; // also contains theorems of EventB
+    private Map<String, BPredicate> beforeAfterPredicates;
+    private Map<String, Map<BPredicate, BPredicate>> weakestPreconditions;
+    private Map<BPredicate, BPredicate> primedInvariants;
 
     private MachineAccess bMachine;
 
@@ -76,27 +76,27 @@ public class PredicateCollection {
         // properties
         log.trace("Collecting properties");
         for (Property x : comp.getChildrenOfType(Property.class)) {
-            properties.add(x.getFormula().getCode());
+            properties.add(BPredicate.of(x.getFormula().getCode()));
         }
 
         // add invariants
         log.trace("Collecting invariants");
         for (Invariant x : comp.getChildrenOfType(Invariant.class)) {
             if (x.isTheorem())
-                assertions.add(x.getFormula().getCode());
+                assertions.add(BPredicate.of(x.getFormula().getCode()));
             else
-                invariants.add(x.getFormula().getCode());
+                invariants.add(BPredicate.of(x.getFormula().getCode()));
         }
         // Conjunct invariants if more then one
         if (invariants.size() > 1) {
-            String invariantConcat =
-                    FormulaGenerator.getStringConjunction(invariants);
+            BPredicate invariantConcat =
+                    FormulaGenerator.getPredicateConjunction(invariants);
             invariants.add(invariantConcat);
         }
 
         log.trace("Collecting assertions");
         for (Assertion x : comp.getChildrenOfType(Assertion.class)) {
-            assertions.add(x.getFormula().getCode());
+            assertions.add(BPredicate.of(x.getFormula().getCode()));
         }
 
         // for each event collect preconditions
@@ -107,20 +107,20 @@ public class PredicateCollection {
             operations.add(x.getName());
 
             log.trace("Collecting preconditions for {}", x.getName());
-            ArrayList<String> event = new ArrayList<>();
+            ArrayList<BPredicate> event = new ArrayList<>();
             for (Guard g : x.getChildrenOfType(Guard.class)) {
-                event.add(g.getFormula().getCode());
+                event.add(BPredicate.of(g.getFormula().getCode()));
             }
             if (!event.isEmpty())
                 preconditions.put(x.getName(), event);
         }
 
         // set up invariants as commands for below
-        Map<String, IBEvalElement> invCmds = new HashMap<>();
-        for (String inv : invariants) {
+        Map<BPredicate, IBEvalElement> invCmds = new HashMap<>();
+        for (BPredicate inv : invariants) {
             try {
                 invCmds.put(inv,
-                        Backend.generateBFormula(BPredicate.of(inv), bMachine));
+                        Backend.generateBFormula(inv, bMachine));
             } catch (FormulaException e) {
                 log.warn("Could not set up EvalElement from {} for "
                          + "weakest precondition calculation or priming",
@@ -134,8 +134,8 @@ public class PredicateCollection {
             if (x.getName().equals("INITIALISATION"))
                 continue; // None for initialisation
 
-            Map<String, String> wpcs = new HashMap<>();
-            for (String inv : invCmds.keySet()) {
+            Map<BPredicate, BPredicate> wpcs = new HashMap<>();
+            for (BPredicate inv : invCmds.keySet()) {
                 IBEvalElement invCmd = invCmds.get(inv);
 
                 try {
@@ -145,7 +145,7 @@ public class PredicateCollection {
                     // FIXME: Erase comment, probably should not be returned by ProB to begin with
                     String code = wpcc.getWeakestPrecondition().getCode()
                             .replaceAll("/\\*.*\\*/ *", "");
-                    wpcs.put(inv, code);
+                    wpcs.put(inv, BPredicate.of(code));
                 } catch (Exception e) {
                     log.warn("Could not build weakest precondition"
                              + "for {} by operation {}.",
@@ -172,7 +172,7 @@ public class PredicateCollection {
                 // FIXME: Erase comment, probably should not be returned by ProB to begin with
                 String code = bapc.getBeforeAfterPredicate().getCode()
                         .replaceAll("/\\*.*\\*/ *", "");
-                beforeAfterPredicates.put(x.getName(), code);
+                beforeAfterPredicates.put(x.getName(), BPredicate.of(code));
             } catch (Exception e) {
                 log.warn("Could not build Before After Predicate for event {}.",
                         x.getName(), e);
@@ -182,7 +182,7 @@ public class PredicateCollection {
 
         // primed invariants
         log.trace("Building primed invariants");
-        for (String inv : invCmds.keySet()) {
+        for (BPredicate inv : invCmds.keySet()) {
             IBEvalElement invCmd = invCmds.get(inv);
             try {
                 primedInvariants.put(inv,
@@ -197,7 +197,7 @@ public class PredicateCollection {
         // axioms
         log.trace("Collecting axioms");
         for (Axiom x : bcc.getChildrenOfType(Axiom.class)) {
-            properties.add(x.getFormula().getCode());
+            properties.add(BPredicate.of(x.getFormula().getCode()));
         }
 
     }
@@ -206,11 +206,11 @@ public class PredicateCollection {
      * @return A Map, that pairs an event name (key) with a list of its
      *         respective preconditions
      */
-    public Map<String, List<String>> getPreconditions() {
+    public Map<String, List<BPredicate>> getPreconditions() {
         return preconditions;
     }
 
-    public List<String> getInvariants() {
+    public List<BPredicate> getInvariants() {
         return invariants;
     }
 
@@ -218,11 +218,11 @@ public class PredicateCollection {
         return operations;
     }
 
-    public List<String> getProperties() {
+    public List<BPredicate> getProperties() {
         return properties;
     }
 
-    public List<String> getAssertions() {
+    public List<BPredicate> getAssertions() {
         return assertions;
     }
 
@@ -230,7 +230,7 @@ public class PredicateCollection {
      * @return A map, pairing each event (key) with its respective before/after
      *         predicate.
      */
-    public Map<String, String> getBeforeAfterPredicates() {
+    public Map<String, BPredicate> getBeforeAfterPredicates() {
         return beforeAfterPredicates;
     }
 
@@ -245,14 +245,14 @@ public class PredicateCollection {
      * @return A map, that pairs an event with a map of invariants to weakest
      *         precondition.
      */
-    public Map<String, Map<String, String>> getWeakestPreConditions() {
+    public Map<String, Map<BPredicate, BPredicate>> getWeakestPreConditions() {
         return weakestPreconditions;
     }
 
     /**
      * @return A map of invariants to their primed version
      */
-    public Map<String, String> getPrimedInvariants() {
+    public Map<BPredicate, BPredicate> getPrimedInvariants() {
         return primedInvariants;
     }
 

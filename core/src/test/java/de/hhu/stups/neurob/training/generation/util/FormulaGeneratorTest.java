@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.training.generation.util;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.prob.animator.command.AbstractCommand;
 import de.prob.animator.command.PrimePredicateCommand;
@@ -19,6 +20,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,17 +33,17 @@ public class FormulaGeneratorTest {
     private PredicateCollection pc;
 
     // Parts of the machine to test
-    private List<String> invariants;
-    private String invariantConcatenation;
+    private List<BPredicate> invariants;
+    private BPredicate invariantConcatenation;
     private List<String> operations;
-    private Map<String, List<String>> preconditions;
-    private List<String> properties;
-    private String propertyConcatenation;
-    private String propertyInvariantPre;
-    private List<String> assertions;
-    private Map<String, String> beforeAfterPredicates;
-    private Map<String, Map<String, String>> weakestPreconditions;
-    private Map<String, String> primedInvariants;
+    private Map<String, List<BPredicate>> preconditions;
+    private List<BPredicate> properties;
+    private BPredicate propertyConcatenation;
+    private BPredicate propertyInvariantPre;
+    private List<BPredicate> assertions;
+    private Map<String, BPredicate> beforeAfterPredicates;
+    private Map<String, Map<BPredicate, BPredicate>> weakestPreconditions;
+    private Map<BPredicate, BPredicate> primedInvariants;
 
     @BeforeAll
     public void stubPredicateCollection() {
@@ -49,9 +51,9 @@ public class FormulaGeneratorTest {
 
         // Stub predicate collection
         invariants = new ArrayList<>();
-        invariantConcatenation = "(invariant1) & (invariant2)";
-        invariants.add("invariant1");
-        invariants.add("invariant2");
+        invariantConcatenation = BPredicate.of("(invariant1) & (invariant2)");
+        invariants.add(BPredicate.of("invariant1"));
+        invariants.add(BPredicate.of("invariant2"));
         when(pc.getInvariants()).thenReturn(invariants);
 
         operations = new ArrayList<>();
@@ -62,50 +64,50 @@ public class FormulaGeneratorTest {
         preconditions = new HashMap<>();
         // of the form operationX-preconditionY - Y in {1,2}
         for (String operation : operations) {
-            List<String> precond = new ArrayList<>();
-            precond.add(operation + "-precondition1");
-            precond.add(operation + "-precondition2");
+            List<BPredicate> precond = new ArrayList<>();
+            precond.add(BPredicate.of(operation + "-precondition1"));
+            precond.add(BPredicate.of(operation + "-precondition2"));
             preconditions.put(operation, precond);
         }
         when(pc.getPreconditions()).thenReturn(preconditions);
 
         properties = new ArrayList<>();
-        propertyConcatenation = "properties";
-        properties.add("properties");
+        propertyConcatenation = BPredicate.of("properties");
+        properties.add(BPredicate.of("properties"));
         when(pc.getProperties()).thenReturn(properties);
-        propertyInvariantPre = "(properties) & " + invariantConcatenation + " & ";
+        propertyInvariantPre = BPredicate.of("(properties) & " + invariantConcatenation + " & ");
 
         assertions = new ArrayList<>();
-        assertions.add("assertion1");
-        assertions.add("assertion2");
+        assertions.add(BPredicate.of("assertion1"));
+        assertions.add(BPredicate.of("assertion2"));
         when(pc.getAssertions()).thenReturn(assertions);
 
         beforeAfterPredicates = new HashMap<>();
         // of the form operationX-beforeafter
         for (String operation : operations) {
-            beforeAfterPredicates.put(operation, operation + "-beforeafter");
+            beforeAfterPredicates.put(operation, BPredicate.of(operation + "-beforeafter"));
         }
         when(pc.getBeforeAfterPredicates()).thenReturn(beforeAfterPredicates);
 
         weakestPreconditions = new HashMap<>();
         // of the form operationX-invariantY-weakestpre (only one per op+inv)
         for (String operation : operations) {
-            Map<String, String> wpcs = new HashMap<>();
-            for (String invariant : invariants) {
+            Map<BPredicate, BPredicate> wpcs = new HashMap<>();
+            for (BPredicate invariant : invariants) {
                 wpcs.put(invariant,
-                        operation + "-" + invariant + "-weakestpre");
+                        BPredicate.of(operation + "-" + invariant + "-weakestpre"));
             }
             // Weakest precondition of invariant concatenation
             wpcs.put(invariantConcatenation,
-                    operation + "-(" + invariantConcatenation + ")-weakestpre");
+                    BPredicate.of(operation + "-(" + invariantConcatenation + ")-weakestpre"));
             weakestPreconditions.put(operation, wpcs);
         }
         when(pc.getWeakestPreConditions()).thenReturn(weakestPreconditions);
 
         primedInvariants = new HashMap<>();
-        primedInvariants.put("invariant1", "invariant1'");
-        primedInvariants.put("invariant2", "invariant2'");
-        primedInvariants.put(invariantConcatenation, "primedinvariantconcat'");
+        primedInvariants.put(BPredicate.of("invariant1"), BPredicate.of("invariant1'"));
+        primedInvariants.put(BPredicate.of("invariant2"), BPredicate.of("invariant2'"));
+        primedInvariants.put(invariantConcatenation, BPredicate.of("primedinvariantconcat'"));
         when(pc.getPrimedInvariants()).thenReturn(primedInvariants);
 
         // use EventB formulae as well
@@ -163,14 +165,43 @@ public class FormulaGeneratorTest {
 
     @Test
     public void shouldConcatenateInvariantsWithParenthesis() {
+        List<String> stringInvariants =
+                invariants.stream().map(BPredicate::toString).collect(Collectors.toList());
         assertEquals(invariantConcatenation,
-                FormulaGenerator.getStringConjunction(invariants),
+                FormulaGenerator.getStringConjunction(stringInvariants),
+                "Correct concatenation of list with Strings failed");
+    }
+
+    @Test
+    public void shouldGiveEmptyPredicateWhenListIsEmpty() {
+        assertEquals(BPredicate.of(""),
+                FormulaGenerator.getPredicateConjunction(new ArrayList<>()),
+                "Concatenated predicate should be empty");
+    }
+
+    @Test
+    public void shouldGiveSinglePredicateWhenListContainsOnlyOnePredicate() {
+        ArrayList<BPredicate> conjuncts = new ArrayList<>();
+        conjuncts.add(BPredicate.of("predicate"));
+
+        assertEquals(BPredicate.of("(predicate)"),
+                FormulaGenerator.getPredicateConjunction(conjuncts),
+                "Concatenated predicate should be the only one from list");
+    }
+
+    @Test
+    public void shouldConcatenateInvariantPredicatesWithParenthesis() {
+        assertEquals(invariantConcatenation,
+                FormulaGenerator.getPredicateConjunction(invariants),
                 "Correct concatenation of list with Strings failed");
     }
 
     @Test
     public void shouldGenerateCombinedFormulaeForEachOperationPreconditionsPair() {
-        List<String> formulae = FormulaGenerator.multiPreconditionFormulae(pc);
+        List<String> formulae =
+                FormulaGenerator.multiPreconditionFormulae(pc).stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         List<String> expected = new ArrayList<>();
         String pre1 = "(operation1-precondition1) & (operation1-precondition2)";
@@ -193,9 +224,12 @@ public class FormulaGeneratorTest {
 
     @Test
     public void shouldModelEnablingrelationShipsBetweenTwoOperations() {
-        List<String> formulae = FormulaGenerator.enablingRelationships(pc);
+        List<String> formulae = FormulaGenerator.enablingRelationships(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
-        String P = propertyInvariantPre; // for readability reasons shortened
+        String P = propertyInvariantPre.toString(); // for readability reasons shortened
         String op1 = "(operation1-precondition1) & (operation1-precondition2)"
                      + " & " + beforeAfterPredicates.get("operation1");
         String op2 = "(operation2-precondition1) & (operation2-precondition2)"
@@ -238,22 +272,25 @@ public class FormulaGeneratorTest {
         PredicateCollection pc = mock(PredicateCollection.class);
         // ... with neither properties nor invariants
         when(pc.getProperties()).thenReturn(new ArrayList<>());
-        List<String> invariants = new ArrayList<>();
-        invariants.add("invariant"); // only one invariant
+        List<BPredicate> invariants = new ArrayList<>();
+        invariants.add(BPredicate.of("invariant")); // only one invariant
         when(pc.getInvariants()).thenReturn(invariants);
         when(pc.getOperationNames()).thenReturn(operations);
         // preconditions -- none
-        Map<String, List<String>> preconditions = new HashMap<>();
+        Map<String, List<BPredicate>> preconditions = new HashMap<>();
         when(pc.getPreconditions()).thenReturn(preconditions);
         // before/after predicates
-        Map<String, String> beforeAfter = new HashMap<>();
-        beforeAfter.put("operation1", "beforeAfter1");
-        beforeAfter.put("operation2", "beforeAfter2");
+        Map<String, BPredicate> beforeAfter = new HashMap<>();
+        beforeAfter.put("operation1", BPredicate.of("beforeAfter1"));
+        beforeAfter.put("operation2", BPredicate.of("beforeAfter2"));
         when(pc.getBeforeAfterPredicates()).thenReturn(beforeAfter);
         // only makes sense for EventB
         when(pc.getMachineType()).thenReturn(MachineType.EVENTB);
 
-        List<String> formulae = FormulaGenerator.enablingRelationships(pc);
+        List<String> formulae = FormulaGenerator.enablingRelationships(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         assertEquals(0, formulae.size(),
                 "Created predicates but should not have done so");
@@ -261,7 +298,10 @@ public class FormulaGeneratorTest {
 
     @Test
     public void shouldGenerateInvariantPreservationPredicates() {
-        List<String> formulae = FormulaGenerator.invariantPreservations(pc);
+        List<String> formulae = FormulaGenerator.invariantPreservations(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         String P = "(" + propertyConcatenation + ")"; // shortened for readability
 
@@ -269,15 +309,15 @@ public class FormulaGeneratorTest {
         // individually and for the concatenation,
         // we shadow this.invariants with a version, that contains the
         // concatenation of invariants as well.
-        List<String> invariants = new ArrayList<>();
+        List<BPredicate> invariants = new ArrayList<>();
         invariants.add(invariantConcatenation); // concatenation
         invariants.addAll(this.invariants); // each individually
 
         List<String> expected = new ArrayList<>();
-        for (String inv : invariants) {
+        for (BPredicate inv : invariants) {
             for (String op : operations) {
                 // Weakest preconditions of the operation
-                Map<String, String> wps = weakestPreconditions.get(op);
+                Map<BPredicate, BPredicate> wps = weakestPreconditions.get(op);
 
                 // For all B machines
                 expected.add(P + " & " + inv + " & " + wps.get(inv));
@@ -289,8 +329,8 @@ public class FormulaGeneratorTest {
                              + "not(" + wps.get(inv) + "))");
 
                 // For EventB only
-                String precond = FormulaGenerator.getStringConjunction(
-                        preconditions.get(op));
+                String precond = FormulaGenerator.getPredicateConjunction(
+                        preconditions.get(op)).toString();
 
                 // Shorthand for concatenation of invariant, precond, and
                 // before/after predicate
@@ -325,10 +365,13 @@ public class FormulaGeneratorTest {
 
     @Test
     public void shouldPrependAssertionsWithPropertiesAndInvariants() {
-        List<String> formulae = FormulaGenerator.assertions(pc);
+        List<String> formulae = FormulaGenerator.assertions(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         List<String> expected = new ArrayList<>();
-        String P = propertyInvariantPre;
+        String P = propertyInvariantPre.toString();
         expected.add(P + "assertion1");
         expected.add(P + "not(assertion1)");
         expected.add("not((" + propertyConcatenation + ") & "
@@ -365,7 +408,10 @@ public class FormulaGeneratorTest {
         // ... but with assertions
         when(pc.getAssertions()).thenReturn(assertions);
 
-        List<String> formulae = FormulaGenerator.assertions(pc);
+        List<String> formulae = FormulaGenerator.assertions(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         List<String> expected = new ArrayList<>();
         expected.add("assertion1");
@@ -390,25 +436,25 @@ public class FormulaGeneratorTest {
     @Test
     public void shouldNotUseInvariantConcatenationAsWellWhenOnlyOneInvariantExists() {
         PredicateCollection pc = mock(PredicateCollection.class);
-        List<String> invariant = new ArrayList<>();
+        List<BPredicate> invariant = new ArrayList<>();
         when(pc.getMachineType()).thenReturn(MachineType.EVENTB);
         // Invariant and primed invariant
-        invariant.add("invariant");
+        invariant.add(BPredicate.of("invariant"));
         when(pc.getInvariants()).thenReturn(invariant);
         List<String> primedInvariant = new ArrayList<>();
         primedInvariant.add("primed");
-        Map<String, String> primedMap = new HashMap<>();
-        primedMap.put("invariant", "primed");
-        primedMap.put("(invariant)", "primedconcat"); // primed concatenation
+        Map<BPredicate, BPredicate> primedMap = new HashMap<>();
+        primedMap.put(BPredicate.of("invariant"), BPredicate.of("primed"));
+        primedMap.put(BPredicate.of("(invariant)"), BPredicate.of("primedconcat")); // primed concatenation
         when(pc.getPrimedInvariants()).thenReturn(primedMap);
         // Preconditions and before/after predicates
-        List<String> precondition = new ArrayList<>();
-        precondition.add("precondition");
-        Map<String, List<String>> operationPrecondition = new HashMap<>();
+        List<BPredicate> precondition = new ArrayList<>();
+        precondition.add(BPredicate.of("precondition"));
+        Map<String, List<BPredicate>> operationPrecondition = new HashMap<>();
         operationPrecondition.put("operation", precondition);
         when(pc.getPreconditions()).thenReturn(operationPrecondition);
-        Map<String, String> beforeAfter = new HashMap<>();
-        beforeAfter.put("operation", "beforeAfter");
+        Map<String, BPredicate> beforeAfter = new HashMap<>();
+        beforeAfter.put("operation", BPredicate.of("beforeAfter"));
         when(pc.getBeforeAfterPredicates()).thenReturn(beforeAfter);
         // Necessary Stubs that are called but may be empty
         when(pc.getProperties()).thenReturn(new ArrayList<>());
@@ -420,7 +466,10 @@ public class FormulaGeneratorTest {
         expected.add("(not(invariant & (precondition) & beforeAfter) => (primed))");
         expected.add("(not(invariant & (precondition) & beforeAfter) => not(primed))");
 
-        List<String> actual = FormulaGenerator.invariantPreservations(pc);
+        List<String> actual = FormulaGenerator.invariantPreservations(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         expected.sort(Comparator.naturalOrder());
         actual.sort(Comparator.naturalOrder());
@@ -432,8 +481,8 @@ public class FormulaGeneratorTest {
     @Test
     public void shouldNotUseAssertionConcatenationWhenOnlyOneAssertionExists() {
         PredicateCollection pc = mock(PredicateCollection.class);
-        List<String> assertions = new ArrayList<>();
-        assertions.add("assertion");
+        List<BPredicate> assertions = new ArrayList<>();
+        assertions.add(BPredicate.of("assertion"));
         when(pc.getAssertions()).thenReturn(assertions);
         when(pc.getProperties()).thenReturn(new ArrayList<>());
         when(pc.getInvariants()).thenReturn(new ArrayList<>());
@@ -441,7 +490,10 @@ public class FormulaGeneratorTest {
         List<String> expected = new ArrayList<>();
         expected.add("assertion");
         expected.add("not(assertion)");
-        List<String> actual = FormulaGenerator.assertions(pc);
+        List<String> actual = FormulaGenerator.assertions(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         assertEquals(expected, actual,
                 "Should only have generated one assertion"
@@ -451,9 +503,9 @@ public class FormulaGeneratorTest {
     @Test
     public void shouldGenerateAssertionsWithConcatenationWhenMoreThenOneExist() {
         PredicateCollection pc = mock(PredicateCollection.class);
-        List<String> assertions = new ArrayList<>();
-        assertions.add("assertion1");
-        assertions.add("assertion2");
+        List<BPredicate> assertions = new ArrayList<>();
+        assertions.add(BPredicate.of("assertion1"));
+        assertions.add(BPredicate.of("assertion2"));
         when(pc.getAssertions()).thenReturn(assertions);
         when(pc.getProperties()).thenReturn(new ArrayList<>());
         when(pc.getInvariants()).thenReturn(new ArrayList<>());
@@ -465,7 +517,10 @@ public class FormulaGeneratorTest {
         expected.add("not(assertion2)");
         expected.add("(assertion1) & (assertion2)");
         expected.add("not((assertion1) & (assertion2))");
-        List<String> actual = FormulaGenerator.assertions(pc);
+        List<String> actual = FormulaGenerator.assertions(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         assertEquals(expected, actual,
                 "Should generate formulae for each assertion and their "

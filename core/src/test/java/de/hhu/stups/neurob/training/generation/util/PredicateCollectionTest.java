@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.training.generation.util;
 
 import de.hhu.stups.neurob.core.api.MachineType;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.prob.animator.command.BeforeAfterPredicateCommand;
 import de.prob.animator.command.PrimePredicateCommand;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -132,10 +134,14 @@ class PredicateCollectionTest {
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 
-        List<String> expected = new ArrayList<>();
-        expected.add("Invariant-1");
-        expected.add("Invariant-2");
-        expected.add("(Invariant-1) & (Invariant-2)");
+        List<String> invariants = new ArrayList<>();
+        invariants.add("Invariant-1");
+        invariants.add("Invariant-2");
+        invariants.add("(Invariant-1) & (Invariant-2)");
+
+        List<BPredicate> expected = invariants.stream()
+                .map(BPredicate::new)
+                .collect(Collectors.toList());
 
         assertEquals(expected, pc.getInvariants());
 
@@ -149,8 +155,8 @@ class PredicateCollectionTest {
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 
-        List<String> invariants = new ArrayList<>();
-        invariants.add("Invariant-1");
+        List<BPredicate> invariants = new ArrayList<>();
+        invariants.add(BPredicate.of("Invariant-1"));
 
         assertEquals(invariants, pc.getInvariants(),
                 "Should only load one invariant");
@@ -172,10 +178,10 @@ class PredicateCollectionTest {
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 
-        List<String> invariants = new ArrayList<>();
-        invariants.add("Invariant-2");
+        List<BPredicate> expected = new ArrayList<>();
+        expected.add(BPredicate.of("Invariant-2"));
 
-        assertEquals(invariants, pc.getInvariants(),
+        assertEquals(expected, pc.getInvariants(),
                 "Should only load one invariant");
     }
 
@@ -187,20 +193,19 @@ class PredicateCollectionTest {
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 
-        Map<String, List<String>> pres = new HashMap<>();
+        Map<String, List<BPredicate>> pres = new HashMap<>();
 
         // First operation, three preconditions
         List<String> pre = new ArrayList<>();
         pre.add("Guard-1");
         pre.add("Guard-2");
         pre.add("Guard-3");
-        pres.put("Operation-1", pre);
+        pres.put("Operation-1", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
         // Second operation, two preconditions
         pre = new ArrayList<>();
         pre.add("Guard-1");
         pre.add("Guard-2");
-        pres.put("Operation-2", pre);
-
+        pres.put("Operation-2", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
 
         assertAll("Included preconditions",
                 () -> assertEquals(pres.size(), pc.getPreconditions().size(),
@@ -256,9 +261,9 @@ class PredicateCollectionTest {
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 
-        List<String> expected = new ArrayList<>();
-        expected.add("Property-1");
-        expected.add("Property-2");
+        List<BPredicate> expected = new ArrayList<>();
+        expected.add(BPredicate.of("Property-1"));
+        expected.add(BPredicate.of("Property-2"));
 
         assertEquals(expected, pc.getProperties(),
                 "Properties do not match");
@@ -278,7 +283,11 @@ class PredicateCollectionTest {
         asserts.add("Assertion-2");
         asserts.add("Assertion-3");
 
-        assertEquals(asserts, pc.getAssertions(),
+        List<BPredicate> expected = asserts.stream()
+                .map(BPredicate::new)
+                .collect(Collectors.toList());
+
+        assertEquals(expected, pc.getAssertions(),
                 "Assertions do not match");
     }
 
@@ -307,20 +316,20 @@ class PredicateCollectionTest {
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 
-        Map<String, Map<String, String>> weakestPres = new HashMap<>();
+        Map<String, Map<BPredicate, BPredicate>> weakestPres = new HashMap<>();
         // for each operation, the weakest pre for each invariant is expected
-        Map<String, String> opWeak;
+        Map<BPredicate, BPredicate> opWeak;
         // first operation
         opWeak = new HashMap<>();
-        opWeak.put("Invariant-1", "weakest-precondition");
-        opWeak.put("Invariant-2", "weakest-precondition");
-        opWeak.put("(Invariant-1) & (Invariant-2)", "weakest-precondition");
+        opWeak.put(BPredicate.of("Invariant-1"), BPredicate.of("weakest-precondition"));
+        opWeak.put(BPredicate.of("Invariant-2"), BPredicate.of("weakest-precondition"));
+        opWeak.put(BPredicate.of("(Invariant-1) & (Invariant-2)"), BPredicate.of("weakest-precondition"));
         weakestPres.put("Operation-1", opWeak);
         // second operation
         opWeak = new HashMap<>();
-        opWeak.put("Invariant-1", "weakest-precondition");
-        opWeak.put("Invariant-2", "weakest-precondition");
-        opWeak.put("(Invariant-1) & (Invariant-2)", "weakest-precondition");
+        opWeak.put(BPredicate.of("Invariant-1"), BPredicate.of("weakest-precondition"));
+        opWeak.put(BPredicate.of("Invariant-2"), BPredicate.of("weakest-precondition"));
+        opWeak.put(BPredicate.of("(Invariant-1) & (Invariant-2)"), BPredicate.of("weakest-precondition"));
         weakestPres.put("Operation-2", opWeak);
 
         assertEquals(weakestPres, pc.getWeakestPreConditions(),
@@ -353,7 +362,9 @@ class PredicateCollectionTest {
         expected.add("Assertion-1");
         expected.add("Assertion-2");
 
-        List<String> actual = pc.getAssertions();
+        List<String> actual = pc.getAssertions().stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         assertEquals(expected, actual,
                 "Assertions not loaded correctly");
@@ -383,11 +394,11 @@ class PredicateCollectionTest {
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 
-        Map<String, String> expected = new HashMap<>();
-        expected.put("Operation-1", "before-after");
-        expected.put("Operation-2", "before-after");
+        Map<String, BPredicate> expected = new HashMap<>();
+        expected.put("Operation-1", BPredicate.of("before-after"));
+        expected.put("Operation-2", BPredicate.of("before-after"));
 
-        Map<String, String> actual = pc.getBeforeAfterPredicates();
+        Map<String, BPredicate> actual = pc.getBeforeAfterPredicates();
 
         assertEquals(expected, actual,
                 "Expected weakest preconditions do not match");
@@ -418,12 +429,12 @@ class PredicateCollectionTest {
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 
-        Map<String, String> expected = new HashMap<>();
-        expected.put("Invariant-1", "primed-invariant");
-        expected.put("Invariant-2", "primed-invariant");
-        expected.put("(Invariant-1) & (Invariant-2)", "primed-invariant");
+        Map<BPredicate, BPredicate> expected = new HashMap<>();
+        expected.put(BPredicate.of("Invariant-1"), BPredicate.of("primed-invariant"));
+        expected.put(BPredicate.of("Invariant-2"), BPredicate.of("primed-invariant"));
+        expected.put(BPredicate.of("(Invariant-1) & (Invariant-2)"), BPredicate.of("primed-invariant"));
 
-        Map<String, String> actual = pc.getPrimedInvariants();
+        Map<BPredicate, BPredicate> actual = pc.getPrimedInvariants();
 
         assertEquals(expected, actual,
                 "Expected weakest preconditions do not match");
@@ -451,7 +462,9 @@ class PredicateCollectionTest {
         expected.add("Axiom-1");
         expected.add("Axiom-2");
 
-        List<String> actual = pc.getProperties();
+        List<String> actual = pc.getProperties().stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
 
         assertEquals(expected, actual,
                 "Properties not loaded correctly");

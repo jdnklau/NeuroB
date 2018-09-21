@@ -36,11 +36,11 @@ class BPredicateTest {
     }
 
     @Test
-    void shouldBeUnequalToString() {
+    void shouldBeEqualToString() {
         String rawPred = "pred";
         BPredicate pred = BPredicate.of(rawPred);
 
-        assertNotEquals(pred, rawPred);
+        assertEquals(pred, rawPred);
     }
 
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Backend;
@@ -45,10 +46,30 @@ public class FormulaGenerator {
      *
      * @throws FormulaException
      */
-    public static String generatePrimedPredicate(MachineAccess bMachine,
+    public static BPredicate generatePrimedPredicate(MachineAccess bMachine,
             String predicate) throws FormulaException {
         return generatePrimedPredicate(bMachine,
                 Backend.generateBFormula(BPredicate.of(predicate), bMachine));
+    }
+
+    /**
+     * Takes a given predicate and primes the identifiers.
+     * <p>
+     * Example: "x>y & y>x" will be translated into "x'>y' & y'>x'"
+     * <p>
+     * This is mainly useful for before-after predicates.
+     *
+     * @param bMachine Access to the B machine the predicate belongs to
+     * @param predicate
+     *
+     * @return
+     *
+     * @throws FormulaException
+     */
+    public static BPredicate generatePrimedPredicate(MachineAccess bMachine,
+            BPredicate predicate) throws FormulaException {
+        return generatePrimedPredicate(bMachine,
+                Backend.generateBFormula(predicate, bMachine));
     }
 
     /**
@@ -65,12 +86,12 @@ public class FormulaGenerator {
      *
      * @throws FormulaException
      */
-    public static String generatePrimedPredicate(MachineAccess bMachine,
+    public static BPredicate generatePrimedPredicate(MachineAccess bMachine,
             IBEvalElement evalElement) throws FormulaException {
         try {
             PrimePredicateCommand ppc = new PrimePredicateCommand(evalElement);
             bMachine.execute(ppc);
-            return ppc.getPrimedPredicate().getCode();
+            return BPredicate.of(ppc.getPrimedPredicate().getCode());
         } catch (Exception e) {
             throw new FormulaException("Could not build primed predicate from "
                                        + evalElement.getCode(), e);
@@ -114,7 +135,7 @@ public class FormulaGenerator {
      * @return An ArrayList containing all formulae constructed from the
      *         predicate collector
      */
-    public static List<String> extendedPreconditionFormulae(
+    public static List<BPredicate> extendedPreconditionFormulae(
             PredicateCollection predicateCollection) {
         String properties = getPropertyString(predicateCollection);
         String invariants = getInvariantString(predicateCollection);
@@ -132,33 +153,32 @@ public class FormulaGenerator {
      *
      * @return
      */
-    public static List<String> multiPreconditionFormulae(
+    public static List<BPredicate> multiPreconditionFormulae(
             PredicateCollection predicateCollection) {
-        ArrayList<String> formulae = new ArrayList<>();
-
         String propsAndInvsPre = getPropsAndInvsPre(predicateCollection);
 
-        List<String> allPreconditions = predicateCollection.getPreconditions().entrySet()
-                .stream()
-                .map(Entry::getValue)
-                .map(FormulaGenerator::getStringConjunction)
-                .collect(Collectors.toList());
+        List<BPredicate> allPreconditions =
+                predicateCollection.getPreconditions().entrySet()
+                        .stream()
+                        .map(Entry::getValue)
+                        .map(FormulaGenerator::getPredicateConjunction)
+                        .collect(Collectors.toList());
 
         int preconditionCount = allPreconditions.size();
 
         // pairwise iterate over preconditions
+        ArrayList<BPredicate> formulae = new ArrayList<>();
         for (int i = 0; i < preconditionCount; i++) {
             for (int j = i + 1; j < preconditionCount; j++) {
-                String g1 = allPreconditions.get(i);
-                String g2 = allPreconditions.get(j);
+                String g1 = allPreconditions.get(i).toString();
+                String g2 = allPreconditions.get(j).toString();
 
-                formulae.add(propsAndInvsPre + g1 + " & " + g2);
-                formulae.add(propsAndInvsPre + "(not(" + g1 + ") => (" + g2 + "))");
-                formulae.add(propsAndInvsPre + g1 + " & not(" + g2 + ")");
-                formulae.add(propsAndInvsPre + "(" + g1 + " => not(" + g2 + "))");
+                formulae.add(BPredicate.of(propsAndInvsPre + g1 + " & " + g2));
+                formulae.add(BPredicate.of(propsAndInvsPre + "(not(" + g1 + ") => (" + g2 + "))"));
+                formulae.add(BPredicate.of(propsAndInvsPre + g1 + " & not(" + g2 + ")"));
+                formulae.add(BPredicate.of(propsAndInvsPre + "(" + g1 + " => not(" + g2 + "))"));
             }
         }
-
 
         return formulae;
     }
@@ -185,13 +205,12 @@ public class FormulaGenerator {
      *
      * @return
      */
-    public static List<String> enablingRelationships(
+    public static List<BPredicate> enablingRelationships(
             PredicateCollection predicateCollection) {
-        List<String> formulae = new ArrayList<>();
 
         // unsupported for non-EventB
         if (predicateCollection.getMachineType() != MachineType.EVENTB)
-            return formulae;
+            return new ArrayList<>();
 
         String PropsAndInvsPre = getPropsAndInvsPre(predicateCollection);
 
@@ -207,21 +226,21 @@ public class FormulaGenerator {
 
         List<String> operations = new ArrayList<>(
                 predicateCollection.getPreconditions().keySet());
-        Map<String, List<String>> preconditionConjuncts =
+        Map<String, List<BPredicate>> preconditionConjuncts =
                 predicateCollection.getPreconditions();
 
         // get conjuncted preconditions
-        Map<String, String> preconditions = new HashMap<>();
+        Map<String, BPredicate> preconditions = new HashMap<>();
         for (String operation : operations) {
-            preconditions.put(operation, getStringConjunction(preconditionConjuncts.get(operation)));
+            preconditions.put(operation, getPredicateConjunction(preconditionConjuncts.get(operation)));
         }
 
         // before after predicates
-        Map<String, String> beforeAfter =
+        Map<String, BPredicate> beforeAfter =
                 predicateCollection.getBeforeAfterPredicates();
 
         // get primed preconditions of operations we also got before/after predicates for
-        Map<String, String> primedPreconditions = new HashMap<>();
+        Map<String, BPredicate> primedPreconditions = new HashMap<>();
         for (String operation : new ArrayList<>(beforeAfter.keySet())) {
             if (!preconditions.containsKey(operation)) {
                 // some operations have no precondition but before/after predicate
@@ -230,7 +249,7 @@ public class FormulaGenerator {
             try {
                 primedPreconditions.put(operation, generatePrimedPredicate(
                         predicateCollection.getBMachine(),
-                        getStringConjunction(preconditionConjuncts.get(operation))));
+                        getPredicateConjunction(preconditionConjuncts.get(operation))));
             } catch (FormulaException e) {
                 log.warn("{}", e.getMessage(), e);
             }
@@ -238,6 +257,7 @@ public class FormulaGenerator {
 
 
         // set up formulae
+        List<BPredicate> formulae = new ArrayList<>();
         for (String operation : beforeAfter.keySet()) {
 
             String g1;
@@ -249,15 +269,15 @@ public class FormulaGenerator {
             String g1AndBa = g1 + beforeAfter.get(operation);
 
             for (String primedOperation : primedPreconditions.keySet()) {
-                String g2 = primedPreconditions.get(primedOperation);
+                String g2 = primedPreconditions.get(primedOperation).toString();
 
-                formulae.add(PropsAndInvsPre + "(" + g1AndBa + " & " + g2 + ")");
-                formulae.add(PropsAndInvsPre + "(" + g1AndBa + " & not(" + g2 + "))");
+                formulae.add(BPredicate.of(PropsAndInvsPre + "(" + g1AndBa + " & " + g2 + ")"));
+                formulae.add(BPredicate.of(PropsAndInvsPre + "(" + g1AndBa + " & not(" + g2 + "))"));
 
-                formulae.add(PropsAndInvsPre + "not(" + g1AndBa + ") & " + g2 + "");
-                formulae.add(PropsAndInvsPre + "not(" + g1AndBa + ") & not(" + g2 + ")");
-                formulae.add(PropsAndInvsPre + "(not(" + g1AndBa + ") => (" + g2 + "))");
-                formulae.add(PropsAndInvsPre + "(not(" + g1AndBa + ") => not(" + g2 + "))");
+                formulae.add(BPredicate.of(PropsAndInvsPre + "not(" + g1AndBa + ") & " + g2 + ""));
+                formulae.add(BPredicate.of(PropsAndInvsPre + "not(" + g1AndBa + ") & not(" + g2 + ")"));
+                formulae.add(BPredicate.of(PropsAndInvsPre + "(not(" + g1AndBa + ") => (" + g2 + "))"));
+                formulae.add(BPredicate.of(PropsAndInvsPre + "(not(" + g1AndBa + ") => not(" + g2 + "))"));
             }
         }
 
@@ -297,9 +317,8 @@ public class FormulaGenerator {
      *
      * @return
      */
-    public static List<String> invariantPreservations(
+    public static List<BPredicate> invariantPreservations(
             PredicateCollection predicateCollection) {
-        List<String> formulae = new ArrayList<>();
 
         String PropsPre = getPropertyPre(predicateCollection);
         String Invs = getInvariantString(predicateCollection);
@@ -311,20 +330,21 @@ public class FormulaGenerator {
          */
 
         // Classical B: weakest precondition
-        Map<String, Map<String, String>> weakestPreMap =
+        Map<String, Map<BPredicate, BPredicate>> weakestPreMap =
                 predicateCollection.getWeakestPreConditions();
 
         // - for each operation
-        for (Entry<String, Map<String, String>> opEntry : weakestPreMap.entrySet()) {
+        List<BPredicate> formulae = new ArrayList<>();
+        for (Entry<String, Map<BPredicate, BPredicate>> opEntry : weakestPreMap.entrySet()) {
             // - for each invariant
-            for (Entry<String, String> invEntry : opEntry.getValue().entrySet()) {
-                String inv = invEntry.getKey();
-                String wpc = invEntry.getValue();
+            for (Entry<BPredicate, BPredicate> invEntry : opEntry.getValue().entrySet()) {
+                String inv = invEntry.getKey().toString();
+                String wpc = invEntry.getValue().toString();
 
-                formulae.add(PropsPre + inv + " & " + wpc);
-                formulae.add(PropsPre + "(not(" + inv + ") => (" + wpc + "))");
-                formulae.add(PropsPre + inv + " & not(" + wpc + ")");
-                formulae.add(PropsPre + "(not(" + inv + ") => not(" + wpc + "))");
+                formulae.add(BPredicate.of(PropsPre + inv + " & " + wpc));
+                formulae.add(BPredicate.of(PropsPre + "(not(" + inv + ") => (" + wpc + "))"));
+                formulae.add(BPredicate.of(PropsPre + inv + " & not(" + wpc + ")"));
+                formulae.add(BPredicate.of(PropsPre + "(not(" + inv + ") => not(" + wpc + "))"));
             }
         }
 
@@ -333,47 +353,47 @@ public class FormulaGenerator {
         if (predicateCollection.getMachineType() != MachineType.EVENTB)
             return formulae; // the following is for EVENTB only FIXME
 
-        Map<String, String> primedInvsMap =
+        Map<BPredicate, BPredicate> primedInvsMap =
                 predicateCollection.getPrimedInvariants();
 
         if (!primedInvsMap.isEmpty()) { // do only if the map is not empty
             // Collect all invariants plus their concatenation if more than 1
-            List<String> invariants = new ArrayList<>(predicateCollection.getInvariants());
+            List<BPredicate> invariants = new ArrayList<>(predicateCollection.getInvariants());
             if (invariants.size() > 1) {
-                invariants.add(Invs);
+                invariants.add(BPredicate.of(Invs));
             }
-            for (String unprimedInv : invariants) {
+            for (BPredicate unprimedInv : invariants) {
 
-                String primedInv = primedInvsMap.get(unprimedInv);
+                String primedInv = primedInvsMap.get(unprimedInv).toString();
                 // Skip if primed invariant was not properly collected
                 if (primedInv == null) {
                     continue;
                 }
 
-                Map<String, List<String>> preconditions =
+                Map<String, List<BPredicate>> preconditions =
                         predicateCollection.getPreconditions();
-                Map<String, String> beforeAfter =
+                Map<String, BPredicate> beforeAfter =
                         predicateCollection.getBeforeAfterPredicates();
 
                 for (String operation : beforeAfter.keySet()) {
                     String g; // the precondition of the operation (may be empty)
 
                     if (preconditions.containsKey(operation)) {
-                        g = getStringConjunction(preconditions.get(operation)) + " & ";
+                        g = getPredicateConjunction(preconditions.get(operation)) + " & ";
                     } else {
                         g = "";
                     }
 
                     String gAndBa = g + beforeAfter.get(operation);
 
-                    formulae.add(PropsPre + unprimedInv + " & " + gAndBa
-                                 + " & " + primedInv);
-                    formulae.add(PropsPre + "(not(" + unprimedInv + " & "
-                                 + gAndBa + ") => (" + primedInv + "))");
-                    formulae.add(PropsPre + unprimedInv + " & " + gAndBa
-                                 + " & not(" + primedInv + ")");
-                    formulae.add(PropsPre + "(not(" + unprimedInv + " & "
-                                 + gAndBa + ") => not(" + primedInv + "))");
+                    formulae.add(BPredicate.of(PropsPre + unprimedInv + " & " + gAndBa
+                                 + " & " + primedInv));
+                    formulae.add(BPredicate.of(PropsPre + "(not(" + unprimedInv + " & "
+                                 + gAndBa + ") => (" + primedInv + "))"));
+                    formulae.add(BPredicate.of(PropsPre + unprimedInv + " & " + gAndBa
+                                 + " & not(" + primedInv + ")"));
+                    formulae.add(BPredicate.of(PropsPre + "(not(" + unprimedInv + " & "
+                                 + gAndBa + ") => not(" + primedInv + "))"));
                 }
 
             }
@@ -401,11 +421,11 @@ public class FormulaGenerator {
      *
      * @return
      */
-    public static List<String> assertions(PredicateCollection predicateCollection) {
+    public static List<BPredicate> assertions(PredicateCollection predicateCollection) {
         String propsAndInv = getPropertyAndInvariantString(predicateCollection);
-        ArrayList<String> formulae = new ArrayList<>();
+        ArrayList<BPredicate> formulae = new ArrayList<>();
 
-        List<String> assertionsList = new ArrayList<>(predicateCollection.getAssertions());
+        List<BPredicate> assertionsList = new ArrayList<>(predicateCollection.getAssertions());
         // If no assertions, then return empty list
         if (assertionsList.isEmpty()) {
             return formulae;
@@ -413,20 +433,20 @@ public class FormulaGenerator {
 
         // If more than one assertion, add conjunction to list as well
         if (assertionsList.size() > 1) {
-            assertionsList.add(getStringConjunction(assertionsList));
+            assertionsList.add(getPredicateConjunction(assertionsList));
         }
 
         if (propsAndInv.isEmpty()) {
-            for (String a : assertionsList) {
+            for (BPredicate a : assertionsList) {
                 formulae.add(a);
-                formulae.add("not(" + a + ")");
+                formulae.add(BPredicate.of("not(" + a + ")"));
             }
         } else {
             // proof assertions
-            for (String a : assertionsList) {
-                formulae.add(propsAndInv + " & " + a);
-                formulae.add(propsAndInv + " & not(" + a + ")");
-                formulae.add("not(" + propsAndInv + ") => (" + a + ")");
+            for (BPredicate a : assertionsList) {
+                formulae.add(BPredicate.of(propsAndInv + " & " + a));
+                formulae.add(BPredicate.of(propsAndInv + " & not(" + a + ")"));
+                formulae.add(BPredicate.of("not(" + propsAndInv + ") => (" + a + ")"));
             }
         }
 
@@ -446,12 +466,24 @@ public class FormulaGenerator {
         return (conj.isEmpty()) ? "" : "(" + conj + ")";
     }
 
+    public static BPredicate getPredicateConjunction(List<BPredicate> conjuncts) {
+        if (conjuncts.size() == 0) {
+            return BPredicate.of("");
+        }
+
+        String conjunction = conjuncts.stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.joining(") & ("));
+
+        return BPredicate.of("(" + conjunction + ")");
+    }
+
     private static String getPropertyString(PredicateCollection predicateCollection) {
-        return getStringConjunction(predicateCollection.getProperties());
+        return getPredicateConjunction(predicateCollection.getProperties()).toString();
     }
 
     private static String getInvariantString(PredicateCollection predicateCollection) {
-        return getStringConjunction(predicateCollection.getInvariants());
+        return getPredicateConjunction(predicateCollection.getInvariants()).toString();
     }
 
     private static String getPropertyPre(PredicateCollection predicateCollection) {
@@ -490,10 +522,10 @@ public class FormulaGenerator {
     }
 
 
-    private static List<String> generateExtendedPreconditionFormulae(
+    private static List<BPredicate> generateExtendedPreconditionFormulae(
             String properties, String invariants,
-            Map<String, List<String>> allPreconditions) {
-        List<String> formulae = new ArrayList<>();
+            Map<String, List<BPredicate>> allPreconditions) {
+        List<BPredicate> formulae = new ArrayList<>();
 
         // check for empty formulas
         boolean emptyProperties = false;
@@ -514,7 +546,7 @@ public class FormulaGenerator {
             invariantsPre = "";
             negInvariants = "";
         } else {
-            formulae.add(invariants); // invariants
+            formulae.add(BPredicate.of(invariants)); // invariants
             invariantsPre = invariants + " & ";
             negInvariants = "not(" + invariants + ")";
         }
@@ -525,13 +557,13 @@ public class FormulaGenerator {
 
 
         // preconditions
-        List<List<String>> allPreconditionsList = allPreconditions.entrySet()
+        List<List<BPredicate>> allPreconditionsList = allPreconditions.entrySet()
                 .stream()
                 .map(Entry::getValue)
                 .collect(Collectors.toList());
 
-        for (List<String> preconditions : allPreconditionsList) {
-            String precondition = getStringConjunction(preconditions);
+        for (List<BPredicate> preconditions : allPreconditionsList) {
+            String precondition = getPredicateConjunction(preconditions).toString();
 
             // only continue if the preconditions are nonempty
             if (precondition.isEmpty()) {
@@ -545,7 +577,7 @@ public class FormulaGenerator {
             String propsAndNegPrecondition = propertyPre + negPrecondition;
 
             // operations active w/o violating invariants
-            formulae.add(propertyPre + invariantsPre + precondition);
+            formulae.add(BPredicate.of(propertyPre + invariantsPre + precondition));
             // following code only makes sense if invariants or properties
             // are not empty
             if (emptyInvariants && emptyProperties) {
@@ -553,17 +585,17 @@ public class FormulaGenerator {
             }
 
             // operations usable with unviolated invariants
-            formulae.add("not(" + propsAndInvs + ") => " + precondition);
+            formulae.add(BPredicate.of("not(" + propsAndInvs + ") => " + precondition));
 
             // operations not active w/o violating invariants
-            formulae.add(propsAndInvs + " & " + negPrecondition);
+            formulae.add(BPredicate.of(propsAndInvs + " & " + negPrecondition));
             // operations not usable with unviolated invariants
-            formulae.add("not(" + propsAndInvs + ") => " + negPrecondition);
+            formulae.add(BPredicate.of("not(" + propsAndInvs + ") => " + negPrecondition));
 
             // operations only usable w/o invariant violation
-            formulae.add("not(" + propsAndPrecondition + ") => " + invariants);
+            formulae.add(BPredicate.of("not(" + propsAndPrecondition + ") => " + invariants));
             // operations never usable w/o invariant violation
-            formulae.add("not(" + propsAndNegPrecondition + ") => " + invariants);
+            formulae.add(BPredicate.of("not(" + propsAndNegPrecondition + ") => " + invariants));
 
             if (emptyInvariants) {
                 // incoming formulae would be repetitive, so skip them
@@ -571,19 +603,19 @@ public class FormulaGenerator {
             }
 
             // operations active despite invariant violation
-            formulae.add(propsAndNegInvs + " & " + precondition);
+            formulae.add(BPredicate.of(propsAndNegInvs + " & " + precondition));
             // operations usable despite invariant violation
-            formulae.add("not(" + propsAndNegInvs + ") => " + precondition);
+            formulae.add(BPredicate.of("not(" + propsAndNegInvs + ") => " + precondition));
 
             // operations not active with invariant violation
-            formulae.add(propsAndNegInvs + " & " + negPrecondition);
+            formulae.add(BPredicate.of(propsAndNegInvs + " & " + negPrecondition));
             // operations not usable with invariant violation
-            formulae.add("not(" + propsAndNegInvs + ") => " + negPrecondition);
+            formulae.add(BPredicate.of("not(" + propsAndNegInvs + ") => " + negPrecondition));
 
             // operations never usable with invariant violation
-            formulae.add("not(" + propsAndNegPrecondition + ") => " + negInvariants);
+            formulae.add(BPredicate.of("not(" + propsAndNegPrecondition + ") => " + negInvariants));
             // operations only usable with invariant violation
-            formulae.add("not(" + propsAndPrecondition + ") => " + negInvariants);
+            formulae.add(BPredicate.of("not(" + propsAndPrecondition + ") => " + negInvariants));
         }
 
         return formulae;

@@ -31,9 +31,21 @@ public class BPredicate implements BElement, BData {
     }
 
     @Override
+    public int hashCode() {
+        if (predicate == null) {
+            return 0;
+        }
+        return predicate.hashCode();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o instanceof BPredicate) {
             return predicate.equals(((BPredicate) o).predicate);
+        }
+        // Allow direct comparison with strings
+        if (o instanceof String) {
+            return o.equals(predicate);
         }
         return false;
     }

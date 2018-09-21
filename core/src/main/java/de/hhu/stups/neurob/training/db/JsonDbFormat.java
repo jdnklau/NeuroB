@@ -292,7 +292,7 @@ public class JsonDbFormat implements PredicateDbFormat {
                 Double time = Double.parseDouble(timeSplit[1]);
                 timingMap.put(backendKeyMap.get(backendKey), time);
             }
-            return new DecisionTimings(null, timingMap, BACKENDS_USED);
+            return new DecisionTimings((BPredicate) null, timingMap, BACKENDS_USED);
         }
 
 
