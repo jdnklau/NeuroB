@@ -5,6 +5,7 @@ import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
@@ -73,14 +74,14 @@ class PredicateTrainingGeneratorIT {
         generator = null;
     }
 
-    private PredicateFeatures generateMockedFeatures(String pred) {
+    private PredicateFeatures generateMockedFeatures(BPredicate pred) {
         PredicateFeatures f = mock(PredicateFeatures.class);
         when(f.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
         when(f.getPredicate()).thenReturn(pred);
         return f;
     }
 
-    private PredicateLabelling generateMockedLabels(String pred) {
+    private PredicateLabelling generateMockedLabels(BPredicate pred) {
         PredicateLabelling f = mock(PredicateLabelling.class);
         when(f.getLabellingArray()).thenReturn(new Double[]{1., 2., 3.});
         when(f.getPredicate()).thenReturn(pred);
@@ -100,6 +101,7 @@ class PredicateTrainingGeneratorIT {
                 Paths.get(TestMachines.FORMULAE_GEN_MCH))
                 .map(sample -> ((PredicateFeatures) sample.getFeatures())
                         .getPredicate())
+                .map(Object::toString)
                 .collect(Collectors.toList());
 
         expected.sort(Comparator.naturalOrder());

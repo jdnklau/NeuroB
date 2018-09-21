@@ -1,8 +1,21 @@
 package de.hhu.stups.neurob.core.api.bmethod;
 
-public class BPredicate implements BElement{
+import de.hhu.stups.neurob.core.data.BData;
+
+public class BPredicate implements BElement, BData {
 
     private final String predicate;
+
+    /**
+     * Instantiates a new predicate form the given String.
+     *
+     * @param rawString
+     *
+     * @return
+     */
+    public static BPredicate of(String rawString) {
+        return new BPredicate(rawString);
+    }
 
     public BPredicate(String predicate) {
         this.predicate = (predicate != null) ? predicate : "";
@@ -19,7 +32,7 @@ public class BPredicate implements BElement{
 
     @Override
     public boolean equals(Object o) {
-        if(o instanceof BPredicate) {
+        if (o instanceof BPredicate) {
             return predicate.equals(((BPredicate) o).predicate);
         }
         return false;

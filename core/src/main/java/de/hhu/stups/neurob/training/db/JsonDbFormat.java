@@ -155,7 +155,7 @@ public class JsonDbFormat implements PredicateDbFormat {
     public <L extends Labelling>
     String translateSampleToJsonObject(TrainingSample<PredicateFeatures, L> sample) {
         // Extract meta data from the sample
-        String predicate = sample.getFeatures().getPredicate();
+        BPredicate predicate = sample.getFeatures().getPredicate();
         boolean isSourceDefined = sample.getSourceFile() != null;
         String source = (isSourceDefined) ? sample.getSourceFile().toString() : "";
 
@@ -180,7 +180,7 @@ public class JsonDbFormat implements PredicateDbFormat {
                 ? "\"source\":\"" + source + "\","
                 : "";
         String json = "{"
-                      + "\"predicate\":\"" + predicate + "\","
+                      + "\"predicate\":\"" + predicate.getPredicate() + "\","
                       + sourceEntry
                       + "\"timings\":{" + timings + "}"
                       + "}";
@@ -292,7 +292,7 @@ public class JsonDbFormat implements PredicateDbFormat {
                 Double time = Double.parseDouble(timeSplit[1]);
                 timingMap.put(backendKeyMap.get(backendKey), time);
             }
-            return new DecisionTimings("", timingMap, BACKENDS_USED);
+            return new DecisionTimings(null, timingMap, BACKENDS_USED);
         }
 
 

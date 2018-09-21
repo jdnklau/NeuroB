@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.features.util.TheoryFeatureCollector;
@@ -37,39 +38,81 @@ public class TheoryFeatures extends PredicateFeatures {
      * Generates the TheoryFeatures from the given predicate.
      *
      * @param predicate
+     *
+     * @throws FeatureCreationException
+     */
+    public TheoryFeatures(BPredicate predicate) throws FeatureCreationException {
+        this(predicate, (MachineAccess) null);
+    }
+
+    /**
+     * Generates the TheoryFeatures from the given predicate.
+     *
+     * @param predicate
+     *
      * @throws FeatureCreationException
      */
     public TheoryFeatures(String predicate) throws FeatureCreationException {
-        this(predicate, (MachineAccess) null);
+        this(BPredicate.of(predicate), (MachineAccess) null);
     }
 
     /**
      * Generates the TheoryFeatures from the given predicate in the
      * given B machine.
+     *
      * @param predicate
      * @param bMachine Access to the B machine the predicate gets decided over
+     *
      * @throws FeatureCreationException
      */
-    public TheoryFeatures(String predicate, MachineAccess bMachine)
+    public TheoryFeatures(BPredicate predicate, MachineAccess bMachine)
             throws FeatureCreationException {
         super(predicate, new Generator().generateArray(predicate, bMachine));
     }
 
     /**
-     * Wraps the given feature array in a TheoryFeature instance.
-     * The features must be exactly {@link #featureDimension} entries long.
-     * @param features
+     * Generates the TheoryFeatures from the given predicate in the
+     * given B machine.
+     *
+     * @param predicate
+     * @param bMachine Access to the B machine the predicate gets decided over
+     *
+     * @throws FeatureCreationException
      */
-    public TheoryFeatures(Double... features) {
-        this(null, features);
+    public TheoryFeatures(String predicate, MachineAccess bMachine)
+            throws FeatureCreationException {
+        this(BPredicate.of(predicate), bMachine);
     }
 
     /**
      * Wraps the given feature array in a TheoryFeature instance.
      * The features must be exactly {@link #featureDimension} entries long.
+     *
+     * @param features
+     */
+    public TheoryFeatures(Double... features) {
+        this((BPredicate) null, features);
+    }
+
+    /**
+     * Wraps the given feature array in a TheoryFeature instance.
+     * The features must be exactly {@link #featureDimension} entries long.
+     *
+     * @param predicate
      * @param features
      */
     public TheoryFeatures(String predicate, Double... features) {
+        this(BPredicate.of(predicate), features);
+    }
+
+    /**
+     * Wraps the given feature array in a TheoryFeature instance.
+     * The features must be exactly {@link #featureDimension} entries long.
+     *
+     * @param predicate
+     * @param features
+     */
+    public TheoryFeatures(BPredicate predicate, Double... features) {
         super(predicate, features);
         // Check feature length
         if (features.length != featureDimension) {
@@ -80,14 +123,24 @@ public class TheoryFeatures extends PredicateFeatures {
         }
     }
 
-    public static TheoryFeatures generate(String predicate)
+    public static TheoryFeatures generate(BPredicate predicate)
             throws FeatureCreationException {
         return generate(predicate, null);
     }
 
-    public static TheoryFeatures generate(String predicate, MachineAccess bMachine)
+    public static TheoryFeatures generate(BPredicate predicate, MachineAccess bMachine)
             throws FeatureCreationException {
         return new Generator().generate(predicate, bMachine);
+    }
+
+    public static TheoryFeatures generate(String predicate)
+            throws FeatureCreationException {
+        return generate(BPredicate.of(predicate), null);
+    }
+
+    public static TheoryFeatures generate(String predicate, MachineAccess bMachine)
+            throws FeatureCreationException {
+        return generate(BPredicate.of(predicate), bMachine);
     }
 
     /**
@@ -100,12 +153,12 @@ public class TheoryFeatures extends PredicateFeatures {
     public static class Generator
             implements PredicateFeatureGenerating<TheoryFeatures> {
         @Override
-        public TheoryFeatures generate(String predicate, MachineAccess bMachine)
+        public TheoryFeatures generate(BPredicate predicate, MachineAccess bMachine)
                 throws FeatureCreationException {
             return new TheoryFeatures(predicate, generateArray(predicate, bMachine));
         }
 
-        public Double[] generateArray(String predicate, MachineAccess bMachine)
+        public Double[] generateArray(BPredicate predicate, MachineAccess bMachine)
                 throws FeatureCreationException {
             return TheoryFeatureCollector.collect(predicate, bMachine).toArray();
         }

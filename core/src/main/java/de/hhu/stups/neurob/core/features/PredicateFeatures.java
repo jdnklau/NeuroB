@@ -1,22 +1,28 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+
 /**
  * Features over B-predicates.
  */
 public class PredicateFeatures extends Features {
 
-    private final String predicate;
+    private final BPredicate predicate;
 
     public PredicateFeatures(String predicate, Double... features) {
+        this(new BPredicate(predicate), features);
+    }
+
+    public PredicateFeatures(BPredicate predicate, Double... features) {
         super(features);
         this.predicate = predicate;
     }
 
     public PredicateFeatures(Double... features) {
-        this(null, features);
+        this((BPredicate) null, features);
     }
 
-    public String getPredicate() {
+    public BPredicate getPredicate() {
         return predicate;
     }
 

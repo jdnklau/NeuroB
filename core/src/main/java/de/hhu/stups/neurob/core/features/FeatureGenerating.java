@@ -1,5 +1,7 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.core.api.bmethod.BElement;
+import de.hhu.stups.neurob.core.data.BData;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 
 /**
@@ -13,7 +15,7 @@ import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
  * @param <In> Input type
  */
 @FunctionalInterface
-public interface FeatureGenerating<F extends Features, In> {
+public interface FeatureGenerating<F extends Features, In extends BElement> {
 
     F generate(In source) throws FeatureCreationException;
 

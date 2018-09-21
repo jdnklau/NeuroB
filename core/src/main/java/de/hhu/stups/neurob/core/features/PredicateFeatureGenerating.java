@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 
@@ -10,13 +11,22 @@ import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
  */
 @FunctionalInterface
 public interface PredicateFeatureGenerating<F extends Features>
-        extends FeatureGenerating<F, String> {
+        extends FeatureGenerating<F, BPredicate> {
 
-    F generate(String predicate, MachineAccess bMachine) throws FeatureCreationException;
+    F generate(BPredicate predicate, MachineAccess bMachine) throws FeatureCreationException;
 
     @Override
-    default F generate(String predicate) throws FeatureCreationException {
+    default F generate(BPredicate predicate) throws FeatureCreationException {
         return generate(predicate, null);
     }
+
+    default F generate(String predicate, MachineAccess bMachine) throws FeatureCreationException {
+        return generate(new BPredicate(predicate), bMachine);
+    }
+
+    default F generate(String predicate) throws FeatureCreationException {
+        return generate(new BPredicate(predicate));
+    }
+
 
 }

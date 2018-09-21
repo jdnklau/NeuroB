@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.core.features.util;
 
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.node.Node;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.prob.animator.domainobjects.IBEvalElement;
@@ -12,7 +13,7 @@ import de.prob.animator.domainobjects.IBEvalElement;
  */
 public class TheoryFeatureCollector {
 
-    public static TheoryFeatureData collect(String pred, MachineAccess bMachine)
+    public static TheoryFeatureData collect(BPredicate pred, MachineAccess bMachine)
             throws FeatureCreationException {
         Node ast;
 

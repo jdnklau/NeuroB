@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import org.junit.jupiter.api.Test;
 
@@ -7,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TheoryFeaturesTest {
 
-    private static final String predicate =
+    private static final BPredicate predicate = BPredicate.of(
             "x : NATURAL & y : INTEGER & z : NATURAL"
             + " & z < 20 & a : NAT & b : NAT1 & a < 7 & c : INT"
-            + " & # y . (y < x) & ! z . (z < 15 => x > 3)";
+            + " & # y . (y < x) & ! z . (z < 15 => x > 3)");
     private static final Double[] expectedFeatures =
             {0., 5., 1., 1., 9., 0., 0., 0., 6., 0., 0., 6., 4., 2., 0., 1., 0.};
 

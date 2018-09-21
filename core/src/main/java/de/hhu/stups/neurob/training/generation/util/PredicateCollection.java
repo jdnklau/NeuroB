@@ -7,6 +7,7 @@ import java.util.Map;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.prob.model.eventb.Context;
@@ -119,7 +120,7 @@ public class PredicateCollection {
         for (String inv : invariants) {
             try {
                 invCmds.put(inv,
-                        Backend.generateBFormula(inv, bMachine));
+                        Backend.generateBFormula(BPredicate.of(inv), bMachine));
             } catch (FormulaException e) {
                 log.warn("Could not set up EvalElement from {} for "
                          + "weakest precondition calculation or priming",

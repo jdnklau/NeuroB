@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.labelling;
 
+import de.hhu.stups.neurob.core.data.BData;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 
 /**
@@ -13,6 +14,6 @@ import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
  * @param <In> Type of input to be labelled.
  */
 @FunctionalInterface
-public interface LabelGenerating<L extends Labelling, In> {
+public interface LabelGenerating<L extends Labelling, In extends BData> {
     L generate(In source) throws LabelCreationException;
 }

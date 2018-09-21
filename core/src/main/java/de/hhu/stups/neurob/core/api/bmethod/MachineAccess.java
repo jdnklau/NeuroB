@@ -88,8 +88,8 @@ public class MachineAccess {
 
     }
 
-    public IEvalElement parseFormula(String formula) {
-        return stateSpace.getModel().parseFormula(formula, FormulaExpand.EXPAND);
+    public IEvalElement parseFormula(BPredicate formula) {
+        return stateSpace.getModel().parseFormula(formula.toString(), FormulaExpand.EXPAND);
     }
 
     /**

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class FormulaGenerator {
     public static String generatePrimedPredicate(MachineAccess bMachine,
             String predicate) throws FormulaException {
         return generatePrimedPredicate(bMachine,
-                Backend.generateBFormula(predicate, bMachine));
+                Backend.generateBFormula(BPredicate.of(predicate), bMachine));
     }
 
     /**

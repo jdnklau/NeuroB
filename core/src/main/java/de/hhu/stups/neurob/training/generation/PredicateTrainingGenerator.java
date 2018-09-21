@@ -1,9 +1,6 @@
 package de.hhu.stups.neurob.training.generation;
 
-import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
-import de.hhu.stups.neurob.core.api.backends.ProBBackend;
-import de.hhu.stups.neurob.core.api.backends.SmtBackend;
-import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
@@ -11,7 +8,6 @@ import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
-import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
@@ -77,7 +73,7 @@ public class PredicateTrainingGenerator
     }
 
     public Stream<TrainingSample> streamSamplesFromFile(MachineAccess bMachine) {
-        Stream<String> predicates = streamPredicatesFromFile(bMachine);
+        Stream<BPredicate> predicates = streamPredicatesFromFile(bMachine);
 
         // Stream training samples
         Stream<TrainingSample> samples = predicates.map(
@@ -117,7 +113,7 @@ public class PredicateTrainingGenerator
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample generateSample(String predicate)
+    public TrainingSample generateSample(BPredicate predicate)
             throws FeatureCreationException, LabelCreationException {
         return generateSample(predicate, null);
     }
@@ -136,7 +132,7 @@ public class PredicateTrainingGenerator
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample generateSample(String predicate, MachineAccess bMachine)
+    public TrainingSample generateSample(BPredicate predicate, MachineAccess bMachine)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
         Features features = ((PredicateFeatureGenerating) featureGenerator)
@@ -190,7 +186,7 @@ public class PredicateTrainingGenerator
      *
      * @return Stream of generated predicates.
      */
-    public Stream<String> streamPredicatesFromFile(Path file) {
+    public Stream<BPredicate> streamPredicatesFromFile(Path file) {
         PredicateCollection pc;
         try {
             MachineAccess bMachine = new MachineAccess(file);
@@ -220,7 +216,7 @@ public class PredicateTrainingGenerator
      *
      * @return Stream of generated predicates.
      */
-    public Stream<String> streamPredicatesFromFile(MachineAccess bMachine) {
+    public Stream<BPredicate> streamPredicatesFromFile(MachineAccess bMachine) {
         PredicateCollection pc = new PredicateCollection(bMachine);
         return streamPredicatesFromCollection(pc);
     }
@@ -241,7 +237,7 @@ public class PredicateTrainingGenerator
      *
      * @return
      */
-    public Stream<String> streamPredicatesFromCollection(
+    public Stream<BPredicate> streamPredicatesFromCollection(
             PredicateCollection collection) {
         // stream different predicates created with FeatureGenerator
         List<Function<PredicateCollection, List<String>>> generations =
@@ -252,8 +248,9 @@ public class PredicateTrainingGenerator
         generations.add(FormulaGenerator::multiPreconditionFormulae);
         generations.add(FormulaGenerator::extendedPreconditionFormulae);
 
-        return generations.stream().
-                flatMap(gen -> gen.apply(collection).stream());
+        return generations.stream()
+                .flatMap(gen -> gen.apply(collection).stream())
+                .map(BPredicate::new);
     }
 }
 

@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.core.api.backends;
 
 import de.hhu.stups.neurob.core.api.MachineType;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.prob.animator.command.CbcSolveCommand;
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,7 +33,7 @@ class BackendTest {
     @Test
     public void shouldGenerateClassicalBInstanceForMachineTypeClassicalB()
             throws Exception {
-        String pred = "x>y & y>x";
+        BPredicate pred = BPredicate.of("x>y & y>x");
 
         IBEvalElement evalElem = Backend.generateBFormula(pred,
                 MachineType.CLASSICALB);
@@ -43,7 +45,7 @@ class BackendTest {
     @Test
     public void shouldGenerateEventBInstanceForMachineTypeEventB()
             throws Exception {
-        String pred = "x>y & y>x";
+        BPredicate pred = BPredicate.of("x>y & y>x");
 
         IBEvalElement evalElem = Backend.generateBFormula(pred,
                 MachineType.EVENTB);
@@ -55,32 +57,34 @@ class BackendTest {
     @Test
     public void shouldMeasureNonNegativeTimeWhenPredicateIsDecidable()
             throws FormulaException {
-        Backend backend = mock(Backend.class);
+        BPredicate predicate = BPredicate.of("predicate");
 
-        when(backend.isDecidable("predicate", bMachine))
+        Backend backend = mock(Backend.class);
+        when(backend.isDecidable(predicate, bMachine))
                 .thenReturn(true); // decidable
-        when(backend.measureEvalTime("predicate", bMachine))
+        when(backend.measureEvalTime(predicate, bMachine))
                 .thenCallRealMethod();
 
-        assertTrue(0 <= backend.measureEvalTime("predicate", bMachine),
+        assertTrue(0 <= backend.measureEvalTime(predicate, bMachine),
                 "Measured time for decidable predicates needs non-negative");
     }
 
     @Test
     public void shouldMeasureNegativeTimeWhenPredicateIsUndecidable()
             throws FormulaException {
-        Backend backend = mock(Backend.class);
+        BPredicate predicate = BPredicate.of("predicate");
 
-        when(backend.decidePredicate("predicate", bMachine))
+        Backend backend = mock(Backend.class);
+        when(backend.decidePredicate(predicate, bMachine))
                 .thenReturn(false); // undecidable
-        when(backend.measureEvalTime("predicate", bMachine))
+        when(backend.measureEvalTime(predicate, bMachine))
                 .thenCallRealMethod();
-        when(backend.measureEvalTime(any(), any(), any(), any()))
+        when(backend.measureEvalTime(any(BPredicate.class), any(), any(), any()))
                 .thenCallRealMethod();
         when(backend.getTimeOutValue()).thenReturn(20L);
         when(backend.getTimeOutUnit()).thenReturn(TimeUnit.SECONDS);
 
-        Long actual = backend.measureEvalTime("predicate", bMachine);
+        Long actual = backend.measureEvalTime(predicate, bMachine);
 
         assertTrue(actual < 0,
                 "Measured time for decidable predicates not negative");
@@ -88,18 +92,19 @@ class BackendTest {
 
     @Test
     public void shouldReturnTrueWhenPredicateIsDecidable() throws FormulaException {
-        Backend backend = mock(Backend.class);
+        BPredicate predicate = BPredicate.of("predicate");
 
-        when(backend.decidePredicate("predicate", bMachine))
+        Backend backend = mock(Backend.class);
+        when(backend.decidePredicate(predicate, bMachine))
                 .thenReturn(true); // decidable
-        when(backend.isDecidable("predicate", bMachine))
+        when(backend.isDecidable(predicate, bMachine))
                 .thenCallRealMethod();
-        when(backend.isDecidable("predicate", bMachine, 2L, TimeUnit.SECONDS))
+        when(backend.isDecidable(predicate, bMachine, 2L, TimeUnit.SECONDS))
                 .thenCallRealMethod();
         when(backend.getTimeOutValue()).thenReturn(2L);
         when(backend.getTimeOutUnit()).thenReturn(TimeUnit.SECONDS);
 
-        assertTrue(backend.isDecidable("predicate", bMachine),
+        assertTrue(backend.isDecidable(predicate, bMachine),
                 "Predicate was not detected as decidable.");
     }
 
@@ -141,13 +146,15 @@ class BackendTest {
         CbcSolveCommand cmd = mock(CbcSolveCommand.class);
         when(cmd.getValue()).thenReturn(mock(EvalResult.class));
 
+        BPredicate predicate = BPredicate.of("predicate");
+
         Backend backend = mock(Backend.class);
-        when(backend.decidePredicate("predicate", bMachine)).thenCallRealMethod();
-        when(backend.createCbcSolveCommand("predicate", bMachine))
+        when(backend.decidePredicate(predicate, bMachine)).thenCallRealMethod();
+        when(backend.createCbcSolveCommand(predicate, bMachine))
                 .thenReturn(cmd);
 
         Boolean expected = true;
-        Boolean actual = backend.decidePredicate("predicate", bMachine);
+        Boolean actual = backend.decidePredicate(predicate, bMachine);
 
         assertEquals(true, actual,
                 "Predicate was not detected as decidable");
@@ -159,13 +166,15 @@ class BackendTest {
         CbcSolveCommand cmd = mock(CbcSolveCommand.class);
         when(cmd.getValue()).thenReturn(mock(ComputationNotCompletedResult.class));
 
+        BPredicate predicate = BPredicate.of("predicate");
+
         Backend backend = mock(Backend.class);
-        when(backend.decidePredicate("predicate", bMachine)).thenCallRealMethod();
-        when(backend.createCbcSolveCommand("predicate", bMachine))
+        when(backend.decidePredicate(predicate, bMachine)).thenCallRealMethod();
+        when(backend.createCbcSolveCommand(predicate, bMachine))
                 .thenReturn(cmd);
 
         Boolean expected = false;
-        Boolean actual = backend.decidePredicate("predicate", bMachine);
+        Boolean actual = backend.decidePredicate(predicate, bMachine);
 
         assertEquals(expected, actual,
                 "Predicate was not detected as undecidable");

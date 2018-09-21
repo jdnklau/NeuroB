@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.features;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,8 +11,8 @@ class PredicateFeaturesTest {
     public void shouldReturnPredicateFromInstantiation() {
         PredicateFeatures f = new PredicateFeatures("pred", 1., 2.);
 
-        String expected = "pred";
-        String actual = f.getPredicate();
+        BPredicate expected = BPredicate.of("pred");
+        BPredicate actual = f.getPredicate();
 
         assertEquals(expected, actual);
     }

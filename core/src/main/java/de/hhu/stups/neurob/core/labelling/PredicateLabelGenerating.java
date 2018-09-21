@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.labelling;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 
@@ -10,10 +11,19 @@ import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
  */
 @FunctionalInterface
 public interface PredicateLabelGenerating<L extends PredicateLabelling>
-        extends LabelGenerating<L, String> {
+        extends LabelGenerating<L, BPredicate> {
+
     @Override
-    default L generate(String predicate) throws LabelCreationException {
+    default L generate(BPredicate predicate) throws LabelCreationException {
         return generate(predicate, null);
+    }
+
+    default L generate(String predicate) throws LabelCreationException {
+        return generate(BPredicate.of(predicate), null);
+    }
+
+    default L generate(String predicate, MachineAccess bMachine) throws LabelCreationException {
+        return generate(BPredicate.of(predicate), bMachine);
     }
 
     /**
@@ -25,5 +35,5 @@ public interface PredicateLabelGenerating<L extends PredicateLabelling>
      *
      * @return
      */
-    L generate(String predicate, MachineAccess bMachine) throws LabelCreationException;
+    L generate(BPredicate predicate, MachineAccess bMachine) throws LabelCreationException;
 }
