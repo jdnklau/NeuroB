@@ -46,8 +46,8 @@ class PredicateTrainingGeneratorTest {
 
     @BeforeEach
     public void setUpMocks() {
-        featureGen = (pred, ss) -> generateMockedFeatures(pred);
-        labelGen = (pred, ss) -> generateMockedLabels(pred);
+        featureGen = (pred, ss) -> new PredicateFeatures(pred, 1., 2., 3.);
+        labelGen = (pred, ss) -> new PredicateLabelling(pred, 1., 2., 3.);
         formatMock = mock(TrainingDataFormat.class);
 
         // NOTE: Generator should be set to null before each test to ensure no
@@ -56,20 +56,6 @@ class PredicateTrainingGeneratorTest {
         // themselves, but due to generics the signature is waaay to long
         // and would only hurt readability.
         generator = null;
-    }
-
-    private PredicateFeatures generateMockedFeatures(BPredicate pred) {
-        PredicateFeatures f = mock(PredicateFeatures.class);
-        when(f.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
-        when(f.getPredicate()).thenReturn(pred);
-        return f;
-    }
-
-    private PredicateLabelling generateMockedLabels(BPredicate pred) {
-        PredicateLabelling f = mock(PredicateLabelling.class);
-        when(f.getLabellingArray()).thenReturn(new Double[]{1., 2., 3.});
-        when(f.getPredicate()).thenReturn(pred);
-        return f;
     }
 
     @Test
@@ -224,10 +210,8 @@ class PredicateTrainingGeneratorTest {
 
     @Test
     public void shouldUseGeneratorsToGenerateTrainingSample() throws Exception {
-        // Mock features
-        PredicateFeatures features = generateMockedFeatures(BPredicate.of(""));
-        // Mock labelling
-        PredicateLabelling labelling = generateMockedLabels(BPredicate.of(""));
+        PredicateFeatures features = new PredicateFeatures(1., 2., 3.);
+        PredicateLabelling labelling = new PredicateLabelling("", 1., 2., 3.);
 
         TrainingSample<PredicateFeatures, Labelling> expected =
                 new TrainingSample<>(features, labelling);
@@ -249,8 +233,8 @@ class PredicateTrainingGeneratorTest {
 
         TrainingSample<PredicateFeatures, PredicateLabelling> expected =
                 new TrainingSample<>(
-                        generateMockedFeatures(new BPredicate("")),
-                        generateMockedLabels(BPredicate.of("")));
+                        featureGen.generate(""),
+                        labelGen.generate(""));
 
         generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, null);
@@ -263,10 +247,8 @@ class PredicateTrainingGeneratorTest {
     @Test
     public void shouldUseGeneratorsForTrainingSampleWhenStateSpaceIsNull()
             throws Exception {
-        // Mock features
-        PredicateFeatures features = generateMockedFeatures(BPredicate.of(""));
-        // Mock labelling
-        PredicateLabelling labelling = generateMockedLabels(BPredicate.of(""));
+        PredicateFeatures features = new PredicateFeatures(1., 2., 3.);
+        PredicateLabelling labelling = new PredicateLabelling("", 1., 2., 3.);
 
         TrainingSample<PredicateFeatures, Labelling> expected =
                 new TrainingSample<>(features, labelling);
