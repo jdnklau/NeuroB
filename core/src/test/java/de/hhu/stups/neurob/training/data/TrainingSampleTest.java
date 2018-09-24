@@ -12,34 +12,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TrainingSampleTest {
 
-    /**
-     * Creates a {@link Features} instance that is not coupled to any specific
-     * implementation.
-     *
-     * @param features
-     *
-     * @return
-     */
-    private Features createFeature(Double... features) {
-        return new TestFeatures(features);
-    }
-
-    /**
-     * Creates a {@link Labelling} instance that is not coupled to any specific
-     * implementation.
-     *
-     * @param labels
-     *
-     * @return
-     */
-    private Labelling createLabelling(Double... labels) {
-        return new TestLabelling(labels);
-    }
-
     @Test
     public void shouldBeEqualWhenComparedToItself() {
-        Features f = createFeature(1., 1.);
-        Labelling l = createLabelling(1.);
+        Features f = new Features(1., 1.);
+        Labelling l = new Labelling(1.);
 
         TrainingSample<Features, Labelling> sample =
                 new TrainingSample<>(f, l);
@@ -50,8 +26,8 @@ class TrainingSampleTest {
 
     @Test
     public void shouldBeEqualWhenSameFeaturesAndLabels() {
-        Features f = createFeature(1., 1.);
-        Labelling l = createLabelling(1.);
+        Features f = new Features(1., 1.);
+        Labelling l = new Labelling(1.);
 
         TrainingSample<Features, Labelling> first =
                 new TrainingSample<>(f, l);
@@ -65,11 +41,11 @@ class TrainingSampleTest {
 
     @Test
     public void shouldBeEqualWithEqualFeaturesAndLabelsAndNoPath() {
-        Features f1 = createFeature(1., 1.);
-        Labelling l1 = createLabelling(1.);
+        Features f1 = new Features(1., 1.);
+        Labelling l1 = new Labelling(1.);
 
-        Features f2 = createFeature(1., 1.);
-        Labelling l2 = createLabelling(1.);
+        Features f2 = new Features(1., 1.);
+        Labelling l2 = new Labelling(1.);
 
         TrainingSample<Features, Labelling> first =
                 new TrainingSample<>(f1, l1);
@@ -82,11 +58,28 @@ class TrainingSampleTest {
 
     @Test
     public void shouldBeUnequalWhenDifferentFeatures() {
-        Features f1 = createFeature(1., 1.);
-        Labelling l1 = createLabelling(1.);
+        Features f1 = new Features(1., 1.);
+        Labelling l1 = new Labelling(1.);
 
-        Features f2 = createFeature(2., 2.);
-        Labelling l2 = createLabelling(2.);
+        Features f2 = new Features(2., 2.);
+        Labelling l2 = new Labelling(1.);
+
+        TrainingSample<Features, Labelling> first =
+                new TrainingSample<>(f1, l1);
+        TrainingSample<Features, Labelling> second =
+                new TrainingSample<>(f2, l2);
+
+        assertFalse((first.equals(second)),
+                "Not unequal");
+    }
+
+    @Test
+    public void shouldBeUnequalWhenDifferentLabels() {
+        Features f1 = new Features(1., 1.);
+        Labelling l1 = new Labelling(1.);
+
+        Features f2 = new Features(1., 1.);
+        Labelling l2 = new Labelling(2.);
 
         TrainingSample<Features, Labelling> first =
                 new TrainingSample<>(f1, l1);
@@ -99,11 +92,11 @@ class TrainingSampleTest {
 
     @Test
     public void shouldBeUnequalWhenOnlySourceDiffers() {
-        Features f1 = createFeature(1., 1.);
-        Labelling l1 = createLabelling(1.);
+        Features f1 = new Features(1., 1.);
+        Labelling l1 = new Labelling(1.);
 
-        Features f2 = createFeature(1., 1.);
-        Labelling l2 = createLabelling(1.);
+        Features f2 = new Features(1., 1.);
+        Labelling l2 = new Labelling(1.);
 
         TrainingSample<Features, Labelling> first =
                 new TrainingSample<>(f1, l1, Paths.get("first/path"));
@@ -116,11 +109,11 @@ class TrainingSampleTest {
 
     @Test
     public void shouldBeEqualWhenAllInputIsEqualEvenTheSource() {
-        Features f1 = createFeature(1., 1.);
-        Labelling l1 = createLabelling(1.);
+        Features f1 = new Features(1., 1.);
+        Labelling l1 = new Labelling(1.);
 
-        Features f2 = createFeature(1., 1.);
-        Labelling l2 = createLabelling(1.);
+        Features f2 = new Features(1., 1.);
+        Labelling l2 = new Labelling(1.);
 
         TrainingSample<Features, Labelling> first =
                 new TrainingSample<>(f1, l1, Paths.get("first/path"));
