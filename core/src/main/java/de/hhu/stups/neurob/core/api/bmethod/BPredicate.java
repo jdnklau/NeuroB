@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.core.api.bmethod;
 
-import de.hhu.stups.neurob.core.data.BData;
+import de.hhu.stups.neurob.core.api.data.BData;
 
 public class BPredicate implements BElement, BData {
 

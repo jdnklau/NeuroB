@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.core.labelling;
 
-import de.hhu.stups.neurob.core.data.BData;
+import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 
 /**
