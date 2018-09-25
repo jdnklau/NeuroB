@@ -91,7 +91,7 @@ public class PredicateDump {
      * @return
      */
     public Double getTime(Class<? extends Backend> backend) {
-        return timings.get(backend);
+        return timings.get(classInstanceMapping.get(backend));
     }
 
     /**
