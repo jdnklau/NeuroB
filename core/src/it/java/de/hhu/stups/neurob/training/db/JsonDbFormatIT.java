@@ -102,16 +102,4 @@ public class JsonDbFormatIT {
                 () -> assertEquals(2, stats.getSamplesWritten(),
                         "Should have written two samples"));
     }
-
-    protected DbSample<BPredicate> getSample() {
-        Path source = Paths.get("non/existent.mch");
-        return getSample(source);
-    }
-
-    private DbSample<BPredicate> getSample(Path source) {
-        BPredicate pred = new BPredicate("pred");
-        Labelling labelling = new Labelling(3., 1., -1., 2.);
-
-        return new DbSample<>(pred, labelling, source);
-    }
 }

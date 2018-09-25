@@ -1,16 +1,10 @@
 package de.hhu.stups.neurob.training.migration.legacy;
 
-import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
-import de.hhu.stups.neurob.core.api.backends.ProBBackend;
-import de.hhu.stups.neurob.core.api.backends.SmtBackend;
-import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
-import de.hhu.stups.neurob.training.db.DbSample;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
@@ -76,7 +70,7 @@ public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
     }
 
     /**
-     * Translate a given Predicate Dump into a DbSample.
+     * Translate a given Predicate Dump into a {@link TrainingSample}.
      *
      * @param pdump
      *
