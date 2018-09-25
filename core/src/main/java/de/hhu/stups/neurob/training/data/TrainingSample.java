@@ -66,8 +66,8 @@ public class TrainingSample<F extends Features, L extends Labelling> {
             if (features != null && labelling != null) {
                 return Arrays.equals(features.getFeatureArray(),
                         trainingSample.features.getFeatureArray())
-                       && Arrays.equals(features.getFeatureArray(),
-                        trainingSample.features.getFeatureArray())
+                       && Arrays.equals(labelling.getLabellingArray(),
+                        trainingSample.labelling.getLabellingArray())
                        && ((sourceFile == null)
                            || sourceFile.equals(trainingSample.sourceFile));
             } else {
