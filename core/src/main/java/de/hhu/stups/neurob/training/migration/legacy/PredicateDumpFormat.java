@@ -6,8 +6,10 @@ import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
+import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.DbSample;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
@@ -24,7 +26,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-public class PredicateDumpFormat implements PredicateDbFormat {
+public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
 
     private static final Logger log =
             LoggerFactory.getLogger(PredicateDumpFormat.class);
@@ -37,7 +39,7 @@ public class PredicateDumpFormat implements PredicateDbFormat {
      * @return Stream of DbSamples
      */
     @Override
-    public Stream<DbSample<BPredicate>> loadSamples(Path sourceFile) throws IOException {
+    public Stream<TrainingSample<BPredicate, DecisionTimings>> loadSamples(Path sourceFile) throws IOException {
         Stream<String> entries = Files.lines(sourceFile);
 
         // #source annotations define the source machine for all following
@@ -80,22 +82,18 @@ public class PredicateDumpFormat implements PredicateDbFormat {
      *
      * @return
      */
-    public DbSample<BPredicate> translate(PredicateDump pdump) {
+    public TrainingSample<BPredicate, DecisionTimings> translate(PredicateDump pdump) {
         BPredicate predicate = pdump.getPredicate();
-        Labelling labels = new Labelling(
-                pdump.getTime(ProBBackend.class),
-                pdump.getTime(KodkodBackend.class),
-                pdump.getTime(Z3Backend.class),
-                pdump.getTime(SmtBackend.class)
-        );
+        DecisionTimings labels = new DecisionTimings(
+                predicate, pdump.getTimings(), PredicateDump.BACKENDS_USED);
         Path source = pdump.getSource();
 
-        return new DbSample<>(predicate, labels, source);
+        return new TrainingSample<>(predicate, labels, source);
     }
 
     @Override
     public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData,
+    DataGenerationStats writeSamples(TrainingData<BPredicate, L> trainingData,
             Path targetDirectory) {
         Path targetFile = getTargetLocation(trainingData.getSourceFile(), targetDirectory);
         log.info("Writing samples from {} to {}", trainingData.getSourceFile(), targetFile);
@@ -129,7 +127,7 @@ public class PredicateDumpFormat implements PredicateDbFormat {
      * @throws IOException
      */
     public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData, Writer out) {
+    DataGenerationStats writeSamples(TrainingData<BPredicate, L> trainingData, Writer out) {
         DataGenerationStats stats = new DataGenerationStats();
 
         // keep track of current source, so adding a new annotation is possible on demand
@@ -138,7 +136,7 @@ public class PredicateDumpFormat implements PredicateDbFormat {
                 .forEach(sample -> {
                     // Setup entry
                     String entry = sample.getLabelling().getLabellingString()
-                                   + ":" + sample.getFeatures().getPredicate();
+                                   + ":" + sample.getData().getPredicate();
                     try {
                         addNewSourceIfNecessary(sample.getSourceFile(), currentSource.get(), out);
                         // Update source

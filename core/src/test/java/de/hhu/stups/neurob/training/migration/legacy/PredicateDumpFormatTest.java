@@ -1,11 +1,11 @@
 package de.hhu.stups.neurob.training.migration.legacy;
 
+import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
-import de.hhu.stups.neurob.training.db.DbSample;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +14,9 @@ import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,27 +29,35 @@ class PredicateDumpFormatTest {
                     .getClassLoader()
                     .getResource("db/migration/migrate.pdump")
                     .getFile());
-    private DbSample<BPredicate> sample0;
-    private DbSample<BPredicate> sample1;
-    private DbSample<BPredicate> sample2;
-    private DbSample<BPredicate> sample3;
+    private TrainingSample<BPredicate, DecisionTimings> sample0;
+    private TrainingSample<BPredicate, DecisionTimings> sample1;
+    private TrainingSample<BPredicate, DecisionTimings> sample2;
+    private TrainingSample<BPredicate, DecisionTimings> sample3;
 
     @BeforeEach
     public void setupDbSamplesFromMigration() {
-        sample0 = new DbSample<>(
+        // Prepare timings
+        Map<Backend, Double> timings = new HashMap<>();
+        timings.put(PredicateDump.PROB, 1.0);
+        timings.put(PredicateDump.KODKOD, 2.0);
+        timings.put(PredicateDump.Z3, 3.0);
+        timings.put(PredicateDump.SMT, 4.0);
+
+        // Prepare samples
+        sample0 = new TrainingSample<>(
                 new BPredicate("null:PREDICATES"),
-                new Labelling(1.0, 2.0, 3.0, 4.0));
-        sample1 = new DbSample<>(
+                new DecisionTimings("", timings, PredicateDump.BACKENDS_USED));
+        sample1 = new TrainingSample<>(
                 new BPredicate("first:PREDICATES"),
-                new Labelling(1.0, 2.0, 3.0, 4.0),
+                new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
                 Paths.get("first/source/machine"));
-        sample2 = new DbSample<>(
+        sample2 = new TrainingSample<>(
                 new BPredicate("second:PREDICATES"),
-                new Labelling(1.0, 2.0, 3.0, 4.0),
+                new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
                 Paths.get("second/source/machine"));
-        sample3 = new DbSample<>(
+        sample3 = new TrainingSample<>(
                 new BPredicate("third:PREDICATES"),
-                new Labelling(1.0, 2.0, 3.0, 4.0),
+                new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
                 Paths.get("second/source/machine"));
 
     }
@@ -62,12 +72,12 @@ class PredicateDumpFormatTest {
     void shouldLoadSamplesFromFile() throws IOException {
         PredicateDumpFormat format = new PredicateDumpFormat();
 
-        List<DbSample> expected = new ArrayList<>();
+        List<TrainingSample> expected = new ArrayList<>();
         expected.add(sample0);
         expected.add(sample1);
         expected.add(sample2);
         expected.add(sample3);
-        List<DbSample> actual = format.loadSamples(MIGRATION_SOURCE).collect(Collectors.toList());
+        List<TrainingSample> actual = format.loadSamples(MIGRATION_SOURCE).collect(Collectors.toList());
 
         assertEquals(expected, actual);
     }
@@ -79,14 +89,14 @@ class PredicateDumpFormatTest {
         // Set up training data
         Stream<TrainingSample> samples = Stream.of(
                 new TrainingSample<>(
-                        new PredicateFeatures("predicate"),
+                        new BPredicate("predicate"),
                         new Labelling(1.0, 2.0, 3.0, 4.0)),
                 new TrainingSample<>(
-                        new PredicateFeatures("predicate"),
+                        new BPredicate("predicate"),
                         new Labelling(1.0, 2.0, 3.0, 4.0),
                         Paths.get("non/existent.mch")),
                 new TrainingSample<>(
-                        new PredicateFeatures("predicate"),
+                        new BPredicate("predicate"),
                         new Labelling(1.0, 2.0, 3.0, 4.0),
                         Paths.get("non/existent.mch"))
         );

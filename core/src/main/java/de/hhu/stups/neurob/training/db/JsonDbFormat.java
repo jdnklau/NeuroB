@@ -8,7 +8,6 @@ import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
@@ -33,7 +32,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class JsonDbFormat implements PredicateDbFormat {
+public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
 
     /**
      * Array over backends in use, also providing an ordering by id.
@@ -60,7 +59,7 @@ public class JsonDbFormat implements PredicateDbFormat {
             LoggerFactory.getLogger(JsonDbFormat.class);
 
     @Override
-    public Stream<DbSample<BPredicate>> loadSamples(Path sourceFile)
+    public Stream<TrainingSample<BPredicate, DecisionTimings>> loadSamples(Path sourceFile)
             throws IOException {
 
         JsonReader reader = new JsonReader(Files.newBufferedReader(sourceFile));
@@ -72,7 +71,6 @@ public class JsonDbFormat implements PredicateDbFormat {
                 false);
     }
 
-
     @Override
     public String getFileExtension() {
         return "json";
@@ -80,7 +78,7 @@ public class JsonDbFormat implements PredicateDbFormat {
 
     @Override
     public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData, Path targetDirectory) {
+    DataGenerationStats writeSamples(TrainingData<BPredicate, L> trainingData, Path targetDirectory) {
         Path sourceFile = trainingData.getSourceFile();
         Path targetFile = getTargetLocation(sourceFile, targetDirectory);
 
@@ -114,7 +112,7 @@ public class JsonDbFormat implements PredicateDbFormat {
     }
 
     public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<PredicateFeatures, L> trainingData,
+    DataGenerationStats writeSamples(TrainingData<BPredicate, L> trainingData,
             Writer writer) throws IOException {
         // Set up stats
         DataGenerationStats stats = new DataGenerationStats();
@@ -153,9 +151,9 @@ public class JsonDbFormat implements PredicateDbFormat {
     }
 
     public <L extends Labelling>
-    String translateSampleToJsonObject(TrainingSample<PredicateFeatures, L> sample) {
+    String translateSampleToJsonObject(TrainingSample<BPredicate, L> sample) {
         // Extract meta data from the sample
-        BPredicate predicate = sample.getFeatures().getPredicate();
+        BPredicate predicate = sample.getData();
         boolean isSourceDefined = sample.getSourceFile() != null;
         String source = (isSourceDefined) ? sample.getSourceFile().toString() : "";
 
@@ -188,7 +186,9 @@ public class JsonDbFormat implements PredicateDbFormat {
         return json;
     }
 
-    public static class PredicateDbIterator implements Iterator<DbSample<BPredicate>> {
+    public static class PredicateDbIterator
+            implements Iterator<TrainingSample<BPredicate, DecisionTimings>> {
+
         private final JsonReader reader;
         private boolean hasEnded;
         private final Map<String, Backend> backendKeyMap;
@@ -199,7 +199,7 @@ public class JsonDbFormat implements PredicateDbFormat {
 
             // Map from Key to Backend
             backendKeyMap = new HashMap<>();
-            for(int i = 0; i < BACKENDS_USED.length; i++) {
+            for (int i = 0; i < BACKENDS_USED.length; i++) {
                 Backend b = BACKENDS_USED[i];
                 backendKeyMap.put(b.getClass().getSimpleName(), b);
             }
@@ -255,7 +255,7 @@ public class JsonDbFormat implements PredicateDbFormat {
 
 
         @Override
-        public DbSample<BPredicate> next() {
+        public TrainingSample<BPredicate, DecisionTimings> next() {
             try {
                 Map<String, String> sampleData = nextSampleData();
 
@@ -268,19 +268,19 @@ public class JsonDbFormat implements PredicateDbFormat {
             return null;
         }
 
-        public DbSample<BPredicate> translateToDbSample(Map<String, String> sampleData) {
+        public TrainingSample<BPredicate, DecisionTimings> translateToDbSample(Map<String, String> sampleData) {
             BPredicate pred = new BPredicate(sampleData.get("predicate"));
             Path source = null;
             if (sampleData.containsKey("source")) {
                 source = Paths.get(sampleData.get("source"));
             }
 
-            Labelling l = translateTimings(sampleData.get("timings"));
+            DecisionTimings l = translateTimings(sampleData.get("timings"));
 
-            return new DbSample<>(pred, l, source);
+            return new TrainingSample<>(pred, l, source);
         }
 
-        public Labelling translateTimings(String timings) {
+        public DecisionTimings translateTimings(String timings) {
             String[] solverTimes = timings.split(",");
 
             // Construct timing map

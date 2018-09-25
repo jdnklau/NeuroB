@@ -279,13 +279,7 @@ class PredicateTrainingGeneratorIT {
         SmtBackend smt = new SmtBackend();
         Z3Backend z3 = new Z3Backend();
 
-        TrainingSetGenerator gen =
-                new PredicateTrainingGenerator(
-                        (pred, ss) -> new PredicateFeatures(pred),
-                        new DecisionTimings.Generator(
-                                1, kodkod, prob, smt, z3),
-                        new JsonDbFormat()
-                );
+        PredicateTrainingGenerator gen = new PredicateTrainingGenerator();
 
         // Set up working directory
         Path tmpDir = Files.createTempDirectory("neurob-it");
@@ -318,13 +312,7 @@ class PredicateTrainingGeneratorIT {
         Z3Backend z3 = new Z3Backend();
         PredicateDbFormat format = new JsonDbFormat();
 
-        TrainingSetGenerator gen =
-                new PredicateTrainingGenerator(
-                        (pred, ss) -> new PredicateFeatures(pred),
-                        new DecisionTimings.Generator(
-                                1, kodkod, prob, smt, z3),
-                        new JsonDbFormat()
-                );
+        PredicateTrainingGenerator gen = new PredicateTrainingGenerator();
 
         // Set up working directory
         Path tmpDir = Files.createTempDirectory("neurob-it");
@@ -360,11 +348,10 @@ class PredicateTrainingGeneratorIT {
 
         TrainingSetGenerator gen =
                 new PredicateTrainingGenerator(
-                        (pred, ss) -> new PredicateFeatures(pred),
-                        new DecisionTimings.Generator(
-                                1, kodkod, prob),
-                        new JsonDbFormat()
-                );
+                        (pred, ss) -> pred,
+                        new DecisionTimings.Generator(1, prob, kodkod),
+                        new JsonDbFormat());
+
 
         // Set up target directory
         Path tmpDir = Files.createTempDirectory("neurob-it");
@@ -372,7 +359,6 @@ class PredicateTrainingGeneratorIT {
 
         // File to use
         Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
-
         assertThrows(IllegalArgumentException.class,
                 () -> gen.generateTrainingData(mch, targetDir),
                 "Number of BackEnds should not match and thus cause "

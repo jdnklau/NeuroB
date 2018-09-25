@@ -71,8 +71,8 @@ public class CsvFormat implements TrainingDataFormat<Features> {
         return stats;
     }
 
-    public String generateCsvEntry(TrainingSample sample) {
-        Features f = sample.getFeatures();
+    public String generateCsvEntry(TrainingSample<Features, ? extends Labelling> sample) {
+        Features f = sample.getData();
         Labelling l = sample.getLabelling();
 
         return f.getFeatureString() + "," + l.getLabellingString();

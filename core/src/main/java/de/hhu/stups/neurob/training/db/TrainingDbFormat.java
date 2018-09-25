@@ -1,15 +1,16 @@
 package de.hhu.stups.neurob.training.db;
 
-import de.hhu.stups.neurob.core.api.bmethod.BElement;
-import de.hhu.stups.neurob.core.features.Features;
+import de.hhu.stups.neurob.core.api.data.BData;
+import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-public interface TrainingDbFormat<F extends Features, B extends BElement>
-        extends TrainingDataFormat<F> {
+public interface TrainingDbFormat<D extends BData, L extends Labelling>
+    extends TrainingDataFormat<D> {
 
-    Stream<DbSample<B>> loadSamples(Path sourceFile) throws IOException;
+    Stream<TrainingSample<D, L>> loadSamples(Path sourceFile) throws IOException;
 }

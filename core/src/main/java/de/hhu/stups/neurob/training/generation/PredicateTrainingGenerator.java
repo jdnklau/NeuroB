@@ -2,10 +2,10 @@ package de.hhu.stups.neurob.training.generation;
 
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
+import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
-import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.Labelling;
@@ -37,7 +37,8 @@ public class PredicateTrainingGenerator
     private static Logger log =
             LoggerFactory.getLogger(PredicateFeatureGenerating.class);
 
-    public <F extends PredicateFeatures, L extends PredicateLabelling>
+    // TODO: Change way of data extraction, transformation, etc.
+    public <F extends BData, L extends PredicateLabelling>
     PredicateTrainingGenerator(
             PredicateFeatureGenerating<F> featureGenerator,
             PredicateLabelGenerating<L> labelGenerator,
@@ -50,7 +51,7 @@ public class PredicateTrainingGenerator
      */
     public PredicateTrainingGenerator() {
         this(
-                (pred, ss) -> new PredicateFeatures(pred),
+                (pred, ss) -> pred,
                 JsonDbFormat.LABEL_GENERATOR,
                 new JsonDbFormat()
         );
@@ -135,7 +136,7 @@ public class PredicateTrainingGenerator
     public TrainingSample generateSample(BPredicate predicate, MachineAccess bMachine)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
-        Features features = ((PredicateFeatureGenerating) featureGenerator)
+        BData features = ((PredicateFeatureGenerating) featureGenerator)
                 .generate(predicate, bMachine);
 
         log.debug("Generating labelling for {}", predicate);

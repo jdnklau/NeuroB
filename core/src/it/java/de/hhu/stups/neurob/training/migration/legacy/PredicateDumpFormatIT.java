@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.training.migration.legacy;
 
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
@@ -25,14 +25,14 @@ class PredicateDumpFormatIT {
         // Set up training data
         Stream<TrainingSample> samples = Stream.of(
                 new TrainingSample<>(
-                        new PredicateFeatures("predicate"),
+                        new BPredicate("predicate"),
                         new Labelling(1.0, 2.0, 3.0, 4.0)),
                 new TrainingSample<>(
-                        new PredicateFeatures("predicate"),
+                        new BPredicate("predicate"),
                         new Labelling(1.0, 2.0, 3.0, 4.0),
                         Paths.get("non/existent.mch")),
                 new TrainingSample<>(
-                        new PredicateFeatures("predicate"),
+                        new BPredicate("predicate"),
                         new Labelling(1.0, 2.0, 3.0, 4.0),
                         Paths.get("non/existent.mch"))
         );

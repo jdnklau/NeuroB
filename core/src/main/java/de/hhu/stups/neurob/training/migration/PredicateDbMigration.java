@@ -1,11 +1,6 @@
 package de.hhu.stups.neurob.training.migration;
 
-import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
-import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
-import de.hhu.stups.neurob.training.data.TrainingSample;
-import de.hhu.stups.neurob.training.db.DbSample;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
@@ -72,15 +67,6 @@ public class PredicateDbMigration implements TrainingSetMigration {
     }
 
     @Override
-    public TrainingSample<PredicateFeatures, Labelling> translate(DbSample<BPredicate> dbSample) {
-        Path source = dbSample.getSourceMachine();
-        PredicateFeatures features = new PredicateFeatures(dbSample.getBElement().getPredicate());
-        Labelling labels = dbSample.getLabelling();
-
-        return new TrainingSample<>(features, labels, source);
-    }
-
-    @Override
     public DataGenerationStats migrateFile(Path sourceFile, Path targetDirectory,
             PredicateDbFormat format) throws IOException {
         return migrateFile(sourceFile, sourceFile.getParent(), targetDirectory, format);
@@ -105,7 +91,7 @@ public class PredicateDbMigration implements TrainingSetMigration {
 
         TrainingData data = new TrainingData(
                 stripCommonSourceDir(sourceFile, commonSourceDirectory),
-                sourceFormat.loadSamples(sourceFile).map(this::translate));
+                sourceFormat.loadSamples(sourceFile));
 
         return targetFormat.writeSamples(data, targetDirectory);
     }

@@ -1,18 +1,10 @@
 package de.hhu.stups.neurob.training.migration;
 
-import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
-import de.hhu.stups.neurob.core.labelling.Labelling;
-import de.hhu.stups.neurob.training.data.TrainingData;
-import de.hhu.stups.neurob.training.data.TrainingSample;
-import de.hhu.stups.neurob.training.db.DbSample;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Stream;
 
 /**
  * Interface for migrating a training database to another, more suited data base format
@@ -33,16 +25,6 @@ public interface TrainingSetMigration {
      */
     DataGenerationStats migrate(Path source, Path targetDirectory, PredicateDbFormat targetFormat)
             throws IOException;
-
-    /**
-     * Translates a sample pulled from the migrating data base into a
-     * generic training sample.
-     *
-     * @param dbSample
-     *
-     * @return
-     */
-    TrainingSample<PredicateFeatures, Labelling> translate(DbSample<BPredicate> dbSample);
 
     /**
      * Migrates the data into the target location in the respective format

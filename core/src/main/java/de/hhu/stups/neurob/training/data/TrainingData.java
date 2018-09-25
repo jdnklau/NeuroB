@@ -1,6 +1,6 @@
 package de.hhu.stups.neurob.training.data;
 
-import de.hhu.stups.neurob.core.features.Features;
+import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 
 import java.nio.file.Path;
@@ -10,15 +10,15 @@ import java.util.stream.Stream;
  * Data class connecting a B machine and a stream of its associated training
  * samples.
  *
- * @param <F>
- * @param <L>
+ * @param <D> Type of encapsulated data.
+ * @param <L> Labelling type used.
  */
 public class TrainingData
-        <F extends Features, L extends Labelling> {
+        <D extends BData, L extends Labelling> {
     private final Path sourceFile;
-    private final Stream<TrainingSample<F, L>> samples;
+    private final Stream<TrainingSample<D, L>> samples;
 
-    public TrainingData(Path sourceFile, Stream<TrainingSample<F, L>> samples) {
+    public TrainingData(Path sourceFile, Stream<TrainingSample<D, L>> samples) {
         this.sourceFile = sourceFile;
         this.samples = samples;
     }
@@ -27,7 +27,7 @@ public class TrainingData
         return sourceFile;
     }
 
-    public Stream<TrainingSample<F, L>> getSamples() {
+    public Stream<TrainingSample<D, L>> getSamples() {
         return samples;
     }
 }

@@ -1,12 +1,15 @@
 package de.hhu.stups.neurob.training.db;
 
 import com.google.gson.stream.JsonReader;
+import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -54,6 +57,33 @@ class JsonDbFormatTest {
             + "\"SmtBackend\":-1.0"
             + "}}";
 
+    private DecisionTimings labelling;
+
+    @BeforeEach
+    void setupLabelling() {
+    }
+
+    /**
+     * Returns a {@link DecisionTimings} instance that conforms the labelling
+     * format used by {@link JsonDbFormat}.
+     *
+     * @param pred Wrapped predicate
+     *
+     * @return
+     */
+    private DecisionTimings getLabelling(String pred,
+            Double probLabel, Double kodkodLabel, Double z3Label, Double smtLabel) {
+        // Prepare timing map
+        Map<Backend, Double> timings = new HashMap<>();
+
+        timings.put(JsonDbFormat.BACKENDS_USED[0], probLabel);
+        timings.put(JsonDbFormat.BACKENDS_USED[1], kodkodLabel);
+        timings.put(JsonDbFormat.BACKENDS_USED[2], z3Label);
+        timings.put(JsonDbFormat.BACKENDS_USED[3], smtLabel);
+
+        return new DecisionTimings(pred, timings, JsonDbFormat.BACKENDS_USED);
+    }
+
     @Test
     public void shouldGiveJsonPathWhenMch() {
         JsonDbFormat dbFormat = new JsonDbFormat();
@@ -71,24 +101,25 @@ class JsonDbFormatTest {
                 .getResource("db/predicates/example.json").getFile();
         Path dbFile = Paths.get(fileUrl);
 
-        // Expecting three samples
-        Labelling labelling = new Labelling(1., 2., 4., -1.);
-        DbSample sample1 = new DbSample<>(
-                new BPredicate("pred1"), labelling,
+        TrainingSample sample1 = new TrainingSample<>(
+                new BPredicate("pred1"),
+                getLabelling("pred1", 1., 2., 4., -1.),
                 Paths.get("non/existent.mch"));
-        DbSample sample2 = new DbSample<>(
-                new BPredicate("pred1"), labelling,
+        TrainingSample sample2 = new TrainingSample<>(
+                new BPredicate("pred1"),
+                getLabelling("pred1", 1., 2., 4., -1.),
                 Paths.get("non/existent.mch"));
-        DbSample sample3 = new DbSample<>(
-                new BPredicate("pred1"), labelling,
+        TrainingSample sample3 = new TrainingSample<>(
+                new BPredicate("pred1"),
+                getLabelling("pred1", 1., 2., 4., -1.),
                 Paths.get("other/non/existent.mch"));
 
-        List<DbSample> expected = new ArrayList<>();
+        List<TrainingSample> expected = new ArrayList<>();
         expected.add(sample1);
         expected.add(sample2);
         expected.add(sample3);
 
-        List<DbSample> actual = new JsonDbFormat().loadSamples(dbFile)
+        List<TrainingSample> actual = new JsonDbFormat().loadSamples(dbFile)
                 .collect(Collectors.toList());
 
         assertEquals(expected, actual,
@@ -149,8 +180,9 @@ class JsonDbFormatTest {
         JsonDbFormat.PredicateDbIterator iterator =
                 new JsonDbFormat.PredicateDbIterator(reader);
 
-        DbSample<BPredicate> expected = getSample();
-        DbSample<BPredicate> actual = iterator.next();
+        TrainingSample<BPredicate, DecisionTimings> expected =
+                getSample(Paths.get("non/existent.mch"));
+        TrainingSample<BPredicate, DecisionTimings> actual = iterator.next();
 
         assertEquals(expected, actual);
     }
@@ -268,8 +300,8 @@ class JsonDbFormatTest {
                 + "SmtBackend:-1.0,"
                 + "Z3Backend:3.0");
 
-        DbSample<BPredicate> expected = getSample(null);
-        DbSample<BPredicate> actual = iterator.translateToDbSample(data);
+        TrainingSample expected = getSample(null);
+        TrainingSample actual = iterator.translateToDbSample(data);
 
         assertEquals(expected, actual);
     }
@@ -333,12 +365,8 @@ class JsonDbFormatTest {
 
     @Test
     public void shouldWriteSample() {
-        // Prepare training sample to write
-        PredicateFeatures features = new PredicateFeatures("pred");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
-        Path source = Paths.get("non/existent.mch");
-        TrainingSample<PredicateFeatures, Labelling> sample =
-                new TrainingSample<>(features, labels, source);
+        TrainingSample<BPredicate, DecisionTimings> sample =
+                getSample(Paths.get("non/existent.mch"));
 
         JsonDbFormat format = new JsonDbFormat();
 
@@ -351,11 +379,7 @@ class JsonDbFormatTest {
 
     @Test
     public void shouldWriteSampleWhenNoSourceExists() {
-        // Prepare training sample to write
-        PredicateFeatures features = new PredicateFeatures("pred");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
-        TrainingSample<PredicateFeatures, Labelling> sample =
-                new TrainingSample<>(features, labels);
+        TrainingSample<BPredicate, DecisionTimings> sample = getSample();
 
         JsonDbFormat format = new JsonDbFormat();
 
@@ -368,11 +392,11 @@ class JsonDbFormatTest {
 
     @Test
     public void shouldThrowExceptionWhenLessLabelsThanBackends() {
-        // Prepare training sample to write
-        PredicateFeatures features = new PredicateFeatures("pred");
-        Labelling labels = new Labelling(1., 2., 3.);
-        TrainingSample<PredicateFeatures, Labelling> sample =
-                new TrainingSample<>(features, labels);
+        TrainingSample<BPredicate, Labelling> sample =
+                new TrainingSample<>(
+                        BPredicate.of("pred"),
+                        new Labelling(1., 2.)
+                );
 
         JsonDbFormat format = new JsonDbFormat();
 
@@ -383,10 +407,10 @@ class JsonDbFormatTest {
     @Test
     public void shouldThrowExceptionWhenMoreLabelsThanBackends() {
         // Prepare training sample to write
-        PredicateFeatures features = new PredicateFeatures("pred");
+        BPredicate predicate = new BPredicate("pred");
         Labelling labels = new Labelling(1., 2., 3., 4., 5.);
-        TrainingSample<PredicateFeatures, Labelling> sample =
-                new TrainingSample<>(features, labels);
+        TrainingSample<BPredicate, Labelling> sample =
+                new TrainingSample<>(predicate, labels);
 
         JsonDbFormat format = new JsonDbFormat();
 
@@ -397,15 +421,15 @@ class JsonDbFormatTest {
     @Test
     public void shouldWriteStreamedSamplesToWriter() throws IOException {
         // Prepare training sample data to encapsulate
-        PredicateFeatures features = new PredicateFeatures("pred");
+        BPredicate predicate = new BPredicate("pred");
         Labelling labels = new Labelling(1., 2., 3., -1.);
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<PredicateFeatures, Labelling>> sampleStream =
+        Stream<TrainingSample<BPredicate, Labelling>> sampleStream =
                 Stream.of(
-                        new TrainingSample<>(features, labels, source),
-                        new TrainingSample<>(features, labels),
-                        new TrainingSample<>(features, labels, source));
-        TrainingData<PredicateFeatures, Labelling> trainingData =
+                        new TrainingSample<>(predicate, labels, source),
+                        new TrainingSample<>(predicate, labels),
+                        new TrainingSample<>(predicate, labels, source));
+        TrainingData<BPredicate, Labelling> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();
@@ -425,15 +449,15 @@ class JsonDbFormatTest {
     @Test
     public void shouldCountWrittenSamplesInStatistics() throws IOException {
         // Prepare training sample data to encapsulate
-        PredicateFeatures features = new PredicateFeatures("pred");
+        BPredicate predicate = new BPredicate("pred");
         Labelling labels = new Labelling(1., 2., 3., -1.);
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<PredicateFeatures, Labelling>> sampleStream =
+        Stream<TrainingSample<BPredicate, Labelling>> sampleStream =
                 Stream.of(
-                        new TrainingSample<>(features, labels, source),
-                        new TrainingSample<>(features, labels),
-                        new TrainingSample<>(features, labels, source));
-        TrainingData<PredicateFeatures, Labelling> trainingData =
+                        new TrainingSample<>(predicate, labels, source),
+                        new TrainingSample<>(predicate, labels),
+                        new TrainingSample<>(predicate, labels, source));
+        TrainingData<BPredicate, Labelling> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();
@@ -459,16 +483,16 @@ class JsonDbFormatTest {
         return json;
     }
 
-    private DbSample<BPredicate> getSample() {
-        Path source = Paths.get("non/existent.mch");
-        return getSample(source);
+    private TrainingSample<BPredicate, DecisionTimings> getSample() {
+        return getSample(null);
     }
 
-    private DbSample<BPredicate> getSample(Path source) {
+    private TrainingSample<BPredicate, DecisionTimings> getSample(Path source) {
         BPredicate pred = new BPredicate("pred");
-        Labelling labelling = new Labelling(1., 2., 3., -1.);
+        DecisionTimings labels = getLabelling("pred", 1., 2., 3., -1.);
 
-        return new DbSample<>(pred, labelling, source);
+        return new TrainingSample<>(pred, labels, source);
+
     }
 
 }

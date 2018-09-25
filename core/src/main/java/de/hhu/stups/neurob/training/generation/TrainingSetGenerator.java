@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.generation;
 
+import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.features.FeatureGenerating;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.LabelGenerating;
@@ -27,7 +28,7 @@ public abstract class TrainingSetGenerator {
     protected static final Logger log =
             LoggerFactory.getLogger(TrainingSetGenerator.class);
 
-    public <F extends Features, L extends Labelling>
+    public <F extends BData, L extends Labelling>
     TrainingSetGenerator(
             FeatureGenerating<F, ?> featureGenerator,
             LabelGenerating<L, ?> labelGenerator,

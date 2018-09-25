@@ -1,7 +1,8 @@
 package de.hhu.stups.neurob.training.db;
 
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 
-public interface PredicateDbFormat extends TrainingDbFormat<PredicateFeatures, BPredicate> {
+public interface PredicateDbFormat<L extends PredicateLabelling>
+        extends TrainingDbFormat<BPredicate, L> {
 }

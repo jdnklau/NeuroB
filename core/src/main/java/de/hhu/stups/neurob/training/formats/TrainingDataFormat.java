@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.formats;
 
+import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
@@ -8,7 +9,7 @@ import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public interface TrainingDataFormat<F extends Features> {
+public interface TrainingDataFormat<D extends BData> {
 
     /**
      * Generates the target location path to be written to at training data
@@ -30,7 +31,7 @@ public interface TrainingDataFormat<F extends Features> {
 
         // Replace extension
         int extPos = source.lastIndexOf('.');
-        String target = source.substring(0, extPos +1 ) + getFileExtension();
+        String target = source.substring(0, extPos + 1) + getFileExtension();
 
         return targetDirectory.resolve(target);
     }
@@ -43,16 +44,17 @@ public interface TrainingDataFormat<F extends Features> {
      * @param targetDirectory Location to populate with training data
      */
     <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<F, L> trainingData,
+    DataGenerationStats writeSamples(TrainingData<D, L> trainingData,
             Path targetDirectory) throws IOException;
 
     /**
      * Returns the extension used for written files.
-     *
+     * <p>
      * If the extension for example would be "ext", generated files will
      * take names like "generated_file.ext".
-     *
+     * <p>
      * The returned extension is without the leading dot.
+     *
      * @return
      */
     String getFileExtension();

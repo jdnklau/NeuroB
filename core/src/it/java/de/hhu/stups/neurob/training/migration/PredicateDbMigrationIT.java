@@ -2,7 +2,7 @@ package de.hhu.stups.neurob.training.migration;
 
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.labelling.Labelling;
-import de.hhu.stups.neurob.training.db.DbSample;
+import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.migration.legacy.PredicateDumpFormat;
@@ -37,15 +37,15 @@ public class PredicateDbMigrationIT {
         Path firstJson = tempDir.resolve("first.json");
         Path secondJson = tempDir.resolve("subdir/second.json");
 
-        PredicateDbFormat format = new JsonDbFormat();
+        PredicateDbFormat<? extends Labelling> format = new JsonDbFormat();
         PredicateDbMigration migration = new PredicateDbMigration(new PredicateDumpFormat());
 
         // Expected values
-        DbSample<BPredicate> firstEntry = new DbSample<>(
+        TrainingSample<BPredicate, ? extends Labelling> firstEntry = new TrainingSample<>(
                 new BPredicate("first:PREDICATES"),
                 new Labelling(1., 2., 3., 4.),
                 firstSrc);
-        DbSample<BPredicate> secondEntry = new DbSample<>(
+        TrainingSample<BPredicate, ? extends Labelling> secondEntry = new TrainingSample<>(
                 new BPredicate("second:PREDICATES"),
                 new Labelling(1., 2., 3., 4.),
                 secondSrc);
@@ -53,15 +53,15 @@ public class PredicateDbMigrationIT {
         // Migrate
         migration.migrate(PDUMP_DIR, tempDir, format);
 
-        List<DbSample> expectedFirst = new ArrayList<>();
+        List<TrainingSample<BPredicate, ? extends Labelling>> expectedFirst = new ArrayList<>();
         expectedFirst.add(firstEntry);
         expectedFirst.add(firstEntry);
-        List<DbSample> expectedSecond = new ArrayList<>();
+        List<TrainingSample<BPredicate, ? extends Labelling>> expectedSecond = new ArrayList<>();
         expectedSecond.add(secondEntry);
 
-        List<DbSample<BPredicate>> actualFirst =
+        List<TrainingSample<BPredicate, ? extends Labelling>> actualFirst =
                 format.loadSamples(firstJson).collect(Collectors.toList());
-        List<DbSample<BPredicate>> actualSecond =
+        List<TrainingSample<BPredicate, ? extends Labelling>> actualSecond =
                 format.loadSamples(secondJson).collect(Collectors.toList());
 
         assertAll("Verify migration of predicate dump entries",
@@ -87,15 +87,15 @@ public class PredicateDbMigrationIT {
         Path firstPdump = tempDir.resolve("first.pdump");
         Path secondPdump = tempDir.resolve("subdir/second.pdump");
 
-        PredicateDbFormat format = new PredicateDumpFormat();
+        PredicateDbFormat<? extends Labelling> format = new PredicateDumpFormat();
         PredicateDbMigration migration = new PredicateDbMigration(new JsonDbFormat());
 
         // Expected values
-        DbSample<BPredicate> firstEntry = new DbSample<>(
+        TrainingSample<BPredicate, ? extends Labelling> firstEntry = new TrainingSample<>(
                 new BPredicate("first:PREDICATES"),
                 new Labelling(1., 2., 3., 4.),
                 firstSrc);
-        DbSample<BPredicate> secondEntry = new DbSample<>(
+        TrainingSample<BPredicate, ? extends Labelling> secondEntry = new TrainingSample<>(
                 new BPredicate("second:PREDICATES"),
                 new Labelling(1., 2., 3., 4.),
                 secondSrc);
@@ -103,15 +103,15 @@ public class PredicateDbMigrationIT {
         // Migrate
         migration.migrate(JSON_DIR, tempDir, format);
 
-        List<DbSample> expectedFirst = new ArrayList<>();
+        List<TrainingSample<BPredicate, ? extends Labelling>> expectedFirst = new ArrayList<>();
         expectedFirst.add(firstEntry);
         expectedFirst.add(firstEntry);
-        List<DbSample> expectedSecond = new ArrayList<>();
+        List<TrainingSample<BPredicate, ? extends Labelling>> expectedSecond = new ArrayList<>();
         expectedSecond.add(secondEntry);
 
-        List<DbSample<BPredicate>> actualFirst =
+        List<TrainingSample<BPredicate, ? extends Labelling>> actualFirst =
                 format.loadSamples(firstPdump).collect(Collectors.toList());
-        List<DbSample<BPredicate>> actualSecond =
+        List<TrainingSample<BPredicate, ? extends Labelling>> actualSecond =
                 format.loadSamples(secondPdump).collect(Collectors.toList());
 
         assertAll("Verify migration of predicate dump entries",

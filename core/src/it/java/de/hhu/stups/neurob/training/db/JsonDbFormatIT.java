@@ -30,7 +30,7 @@ public class JsonDbFormatIT {
     @Test
     public void shouldWriteSamplesToJson() throws IOException {
         // Prepare training sample data to encapsulate
-        PredicateFeatures features = new PredicateFeatures("pred");
+        BPredicate predicate = new BPredicate("pred");
 
         Map<Backend, Double> timings = new HashMap<>();
         timings.put(new ProBBackend(), 1.);
@@ -41,11 +41,11 @@ public class JsonDbFormatIT {
         Labelling labels = new DecisionTimings("pred", timings,
                 new ProBBackend(), new KodkodBackend(), new Z3Backend(), new SmtBackend());
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<PredicateFeatures, Labelling>> sampleStream =
+        Stream<TrainingSample<BPredicate, Labelling>> sampleStream =
                 Stream.of(
-                        new TrainingSample<>(features, labels, source),
-                        new TrainingSample<>(features, labels, source));
-        TrainingData<PredicateFeatures, Labelling> trainingData =
+                        new TrainingSample<>(predicate, labels, source),
+                        new TrainingSample<>(predicate, labels, source));
+        TrainingData<BPredicate, Labelling> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();
@@ -77,14 +77,14 @@ public class JsonDbFormatIT {
     @Test
     public void shouldCalculateStatistics() throws IOException {
         // Prepare training sample data to encapsulate
-        PredicateFeatures features = new PredicateFeatures("pred");
+        BPredicate predicate = new BPredicate("pred");
         Labelling labels = new Labelling(3., 1., -1., 2.);
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<PredicateFeatures, Labelling>> sampleStream =
+        Stream<TrainingSample<BPredicate, Labelling>> sampleStream =
                 Stream.of(
-                        new TrainingSample<>(features, labels, source),
-                        new TrainingSample<>(features, labels, source));
-        TrainingData<PredicateFeatures, Labelling> trainingData =
+                        new TrainingSample<>(predicate, labels, source),
+                        new TrainingSample<>(predicate, labels, source));
+        TrainingData<BPredicate, Labelling> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();
