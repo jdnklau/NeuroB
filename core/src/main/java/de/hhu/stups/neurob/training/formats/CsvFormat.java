@@ -14,23 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CsvFormat implements TrainingDataFormat<Features> {
-    private Writer writer;
 
     private static final Logger log =
             LoggerFactory.getLogger(CsvFormat.class);
-
-    public CsvFormat() {
-        this(null);
-    }
-
-    /**
-     * Instantiates a CsvFormat that writes to the specified writer.
-     *
-     * @param writer
-     */
-    public CsvFormat(Writer writer) {
-        this.writer = writer;
-    }
 
     @Override
     public String getFileExtension() {
@@ -41,20 +27,20 @@ public class CsvFormat implements TrainingDataFormat<Features> {
     public <L extends Labelling>
     DataGenerationStats writeSamples(TrainingData<Features, L> trainingData,
             Path targetDirectory) throws IOException {
+        // get target writer
+        Path targetFile = getTargetLocation(trainingData.getSourceFile(),
+                targetDirectory);
+        Writer out = Files.newBufferedWriter(targetFile);
+        log.info("Writing to {}", targetFile);
+
+        return writeSamples(trainingData, out);
+    }
+
+    public <L extends Labelling>
+    DataGenerationStats writeSamples(TrainingData<Features, L> trainingData,
+            Writer out) throws IOException {
         // Set up statistics
         DataGenerationStats stats = new DataGenerationStats();
-
-        // get target writer
-        Writer out;
-        if (this.writer != null) {
-            out = this.writer;
-        } else {
-            Path targetFile = getTargetLocation(trainingData.getSourceFile(),
-                    targetDirectory);
-            out = Files.newBufferedWriter(targetFile);
-            log.info("Writing to {}", targetFile);
-            stats.increaseFilesCreated();
-        }
 
         trainingData.getSamples().map(this::generateCsvEntry).forEach(
                 entry -> {
@@ -67,6 +53,7 @@ public class CsvFormat implements TrainingDataFormat<Features> {
                         stats.increaseSamplesFailed();
                     }
                 });
+        out.flush();
 
         return stats;
     }

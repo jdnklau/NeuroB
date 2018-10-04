@@ -75,10 +75,10 @@ class CsvFormatTest {
                         new TrainingSample<>(f, l),
                         new TrainingSample<>(f, l));
 
-        StringWriter writer = new StringWriter();
-        CsvFormat format = new CsvFormat(writer);
+        CsvFormat format = new CsvFormat();
 
-        format.writeSamples(new TrainingData<>(null, sampleStream), null);
+        StringWriter writer = new StringWriter();
+        format.writeSamples(new TrainingData<>(null, sampleStream), writer);
 
         String expected = "1.0,2.0,3.0,4.0,5.0\n"
                           + "1.0,2.0,3.0,4.0,5.0\n"
@@ -98,17 +98,16 @@ class CsvFormatTest {
                         new TrainingSample<>(f, l),
                         new TrainingSample<>(f, l));
 
-        StringWriter writer = new StringWriter();
-        CsvFormat format = new CsvFormat(writer);
+        CsvFormat format = new CsvFormat();
 
-        DataGenerationStats stats = format.writeSamples(new TrainingData<>(null, sampleStream), null);
+        StringWriter writer = new StringWriter();
+        DataGenerationStats stats = format.writeSamples(new TrainingData<>(null, sampleStream), writer);
 
         int expected = 3;
         int actual = stats.getSamplesWritten();
 
         assertEquals(expected, actual,
                 "Count of written samples does not match");
-
     }
 
 }
