@@ -21,7 +21,7 @@ class CsvFormatTest {
 
     @Test
     public void shouldIndicateCsvExtension() {
-        assertEquals("csv", new CsvFormat().getFileExtension(),
+        assertEquals("csv", new CsvFormat(0, 0).getFileExtension(),
                 "Indicated file extension is not csv");
     }
 
@@ -30,7 +30,7 @@ class CsvFormatTest {
         Path source = Paths.get("non/existent.mch");
         Path targetDir = Paths.get("target/dir");
 
-        CsvFormat format = new CsvFormat();
+        CsvFormat format = new CsvFormat(0, 0);
 
         Path expected = Paths.get("target/dir/non/existent.csv");
         Path actual = format.getTargetLocation(source, targetDir);
@@ -40,11 +40,30 @@ class CsvFormatTest {
     }
 
     @Test
+    public void shouldReturnCorrectHeader() {
+        CsvFormat format = new CsvFormat(3, 2);
+
+        String expected = "Feature0,Feature1,Feature2,Label0,Label1";
+        String actual = format.getHeader();
+
+        assertEquals(expected, actual,
+                "Header does not match");
+    }
+
+    @Test
+    public void shouldReturnNullWhenHeaderIsSetToFalse() {
+        CsvFormat format = new CsvFormat(3, 2, false);
+
+        assertNull(format.getHeader(),
+                "Header should be null");
+    }
+
+    @Test
     public void shouldUseCsvExtensionWhenBcmMachine() {
         Path source = Paths.get("non/existent.bcm");
         Path targetDir = Paths.get("target/dir");
 
-        CsvFormat format = new CsvFormat();
+        CsvFormat format = new CsvFormat(0, 0);
 
         Path expected = Paths.get("target/dir/non/existent.csv");
         Path actual = format.getTargetLocation(source, targetDir);
@@ -60,7 +79,7 @@ class CsvFormatTest {
         TrainingSample sample = new TrainingSample<>(f, l);
 
         String expected = "1.0,2.0,3.0,4.0,5.0";
-        String actual = new CsvFormat().generateCsvEntry(sample);
+        String actual = new CsvFormat(3, 2).generateCsvEntry(sample);
 
         assertEquals(expected, actual);
     }
@@ -75,7 +94,7 @@ class CsvFormatTest {
                         new TrainingSample<>(f, l),
                         new TrainingSample<>(f, l));
 
-        CsvFormat format = new CsvFormat();
+        CsvFormat format = new CsvFormat(3, 2);
 
         StringWriter writer = new StringWriter();
         format.writeSamples(new TrainingData<>(null, sampleStream), writer);
@@ -98,7 +117,7 @@ class CsvFormatTest {
                         new TrainingSample<>(f, l),
                         new TrainingSample<>(f, l));
 
-        CsvFormat format = new CsvFormat();
+        CsvFormat format = new CsvFormat(3, 2);
 
         StringWriter writer = new StringWriter();
         DataGenerationStats stats = format.writeSamples(new TrainingData<>(null, sampleStream), writer);
