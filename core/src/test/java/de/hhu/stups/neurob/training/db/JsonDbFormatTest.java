@@ -3,7 +3,6 @@ package de.hhu.stups.neurob.training.db;
 import com.google.gson.stream.JsonReader;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;

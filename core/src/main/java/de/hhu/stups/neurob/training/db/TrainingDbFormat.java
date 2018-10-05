@@ -10,7 +10,5 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 public interface TrainingDbFormat<D extends BData, L extends Labelling>
-    extends TrainingDataFormat<D> {
-
-    Stream<TrainingSample<D, L>> loadSamples(Path sourceFile) throws IOException;
+    extends TrainingDataFormat<D, L> {
 }

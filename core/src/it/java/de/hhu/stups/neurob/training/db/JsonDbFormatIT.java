@@ -38,14 +38,14 @@ public class JsonDbFormatIT {
         timings.put(new Z3Backend(), 3.);
         timings.put(new SmtBackend(), -1.);
 
-        Labelling labels = new DecisionTimings("pred", timings,
+        DecisionTimings labels = new DecisionTimings("pred", timings,
                 new ProBBackend(), new KodkodBackend(), new Z3Backend(), new SmtBackend());
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<BPredicate, Labelling>> sampleStream =
+        Stream<TrainingSample<BPredicate, DecisionTimings>> sampleStream =
                 Stream.of(
                         new TrainingSample<>(predicate, labels, source),
                         new TrainingSample<>(predicate, labels, source));
-        TrainingData<BPredicate, Labelling> trainingData =
+        TrainingData<BPredicate, DecisionTimings> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();
@@ -78,13 +78,14 @@ public class JsonDbFormatIT {
     public void shouldCalculateStatistics() throws IOException {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
-        Labelling labels = new Labelling(3., 1., -1., 2.);
+        DecisionTimings labels =
+                new DecisionTimings(predicate,JsonDbFormat.BACKENDS_USED, 3., 1., -1., 2.);
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<BPredicate, Labelling>> sampleStream =
+        Stream<TrainingSample<BPredicate, DecisionTimings>> sampleStream =
                 Stream.of(
                         new TrainingSample<>(predicate, labels, source),
                         new TrainingSample<>(predicate, labels, source));
-        TrainingData<BPredicate, Labelling> trainingData =
+        TrainingData<BPredicate, DecisionTimings> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();

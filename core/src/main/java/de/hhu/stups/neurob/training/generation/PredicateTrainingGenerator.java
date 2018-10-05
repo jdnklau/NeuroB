@@ -42,7 +42,7 @@ public class PredicateTrainingGenerator
     PredicateTrainingGenerator(
             PredicateFeatureGenerating<F> featureGenerator,
             PredicateLabelGenerating<L> labelGenerator,
-            TrainingDataFormat<? super F> format) {
+            TrainingDataFormat<? super F, ? super L> format) {
         super(featureGenerator, labelGenerator, format);
     }
 

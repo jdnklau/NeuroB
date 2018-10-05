@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  * Format access to a CSV file for training data with
@@ -21,7 +23,7 @@ import java.nio.file.Path;
  * Feature1,Feature2,...,FeatureN,Label1,Label2,...,LabelN
  * and each row of data follows this pattern.
  */
-public class CsvFormat implements TrainingDataFormat<Features> {
+public class CsvFormat implements TrainingDataFormat<Features, Labelling> {
 
     private final int numFeatureEntries;
     private final int numLabelEntries;
@@ -46,7 +48,7 @@ public class CsvFormat implements TrainingDataFormat<Features> {
     /**
      * Instantiates format access with given number of feature and label entries.
      * Whether a header line is to be used is optional.
-     *
+     * <p>
      * If a header line is to be used,
      * a header line is created first upon writing data to a target file
      * and upon reading in a CSV file, the first line is expected to be said
@@ -93,7 +95,7 @@ public class CsvFormat implements TrainingDataFormat<Features> {
      * Returns the header string belonging to this CSV format iff the format
      * is defined to have a header (see {@link #hasHeaderLine()}).
      * If no header is used, returns null.
-     *
+     * <p>
      * The format of the header is
      * Feature1,Feature2,...,FeatureN,Label1,Label2,...,LabelN.
      *
@@ -111,8 +113,7 @@ public class CsvFormat implements TrainingDataFormat<Features> {
     }
 
     @Override
-    public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<Features, L> trainingData,
+    public DataGenerationStats writeSamples(TrainingData<Features, Labelling> trainingData,
             Path targetDirectory) throws IOException {
         // get target writer
         Path targetFile = getTargetLocation(
@@ -122,6 +123,7 @@ public class CsvFormat implements TrainingDataFormat<Features> {
         log.info("Writing to {}", targetFile);
 
         if (hasHeaderLine) {
+            log.debug("Writing header to CSV: {}", header);
             out.write(header);
             out.write('\n');
             out.flush();
@@ -130,8 +132,51 @@ public class CsvFormat implements TrainingDataFormat<Features> {
         return writeSamples(trainingData, out);
     }
 
-    public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<Features, L> trainingData,
+    @Override
+    public Stream<TrainingSample<Features, Labelling>> loadSamples(Path sourceFile)
+            throws IOException {
+        return translateCsvLines(Files.lines(sourceFile));
+    }
+
+    /**
+     * Translates a stream of lines from a single Csv file in this format
+     * into a stream of training samples.
+     * @param lines
+     * @return
+     */
+    public Stream<TrainingSample<Features, Labelling>> translateCsvLines(Stream<String> lines) {
+        // header skip
+        int skipAmount = (hasHeaderLine) ? 1 : 0;
+
+        return lines
+                .skip(skipAmount)
+                .map(this::translateSingleLine);
+    }
+
+    /**
+     * Translates a given line of Csv entries into a training sample.
+     *
+     * @param csvEntry Comma separated line of feature then label entries.
+     *
+     * @return TrainingSample holding the data contained in the given Csv line.
+     */
+    public TrainingSample<Features, Labelling> translateSingleLine(String csvEntry) {
+        // Split line and translate to Doubles
+        Double[] doubleEntries = Arrays.stream(csvEntry.split(","))
+                .map(Double::valueOf)
+                .toArray(Double[]::new);
+
+        // Prepare training sample
+        return new TrainingSample<>(
+                new Features(
+                        Arrays.copyOfRange(doubleEntries, 0, numFeatureEntries)),
+                new Labelling(
+                        Arrays.copyOfRange(doubleEntries,
+                                numFeatureEntries,
+                                numFeatureEntries + numLabelEntries)));
+    }
+
+    public DataGenerationStats writeSamples(TrainingData<Features, Labelling> trainingData,
             Writer out) throws IOException {
         // Set up statistics
         DataGenerationStats stats = new DataGenerationStats();
@@ -139,6 +184,7 @@ public class CsvFormat implements TrainingDataFormat<Features> {
         trainingData.getSamples().map(this::generateCsvEntry).forEach(
                 entry -> {
                     try {
+                        log.debug("Writing to CSV: {}", entry);
                         out.write(entry);
                         out.write('\n');
                         stats.increaseSamplesWritten();
@@ -153,7 +199,7 @@ public class CsvFormat implements TrainingDataFormat<Features> {
         return stats;
     }
 
-    public String generateCsvEntry(TrainingSample<Features, ? extends Labelling> sample) {
+    public String generateCsvEntry(TrainingSample<Features, Labelling> sample) {
         Features f = sample.getData();
         Labelling l = sample.getLabelling();
 

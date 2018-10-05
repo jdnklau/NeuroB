@@ -4,12 +4,14 @@ import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
+import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
-public interface TrainingDataFormat<D extends BData> {
+public interface TrainingDataFormat<D extends BData, L extends Labelling> {
 
     /**
      * Generates the target location path to be written to at training data
@@ -43,9 +45,19 @@ public interface TrainingDataFormat<D extends BData> {
      * @param trainingData
      * @param targetDirectory Location to populate with training data
      */
-    <L extends Labelling>
     DataGenerationStats writeSamples(TrainingData<D, L> trainingData,
             Path targetDirectory) throws IOException;
+
+    /**
+     * Streams training samples from the given source file.
+     *
+     * @param sourceFile Path to a file conforming this format.
+     *
+     * @return Stream of training samples.
+     *
+     * @throws IOException
+     */
+    Stream<TrainingSample<D, L>> loadSamples(Path sourceFile) throws IOException;
 
     /**
      * Returns the extension used for written files.

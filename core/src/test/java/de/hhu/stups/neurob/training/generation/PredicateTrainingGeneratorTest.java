@@ -40,7 +40,7 @@ class PredicateTrainingGeneratorTest {
     private
     PredicateTrainingGenerator generator;
 
-    private TrainingDataFormat<PredicateFeatures> formatMock;
+    private TrainingDataFormat<PredicateFeatures, PredicateLabelling> formatMock;
     private PredicateFeatureGenerating<PredicateFeatures> featureGen;
     private PredicateLabelGenerating<PredicateLabelling> labelGen;
 

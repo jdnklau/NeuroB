@@ -61,7 +61,6 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
     @Override
     public Stream<TrainingSample<BPredicate, DecisionTimings>> loadSamples(Path sourceFile)
             throws IOException {
-
         JsonReader reader = new JsonReader(Files.newBufferedReader(sourceFile));
 
         return StreamSupport.stream(
@@ -77,8 +76,8 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
     }
 
     @Override
-    public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<BPredicate, L> trainingData, Path targetDirectory) {
+    public
+    DataGenerationStats writeSamples(TrainingData<BPredicate, DecisionTimings> trainingData, Path targetDirectory) {
         Path sourceFile = trainingData.getSourceFile();
         Path targetFile = getTargetLocation(sourceFile, targetDirectory);
 

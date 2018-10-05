@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -138,6 +140,29 @@ class JsonFormatIT {
                         "Should only have created one file"),
                 () -> assertEquals(4, stats.getSamplesWritten(),
                         "Should have written two samples"));
+    }
+
+    @Test
+    public void shouldLoadSamplesFromJson() throws IOException {
+        Path jsonDir = Paths.get(
+                JsonFormatIT.class.getClassLoader()
+                .getResource("formats/json/").getFile());
+
+        JsonFormat format = new JsonFormat();
+
+        TrainingSample<Features, Labelling> sample =
+                new TrainingSample<>(new Features(1., 2.), new Labelling(3., 4., 5.));
+
+        List<TrainingSample<Features, Labelling>> expected = new ArrayList<>();
+        expected.add(sample);
+        expected.add(sample);
+
+        List<TrainingSample<Features, Labelling>> actual =
+                format.loadSamples(jsonDir.resolve("test.json"))
+                .collect(Collectors.toList());
+
+        assertEquals(expected, actual,
+                "Read samples do not match");
     }
 
     private Features createFeatures(Double... features) {

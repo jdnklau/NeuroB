@@ -1,5 +1,8 @@
 package de.hhu.stups.neurob.training.formats;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
@@ -9,12 +12,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Spliterators;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-public class JsonFormat implements TrainingDataFormat<Features> {
+public class JsonFormat implements TrainingDataFormat<Features, Labelling> {
 
     private static final Logger log = LoggerFactory.getLogger(JsonFormat.class);
 
@@ -24,8 +33,7 @@ public class JsonFormat implements TrainingDataFormat<Features> {
     }
 
     @Override
-    public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<Features, L> trainingData, Path targetDirectory) {
+    public DataGenerationStats writeSamples(TrainingData<Features, Labelling> trainingData, Path targetDirectory) {
         Path sourceFile = trainingData.getSourceFile();
         Path targetFile = getTargetLocation(sourceFile,
                 targetDirectory);
@@ -59,8 +67,16 @@ public class JsonFormat implements TrainingDataFormat<Features> {
         return stats;
     }
 
-    public <L extends Labelling>
-    DataGenerationStats writeSamples(Stream<TrainingSample<Features, L>> samples, Writer out) throws IOException {
+    @Override
+    public Stream<TrainingSample<Features, Labelling>> loadSamples(Path sourceFile) throws IOException {
+        return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(
+                        new JsonIterator(Files.newBufferedReader(sourceFile)),
+                        0),
+                false);
+    }
+
+    public DataGenerationStats writeSamples(Stream<TrainingSample<Features, Labelling>> samples, Writer out) throws IOException {
         DataGenerationStats stats = new DataGenerationStats();
 
         out.append("{\"samples\":[");
@@ -115,5 +131,114 @@ public class JsonFormat implements TrainingDataFormat<Features> {
                 .append("}");
 
         return jsonStr.toString();
+    }
+
+    public static class JsonIterator
+            implements Iterator<TrainingSample<Features, Labelling>> {
+
+        private final JsonReader reader;
+        private boolean hasEnded;
+
+        public JsonIterator(Reader reader) throws IOException {
+            this.reader = new JsonReader(reader);
+            this.hasEnded = false;
+
+            consumeHeader();
+        }
+
+        public void consumeHeader() throws IOException {
+            // Should start as a JSON-Object containing the "samples" to Array
+            // of objects mapping
+            reader.beginObject();
+            String samples = reader.nextName();
+            if (!samples.equals("samples")) {
+                throw new IOException(
+                        "Json Format is invalid: Expected \"samples\" property,"
+                        + "but got " + samples);
+            }
+
+            // "samples" maps to an array of objects
+            reader.beginArray();
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (hasEnded) {
+                return false;
+            }
+            boolean hasNext = false;
+            try {
+                if (reader.peek().equals(JsonToken.BEGIN_OBJECT)) {
+                    hasNext = true;
+                } else {
+                    verifyFooter();
+                    hasEnded = true;
+                }
+            } catch (IOException e) {
+                log.error("Could not peek next element from database", e);
+                hasEnded = true;
+            }
+            return hasNext;
+        }
+
+        public void verifyFooter() throws IOException {
+            reader.endArray();
+            reader.endObject();
+            if (!reader.peek().equals(JsonToken.END_DOCUMENT)) {
+                log.warn("Json format not valid:"
+                         + "found trailing elements that are ignored.");
+            }
+        }
+
+        @Override
+        public TrainingSample<Features, Labelling> next() {
+            try {
+                reader.beginObject();
+                TrainingSample<Features, Labelling> sample = readNextSample();
+                reader.endObject();
+
+                return sample;
+            } catch (IOException e) {
+                log.error("Could not read Json any further", e);
+                hasEnded = true;
+                return null;
+            }
+
+        }
+
+        private TrainingSample<Features, Labelling> readNextSample() throws IOException {
+            Features features;
+            Labelling labelling;
+
+            // read first and second keyword
+            String key1 = reader.nextName();
+            Double[] key1Array = readNextDataArray();
+            String key2 = reader.nextName();
+            Double[] key2Array = readNextDataArray();
+
+            // associate them with respective semantic
+            if (key1.equals("features") && key2.equals("labelling")) {
+                features = new Features(key1Array);
+                labelling = new Labelling(key2Array);
+            } else if (key2.equals("features") && key1.equals("labelling")) {
+                features = new Features(key2Array);
+                labelling = new Labelling(key1Array);
+            } else {
+                throw new IOException(
+                        "Unexpected pair of keys: " + key1 + ", " + key2);
+            }
+
+            return new TrainingSample<>(features, labelling);
+        }
+
+        public Double[] readNextDataArray() throws IOException {
+            reader.beginArray();
+            List<Double> doubles = new ArrayList<>();
+            while(!reader.peek().equals(JsonToken.END_ARRAY)) {
+                doubles.add(reader.nextDouble());
+            }
+            reader.endArray();
+            return doubles.toArray(new Double[0]);
+        }
     }
 }

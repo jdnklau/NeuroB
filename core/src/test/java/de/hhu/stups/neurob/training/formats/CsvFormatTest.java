@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -129,4 +133,66 @@ class CsvFormatTest {
                 "Count of written samples does not match");
     }
 
+    @Test
+    public void shouldTranslateCsvLineIntoTrainingSample() {
+        String csvLine = "1.0,2.0,3.0,4.0,5.0";
+
+        CsvFormat format = new CsvFormat(3, 2, false);
+
+        TrainingSample<Features, Labelling> expected =
+                new TrainingSample<>(
+                        new Features(1., 2., 3.),
+                        new Labelling(4., 5.));
+        TrainingSample<Features, Labelling> actual = format.translateSingleLine(csvLine);
+
+        assertEquals(expected, actual,
+                "Translates samples does not match");
+    }
+
+    @Test
+    public void shouldStreamSamplesFromCsvContentWithHeader() throws IOException {
+        String csvContents =
+                "Feature0,Feature1,Feature2,Label0,Label1\n"
+                + "1.0,2.0,3.0,4.0,5.0\n"
+                + "6.0,7.0,8.0,9.0,10.0\n";
+
+        CsvFormat format = new CsvFormat(3, 2, true);
+
+        List<TrainingSample<Features, Labelling>> expected = new ArrayList<>();
+        expected.add(new TrainingSample<>(
+                        new Features(1., 2., 3.),
+                        new Labelling(4., 5.)));
+        expected.add(new TrainingSample<>(
+                        new Features(6., 7., 8.),
+                        new Labelling(9., 10.)));
+
+        List<TrainingSample<Features, Labelling>> actual =
+                format.translateCsvLines(Arrays.stream(csvContents.split("\n")))
+                .collect(Collectors.toList());
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldStreamSamplesFromCsvContentWithNoHeader() throws IOException {
+        String csvContents =
+                "1.0,2.0,3.0,4.0,5.0\n"
+                + "6.0,7.0,8.0,9.0,10.0\n";
+
+        CsvFormat format = new CsvFormat(3, 2, false);
+
+        List<TrainingSample<Features, Labelling>> expected = new ArrayList<>();
+        expected.add(new TrainingSample<>(
+                new Features(1., 2., 3.),
+                new Labelling(4., 5.)));
+        expected.add(new TrainingSample<>(
+                new Features(6., 7., 8.),
+                new Labelling(9., 10.)));
+
+        List<TrainingSample<Features, Labelling>> actual =
+                format.translateCsvLines(Arrays.stream(csvContents.split("\n")))
+                        .collect(Collectors.toList());
+
+        assertEquals(expected, actual);
+    }
 }

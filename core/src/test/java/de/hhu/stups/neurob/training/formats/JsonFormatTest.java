@@ -9,6 +9,7 @@ import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +33,7 @@ class JsonFormatTest {
 
     @Test
     public void shouldReturnWithJsonFileExtensionWhenMchFile() {
-        TrainingDataFormat<Features> format = new JsonFormat();
+        JsonFormat format = new JsonFormat();
         Path sourceFile = Paths.get("non/existent.mch");
         Path targetDirectory = Paths.get("target/dir/");
 
@@ -44,7 +45,7 @@ class JsonFormatTest {
 
     @Test
     public void shouldReturnWithJsonFileExtensionWhenBcmFile() {
-        TrainingDataFormat<Features> format = new JsonFormat();
+        JsonFormat format = new JsonFormat();
         Path sourceFile = Paths.get("non/existent.bcm");
         Path targetDirectory = Paths.get("target/dir/");
 
@@ -175,6 +176,101 @@ class JsonFormatTest {
     public void shouldIndicateJsonExtension() {
         assertEquals("json", new JsonFormat().getFileExtension(),
                 "Promised file format does not match");
+    }
+
+    @Test
+    public void shouldHaveNextWhenNoSampleIsRead() throws IOException {
+        String json =
+                "{\"samples\":["
+                + "{\"features\":[1.0,2.0],"
+                + "\"labelling\":[3.0,4.0,5.0]},"
+                + "{\"features\":[1.0,2.0],"
+                + "\"labelling\":[3.0,4.0,5.0]}"
+                + "]}";
+
+        JsonFormat.JsonIterator iter = new JsonFormat.JsonIterator(
+                new StringReader(json));
+        assertTrue(iter.hasNext(),
+                "Should have a next element");
+    }
+
+    @Test
+    public void shouldHaveNextWhenOneSampleIsRead() throws IOException {
+        String json =
+                "{\"samples\":["
+                + "{\"features\":[1.0,2.0],"
+                + "\"labelling\":[3.0,4.0,5.0]},"
+                + "{\"features\":[1.0,2.0],"
+                + "\"labelling\":[3.0,4.0,5.0]}"
+                + "]}";
+
+        JsonFormat.JsonIterator iter = new JsonFormat.JsonIterator(
+                new StringReader(json));
+
+        // read first sample
+        iter.next();
+
+        assertTrue(iter.hasNext(),
+                "Should have a next element");
+    }
+
+    @Test
+    public void shouldNotHaveNextWhenAllSamplesAreRead() throws IOException {
+        String json =
+                "{\"samples\":["
+                + "{\"features\":[1.0,2.0],"
+                + "\"labelling\":[3.0,4.0,5.0]},"
+                + "{\"features\":[1.0,2.0],"
+                + "\"labelling\":[3.0,4.0,5.0]}"
+                + "]}";
+
+        JsonFormat.JsonIterator iter = new JsonFormat.JsonIterator(
+                new StringReader(json));
+
+        // read both samples
+        iter.next();
+        iter.next();
+
+        assertFalse(iter.hasNext(),
+                "Should have exhausted all elements");
+    }
+
+    @Test
+    public void shouldGetNextTrainingSample() throws IOException {
+        String json =
+                "{\"samples\":["
+                + "{\"features\":[1.0,2.0],"
+                + "\"labelling\":[3.0,4.0,5.0]}"
+                + "]}";
+
+        JsonFormat.JsonIterator iter = new JsonFormat.JsonIterator(
+                new StringReader(json));
+
+        TrainingSample<Features, Labelling> expected =
+                new TrainingSample<>(new Features(1., 2.), new Labelling(3., 4., 5.));
+        TrainingSample<Features, Labelling> actual = iter.next();
+
+        assertEquals(expected, actual,
+                "Did not read next sample correctly");
+    }
+
+    @Test
+    public void shouldGetNextTrainingSampleWhenFeaturesAndLabelsAreSwitched() throws IOException {
+        String json =
+                "{\"samples\":["
+                + "{\"labelling\":[3.0,4.0,5.0],"
+                + "\"features\":[1.0,2.0]}"
+                + "]}";
+
+        JsonFormat.JsonIterator iter = new JsonFormat.JsonIterator(
+                new StringReader(json));
+
+        TrainingSample<Features, Labelling> expected =
+                new TrainingSample<>(new Features(1., 2.), new Labelling(3., 4., 5.));
+        TrainingSample<Features, Labelling> actual = iter.next();
+
+        assertEquals(expected, actual,
+                "Did not read next sample correctly");
     }
 
     private Features createFeatures(Double... features) {

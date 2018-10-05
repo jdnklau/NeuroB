@@ -32,7 +32,7 @@ public abstract class TrainingSetGenerator {
     TrainingSetGenerator(
             FeatureGenerating<F, ?> featureGenerator,
             LabelGenerating<L, ?> labelGenerator,
-            TrainingDataFormat<? super F> format) {
+            TrainingDataFormat<? super F, ? super L> format) {
         this.format = format;
         this.featureGenerator = featureGenerator;
         this.labelGenerator = labelGenerator;

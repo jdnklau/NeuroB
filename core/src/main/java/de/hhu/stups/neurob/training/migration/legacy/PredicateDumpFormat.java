@@ -86,8 +86,7 @@ public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
     }
 
     @Override
-    public <L extends Labelling>
-    DataGenerationStats writeSamples(TrainingData<BPredicate, L> trainingData,
+    public DataGenerationStats writeSamples(TrainingData<BPredicate, DecisionTimings> trainingData,
             Path targetDirectory) {
         Path targetFile = getTargetLocation(trainingData.getSourceFile(), targetDirectory);
         log.info("Writing samples from {} to {}", trainingData.getSourceFile(), targetFile);
