@@ -256,6 +256,81 @@ public class DecisionTimings extends PredicateLabelling {
                 timeMapping, backends);
     }
 
+    /**
+     * Creates a labelling vector with respect to the given order of backends.
+     * The {@code backends} array implies the ordering of the given timings,
+     * i.e. the backend with index 0 is matched to the first timing,
+     * index 1 with the second, and so on.
+     *
+     * Internally the timeout data used for generating the mapping are assumed to
+     * be {@link #defaultTimeout} and {@link #defaultTimeoutUnit},
+     * with a sampling size of 1.
+     *
+     * @param predicate
+     * @param backends Array of backends in use.
+     * @param timings Already measured timings for the backends in use. Order is important.
+     */
+    public DecisionTimings(BPredicate predicate,
+            Backend[] backends, Double... timings) {
+        this(predicate, 1, defaultTimeout, defaultTimeoutUnit, backends, timings);
+    }
+
+    /**
+     * Creates a labelling vector with respect to the given order of backends.
+     * The {@code backends} array implies the ordering of the given timings,
+     * i.e. the backend with index 0 is matched to the first timing,
+     * index 1 with the second, and so on.
+     *
+     * Internally the timeout data used for generating the mapping are assumed to
+     * be {@link #defaultTimeout} and {@link #defaultTimeoutUnit},
+     * with a sampling size of 1.
+     *
+     * @param predicate
+     * @param backends Array of backends in use.
+     * @param timings Already measured timings for the backends in use. Order is important.
+     */
+    public DecisionTimings(String predicate,
+            Backend[] backends, Double... timings) {
+        this(BPredicate.of(predicate), 1, defaultTimeout, defaultTimeoutUnit, backends, timings);
+    }
+
+    /**
+     * Creates a labelling vector with respect to the given order of backends.
+     * The {@code backends} array implies the ordering of the given timings,
+     * i.e. the backend with index 0 is matched to the first timing,
+     * index 1 with the second, and so on.
+     *
+     * @param predicate
+     * @param sampleSize Number of times each timing was run; final time
+     *         is taken from the average.
+     * @param timeOut Maximal runtime given for each backend to solve the predicate
+     * @param timeOutUnit Unit in which the time out is measured
+     * @param backends Array of backends in use.
+     * @param timings Already measured timings for the backends in use. Order is important.
+     */
+    public DecisionTimings(BPredicate predicate,
+            int sampleSize, Long timeOut, TimeUnit timeOutUnit,
+            Backend[] backends, Double... timings) {
+        // bind basic settings
+        super(predicate, timings);
+
+        if (timings.length != backends.length) {
+            throw new IllegalArgumentException(
+                    "Number of given timings must match number of backends");
+        }
+
+        this.sampleSize = sampleSize;
+        this.timeOut = timeOut;
+        this.timeUnit = timeOutUnit;
+
+        // bind timings
+        this.usedBackends = backends;
+        this.timings = new HashMap<>();
+        for (int i = 0; i < backends.length; i++) {
+            this.timings.put(backends[i], timings[i]);
+        }
+    }
+
     private Map<Backend, Double> createTimings(MachineAccess bMachine, Backend... backends)
             throws LabelCreationException {
         Map<Backend, Double> timings = new HashMap<>();

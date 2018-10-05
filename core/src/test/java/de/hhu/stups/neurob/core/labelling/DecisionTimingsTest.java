@@ -136,6 +136,30 @@ class DecisionTimingsTest {
     }
 
     @Test
+    public void shouldMatchBackendsAndTimingsByOrder() {
+        Backend[] backends = {
+                new ProBBackend(),
+                new KodkodBackend(),
+                new Z3Backend()
+        };
+
+        DecisionTimings timings = new DecisionTimings("pred", backends, 1.0, 2.0, 3.0);
+
+        Double[] expected = {1.0, 2.0, 3.0};
+        Double[] actual = timings.getLabellingArray();
+
+        assertAll("Matched backends",
+                () -> assertArrayEquals(expected, actual,
+                        "Vector does not match"),
+                () -> assertEquals(1.0, timings.getTiming(backends[0]), 1e-10,
+                        "ProB timing does not match"),
+                () -> assertEquals(2.0, timings.getTiming(backends[1]), 1e-10,
+                        "Kodkod timing does not match"),
+                () -> assertEquals(3.0, timings.getTiming(backends[2]), 1e-10,
+                        "Z3 timing does not match"));
+    }
+
+    @Test
     public void shouldReturn1AsLabellingDimensionWhenOnlyOneBackEndProvided()
             throws LabelCreationException {
         DecisionTimings timings = new DecisionTimings("predicate",
