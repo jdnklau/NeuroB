@@ -172,12 +172,15 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
                         + "\":" + labelTimes[index])
                 .collect(Collectors.joining(","));
 
+        // Escape strings in predicate
+        String escapedPredicate = predicate.getPredicate().replaceAll("\"", "\\\\\\\"");
+
         // Concatenate everything into one Json Object
         String sourceEntry = (isSourceDefined)
                 ? "\"source\":\"" + source + "\","
                 : "";
         String json = "{"
-                      + "\"predicate\":\"" + predicate.getPredicate() + "\","
+                      + "\"predicate\":\"" + escapedPredicate + "\","
                       + sourceEntry
                       + "\"timings\":{" + timings + "}"
                       + "}";

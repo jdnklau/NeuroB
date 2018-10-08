@@ -418,6 +418,31 @@ class JsonDbFormatTest {
     }
 
     @Test
+    public void shouldEscapeQuotesInPredicate() {
+        BPredicate predWithString = BPredicate.of("pred = \"string\"");
+        Labelling labels = new Labelling(1., 2., 3., -1.);
+        Path source = Paths.get("non/existent.mch");
+        TrainingSample<BPredicate, Labelling> sample =
+                new TrainingSample<>(predWithString, labels, source);
+
+        JsonDbFormat format = new JsonDbFormat();
+
+
+        String expected = "{"
+                          + "\"predicate\":\"pred = \\\"string\\\"\","
+                          + "\"source\":\"non/existent.mch\","
+                          + "\"timings\":{"
+                          + "\"ProBBackend\":1.0,"
+                          + "\"KodkodBackend\":2.0,"
+                          + "\"Z3Backend\":3.0,"
+                          + "\"SmtBackend\":-1.0"
+                          + "}}";
+        String actual = format.translateSampleToJsonObject(sample);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void shouldWriteStreamedSamplesToWriter() throws IOException {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
