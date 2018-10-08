@@ -6,7 +6,7 @@
 
 - [ ] Generation of training set
   - [ ] Training data formats
-    - [ ] Loading of samples from the format
+    - [x] Loading of samples from the format
     - [ ] Appending to a format
   - [x] Create DB
   - [x] Create features and labels
@@ -18,14 +18,16 @@
     - [ ] Split DataGeneration statistics into single file and directory hierarchy versions
   - [x] Wrap StateSpaces
   - [ ] CLI Option to create data
-  - [ ] Incorporate BPredicate/BElement classes more
+  - [x] Incorporate BPredicate/BElement classes more
 - [ ] Training set manipulation
   - [ ] Split training set
   - [ ] upsample training set
   - [ ] downsample training set
   - [ ] shuffle training set
 - [ ] Training set analysis
-- [x] Migration from old pdump to new JSON
+- [ ] Data Base translation
+  - [x] Migrate from old pdump to new JSON
+  - [ ] Translate Db to Training Format
 
 ### Machine Learning algorithms
 
