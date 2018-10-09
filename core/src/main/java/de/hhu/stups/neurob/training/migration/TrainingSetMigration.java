@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /**
- * Interface for migrating a training database to another, more suited data base format
+ * Interface for migrating a training database into another.
  */
 public interface TrainingSetMigration {
 

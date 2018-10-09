@@ -1,10 +1,15 @@
 package de.hhu.stups.neurob.training.migration;
 
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
+import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
+import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,20 +30,20 @@ class PredicateDbMigrationTest {
 
     private PredicateDbFormat sourceFormatMock;
 
-    private final TrainingSample<BPredicate, Labelling> sample0 = new TrainingSample<>(
+    private final TrainingSample<BPredicate, DecisionTimings> sample0 = new TrainingSample<>(
             new BPredicate("null:PREDICATES"),
-            new Labelling(1.0, 2.0, 3.0, 4.0));
-    private final TrainingSample<BPredicate, Labelling> sample1 = new TrainingSample<>(
+            new DecisionTimings("null:PREDICATES", JsonDbFormat.BACKENDS_USED, 1.0, 2.0, 3.0, 4.0));
+    private final TrainingSample<BPredicate, DecisionTimings> sample1 = new TrainingSample<>(
             new BPredicate("first:PREDICATES"),
-            new Labelling(1.0, 2.0, 3.0, 4.0),
+            new DecisionTimings("first:PREDICATES", JsonDbFormat.BACKENDS_USED, 1.0, 2.0, 3.0, 4.0),
             Paths.get("first/source/machine.mch"));
-    private final TrainingSample<BPredicate, Labelling> sample2 = new TrainingSample<>(
+    private final TrainingSample<BPredicate, DecisionTimings> sample2 = new TrainingSample<>(
             new BPredicate("second:PREDICATES"),
-            new Labelling(1.0, 2.0, 3.0, 4.0),
+            new DecisionTimings("second:PREDICATES", JsonDbFormat.BACKENDS_USED, 1.0, 2.0, 3.0, 4.0),
             Paths.get("second/source/machine.mch"));
-    private final TrainingSample<BPredicate, Labelling> sample3 = new TrainingSample<>(
+    private final TrainingSample<BPredicate, DecisionTimings> sample3 = new TrainingSample<>(
             new BPredicate("third:PREDICATES"),
-            new Labelling(1.0, 2.0, 3.0, 4.0),
+            new DecisionTimings("third:PREDICATES", JsonDbFormat.BACKENDS_USED, 1.0, 2.0, 3.0, 4.0),
             Paths.get("second/source/machine.mch"));
 
     @BeforeEach
@@ -71,12 +76,82 @@ class PredicateDbMigrationTest {
                 targetFormatMock);
 
         String expected =
-                sample0.toString() + "\n"
-                + sample1.toString() + "\n"
-                + sample2.toString() + "\n"
-                + sample3.toString() + "\n";
+                "[data=null:PREDICATES, labels=1.0,2.0,3.0,4.0]\n"
+                + "[data=first:PREDICATES, labels=1.0,2.0,3.0,4.0, source=first/source/machine.mch]\n"
+                + "[data=second:PREDICATES, labels=1.0,2.0,3.0,4.0, source=second/source/machine.mch]\n"
+                + "[data=third:PREDICATES, labels=1.0,2.0,3.0,4.0, source=second/source/machine.mch]\n";
         String actual = writer.toString();
 
+        assertEquals(expected, actual,
+                "Samples were not correctly translated into target format");
+    }
+
+    @Test
+    public void shouldTranslateSampleWithFeatureGenAndLabelTranslationWhenNoSource() throws FeatureCreationException {
+        PredicateDbMigration migration = new PredicateDbMigration(sourceFormatMock);
+
+        TrainingSample<Features, Labelling> expected =
+                new TrainingSample<>(
+                        new Features(0., 1., 2.),
+                        new Labelling(1., 2., 3., 4.));
+
+        TrainingSample<Features, Labelling> actual = migration.migrateSample(sample0,
+                (predicate, bMachine) -> new Features(0., 1., 2.),
+                timings -> new Labelling(timings.getLabellingArray()));
+
+        assertEquals(expected, actual,
+                "Translated training sample does not match");
+    }
+
+    @Test
+    public void shouldTranslateSampleWithFeatureGenAndLabelTranslationWhenSourceIsGiven()
+            throws FeatureCreationException {
+        PredicateDbMigration migration = new PredicateDbMigration(sourceFormatMock);
+
+        TrainingSample<Features, Labelling> expected =
+                new TrainingSample<>(
+                        new Features(0., 1., 2.),
+                        new Labelling(1., 2., 3., 4.),
+                        Paths.get("first/source/machine.mch"));
+
+        TrainingSample<Features, Labelling> actual = migration.migrateSample(sample1,
+                (predicate, bMachine) -> new Features(0., 1., 2.),
+                timings -> new Labelling(timings.getLabellingArray()));
+
+        assertEquals(expected, actual,
+                "Translated training sample does not match");
+    }
+
+    @Test
+    public void shouldMigrateFileWithFeatureAndLabelTranslation() throws IOException {
+        PredicateDbMigration migration = new PredicateDbMigration(sourceFormatMock);
+
+        PredicateDbFormat targetFormatMock = mock(PredicateDbFormat.class);
+        StringWriter writer = new StringWriter();
+        when(targetFormatMock.writeSamples(any(TrainingData.class), any(Path.class)))
+                .thenAnswer(invocation -> {
+                    TrainingData data = invocation.getArgument(0);
+                    data.getSamples().forEach(
+                            sample ->
+                                    writer.append(sample.toString()).write('\n'));
+                    writer.flush();
+                    return new DataGenerationStats();
+                });
+
+        migration.migrateFile(
+                Paths.get("non/existent/src"),
+                Paths.get("non/existent"),
+                Paths.get("non/existent/target/"),
+                (predicate, bMachine) -> new Features(0., 1., 2.),
+                timings -> new PredicateLabelling(timings.getPredicate(), timings.getLabellingArray()),
+                targetFormatMock);
+
+        String expected =
+                "[data=0.0,1.0,2.0, labels=1.0,2.0,3.0,4.0]\n"
+                + "[data=0.0,1.0,2.0, labels=1.0,2.0,3.0,4.0, source=first/source/machine.mch]\n"
+                + "[data=0.0,1.0,2.0, labels=1.0,2.0,3.0,4.0, source=second/source/machine.mch]\n"
+                + "[data=0.0,1.0,2.0, labels=1.0,2.0,3.0,4.0, source=second/source/machine.mch]\n";
+        String actual = writer.toString();
 
         assertEquals(expected, actual,
                 "Samples were not correctly translated into target format");
