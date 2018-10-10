@@ -16,7 +16,7 @@ class TheoryFeatureAstWalker extends DepthFirstAdapter {
 
     public TheoryFeatureAstWalker() {
         inNegation = false;
-
+        fd = new TheoryFeatureData();
     }
 
     /**
