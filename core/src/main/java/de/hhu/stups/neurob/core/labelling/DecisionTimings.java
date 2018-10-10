@@ -473,8 +473,12 @@ public class DecisionTimings extends PredicateLabelling {
                 MachineAccess machineAccess = (bMachine != null)
                         ? bMachine.getMachineAccess()
                         : null;
-                return new DecisionTimings(predicate, sampleSize,
+                DecisionTimings decisionTimings = new DecisionTimings(predicate, sampleSize,
                         timeout, timeoutUnit, machineAccess, backends);
+                if (machineAccess != null) {
+                    bMachine.closeMachineAccess();
+                }
+                return decisionTimings;
             } catch (MachineAccessException e) {
                 throw new LabelCreationException(
                         "Could not generate labels due to missing machine access", e);

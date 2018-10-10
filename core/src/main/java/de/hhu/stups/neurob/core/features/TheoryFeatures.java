@@ -166,7 +166,11 @@ public class TheoryFeatures extends PredicateFeatures {
                 MachineAccess machineAccess = (bMachine != null)
                         ? bMachine.getMachineAccess()
                         : null;
-                return TheoryFeatureCollector.collect(predicate, machineAccess).toArray();
+                Double[] features = TheoryFeatureCollector.collect(predicate, machineAccess).toArray();
+                if (machineAccess != null) {
+                    bMachine.closeMachineAccess();
+                }
+                return features;
             } catch (MachineAccessException e) {
                 throw new FeatureCreationException(
                         "Could not extract features over B machine " + bMachine, e);
