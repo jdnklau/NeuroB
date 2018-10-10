@@ -1,7 +1,7 @@
 package de.hhu.stups.neurob.core.features;
 
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,8 +23,8 @@ class TheoryFeaturesTest {
     }
 
     @Test
-    public void shouldGenerateWhenUsingPredicateAndMachineAccessConstructor() throws Exception {
-        TheoryFeatures features = new TheoryFeatures(predicate, (MachineAccess) null);
+    public void shouldGenerateWhenUsingPredicateAndBMachineConstructor() throws Exception {
+        TheoryFeatures features = new TheoryFeatures(predicate, (BMachine) null);
 
         assertArrayEquals(expectedFeatures, features.getFeatureArray());
     }
@@ -152,7 +152,7 @@ class TheoryFeaturesTest {
     }
 
     @Test
-    public void shouldCreateNewFeaturesWithStaticGeneratorWhenMachineAccessIsNull()
+    public void shouldCreateNewFeaturesWithStaticGeneratorWhenBMachineIsNull()
             throws Exception {
         TheoryFeatures features = TheoryFeatures.generate(predicate, null);
 

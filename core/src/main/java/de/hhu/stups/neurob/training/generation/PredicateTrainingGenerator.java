@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.generation;
 
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.api.data.BData;
@@ -7,7 +8,6 @@ import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
@@ -61,20 +61,17 @@ public class PredicateTrainingGenerator
     public Stream<TrainingSample> streamSamplesFromFile(Path file) {
         log.info("Loading training samples from {}", file);
 
-        // Try to access machine or return empty stream
-        MachineAccess bMachine;
-        try {
-            bMachine = new MachineAccess(file);
-        } catch (MachineAccessException e) {
-            log.warn("Unable to access {}: {}", file, e.getMessage(), e);
-            return Stream.empty();
-        }
-
-        return streamSamplesFromFile(bMachine);
+        return streamSamplesFromFile(new BMachine(file));
     }
 
-    public Stream<TrainingSample> streamSamplesFromFile(MachineAccess bMachine) {
-        Stream<BPredicate> predicates = streamPredicatesFromFile(bMachine);
+    public Stream<TrainingSample> streamSamplesFromFile(BMachine bMachine) {
+        Stream<BPredicate> predicates = null;
+        try {
+            predicates = streamPredicatesFromFile(bMachine);
+        } catch (MachineAccessException e) {
+            log.warn("Unable to access {}", bMachine, e);
+            return Stream.empty();
+        }
 
         // Stream training samples
         Stream<TrainingSample> samples = predicates.map(
@@ -90,14 +87,14 @@ public class PredicateTrainingGenerator
                     // If any exceptions occur, return nothing
                     return null;
                 })
-                .onClose(bMachine::close);
+                .onClose(bMachine::closeMachineAccess);
 
         return samples.filter(Objects::nonNull)
                 // add source file information
                 .map(sample -> new TrainingSample<>(
                         sample.getFeatures(),
                         sample.getLabelling(),
-                        bMachine.getSource()));
+                        bMachine.getLocation()));
 
     }
 
@@ -133,7 +130,7 @@ public class PredicateTrainingGenerator
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample generateSample(BPredicate predicate, MachineAccess bMachine)
+    public TrainingSample generateSample(BPredicate predicate, BMachine bMachine)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
         BData features = ((PredicateFeatureGenerating) featureGenerator)
@@ -217,8 +214,8 @@ public class PredicateTrainingGenerator
      *
      * @return Stream of generated predicates.
      */
-    public Stream<BPredicate> streamPredicatesFromFile(MachineAccess bMachine) {
-        PredicateCollection pc = new PredicateCollection(bMachine);
+    public Stream<BPredicate> streamPredicatesFromFile(BMachine bMachine) throws MachineAccessException {
+        PredicateCollection pc = new PredicateCollection(bMachine.getMachineAccess());
         return streamPredicatesFromCollection(pc);
     }
 

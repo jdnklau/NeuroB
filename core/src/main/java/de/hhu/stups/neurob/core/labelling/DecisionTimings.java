@@ -1,10 +1,12 @@
 package de.hhu.stups.neurob.core.labelling;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
+import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -261,7 +263,7 @@ public class DecisionTimings extends PredicateLabelling {
      * The {@code backends} array implies the ordering of the given timings,
      * i.e. the backend with index 0 is matched to the first timing,
      * index 1 with the second, and so on.
-     *
+     * <p>
      * Internally the timeout data used for generating the mapping are assumed to
      * be {@link #defaultTimeout} and {@link #defaultTimeoutUnit},
      * with a sampling size of 1.
@@ -280,7 +282,7 @@ public class DecisionTimings extends PredicateLabelling {
      * The {@code backends} array implies the ordering of the given timings,
      * i.e. the backend with index 0 is matched to the first timing,
      * index 1 with the second, and so on.
-     *
+     * <p>
      * Internally the timeout data used for generating the mapping are assumed to
      * be {@link #defaultTimeout} and {@link #defaultTimeoutUnit},
      * with a sampling size of 1.
@@ -465,10 +467,18 @@ public class DecisionTimings extends PredicateLabelling {
         }
 
         @Override
-        public DecisionTimings generate(BPredicate predicate, MachineAccess bMachine)
+        public DecisionTimings generate(BPredicate predicate, BMachine bMachine)
                 throws LabelCreationException {
-            return new DecisionTimings(predicate, sampleSize,
-                    timeout, timeoutUnit, bMachine, backends);
+            try {
+                MachineAccess machineAccess = (bMachine != null)
+                        ? bMachine.getMachineAccess()
+                        : null;
+                return new DecisionTimings(predicate, sampleSize,
+                        timeout, timeoutUnit, machineAccess, backends);
+            } catch (MachineAccessException e) {
+                throw new LabelCreationException(
+                        "Could not generate labels due to missing machine access", e);
+            }
         }
     }
 
