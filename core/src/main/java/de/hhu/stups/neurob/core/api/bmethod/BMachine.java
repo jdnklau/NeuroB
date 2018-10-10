@@ -28,6 +28,10 @@ public class BMachine implements BElement {
         this(Paths.get(location));
     }
 
+    public Path getLocation() {
+        return location;
+    }
+
     /**
      * Accesses the B machine, loading it's state space internally.
      * <p>
