@@ -20,7 +20,6 @@ public class BMachine implements BElement {
 
     public BMachine(Path location) {
         this.location = location;
-
         this.machineType = MachineType.predictTypeFromLocation(location);
     }
 
@@ -30,6 +29,10 @@ public class BMachine implements BElement {
 
     public Path getLocation() {
         return location;
+    }
+
+    public MachineType getMachineType() {
+        return machineType;
     }
 
     /**
