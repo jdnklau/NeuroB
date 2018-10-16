@@ -50,15 +50,15 @@ class PredicateDumpFormatTest {
         sample1 = new TrainingSample<>(
                 new BPredicate("first:PREDICATES"),
                 new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
-                Paths.get("first/source/machine"));
+                Paths.get("first/source/machine.mch"));
         sample2 = new TrainingSample<>(
                 new BPredicate("second:PREDICATES"),
                 new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
-                Paths.get("second/source/machine"));
+                Paths.get("second/source/machine.mch"));
         sample3 = new TrainingSample<>(
                 new BPredicate("third:PREDICATES"),
                 new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
-                Paths.get("second/source/machine"));
+                Paths.get("second/source/machine.mch"));
 
     }
 
@@ -78,6 +78,16 @@ class PredicateDumpFormatTest {
         expected.add(sample2);
         expected.add(sample3);
         List<TrainingSample> actual = format.loadSamples(MIGRATION_SOURCE).collect(Collectors.toList());
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldLoadFirstOriginalSource() throws IOException {
+        PredicateDumpFormat format = new PredicateDumpFormat();
+
+        Path expected = Paths.get("first/source/machine.mch");
+        Path actual = format.getDataSource(MIGRATION_SOURCE);
 
         assertEquals(expected, actual);
     }

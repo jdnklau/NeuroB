@@ -126,6 +126,18 @@ class JsonDbFormatTest {
     }
 
     @Test
+    public void shouldLoadFirstReferencedSource() throws IOException {
+        String fileUrl = JsonDbFormatTest.class.getClassLoader()
+                .getResource("db/predicates/example.json").getFile();
+        Path dbFile = Paths.get(fileUrl);
+
+        Path expected = Paths.get("non/existent.mch");
+        Path actual = new JsonDbFormat().getDataSource(dbFile);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void shouldHaveNoNextEntriesWhenInitialisedWithEmptyData() throws IOException {
         String json = getSampleJson(0);
         JsonReader reader = new JsonReader(new StringReader(json));

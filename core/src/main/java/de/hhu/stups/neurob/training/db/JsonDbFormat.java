@@ -76,8 +76,7 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
     }
 
     @Override
-    public
-    DataGenerationStats writeSamples(TrainingData<BPredicate, DecisionTimings> trainingData, Path targetDirectory) {
+    public DataGenerationStats writeSamples(TrainingData<BPredicate, DecisionTimings> trainingData, Path targetDirectory) {
         Path sourceFile = trainingData.getSourceFile();
         Path targetFile = getTargetLocation(sourceFile, targetDirectory);
 
@@ -186,6 +185,13 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
                       + "}";
 
         return json;
+    }
+
+    @Override
+    public Path getDataSource(Path dbFile) throws IOException {
+        return loadSamples(dbFile)
+                .map(TrainingSample::getSourceFile)
+                .findFirst().get();
     }
 
     public static class PredicateDbIterator

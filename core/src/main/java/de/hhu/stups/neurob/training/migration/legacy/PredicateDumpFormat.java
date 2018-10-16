@@ -59,8 +59,7 @@ public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
      */
     private PredicateDump translateEntry(String entry, AtomicReference<Path> srcReference) {
         if (entry.startsWith("#source:")) {
-            int splitPos = entry.indexOf(":");
-            String sourceEntry = entry.substring(splitPos + 1);
+            String sourceEntry = entry.substring(8);
             srcReference.set(Paths.get(sourceEntry));
 
             return null;
@@ -168,5 +167,14 @@ public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
     @Override
     public String getFileExtension() {
         return "pdump";
+    }
+
+    @Override
+    public Path getDataSource(Path dbFile) throws IOException {
+        return Files.lines(dbFile)
+                .filter(line -> line.startsWith("#source:"))
+                .map(line -> line.substring(8))
+                .map(Paths::get)
+                .findFirst().get();
     }
 }
