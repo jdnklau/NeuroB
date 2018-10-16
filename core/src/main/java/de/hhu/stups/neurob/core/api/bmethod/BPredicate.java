@@ -1,8 +1,6 @@
 package de.hhu.stups.neurob.core.api.bmethod;
 
-import de.hhu.stups.neurob.core.api.data.BData;
-
-public class BPredicate implements BElement, BData {
+public class BPredicate implements BElement {
 
     private final String predicate;
 

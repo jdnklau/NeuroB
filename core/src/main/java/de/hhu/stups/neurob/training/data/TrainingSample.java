@@ -1,12 +1,16 @@
 package de.hhu.stups.neurob.training.data;
 
-import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 
 import java.nio.file.Path;
 import java.util.Arrays;
 
-public class TrainingSample<D extends BData, L extends Labelling> {
+/**
+ * Pair of data point and corresponding labelling.
+ * @param <D> Data type that is labelled
+ * @param <L>
+ */
+public class TrainingSample<D, L extends Labelling> {
 
     private final D data;
     private final L labelling;
@@ -23,7 +27,7 @@ public class TrainingSample<D extends BData, L extends Labelling> {
     }
 
     /**
-     * Returns the encapsulated {@link BData}.
+     * Returns the encapsulated data.
      *
      * @return
      * @deprecated Use {@link #getData()} instead.
@@ -34,7 +38,7 @@ public class TrainingSample<D extends BData, L extends Labelling> {
     }
 
     /**
-     * Returns the encapsulated {@link BData}.
+     * Returns the encapsulated data.
      *
      * @return
      */
@@ -43,7 +47,7 @@ public class TrainingSample<D extends BData, L extends Labelling> {
     }
 
     /**
-     * Returns the labelling associated with the encapsulated {@link BData}.
+     * Returns the labelling associated with the encapsulated data.
      * @return
      */
     public L getLabelling() {

@@ -1,7 +1,5 @@
 package de.hhu.stups.neurob.training.formats;
 
-import de.hhu.stups.neurob.core.api.data.BData;
-import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
@@ -11,7 +9,15 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-public interface TrainingDataFormat<D extends BData, L extends Labelling> {
+/**
+ * Storage format for training data.
+ *
+ * Stores labelled training data on disk.
+ *
+ * @param <D> Type of stored data
+ * @param <L> Type of corresponding labels
+ */
+public interface TrainingDataFormat<D, L extends Labelling> {
 
     /**
      * Generates the target location path to be written to at training data

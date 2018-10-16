@@ -99,7 +99,7 @@ class PredicateTrainingGeneratorIT {
 
         List<String> actual = generator.streamSamplesFromFile(
                 Paths.get(TestMachines.FORMULAE_GEN_MCH))
-                .map(sample -> ((PredicateFeatures) sample.getFeatures())
+                .map(sample -> ((PredicateFeatures) sample.getData())
                         .getPredicate())
                 .map(Object::toString)
                 .collect(Collectors.toList());
@@ -252,7 +252,7 @@ class PredicateTrainingGeneratorIT {
                 .thenReturn(1L);
 
         CsvFormat format = new CsvFormat(TheoryFeatures.featureDimension, 1);
-        TrainingSetGenerator generator =
+        PredicateTrainingGenerator generator =
                 new PredicateTrainingGenerator(
                         new TheoryFeatures.Generator(),
                         new DecisionTimings.Generator(1, backend),
@@ -346,7 +346,7 @@ class PredicateTrainingGeneratorIT {
         ProBBackend prob = new ProBBackend();
         PredicateDbFormat format = new JsonDbFormat();
 
-        TrainingSetGenerator gen =
+        PredicateTrainingGenerator gen =
                 new PredicateTrainingGenerator(
                         (pred, ss) -> pred,
                         new DecisionTimings.Generator(1, prob, kodkod),
@@ -378,7 +378,7 @@ class PredicateTrainingGeneratorIT {
         // Make sure target really does not exist
         Files.deleteIfExists(target);
 
-        TrainingSetGenerator gen = new PredicateTrainingGenerator();
+        PredicateTrainingGenerator gen = new PredicateTrainingGenerator();
 
         assertFalse(gen.dataAlreadyExists(mch, target),
                 "Data should not be existent");
@@ -397,7 +397,7 @@ class PredicateTrainingGeneratorIT {
         Path target = format.getTargetLocation(mch.getFileName(), targetDir);
         Files.copy(origTarget, target);
 
-        TrainingSetGenerator gen = new PredicateTrainingGenerator();
+        PredicateTrainingGenerator gen = new PredicateTrainingGenerator();
 
         assertTrue(gen.dataAlreadyExists(mch, target),
                 "Data should be existent");
@@ -416,7 +416,7 @@ class PredicateTrainingGeneratorIT {
         Path targetDir = Paths.get(TestMachines.getDbPath(""));
         Path target = format.getTargetLocation(mch.getFileName(), targetDir);
 
-        TrainingSetGenerator gen = new PredicateTrainingGenerator();
+        PredicateTrainingGenerator gen = new PredicateTrainingGenerator();
 
         assertFalse(gen.dataAlreadyExists(newMch, target),
                 "Data should be marked as nonexistent");

@@ -1,6 +1,5 @@
 package de.hhu.stups.neurob.training.data;
 
-import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 
 import java.nio.file.Path;
@@ -14,7 +13,7 @@ import java.util.stream.Stream;
  * @param <L> Labelling type used.
  */
 public class TrainingData
-        <D extends BData, L extends Labelling> {
+        <D, L extends Labelling> {
     private final Path sourceFile;
     private final Stream<TrainingSample<D, L>> samples;
 

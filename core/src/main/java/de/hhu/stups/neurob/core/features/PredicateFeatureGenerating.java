@@ -2,8 +2,6 @@ package de.hhu.stups.neurob.core.features;
 
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
-import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 
 /**
@@ -12,7 +10,7 @@ import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
  * @param <F> Feature type to be generated
  */
 @FunctionalInterface
-public interface PredicateFeatureGenerating<F extends BData>
+public interface PredicateFeatureGenerating<F>
         extends FeatureGenerating<F, BPredicate> {
 
     F generate(BPredicate predicate, BMachine bMachine) throws FeatureCreationException;

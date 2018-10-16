@@ -3,7 +3,6 @@ package de.hhu.stups.neurob.training.generation;
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
-import de.hhu.stups.neurob.core.api.data.BData;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
@@ -38,7 +37,7 @@ public class PredicateTrainingGenerator
             LoggerFactory.getLogger(PredicateFeatureGenerating.class);
 
     // TODO: Change way of data extraction, transformation, etc.
-    public <F extends BData, L extends PredicateLabelling>
+    public <F, L extends PredicateLabelling>
     PredicateTrainingGenerator(
             PredicateFeatureGenerating<F> featureGenerator,
             PredicateLabelGenerating<L> labelGenerator,
@@ -92,7 +91,7 @@ public class PredicateTrainingGenerator
         return samples.filter(Objects::nonNull)
                 // add source file information
                 .map(sample -> new TrainingSample<>(
-                        sample.getFeatures(),
+                        sample.getData(),
                         sample.getLabelling(),
                         bMachine.getLocation()));
 
@@ -133,7 +132,7 @@ public class PredicateTrainingGenerator
     public TrainingSample generateSample(BPredicate predicate, BMachine bMachine)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
-        BData features = ((PredicateFeatureGenerating) featureGenerator)
+        Object features = ((PredicateFeatureGenerating) featureGenerator)
                 .generate(predicate, bMachine);
 
         log.debug("Generating labelling for {}", predicate);

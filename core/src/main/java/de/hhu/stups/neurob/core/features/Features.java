@@ -1,11 +1,9 @@
 package de.hhu.stups.neurob.core.features;
 
-import de.hhu.stups.neurob.core.api.data.BData;
-
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class Features implements BData {
+public class Features {
 
     protected final Double[] features;
     protected final int featureDimension;
