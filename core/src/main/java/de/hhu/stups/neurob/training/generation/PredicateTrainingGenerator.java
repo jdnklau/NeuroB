@@ -18,6 +18,7 @@ import de.hhu.stups.neurob.training.generation.util.PredicateCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -129,11 +130,20 @@ public class PredicateTrainingGenerator
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample generateSample(BPredicate predicate, BMachine bMachine)
+    public TrainingSample generateSample(BPredicate predicate, @Nullable BMachine bMachine)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
+
+        // Access bMachine
+        MachineAccess access = null;
+        try {
+            access = bMachine != null ? bMachine.getMachineAccess() : null;
+        } catch (MachineAccessException e) {
+            log.warn("Could not access {}, continuing without", bMachine, e);
+        }
+
         Object features = ((PredicateFeatureGenerating) featureGenerator)
-                .generate(predicate, bMachine);
+                .generate(predicate, access);
 
         log.debug("Generating labelling for {}", predicate);
         Labelling labelling = ((PredicateLabelGenerating) labelGenerator)

@@ -6,6 +6,7 @@ import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.util.TheoryFeatureCollector;
+import de.hhu.stups.neurob.training.generation.generation2.extraction.DataExtracting;
 
 /**
  * Small feature set over B predicates. Initial feature set for NeuroB.
@@ -155,26 +156,35 @@ public class TheoryFeatures extends PredicateFeatures {
     public static class Generator
             implements PredicateFeatureGenerating<TheoryFeatures> {
         @Override
-        public TheoryFeatures generate(BPredicate predicate, BMachine bMachine)
+        public TheoryFeatures generate(BPredicate predicate, MachineAccess bMachine)
                 throws FeatureCreationException {
             return new TheoryFeatures(predicate, generateArray(predicate, bMachine));
         }
 
-        public Double[] generateArray(BPredicate predicate, BMachine bMachine)
+        public Double[] generateArray(BPredicate predicate, MachineAccess machineAccess)
                 throws FeatureCreationException {
+            return TheoryFeatureCollector.collect(predicate, machineAccess).toArray();
+        }
+
+        public Double[] generateArray(BPredicate predicate, BMachine bMachine)
+            throws FeatureCreationException {
+
+            // Access machine
+            MachineAccess access = null;
             try {
-                MachineAccess machineAccess = (bMachine != null)
-                        ? bMachine.getMachineAccess()
-                        : null;
-                Double[] features = TheoryFeatureCollector.collect(predicate, machineAccess).toArray();
-                if (machineAccess != null) {
-                    bMachine.closeMachineAccess();
-                }
-                return features;
+                access = bMachine != null ? bMachine.getMachineAccess() : null;
             } catch (MachineAccessException e) {
-                throw new FeatureCreationException(
-                        "Could not extract features over B machine " + bMachine, e);
+                e.printStackTrace();
             }
+
+            Double[] features = generateArray(predicate, access);
+
+            // Close machine
+            if (access != null) {
+                bMachine.closeMachineAccess();
+            }
+
+            return features;
         }
 
     }
