@@ -56,8 +56,6 @@ class JsonDbFormatTest {
             + "\"SmtBackend\":-1.0"
             + "}}";
 
-    private DecisionTimings labelling;
-
     @BeforeEach
     void setupLabelling() {
     }
@@ -123,6 +121,28 @@ class JsonDbFormatTest {
 
         assertEquals(expected, actual,
                 "Loaded entries do not match");
+    }
+
+    @Test
+    public void shouldReturnEmptyStreamWhenDbFileContainsNoSamples() throws IOException {
+        String fileUrl = JsonDbFormatTest.class.getClassLoader()
+                .getResource("db/predicates/no_samples.json").getFile();
+        Path dbFile = Paths.get(fileUrl);
+
+        long expected = 0;
+        long actual = new JsonDbFormat().loadSamples(dbFile).count();
+
+        assertEquals(expected, actual,
+                "Stream should contain no elements");
+    }
+
+    @Test
+    public void shouldReturnNullWhenNoSourceMachineCanBeDetermined() throws IOException {
+        String fileUrl = JsonDbFormatTest.class.getClassLoader()
+                .getResource("db/predicates/no_samples.json").getFile();
+        Path dbFile = Paths.get(fileUrl);
+
+        assertNull(new JsonDbFormat().getDataSource(dbFile));
     }
 
     @Test

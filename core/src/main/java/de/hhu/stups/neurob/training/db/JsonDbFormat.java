@@ -195,7 +195,7 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
     public Path getDataSource(Path dbFile) throws IOException {
         return loadSamples(dbFile)
                 .map(TrainingSample::getSourceFile)
-                .findFirst().get();
+                .findFirst().orElse(null);
     }
 
     public static class PredicateDbIterator
