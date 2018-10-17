@@ -6,7 +6,6 @@ import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.util.TheoryFeatureCollector;
-import de.hhu.stups.neurob.training.generation.generation2.extraction.DataExtracting;
 
 /**
  * Small feature set over B predicates. Initial feature set for NeuroB.
@@ -87,6 +86,11 @@ public class TheoryFeatures extends PredicateFeatures {
         this(BPredicate.of(predicate), bMachine);
     }
 
+    public TheoryFeatures(BPredicate predicate, MachineAccess access)
+            throws FeatureCreationException {
+        super(predicate, new Generator().generateArray(predicate, access));
+    }
+
     /**
      * Wraps the given feature array in a TheoryFeature instance.
      * The features must be exactly {@link #featureDimension} entries long.
@@ -128,7 +132,7 @@ public class TheoryFeatures extends PredicateFeatures {
 
     public static TheoryFeatures generate(BPredicate predicate)
             throws FeatureCreationException {
-        return generate(predicate, null);
+        return generate(predicate, (MachineAccess) null);
     }
 
     public static TheoryFeatures generate(BPredicate predicate, BMachine bMachine)
@@ -138,12 +142,17 @@ public class TheoryFeatures extends PredicateFeatures {
 
     public static TheoryFeatures generate(String predicate)
             throws FeatureCreationException {
-        return generate(BPredicate.of(predicate), null);
+        return generate(BPredicate.of(predicate), (MachineAccess) null);
     }
 
     public static TheoryFeatures generate(String predicate, BMachine bMachine)
             throws FeatureCreationException {
         return generate(BPredicate.of(predicate), bMachine);
+    }
+
+    public static TheoryFeatures generate(BPredicate predicate, MachineAccess bMachine)
+            throws FeatureCreationException {
+        return new Generator().generate(predicate, bMachine);
     }
 
     /**
@@ -167,7 +176,7 @@ public class TheoryFeatures extends PredicateFeatures {
         }
 
         public Double[] generateArray(BPredicate predicate, BMachine bMachine)
-            throws FeatureCreationException {
+                throws FeatureCreationException {
 
             // Access machine
             MachineAccess access = null;

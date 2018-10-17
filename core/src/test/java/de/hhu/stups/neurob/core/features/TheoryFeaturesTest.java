@@ -154,7 +154,7 @@ class TheoryFeaturesTest {
     @Test
     public void shouldCreateNewFeaturesWithStaticGeneratorWhenBMachineIsNull()
             throws Exception {
-        TheoryFeatures features = TheoryFeatures.generate(predicate, null);
+        TheoryFeatures features = TheoryFeatures.generate(predicate, (BMachine) null);
 
         Double[] expected = expectedFeatures;
         Double[] actual = features.getFeatureArray();
