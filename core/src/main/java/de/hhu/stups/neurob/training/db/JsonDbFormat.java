@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -67,7 +68,8 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
                 Spliterators.spliteratorUnknownSize(
                         new PredicateDbIterator(reader),
                         0),
-                false);
+                false)
+                .filter(Objects::nonNull);
     }
 
     @Override
@@ -172,7 +174,9 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
                 .collect(Collectors.joining(","));
 
         // Escape strings in predicate
-        String escapedPredicate = predicate.getPredicate().replaceAll("\"", "\\\\\\\"");
+        String escapedPredicate = predicate.getPredicate()
+                .replaceAll("\\\\", "\\\\\\\\") // Escape backslashes
+                .replaceAll("\"", "\\\\\\\""); // escape quotation marks
 
         // Concatenate everything into one Json Object
         String sourceEntry = (isSourceDefined)
@@ -260,7 +264,6 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
 
             return hasNext;
         }
-
 
         @Override
         public TrainingSample<BPredicate, DecisionTimings> next() {

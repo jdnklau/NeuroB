@@ -455,6 +455,108 @@ class JsonDbFormatTest {
     }
 
     @Test
+    public void shouldEscapeBackslashInPredicate() {
+        BPredicate predWithString = BPredicate.of("{1,2} /\\ {2,3} = {1,2,3}");
+        Labelling labels = new Labelling(1., 2., 3., -1.);
+        Path source = Paths.get("non/existent.mch");
+        TrainingSample<BPredicate, Labelling> sample =
+                new TrainingSample<>(predWithString, labels, source);
+
+        JsonDbFormat format = new JsonDbFormat();
+
+
+        String expected = "{"
+                          + "\"predicate\":\"{1,2} /\\\\ {2,3} = {1,2,3}\","
+                          + "\"source\":\"non/existent.mch\","
+                          + "\"timings\":{"
+                          + "\"ProBBackend\":1.0,"
+                          + "\"KodkodBackend\":2.0,"
+                          + "\"Z3Backend\":3.0,"
+                          + "\"SmtBackend\":-1.0"
+                          + "}}";
+        String actual = format.translateSampleToJsonObject(sample);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldEscapeNewlineEscapeInPredicate() {
+        BPredicate predWithString = BPredicate.of("string = \"n\"");
+        Labelling labels = new Labelling(1., 2., 3., -1.);
+        Path source = Paths.get("non/existent.mch");
+        TrainingSample<BPredicate, Labelling> sample =
+                new TrainingSample<>(predWithString, labels, source);
+
+        JsonDbFormat format = new JsonDbFormat();
+
+
+        String expected = "{"
+                          + "\"predicate\":\"string = \\\"n\\\"\","
+                          + "\"source\":\"non/existent.mch\","
+                          + "\"timings\":{"
+                          + "\"ProBBackend\":1.0,"
+                          + "\"KodkodBackend\":2.0,"
+                          + "\"Z3Backend\":3.0,"
+                          + "\"SmtBackend\":-1.0"
+                          + "}}";
+        String actual = format.translateSampleToJsonObject(sample);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldLoadSampleWhenPredicateHasBackslashes() throws IOException {
+        String sampleJson = "{\"samples\": [{"
+                          + "\"predicate\":\"{1,2} /\\\\ {2,3} = {1,2,3}\","
+                          + "\"source\":\"non/existent.mch\","
+                          + "\"timings\":{"
+                          + "\"ProBBackend\":1.0,"
+                          + "\"KodkodBackend\":2.0,"
+                          + "\"Z3Backend\":3.0,"
+                          + "\"SmtBackend\":-1.0"
+                          + "}}]}";
+
+        JsonDbFormat.PredicateDbIterator iterator =
+                new JsonDbFormat.PredicateDbIterator(new JsonReader(new StringReader(sampleJson)));
+
+        BPredicate predWithString = BPredicate.of("{1,2} /\\ {2,3} = {1,2,3}");
+        Labelling labels = new Labelling(1., 2., 3., -1.);
+        Path source = Paths.get("non/existent.mch");
+        TrainingSample<BPredicate, Labelling> expected =
+                new TrainingSample<>(predWithString, labels, source);
+
+        TrainingSample<BPredicate, DecisionTimings> actual = iterator.next();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldLoadSampleContainingNewlineEscapeAndQuotationMarks() throws IOException {
+        String sampleJson = "{\"samples\":[{"
+                          + "\"predicate\":\"string = \\\"n\\\"\","
+                          + "\"source\":\"non/existent.mch\","
+                          + "\"timings\":{"
+                          + "\"ProBBackend\":1.0,"
+                          + "\"KodkodBackend\":2.0,"
+                          + "\"Z3Backend\":3.0,"
+                          + "\"SmtBackend\":-1.0"
+                          + "}}]}";
+
+        JsonDbFormat.PredicateDbIterator iterator =
+                new JsonDbFormat.PredicateDbIterator(new JsonReader(new StringReader(sampleJson)));
+
+        BPredicate predWithString = BPredicate.of("string = \"n\"");
+        Labelling labels = new Labelling(1., 2., 3., -1.);
+        Path source = Paths.get("non/existent.mch");
+        TrainingSample<BPredicate, Labelling> expected =
+                new TrainingSample<>(predWithString, labels, source);
+
+        TrainingSample<BPredicate, DecisionTimings> actual = iterator.next();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void shouldWriteStreamedSamplesToWriter() throws IOException {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
