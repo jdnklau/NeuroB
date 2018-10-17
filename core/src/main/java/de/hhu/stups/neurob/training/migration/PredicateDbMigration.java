@@ -1,7 +1,10 @@
 package de.hhu.stups.neurob.training.migration;
 
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
+import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.labelling.DecisionTimings;
@@ -17,6 +20,7 @@ import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,8 +51,7 @@ public class PredicateDbMigration
     }
 
     @Override
-    public DataGenerationStats migrate(
-            Path source, Path targetDirectory, PredicateDbFormat targetFormat)
+    public DataGenerationStats migrate(Path source, Path targetDirectory, PredicateDbFormat targetFormat)
             throws IOException {
         DataGenerationStats stats = new DataGenerationStats();
 
@@ -73,8 +76,28 @@ public class PredicateDbMigration
         return stats;
     }
 
+    /**
+     * Migrates all the database files in the sourceDir into the targetDir,
+     * translating the data according to the given feature and label generators.
+     * <p>
+     * The data is stored in the specified format.
+     *
+     * @param sourceDir
+     * @param targetDir
+     * @param generationSource Path to directory containing original B machines the data
+     *         base was build upon.
+     * @param featureGen
+     * @param labelTrans
+     * @param targetFormat
+     * @param <D>
+     * @param <L>
+     *
+     * @return
+     *
+     * @throws IOException
+     */
     public <D extends Features, L extends Labelling>
-    DataGenerationStats migrate(Path sourceDir, Path targetDir,
+    DataGenerationStats migrate(Path sourceDir, Path targetDir, Path generationSource,
             PredicateFeatureGenerating<D> featureGen,
             LabelTranslation<DecisionTimings, L> labelTrans,
             TrainingDataFormat<D, L> targetFormat) throws IOException {
@@ -89,10 +112,32 @@ public class PredicateDbMigration
                 .filter(file -> file.toString().endsWith(sourceFormat.getFileExtension())) // only format files
                 .forEach(dbFile -> {
                     try {
+                        log.info("Migrating {}", dbFile);
+                        // Access original machine
+                        BMachine origMachine = null;
+                        if (generationSource != null) {
+                            Path origPath = null;
+                            try {
+                                origPath = sourceFormat.getDataSource(dbFile);
+                                log.debug("Determined original source machine: {}", origPath);
+                            } catch (IOException e) {
+                                log.warn("Unable to determine original source machine for {}",
+                                        dbFile, e);
+                            }
+                            origMachine = (origPath != null)
+                                    ? new BMachine(generationSource.resolve(origPath))
+                                    : null;
+                        }
+
                         DataGenerationStats fileStats =
-                                migrateFile(dbFile, sourceDir, targetDir,
+                                migrateFile(dbFile, sourceDir, targetDir, origMachine,
                                         featureGen, labelTrans, targetFormat);
                         stats.mergeWith(fileStats);
+
+                        // close machine if opened
+                        if (origMachine != null) {
+                            origMachine.closeMachineAccess();
+                        }
                     } catch (IOException e) {
                         log.warn("Unable to migrate {}", dbFile, e);
                         stats.increaseFilesWithErrors();
@@ -120,7 +165,7 @@ public class PredicateDbMigration
     /**
      * Migrate the data into the target location in the respective format.
      *
-     * @param sourceFile *.pdump file containing data to be migrated.
+     * @param sourceFile db file containing data to be migrated.
      * @param commonSourceDirectory Leading path of the source file to be discarded
      *         when calculating the name of the target location from the source.
      * @param targetDirectory Directory into which the data will be migrated.
@@ -147,20 +192,39 @@ public class PredicateDbMigration
             Path targetDirectory,
             PredicateFeatureGenerating<D> featureGen, LabelTranslation<DecisionTimings, L> labelTrans,
             TrainingDataFormat<D, L> targetFormat) throws IOException {
+        return migrateFile(sourceFile, commonSourceDirectory, targetDirectory, null,
+                featureGen, labelTrans, targetFormat);
+    }
+
+    public <D extends Features, L extends Labelling>
+    DataGenerationStats migrateFile(Path sourceFile, Path commonSourceDirectory,
+            Path targetDirectory, @Nullable BMachine origMachine,
+            PredicateFeatureGenerating<D> featureGen, LabelTranslation<DecisionTimings, L> labelTrans,
+            TrainingDataFormat<D, L> targetFormat) throws IOException {
 
         DataGenerationStats stats = new DataGenerationStats();
-        Stream<TrainingSample<D, L>> samples =
-                sourceFormat.loadSamples(sourceFile)
-                        .map(sample -> {
-                            try {
-                                return migrateSample(sample, featureGen, labelTrans);
-                            } catch (FeatureCreationException e) {
-                                log.warn("Could not migrate {}", sample.getData(), e);
-                                stats.increaseSamplesFailed();
-                                return null;
-                            }
-                        })
-                        .filter(Objects::nonNull);
+
+        // Access machine
+        MachineAccess access = null;
+        try {
+            access = origMachine != null ? origMachine.getMachineAccess() : null;
+        } catch (MachineAccessException e) {
+            log.warn("Unable to access machine {} for migration context", origMachine, e);
+        }
+
+        MachineAccess finalAccess = access;
+        Stream<TrainingSample<D, L>> samples = sourceFormat.loadSamples(sourceFile)
+                .map(sample -> {
+                    try {
+                        log.trace("Migrating sample {}", sample);
+                        return migrateSample(sample, featureGen, labelTrans, finalAccess);
+                    } catch (FeatureCreationException e) {
+                        log.warn("Could not migrate {}", sample.getData(), e);
+                        stats.increaseSamplesFailed();
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull);
 
         TrainingData<D, L> data = new TrainingData<>(
                 stripCommonSourceDir(sourceFile, commonSourceDirectory),
@@ -185,12 +249,35 @@ public class PredicateDbMigration
      */
     <D extends Features, L extends Labelling>
     TrainingSample<D, L> migrateSample(TrainingSample<BPredicate, DecisionTimings> sample,
-            PredicateFeatureGenerating<D> featureGen, LabelTranslation<DecisionTimings, L> labelTrans)
+            PredicateFeatureGenerating<D> featureGen,
+            LabelTranslation<DecisionTimings, L> labelTrans)
             throws FeatureCreationException {
-        // TODO: Load state space again?
+        return migrateSample(sample, featureGen, labelTrans, null);
+    }
+
+    /**
+     * Translates a given sample from the data base according to the given mappings
+     * for {@link de.hhu.stups.neurob.core.features.FeatureGenerating features}
+     * and {@link com.sun.java.accessibility.util.java.awt.LabelTranslator labels}.
+     *
+     * @param sample
+     * @param featureGen
+     * @param labelTrans
+     * @param origMachine Access to original B machine the sample was generated from
+     * @param <D>
+     * @param <L>
+     *
+     * @return
+     */
+    <D extends Features, L extends Labelling>
+    TrainingSample<D, L> migrateSample(TrainingSample<BPredicate, DecisionTimings> sample,
+            PredicateFeatureGenerating<D> featureGen, LabelTranslation<DecisionTimings, L> labelTrans,
+            MachineAccess origMachine)
+            throws FeatureCreationException {
+
         BPredicate predicate = sample.getData();
         log.trace("Migrating {}", predicate);
-        D features = featureGen.generate(predicate);
+        D features = featureGen.generate(predicate, origMachine);
         L labelling = labelTrans.translate(sample.getLabelling());
         log.trace("Migrated {} to {}/{}", predicate, features, labelling);
         return new TrainingSample<>(features, labelling, sample.getSourceFile());
