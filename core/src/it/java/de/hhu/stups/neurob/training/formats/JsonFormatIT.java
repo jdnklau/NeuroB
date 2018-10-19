@@ -134,7 +134,7 @@ class JsonFormatIT {
                 targetDir);
 
         assertAll("Json statistics",
-                () -> assertEquals(1, stats.getFilesSeen(),
+                () -> assertEquals(0, stats.getFilesSeen(),
                         "Should only have seen one file"),
                 () -> assertEquals(1, stats.getFilesCreated(),
                         "Should only have created one file"),
