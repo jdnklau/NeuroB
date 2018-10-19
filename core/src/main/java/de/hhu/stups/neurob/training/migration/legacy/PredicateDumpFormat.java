@@ -99,6 +99,7 @@ public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
             BufferedWriter out = Files.newBufferedWriter(targetFile);
             stats.increaseFilesCreated();
             DataGenerationStats writeStats = writeSamples(trainingData, out);
+            out.close();
             stats.mergeWith(writeStats);
         } catch (IOException e) {
             log.error("Could not write predicate dump to {}", targetFile);

@@ -17,6 +17,7 @@ import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -99,8 +100,10 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
         try {
             log.info("Writing samples from {} to {}",
                     sourceFile, targetFile);
+            BufferedWriter writer = Files.newBufferedWriter(targetFile);
             DataGenerationStats writeStats =
-                    writeSamples(trainingData, Files.newBufferedWriter(targetFile));
+                    writeSamples(trainingData, writer);
+            writer.close();
 
             stats.increaseFilesCreated();
             stats.mergeWith(writeStats);
@@ -193,9 +196,11 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
 
     @Override
     public Path getDataSource(Path dbFile) throws IOException {
-        return loadSamples(dbFile)
-                .map(TrainingSample::getSourceFile)
-                .findFirst().orElse(null);
+        try (Stream<TrainingSample<BPredicate, DecisionTimings>> samples = loadSamples(dbFile)) {
+            return samples
+                    .map(TrainingSample::getSourceFile)
+                    .findFirst().orElse(null);
+        }
     }
 
     public static class PredicateDbIterator

@@ -11,6 +11,7 @@ import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -55,8 +56,10 @@ public class JsonFormat implements TrainingDataFormat<Features, Labelling> {
         try {
             log.info("Writing samples from {} to {}",
                     sourceFile, targetFile);
+            BufferedWriter out = Files.newBufferedWriter(targetFile);
             DataGenerationStats writeStats = writeSamples(trainingData.getSamples(),
-                    Files.newBufferedWriter(targetFile));
+                    out);
+            out.close();
 
             stats.increaseFilesCreated();
             stats.mergeWith(writeStats);

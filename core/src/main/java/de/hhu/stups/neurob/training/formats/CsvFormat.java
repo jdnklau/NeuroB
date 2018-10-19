@@ -129,7 +129,9 @@ public class CsvFormat implements TrainingDataFormat<Features, Labelling> {
             out.flush();
         }
 
-        return writeSamples(trainingData, out);
+        DataGenerationStats stats = writeSamples(trainingData, out);
+        out.close();
+        return stats;
     }
 
     @Override
