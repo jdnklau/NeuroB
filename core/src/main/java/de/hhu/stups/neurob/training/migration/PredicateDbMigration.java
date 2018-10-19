@@ -63,9 +63,12 @@ public class PredicateDbMigration
                 .filter(file -> file.toString().endsWith(sourceFormat.getFileExtension())) // only format files
                 .forEach(dbFile -> {
                     try {
+                        log.info("Migrating {}", dbFile);
+                        stats.increaseFilesSeen();
                         DataGenerationStats fileStats =
                                 migrateFile(dbFile, source, targetDirectory, targetFormat);
                         stats.mergeWith(fileStats);
+                        log.info("Finished migration of {}", dbFile);
                     } catch (IOException e) {
                         log.warn("Unable to migrate {}", dbFile, e);
                         stats.increaseFilesWithErrors();
@@ -113,6 +116,7 @@ public class PredicateDbMigration
                 .forEach(dbFile -> {
                     try {
                         log.info("Migrating {}", dbFile);
+                        stats.increaseFilesSeen();
                         // Access original machine
                         BMachine origMachine = null;
                         if (generationSource != null) {
@@ -138,6 +142,7 @@ public class PredicateDbMigration
                         if (origMachine != null) {
                             origMachine.closeMachineAccess();
                         }
+                        log.info("Finished migration of {}", dbFile);
                     } catch (IOException e) {
                         log.warn("Unable to migrate {}", dbFile, e);
                         stats.increaseFilesWithErrors();

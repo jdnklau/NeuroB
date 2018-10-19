@@ -104,6 +104,7 @@ public abstract class TrainingSetGenerator {
                     .forEach(samples ->
                     {
                         try {
+                            stats.increaseFilesSeen();
                             DataGenerationStats writeStats = format.writeSamples(samples, fullTargetDir);
                             samples.getSamples().close();
                             stats.mergeWith(writeStats);

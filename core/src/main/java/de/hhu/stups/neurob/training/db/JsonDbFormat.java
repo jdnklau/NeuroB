@@ -84,7 +84,6 @@ public class JsonDbFormat implements PredicateDbFormat<DecisionTimings> {
         Path targetFile = getTargetLocation(sourceFile, targetDirectory);
 
         DataGenerationStats stats = new DataGenerationStats();
-        stats.increaseFilesSeen();
 
         // Ensure target subdirectory exists
         Path targetSubdir = targetFile.getParent();

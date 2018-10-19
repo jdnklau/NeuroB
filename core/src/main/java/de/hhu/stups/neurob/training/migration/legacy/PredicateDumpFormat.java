@@ -91,7 +91,6 @@ public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
         log.info("Writing samples from {} to {}", trainingData.getSourceFile(), targetFile);
 
         DataGenerationStats stats = new DataGenerationStats();
-        stats.increaseFilesSeen();
 
         try {
             // Ensure directory exists

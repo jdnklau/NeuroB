@@ -40,7 +40,6 @@ public class JsonFormat implements TrainingDataFormat<Features, Labelling> {
                 targetDirectory);
 
         DataGenerationStats stats = new DataGenerationStats();
-        stats.increaseFilesSeen();
 
         // Ensure target subdirectory exists
         Path targetSubdir = targetFile.getParent();
