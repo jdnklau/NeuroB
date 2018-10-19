@@ -57,6 +57,9 @@ public interface TrainingDataFormat<D, L extends Labelling> {
     /**
      * Streams training samples from the given source file.
      *
+     * As this is an IO access to the given sourceFile, the stream
+     * needs to be closed after use.
+     *
      * @param sourceFile Path to a file conforming this format.
      *
      * @return Stream of training samples.

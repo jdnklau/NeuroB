@@ -180,11 +180,13 @@ public class PredicateDbMigration
             Path targetDirectory, PredicateDbFormat<? extends PredicateLabelling> targetFormat)
             throws IOException {
 
-        TrainingData data = new TrainingData<>(
-                stripCommonSourceDir(sourceFile, commonSourceDirectory),
-                sourceFormat.loadSamples(sourceFile));
-
-        return targetFormat.writeSamples(data, targetDirectory);
+        try (Stream<TrainingSample<BPredicate, DecisionTimings>> samples =
+                     sourceFormat.loadSamples(sourceFile)) {
+            TrainingData data = new TrainingData<>(
+                    stripCommonSourceDir(sourceFile, commonSourceDirectory),
+                    samples);
+            return targetFormat.writeSamples(data, targetDirectory);
+        }
     }
 
     public <D extends Features, L extends Labelling>
@@ -213,24 +215,26 @@ public class PredicateDbMigration
         }
 
         MachineAccess finalAccess = access;
-        Stream<TrainingSample<D, L>> samples = sourceFormat.loadSamples(sourceFile)
-                .map(sample -> {
-                    try {
-                        log.trace("Migrating sample {}", sample);
-                        return migrateSample(sample, featureGen, labelTrans, finalAccess);
-                    } catch (FeatureCreationException e) {
-                        log.warn("Could not migrate {}", sample.getData(), e);
-                        stats.increaseSamplesFailed();
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull);
+        try (Stream<TrainingSample<BPredicate, DecisionTimings>> rawSamples =
+                     sourceFormat.loadSamples(sourceFile)) {
+            Stream<TrainingSample<D, L>> samples =
+                    rawSamples.map(sample -> {
+                        try {
+                            log.trace("Migrating sample {}", sample);
+                            return migrateSample(sample, featureGen, labelTrans, finalAccess);
+                        } catch (FeatureCreationException e) {
+                            log.warn("Could not migrate {}", sample.getData(), e);
+                            stats.increaseSamplesFailed();
+                            return null;
+                        }
+                    }).filter(Objects::nonNull);
 
-        TrainingData<D, L> data = new TrainingData<>(
-                stripCommonSourceDir(sourceFile, commonSourceDirectory),
-                samples);
+            TrainingData<D, L> data = new TrainingData<>(
+                    stripCommonSourceDir(sourceFile, commonSourceDirectory),
+                    samples);
 
-        stats.mergeWith(targetFormat.writeSamples(data, targetDirectory));
+            stats.mergeWith(targetFormat.writeSamples(data, targetDirectory));
+        }
         return stats;
     }
 
