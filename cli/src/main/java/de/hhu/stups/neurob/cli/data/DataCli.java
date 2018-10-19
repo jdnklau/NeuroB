@@ -61,6 +61,7 @@ public class DataCli implements CliModule {
         Option migrate = Option.builder("m")
                 .longOpt("migrate")
                 .hasArgs()
+                .argName("PATH [FORMAT]")
                 .desc("Source directory from which the data is migrated."
                       + " Database format defaults to jsonDb")
                 .required()
@@ -70,6 +71,7 @@ public class DataCli implements CliModule {
         Option generate = Option.builder("g")
                 .longOpt("generate-from")
                 .hasArg()
+                .argName("PATH")
                 .desc("Source directory from which the data is generated")
                 .required()
                 .build();
@@ -82,6 +84,7 @@ public class DataCli implements CliModule {
         Option target = Option.builder("t")
                 .longOpt("target-dir")
                 .numberOfArgs(2)
+                .argName("PATH FORMAT")
                 .desc("Directory and format into which the data is to be migrated")
                 .required()
                 .build();
