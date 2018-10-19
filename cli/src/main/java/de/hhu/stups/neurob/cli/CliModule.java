@@ -10,6 +10,6 @@ public interface CliModule {
 
     Options getOptions();
 
-    void eval(String[] args);
+    void eval(String[] args) throws Exception;
 
 }

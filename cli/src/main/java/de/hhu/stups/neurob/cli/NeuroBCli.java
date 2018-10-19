@@ -12,14 +12,19 @@ public class NeuroBCli {
         // Modules
         DataCli data = new DataCli();
 
-        switch (key) {
-            case "data":
-                data.eval(args);
-                break;
+        try {
+            switch (key) {
+                case "data":
+                    data.eval(args);
+                    break;
 
-            case "help":
-            default:
-                System.out.println(data.getHelpText());
+                case "help":
+                default:
+                    System.out.println(data.getHelpText());
+            }
+        } catch (Exception e) {
+            System.err.println("Unable to interpret command line arguments: ");
+            e.printStackTrace(System.err);
         }
     }
 }

@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.cli.data;
 
 import de.hhu.stups.neurob.cli.CliModule;
+import de.hhu.stups.neurob.cli.Formats;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
@@ -50,9 +51,7 @@ public class DataCli implements CliModule {
 
         helpPrinter.println();
 
-        helpPrinter.append("Supported formats:\n"
-                + " - jsonDb      Predicate data base of json files\n"
-                + " - pdump       Legacy Predicate Dump data base format\n\n");
+        helpPrinter.append(Formats.getFormatInfo());
 
         return helpText.toString();
     }
@@ -93,14 +92,14 @@ public class DataCli implements CliModule {
     }
 
     @Override
-    public void eval(String[] args) {
+    public void eval(String[] args) throws Exception {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine line = parser.parse(options, args);
 
             // load common values
             Path targetDir = Paths.get(line.getOptionValues("t")[0]);
-            TrainingDataFormat targetFormat = parseFormat(line.getOptionValues("t")[1]);
+            TrainingDataFormat targetFormat = Formats.parseFormat(line.getOptionValues("t")[1]);
 
             // Switch between migration and generation
             if (line.hasOption("g")) {
@@ -109,7 +108,7 @@ public class DataCli implements CliModule {
 
                 Path sourceDir = Paths.get(line.getOptionValues("m")[0]);
                 PredicateDbFormat sourceFormat =
-                        (PredicateDbFormat) parseFormat(line.getOptionValues("m")[1]);
+                        (PredicateDbFormat) Formats.parseFormat(line.getOptionValues("m")[1]);
 
                 // If the target format is a DbFormat as well, we need a different mode for migration
                 if (targetFormat instanceof PredicateDbFormat) {
@@ -132,16 +131,6 @@ public class DataCli implements CliModule {
         } catch (IOException e) {
             System.out.println("Unable to migrate data base: " + e);
         }
-    }
-
-    private TrainingDataFormat parseFormat(String t) {
-        if ("jsonDb".equals(t)) {
-            return new JsonDbFormat();
-        } else if ("pdump".equals(t)) {
-            return new PredicateDumpFormat();
-        }
-        // TODO Implement more
-        return null;
     }
 
     @Override
