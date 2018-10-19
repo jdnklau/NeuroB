@@ -246,7 +246,7 @@ public class PredicateDbMigration
     /**
      * Translates a given sample from the data base according to the given mappings
      * for {@link de.hhu.stups.neurob.core.features.FeatureGenerating features}
-     * and {@link com.sun.java.accessibility.util.java.awt.LabelTranslator labels}.
+     * and {@link de.hhu.stups.neurob.core.labels.LabelTranslator labels}.
      *
      * @param sample
      * @param featureGen
@@ -267,7 +267,7 @@ public class PredicateDbMigration
     /**
      * Translates a given sample from the data base according to the given mappings
      * for {@link de.hhu.stups.neurob.core.features.FeatureGenerating features}
-     * and {@link com.sun.java.accessibility.util.java.awt.LabelTranslator labels}.
+     * and {@link de.hhu.stups.neurob.core.labels.LabelTranslator labels}.
      *
      * @param sample
      * @param featureGen
