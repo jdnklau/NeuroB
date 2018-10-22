@@ -269,19 +269,69 @@ public abstract class Backend {
      */
     public Boolean decidePredicate(BPredicate predicate, MachineAccess bMachine)
             throws FormulaException {
-        Boolean res;
-        CbcSolveCommand cmd = createCbcSolveCommand(predicate, bMachine);
+        return !solvePredicateUntimed(predicate, bMachine).equals(Answer.UNKNOWN);
+    }
 
-        bMachine.execute(cmd);
+    public TimedAnswer solvePredicate(BPredicate predicate, MachineAccess access)
+            throws FormulaException {
+        // Set up thread for timeout check
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Answer> futureRes = executor.submit(
+                () -> solvePredicateUntimed(predicate, access));
+
+        // Start thread and check for errors
+        Answer answer;
+        Long start, duration;
+        String message;
+        log.trace("{}: Deciding predicate {}", this.toString(), predicate);
+        start = System.nanoTime(); // start measuring time
+        try {
+            answer = futureRes.get(getTimeOutValue(), getTimeOutUnit());
+            message = "Could solve predicate in time";
+        } catch (IllegalStateException e) {
+            access.sendInterrupt();
+            // Forward the Illegal State, we really want to know when this happens.
+            throw e;
+        } catch (ProBError e) {
+            access.sendInterrupt();
+            answer = Answer.ERROR;
+            message = e.getMessage();
+        } catch (TimeoutException e) {
+            access.sendInterrupt();
+            answer = Answer.TIMEOUT;
+            message = "Timeout";
+            log.warn("Timeout after {} {} for predicate {}",
+                    getTimeOutValue(), getTimeOutUnit(), predicate);
+        } catch (InterruptedException | ExecutionException e) {
+            access.sendInterrupt();
+            answer = Answer.ERROR;
+            message = "Execution interrupted: " + e.getMessage();
+        } finally {
+            executor.shutdown();
+        }
+        duration = System.nanoTime() - start; // stop measuring
+
+        return new TimedAnswer(answer, duration, message);
+    }
+
+    public Answer solvePredicateUntimed(BPredicate predicate, MachineAccess access)
+            throws FormulaException {
+        Answer res;
+        CbcSolveCommand cmd = createCbcSolveCommand(predicate, access);
+
+        access.execute(cmd);
 
         // get value for result
         AbstractEvalResult cmdres = cmd.getValue();
         if (cmdres instanceof EvalResult) {
-            // could solve or disprove it
-            res = true;
+            if (EvalResult.FALSE.equals(cmdres)) {
+                res = Answer.INVALID;
+            } else {
+                res = Answer.VALID;
+            }
         } else if (cmdres instanceof ComputationNotCompletedResult) {
             // Could neither solve nor disprove the predicate in question
-            res = false;
+            res = Answer.UNKNOWN;
         } else {
             // Technically, this branch should be unreachable.
             throw new IllegalStateException(

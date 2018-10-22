@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -142,14 +141,57 @@ class BackendTest {
     }
 
     @Test
-    public void shouldReturnTrueWhenCbcSolveCommandIsEvalResult() throws Exception {
+    public void shouldReturnTimeoutWhenPredicateSolvingTakesTooLong() throws FormulaException {
+        Backend backend = mock(Backend.class);
+
+        BPredicate predicate = BPredicate.of("predicate");
+        when(backend.solvePredicateUntimed(predicate, bMachine))
+                .then(invocation -> {
+                    Thread.sleep(100L); // pause for 100 ms
+                    return Answer.VALID;
+                });
+        when(backend.solvePredicate(predicate, bMachine))
+                .thenCallRealMethod();
+        when(backend.getTimeOutValue()).thenReturn(0L); // unsatisfiable timeout
+        when(backend.getTimeOutUnit()).thenReturn(TimeUnit.MILLISECONDS);
+
+        Answer expected = Answer.TIMEOUT;
+        Answer actual = backend.solvePredicate(predicate, bMachine).getAnswer();
+
+        assertEquals(expected, actual, "Did not timeout.");
+
+    }
+
+    @Test
+    public void shouldReturnTrueWhenCbcSolveCommandIsEvalResultTrue() throws Exception {
         CbcSolveCommand cmd = mock(CbcSolveCommand.class);
-        when(cmd.getValue()).thenReturn(mock(EvalResult.class));
+        when(cmd.getValue()).thenReturn(EvalResult.TRUE);
 
         BPredicate predicate = BPredicate.of("predicate");
 
         Backend backend = mock(Backend.class);
         when(backend.decidePredicate(predicate, bMachine)).thenCallRealMethod();
+        when(backend.solvePredicateUntimed(predicate, bMachine)).thenCallRealMethod();
+        when(backend.createCbcSolveCommand(predicate, bMachine))
+                .thenReturn(cmd);
+
+        Boolean expected = true;
+        Boolean actual = backend.decidePredicate(predicate, bMachine);
+
+        assertEquals(true, actual,
+                "Predicate was not detected as decidable");
+    }
+
+    @Test
+    public void shouldReturnTrueWhenCbcSolveCommandIsEvalResultFalse() throws Exception {
+        CbcSolveCommand cmd = mock(CbcSolveCommand.class);
+        when(cmd.getValue()).thenReturn(EvalResult.FALSE);
+
+        BPredicate predicate = BPredicate.of("predicate");
+
+        Backend backend = mock(Backend.class);
+        when(backend.decidePredicate(predicate, bMachine)).thenCallRealMethod();
+        when(backend.solvePredicateUntimed(predicate, bMachine)).thenCallRealMethod();
         when(backend.createCbcSolveCommand(predicate, bMachine))
                 .thenReturn(cmd);
 
@@ -170,6 +212,7 @@ class BackendTest {
 
         Backend backend = mock(Backend.class);
         when(backend.decidePredicate(predicate, bMachine)).thenCallRealMethod();
+        when(backend.solvePredicateUntimed(predicate, bMachine)).thenCallRealMethod();
         when(backend.createCbcSolveCommand(predicate, bMachine))
                 .thenReturn(cmd);
 
