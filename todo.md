@@ -17,7 +17,7 @@
     - [x] Return statistics after creation of data
     - [ ] Split DataGeneration statistics into single file and directory hierarchy versions
   - [x] Wrap StateSpaces
-  - [ ] CLI Option to create data
+  - [x] CLI Option to create data
   - [x] Incorporate BPredicate/BElement classes more
 - [ ] Training set manipulation
   - [ ] Split training set
@@ -25,9 +25,9 @@
   - [ ] downsample training set
   - [ ] shuffle training set
 - [ ] Training set analysis
-- [ ] Data Base translation
+- [x] Data Base translation
   - [x] Migrate from old pdump to new JSON
-  - [ ] Translate Db to Training Format
+  - [x] Translate Db to Training Format
 
 ### Machine Learning algorithms
 
