@@ -54,7 +54,6 @@ class ProBBackendIT {
         Answer expected = Answer.VALID;
         TimedAnswer actual = prob.solvePredicate(pred, bMachine);
 
-        System.out.println(actual.getMessage());
         assertEquals(expected, actual.getAnswer(),
                 "ProB could not decide trivial predicate");
     }
