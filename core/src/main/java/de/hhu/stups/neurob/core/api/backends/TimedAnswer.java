@@ -34,4 +34,25 @@ public class TimedAnswer {
     public String getMessage() {
         return message;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof TimedAnswer) {
+            TimedAnswer that = (TimedAnswer) o;
+
+            boolean answersEqual = this.answer != null
+                    ? this.answer.equals(that.answer)
+                    : that.answer == null;
+
+            boolean timingsEqual = this.time != null
+                    ? this.time.equals(that.time)
+                    : that.time == null;
+
+            // Messages are just an extra information and should not contribute to equality.
+
+            return answersEqual && timingsEqual;
+        }
+
+        return false;
+    }
 }
