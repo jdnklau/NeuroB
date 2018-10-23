@@ -274,6 +274,11 @@ public abstract class Backend {
 
     public TimedAnswer solvePredicate(BPredicate predicate, MachineAccess access)
             throws FormulaException {
+        return solvePredicate(predicate, access, getTimeOutValue(), getTimeOutUnit());
+    }
+
+    public TimedAnswer solvePredicate(BPredicate predicate, MachineAccess access,
+            Long timeout, TimeUnit timeUnit) throws FormulaException {
         // Set up thread for timeout check
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Answer> futureRes = executor.submit(
@@ -286,7 +291,7 @@ public abstract class Backend {
         log.trace("{}: Deciding predicate {}", this.toString(), predicate);
         start = System.nanoTime(); // start measuring time
         try {
-            answer = futureRes.get(getTimeOutValue(), getTimeOutUnit());
+            answer = futureRes.get(timeout, timeUnit);
             message = "Could solve predicate in time";
         } catch (IllegalStateException e) {
             access.sendInterrupt();
