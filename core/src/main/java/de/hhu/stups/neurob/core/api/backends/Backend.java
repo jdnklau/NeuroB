@@ -30,9 +30,9 @@ public abstract class Backend {
     protected final TimeUnit timeOutUnit;
 
     /** Default time out set for predicate evaluation. */
-    public static final long defaultTimeOut = 20L;
+    public static final long defaultTimeOut = 2500L;
     /** Unit of defaultTimeout */
-    public static final TimeUnit defaultTimeUnit = TimeUnit.SECONDS;
+    public static final TimeUnit defaultTimeUnit = TimeUnit.MILLISECONDS;
 
     private static final Logger log =
             LoggerFactory.getLogger(Backend.class);
