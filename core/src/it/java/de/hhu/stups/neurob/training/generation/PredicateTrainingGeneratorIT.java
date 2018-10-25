@@ -342,31 +342,6 @@ class PredicateTrainingGeneratorIT {
     }
 
     @Test
-    void shouldThrowExceptionWhenNotEnoughLabelsAreProvided() throws IOException {
-        KodkodBackend kodkod = new KodkodBackend();
-        ProBBackend prob = new ProBBackend();
-        PredicateDbFormat format = new JsonDbFormat();
-
-        PredicateTrainingGenerator gen =
-                new PredicateTrainingGenerator(
-                        (pred, ss) -> pred,
-                        new PredDbEntry.Generator(1, prob, kodkod),
-                        new JsonDbFormat());
-
-
-        // Set up target directory
-        Path tmpDir = Files.createTempDirectory("neurob-it");
-        Path targetDir = tmpDir.resolve("target");
-
-        // File to use
-        Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
-        assertThrows(IllegalArgumentException.class,
-                () -> gen.generateTrainingData(mch, targetDir),
-                "Number of BackEnds should not match and thus cause "
-                + "an exception.");
-    }
-
-    @Test
     public void shouldRecogniseNonexistenceWhenDbFileNonexistent() throws IOException {
         Path tmpDir = Files.createTempDirectory("neurob-it");
         Path targetDir = tmpDir.resolve("target");
