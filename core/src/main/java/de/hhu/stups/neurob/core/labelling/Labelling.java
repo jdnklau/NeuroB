@@ -35,7 +35,7 @@ public class Labelling {
     public String getLabellingString() {
         return String.join(",",
                 Arrays.stream(getLabellingArray())
-                        .map(d -> Double.toString(d))
+                        .map(d -> d != null ? Double.toString(d) : "null")
                         .collect(Collectors.toList())
         );
     }

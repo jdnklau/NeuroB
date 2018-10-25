@@ -1,1 +1,60 @@
-{"samples":[{"predicate":"first:PREDICATES","source":"machines/first.mch","timings":{"KodkodBackend":2.0,"ProBBackend":1.0,"SmtBackend":4.0,"Z3Backend":3.0}},{"predicate":"first:PREDICATES","source":"machines/first.mch","timings":{"KodkodBackend":2.0,"ProBBackend":1.0,"SmtBackend":4.0,"Z3Backend":3.0}}]}
+{
+  "machines/first.mch": {
+    "sha512": "no-hashing-implemented-yet",
+    "formalism": "CLASSICALB",
+    "gathered-predicates": [
+      {
+        "predicate": "first:PREDICATES",
+        "sha512": "332C6355FDFE369C3911797A2C42A1E01CF5698CF0576EBD215796B6CE4E10548CB85C9B6296F8D350BCA88720A8F5C3C14A0D8CF16FE5313040BDCC16CDD8CE",
+        "results": {
+          "ProB, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 1,
+            "timeout-in-ns": 2500000000
+          },
+          "Kodkod, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 2,
+            "timeout-in-ns": 2500000000
+          },
+          "Z3, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 3,
+            "timeout-in-ns": 2500000000
+          },
+          "SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 4,
+            "timeout-in-ns": 2500000000
+          }
+        }
+      },
+      {
+        "predicate": "first:PREDICATES",
+        "sha512": "332C6355FDFE369C3911797A2C42A1E01CF5698CF0576EBD215796B6CE4E10548CB85C9B6296F8D350BCA88720A8F5C3C14A0D8CF16FE5313040BDCC16CDD8CE",
+        "results": {
+          "ProB, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 1,
+            "timeout-in-ns": 2500000000
+          },
+          "Kodkod, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 2,
+            "timeout-in-ns": 2500000000
+          },
+          "Z3, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 3,
+            "timeout-in-ns": 2500000000
+          },
+          "SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 4,
+            "timeout-in-ns": 2500000000
+          }
+        }
+      }
+    ]
+  }
+}

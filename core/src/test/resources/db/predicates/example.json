@@ -1,1 +1,93 @@
-{"samples":[{"predicate":"pred1","source":"non/existent.mch","timings":{"ProBBackend":1.0,"KodkodBackend":2.0,"Z3Backend":4.0,"SmtBackend":-1}},{"predicate":"pred1","source":"non/existent.mch","timings":{"ProBBackend":1.0,"KodkodBackend":2.0,"Z3Backend":4.0,"SmtBackend":-1}},{"predicate":"pred1","source":"other/non/existent.mch","timings":{"ProBBackend":1.0,"KodkodBackend":2.0,"Z3Backend":4.0,"SmtBackend":-1}}]}
+{
+  "non/existent.mch": {
+    "sha512": "non-existent-hash",
+    "formalism": "CLASSICALB",
+    "gathered-predicates": [
+      {
+        "predicate": "pred1",
+        "sha512": "7bf761579ac10c097073d77fd885203d8ef562b74ac1f8882991500542f50396454738b6955ed8b800c35f87573fb8725c8569db19c5e42acf02d75293d9710f",
+        "results": {
+          "ProB, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 100,
+            "timeout-in-ns": 250000000
+          },
+          "Kodkod, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 200,
+            "timeout-in-ns": 250000000
+          },
+          "Z3, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 300,
+            "timeout-in-ns": 250000000
+          },
+          "SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS": {
+            "answer": "UNKNOWN",
+            "time-in-ns": 400,
+            "timeout-in-ns": 250000000
+          }
+        }
+      },
+      {
+        "predicate": "pred1",
+        "sha512": "7bf761579ac10c097073d77fd885203d8ef562b74ac1f8882991500542f50396454738b6955ed8b800c35f87573fb8725c8569db19c5e42acf02d75293d9710f",
+        "results": {
+          "ProB, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 100,
+            "timeout-in-ns": 250000000
+          },
+          "Kodkod, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 200,
+            "timeout-in-ns": 250000000
+          },
+          "Z3, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 300,
+            "timeout-in-ns": 250000000
+          },
+          "SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS": {
+            "answer": "UNKNOWN",
+            "time-in-ns": 400,
+            "timeout-in-ns": 250000000
+          }
+        }
+      }
+    ]
+  },
+  "other/non/existent.mch": {
+    "sha512": "non-existent-hash",
+    "formalism": "CLASSICALB",
+    "gathered-predicates": [
+      {
+        "predicate": "pred1",
+        "sha512": "7bf761579ac10c097073d77fd885203d8ef562b74ac1f8882991500542f50396454738b6955ed8b800c35f87573fb8725c8569db19c5e42acf02d75293d9710f",
+        "results": {
+          "ProB, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 100,
+            "timeout-in-ns": 250000000
+          },
+          "Kodkod, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 200,
+            "timeout-in-ns": 250000000
+          },
+          "Z3, timeout: 2500MILLISECONDS": {
+            "answer": "VALID",
+            "time-in-ns": 300,
+            "timeout-in-ns": 250000000
+          },
+          "SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS": {
+            "answer": "UNKNOWN",
+            "time-in-ns": 400,
+            "timeout-in-ns": 250000000
+          }
+        }
+      }
+    ]
+  }
+}
+

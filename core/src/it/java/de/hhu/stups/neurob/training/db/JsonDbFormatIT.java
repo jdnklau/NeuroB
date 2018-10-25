@@ -1,10 +1,13 @@
 package de.hhu.stups.neurob.training.db;
 
+import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
+import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.labelling.DecisionTimings;
@@ -31,21 +34,18 @@ public class JsonDbFormatIT {
     public void shouldWriteSamplesToJson() throws IOException {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
-
-        Map<Backend, Double> timings = new HashMap<>();
-        timings.put(new ProBBackend(), 1.);
-        timings.put(new KodkodBackend(), 2.);
-        timings.put(new Z3Backend(), 3.);
-        timings.put(new SmtBackend(), -1.);
-
-        DecisionTimings labels = new DecisionTimings("pred", timings,
-                new ProBBackend(), new KodkodBackend(), new Z3Backend(), new SmtBackend());
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<BPredicate, DecisionTimings>> sampleStream =
+        PredDbEntry labels =
+                new PredDbEntry(predicate, new BMachine(source), JsonDbFormat.BACKENDS_USED,
+                        new TimedAnswer(Answer.VALID, 100L),
+                        new TimedAnswer(Answer.VALID, 200L),
+                        new TimedAnswer(Answer.VALID, 300L),
+                        new TimedAnswer(Answer.UNKNOWN, 400L));
+        Stream<TrainingSample<BPredicate, PredDbEntry>> sampleStream =
                 Stream.of(
                         new TrainingSample<>(predicate, labels, source),
                         new TrainingSample<>(predicate, labels, source));
-        TrainingData<BPredicate, DecisionTimings> trainingData =
+        TrainingData<BPredicate, PredDbEntry> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();
@@ -55,19 +55,24 @@ public class JsonDbFormatIT {
 
         format.writeSamples(trainingData, targetDir);
 
+        String hash = "b022209d472e8e192bcb096baf19bdf0e60c0b794e62a70da8e842f43b25f59bcbcf1c42157a"
+                      + "ec97589ef858bef1b6ac287523e36efab00cc8f3adead45651af";
         String singleJsonEntry =
                 "{"
                 + "\"predicate\":\"pred\","
-                + "\"source\":\"non/existent.mch\","
-                + "\"timings\":{"
-                + "\"ProBBackend\":1.0,"
-                + "\"KodkodBackend\":2.0,"
-                + "\"Z3Backend\":3.0,"
-                + "\"SmtBackend\":-1.0"
+                + "\"sha512\":\"" + hash + "\","
+                + "\"results\":{"
+                + "\"ProB, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":100,\"timeout-in-ns\":2500000000},"
+                + "\"Kodkod, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":200,\"timeout-in-ns\":2500000000},"
+                + "\"Z3, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":300,\"timeout-in-ns\":2500000000},"
+                + "\"SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS\":{\"answer\":\"UNKNOWN\",\"time-in-ns\":400,\"timeout-in-ns\":2500000000}"
                 + "}}";
-        String expected = "{\"samples\":["
+        String expected = "{\"non/existent.mch\":{"
+                          + "\"sha512\":\"no-hashing-implemented-yet\","
+                          + "\"formalism\":\"CLASSICALB\","
+                          + "\"gathered-predicates\":["
                           + singleJsonEntry + ","
-                          + singleJsonEntry + "]}";
+                          + singleJsonEntry + "]}}";
         String actual = Files.lines(targetFile).collect(Collectors.joining());
 
         assertEquals(expected, actual,
@@ -78,14 +83,18 @@ public class JsonDbFormatIT {
     public void shouldCalculateStatistics() throws IOException {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
-        DecisionTimings labels =
-                new DecisionTimings(predicate,JsonDbFormat.BACKENDS_USED, 3., 1., -1., 2.);
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<BPredicate, DecisionTimings>> sampleStream =
+        PredDbEntry labels =
+                new PredDbEntry(predicate, new BMachine(source), JsonDbFormat.BACKENDS_USED,
+                        new TimedAnswer(Answer.VALID, 100L),
+                        new TimedAnswer(Answer.VALID, 200L),
+                        new TimedAnswer(Answer.VALID, 300L),
+                        new TimedAnswer(Answer.UNKNOWN, 400L));
+        Stream<TrainingSample<BPredicate, PredDbEntry>> sampleStream =
                 Stream.of(
                         new TrainingSample<>(predicate, labels, source),
                         new TrainingSample<>(predicate, labels, source));
-        TrainingData<BPredicate, DecisionTimings> trainingData =
+        TrainingData<BPredicate, PredDbEntry> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();

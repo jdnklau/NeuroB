@@ -55,4 +55,13 @@ public class TimedAnswer {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "["
+               + "answer=" + answer.name() + ", "
+               + "time=" + time.toString()
+                + (message != null ? ", message=" + message : "")
+                + "]";
+    }
 }

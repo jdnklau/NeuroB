@@ -1,12 +1,17 @@
 package de.hhu.stups.neurob.training.migration.legacy;
 
+import de.hhu.stups.neurob.core.api.backends.Answer;
+import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
+import org.datavec.api.transform.analysis.columns.TimeAnalysis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,11 +21,13 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
+public class PredicateDumpFormat implements PredicateDbFormat<PredDbEntry> {
 
     private static final Logger log =
             LoggerFactory.getLogger(PredicateDumpFormat.class);
@@ -33,7 +40,7 @@ public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
      * @return Stream of DbSamples
      */
     @Override
-    public Stream<TrainingSample<BPredicate, DecisionTimings>> loadSamples(Path sourceFile) throws IOException {
+    public Stream<TrainingSample<BPredicate, PredDbEntry>> loadSamples(Path sourceFile) throws IOException {
         Stream<String> entries = Files.lines(sourceFile);
 
         // #source annotations define the source machine for all following
@@ -75,17 +82,54 @@ public class PredicateDumpFormat implements PredicateDbFormat<DecisionTimings> {
      *
      * @return
      */
-    public TrainingSample<BPredicate, DecisionTimings> translate(PredicateDump pdump) {
+    public TrainingSample<BPredicate, PredDbEntry> translate(PredicateDump pdump) {
         BPredicate predicate = pdump.getPredicate();
-        DecisionTimings labels = new DecisionTimings(
-                predicate, pdump.getTimings(), PredicateDump.BACKENDS_USED);
         Path source = pdump.getSource();
+
+        Map<Backend, TimedAnswer> answers = translateTimings(pdump.getTimings());
+        PredDbEntry labels = new PredDbEntry(predicate, new BMachine(source), answers);
 
         return new TrainingSample<>(predicate, labels, source);
     }
 
+    Map<Backend, TimedAnswer> translateTimings(Map<Backend, Double> timings) {
+        Map<Backend, TimedAnswer> answerMap = new HashMap<>();
+        for (Backend b : timings.keySet()) {
+            answerMap.put(b, translateTiming(timings.get(b)));
+        }
+        return answerMap;
+    }
+
+    TimedAnswer translateTiming(Double time) {
+        /*
+         * The legacy format of PredicateDumps has a flaw regarding loading
+         * the data into a TimedAnswer: It does not keep track of
+         * whether a solution exists or not, only whether we can determine it.
+         * Hence, positive timings might be either VALID or INVALID answers.
+         * The solution is to simply use SOLVABLE.
+         *
+         * On the other hand it did not differentiate between TIMEOUT, UNKNOWN or ERROR either.
+         * Here, TIMEOUT will be the translation we stick with.
+         */
+
+        Answer answer = null;
+        Long longTime = time.longValue();
+        String message;
+        if(time >= 0) { // predicate was decidable
+            answer = Answer.SOLVABLE;
+            message = "Translated from Pdump: Predicate was solvable.";
+        } else {
+            answer = Answer.TIMEOUT;
+            longTime = null; // No time measured, so use null.
+            message = "Translated from Pdump: Predicate was unknown and contained no "
+                      + "information regarding the needed time.";
+        }
+
+        return new TimedAnswer(answer, longTime, message);
+    }
+
     @Override
-    public DataGenerationStats writeSamples(TrainingData<BPredicate, DecisionTimings> trainingData,
+    public DataGenerationStats writeSamples(TrainingData<BPredicate, PredDbEntry> trainingData,
             Path targetDirectory) {
         Path targetFile = getTargetLocation(trainingData.getSourceFile(), targetDirectory);
         log.info("Writing samples from {} to {}", trainingData.getSourceFile(), targetFile);

@@ -162,7 +162,7 @@ class PredDbEntryTest {
         Backend[] backends = {back1, back2};
 
         PredDbEntry.Generator generator =
-                new PredDbEntry.Generator(2, backends, null, null);
+                new PredDbEntry.Generator(2, null, null, backends);
 
         PredDbEntry expected = new PredDbEntry(BPredicate.of("pred"),
                 null, backends,
@@ -187,7 +187,7 @@ class PredDbEntryTest {
         Backend[] backends = {back1, back2};
 
         PredDbEntry.Generator generator =
-                new PredDbEntry.Generator(2, backends, null, null);
+                new PredDbEntry.Generator(2, null, null, backends);
 
         PredDbEntry expected = new PredDbEntry(BPredicate.of("pred"),
                 null, backends,

@@ -31,6 +31,10 @@ public enum MachineType {
      * @return
      */
     public static MachineType predictTypeFromLocation(Path location) {
+        if (location == null) {
+            return null; // TODO: If UNKNOWN type is implemented, use that instead
+        }
+
         if (location.toString().endsWith(".bcm")) {
             return MachineType.EVENTB;
         }

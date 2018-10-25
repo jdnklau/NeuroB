@@ -18,8 +18,6 @@ import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
-import java.time.Period;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -179,7 +177,7 @@ public class PredDbEntry extends PredicateLabelling {
          * @param timeout
          * @param timeUnit
          */
-        public Generator(int samplingSize, Backend[] backends, Long timeout, TimeUnit timeUnit) {
+        public Generator(int samplingSize, Long timeout, TimeUnit timeUnit, Backend... backends) {
             this.samplingSize = samplingSize;
             this.timeout = timeout;
             this.timeUnit = timeUnit;
@@ -191,8 +189,8 @@ public class PredDbEntry extends PredicateLabelling {
          *         from which the average run time is taken.
          * @param backends
          */
-        public Generator(int samplingSize, Backend[] backends) {
-            this(samplingSize, backends, PredDbEntry.DEFAULT_TIMEOUT, PredDbEntry.DEFAULT_TIMEUNIT);
+        public Generator(int samplingSize, Backend... backends) {
+            this(samplingSize, PredDbEntry.DEFAULT_TIMEOUT, PredDbEntry.DEFAULT_TIMEUNIT, backends);
         }
 
 

@@ -34,8 +34,8 @@ public class PredicateDbMigrationIT {
         // Set up temp dir to hold Json files
         Path tempDir = Files.createTempDirectory("neurob-it");
         // Json files that the migration should create
-        Path firstJson = tempDir.resolve("first.json");
-        Path secondJson = tempDir.resolve("subdir/second.json");
+        Path firstJson = tempDir.resolve("machines/first.json");
+        Path secondJson = tempDir.resolve("machines/subdir/second.json");
 
         PredicateDbFormat<? extends Labelling> format = new JsonDbFormat();
         PredicateDbMigration migration = new PredicateDbMigration(new PredicateDumpFormat());
@@ -84,8 +84,8 @@ public class PredicateDbMigrationIT {
         // Set up temp dir to hold Json files
         Path tempDir = Files.createTempDirectory("neurob-it");
         // Pdump files that the migration should create
-        Path firstPdump = tempDir.resolve("first.pdump");
-        Path secondPdump = tempDir.resolve("subdir/second.pdump");
+        Path firstPdump = tempDir.resolve("machines/first.pdump");
+        Path secondPdump = tempDir.resolve("machines/subdir/second.pdump");
 
         PredicateDbFormat<? extends Labelling> format = new PredicateDumpFormat();
         PredicateDbMigration migration = new PredicateDbMigration(new JsonDbFormat());

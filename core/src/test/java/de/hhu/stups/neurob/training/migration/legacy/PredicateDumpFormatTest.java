@@ -1,11 +1,16 @@
 package de.hhu.stups.neurob.training.migration.legacy;
 
+import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
+import org.datavec.api.transform.analysis.columns.TimeAnalysis;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,37 +34,49 @@ class PredicateDumpFormatTest {
                     .getClassLoader()
                     .getResource("db/migration/migrate.pdump")
                     .getFile());
-    private TrainingSample<BPredicate, DecisionTimings> sample0;
-    private TrainingSample<BPredicate, DecisionTimings> sample1;
-    private TrainingSample<BPredicate, DecisionTimings> sample2;
-    private TrainingSample<BPredicate, DecisionTimings> sample3;
+    private TrainingSample<BPredicate, PredDbEntry> sample0;
+    private TrainingSample<BPredicate, PredDbEntry> sample1;
+    private TrainingSample<BPredicate, PredDbEntry> sample2;
+    private TrainingSample<BPredicate, PredDbEntry> sample3;
 
     @BeforeEach
     public void setupDbSamplesFromMigration() {
         // Prepare timings
-        Map<Backend, Double> timings = new HashMap<>();
-        timings.put(PredicateDump.PROB, 1.0);
-        timings.put(PredicateDump.KODKOD, 2.0);
-        timings.put(PredicateDump.Z3, 3.0);
-        timings.put(PredicateDump.SMT, 4.0);
+        Map<Backend, TimedAnswer> timings = new HashMap<>();
+        timings.put(PredicateDump.PROB,
+                new TimedAnswer(Answer.SOLVABLE, 1L));
+        timings.put(PredicateDump.KODKOD,
+                new TimedAnswer(Answer.SOLVABLE, 2L));
+        timings.put(PredicateDump.Z3,
+                new TimedAnswer(Answer.SOLVABLE, 3L));
+        timings.put(PredicateDump.SMT,
+                new TimedAnswer(Answer.SOLVABLE, 4L));
 
         // Prepare samples
         sample0 = new TrainingSample<>(
                 new BPredicate("null:PREDICATES"),
-                new DecisionTimings("", timings, PredicateDump.BACKENDS_USED));
+                new PredDbEntry(new BPredicate("null:PREDICATES"), null, timings));
         sample1 = new TrainingSample<>(
                 new BPredicate("first:PREDICATES"),
-                new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
+                new PredDbEntry(
+                        BPredicate.of("first:PREDICATES"),
+                        new BMachine(Paths.get("first/source/machine.mch")),
+                        timings),
                 Paths.get("first/source/machine.mch"));
         sample2 = new TrainingSample<>(
                 new BPredicate("second:PREDICATES"),
-                new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
+                new PredDbEntry(
+                        BPredicate.of("second:PREDICATES"),
+                        new BMachine(Paths.get("second/source/machine.mch")),
+                        timings),
                 Paths.get("second/source/machine.mch"));
         sample3 = new TrainingSample<>(
                 new BPredicate("third:PREDICATES"),
-                new DecisionTimings("", timings, PredicateDump.BACKENDS_USED),
+                new PredDbEntry(
+                        BPredicate.of("third:PREDICATES"),
+                        new BMachine(Paths.get("second/source/machine.mch")),
+                        timings),
                 Paths.get("second/source/machine.mch"));
-
     }
 
     @Test
@@ -178,6 +195,30 @@ class PredicateDumpFormatTest {
 
         String expected = "";
         String actual = writer.toString();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldTranslateNegativeTimeToTimeoutAnswer() {
+        Double time = -1.0;
+
+        PredicateDumpFormat format = new PredicateDumpFormat();
+
+        TimedAnswer expected = new TimedAnswer(Answer.TIMEOUT, null);
+        TimedAnswer actual = format.translateTiming(time);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldTranslateNonNegativeTimeToSolvableAnswer() {
+        Double time = 1.234E8;
+
+        PredicateDumpFormat format = new PredicateDumpFormat();
+
+        TimedAnswer expected = new TimedAnswer(Answer.SOLVABLE, 123400000L);
+        TimedAnswer actual = format.translateTiming(time);
 
         assertEquals(expected, actual);
     }

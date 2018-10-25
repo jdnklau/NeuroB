@@ -1,14 +1,16 @@
 package de.hhu.stups.neurob.training.migration;
 
+import de.hhu.stups.neurob.core.api.backends.Answer;
+import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.features.Features;
-import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
-import de.hhu.stups.neurob.training.db.JsonDbFormat;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,20 +31,36 @@ class PredicateDbMigrationTest {
 
     private PredicateDbFormat sourceFormatMock;
 
-    private final TrainingSample<BPredicate, DecisionTimings> sample0 = new TrainingSample<>(
+    private final TrainingSample<BPredicate, PredDbEntry> sample0 = new TrainingSample<>(
             new BPredicate("null:PREDICATES"),
-            new DecisionTimings("null:PREDICATES", JsonDbFormat.BACKENDS_USED, 1.0, 2.0, 3.0, 4.0));
-    private final TrainingSample<BPredicate, DecisionTimings> sample1 = new TrainingSample<>(
+            new PredDbEntry(new BPredicate("null:PREDICATES"), null, PredDbEntry.BACKENDS_USED,
+                    new TimedAnswer(Answer.VALID, 1L),
+                    new TimedAnswer(Answer.VALID, 2L),
+                    new TimedAnswer(Answer.VALID, 3L),
+                    new TimedAnswer(Answer.UNKNOWN, 4L)));
+    private final TrainingSample<BPredicate, PredDbEntry> sample1 = new TrainingSample<>(
             new BPredicate("first:PREDICATES"),
-            new DecisionTimings("first:PREDICATES", JsonDbFormat.BACKENDS_USED, 1.0, 2.0, 3.0, 4.0),
+            new PredDbEntry(new BPredicate("first:PREDICATES"), new BMachine("first/source/machine.mch"), PredDbEntry.BACKENDS_USED,
+                    new TimedAnswer(Answer.VALID, 1L),
+                    new TimedAnswer(Answer.VALID, 2L),
+                    new TimedAnswer(Answer.VALID, 3L),
+                    new TimedAnswer(Answer.UNKNOWN, 4L)),
             Paths.get("first/source/machine.mch"));
-    private final TrainingSample<BPredicate, DecisionTimings> sample2 = new TrainingSample<>(
+    private final TrainingSample<BPredicate, PredDbEntry> sample2 = new TrainingSample<>(
             new BPredicate("second:PREDICATES"),
-            new DecisionTimings("second:PREDICATES", JsonDbFormat.BACKENDS_USED, 1.0, 2.0, 3.0, 4.0),
+            new PredDbEntry(new BPredicate("second:PREDICATES"), new BMachine("second/source/machine.mch"), PredDbEntry.BACKENDS_USED,
+                    new TimedAnswer(Answer.VALID, 1L),
+                    new TimedAnswer(Answer.VALID, 2L),
+                    new TimedAnswer(Answer.VALID, 3L),
+                    new TimedAnswer(Answer.UNKNOWN, 4L)),
             Paths.get("second/source/machine.mch"));
-    private final TrainingSample<BPredicate, DecisionTimings> sample3 = new TrainingSample<>(
+    private final TrainingSample<BPredicate, PredDbEntry> sample3 = new TrainingSample<>(
             new BPredicate("third:PREDICATES"),
-            new DecisionTimings("third:PREDICATES", JsonDbFormat.BACKENDS_USED, 1.0, 2.0, 3.0, 4.0),
+            new PredDbEntry(new BPredicate("third:PREDICATES"), new BMachine("second/source/machine.mch"), PredDbEntry.BACKENDS_USED,
+                    new TimedAnswer(Answer.VALID, 1L),
+                    new TimedAnswer(Answer.VALID, 2L),
+                    new TimedAnswer(Answer.VALID, 3L),
+                    new TimedAnswer(Answer.UNKNOWN, 4L)),
             Paths.get("second/source/machine.mch"));
 
     @BeforeEach

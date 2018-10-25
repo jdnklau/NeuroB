@@ -18,6 +18,7 @@ import de.hhu.stups.neurob.testharness.TestMachines;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
@@ -349,7 +350,7 @@ class PredicateTrainingGeneratorIT {
         PredicateTrainingGenerator gen =
                 new PredicateTrainingGenerator(
                         (pred, ss) -> pred,
-                        new DecisionTimings.Generator(1, prob, kodkod),
+                        new PredDbEntry.Generator(1, prob, kodkod),
                         new JsonDbFormat());
 
 

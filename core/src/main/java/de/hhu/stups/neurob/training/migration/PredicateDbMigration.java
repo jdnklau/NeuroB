@@ -7,12 +7,11 @@ import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.Features;
 import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
-import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
-import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
@@ -31,7 +30,7 @@ public class PredicateDbMigration
         implements TrainingSetMigration {
 
     /** Format of the data to be migrated */
-    private final PredicateDbFormat<DecisionTimings> sourceFormat;
+    private final PredicateDbFormat<PredDbEntry> sourceFormat;
 
     private static final Logger log =
             LoggerFactory.getLogger(PredicateDbMigration.class);
@@ -40,13 +39,13 @@ public class PredicateDbMigration
      * Instantiates a new data base migration, starting with the {@link JsonDbFormat}.
      */
     public PredicateDbMigration() {
-        this(new JsonDbFormat());
+        this(null);
     }
 
     /**
      * @param sourceFormat Format of the data to be migrated
      */
-    public PredicateDbMigration(PredicateDbFormat<DecisionTimings> sourceFormat) {
+    public PredicateDbMigration(PredicateDbFormat<PredDbEntry> sourceFormat) {
         this.sourceFormat = sourceFormat;
     }
 
@@ -102,7 +101,7 @@ public class PredicateDbMigration
     public <D extends Features, L extends Labelling>
     DataGenerationStats migrate(Path sourceDir, Path targetDir, Path generationSource,
             PredicateFeatureGenerating<D> featureGen,
-            LabelTranslation<DecisionTimings, L> labelTrans,
+            LabelTranslation<PredDbEntry, L> labelTrans,
             TrainingDataFormat<D, L> targetFormat) throws IOException {
 
         DataGenerationStats stats = new DataGenerationStats();
@@ -182,13 +181,19 @@ public class PredicateDbMigration
      * @throws IOException
      */
     public DataGenerationStats migrateFile(Path sourceFile, Path commonSourceDirectory,
-            Path targetDirectory, PredicateDbFormat<? extends PredicateLabelling> targetFormat)
+            Path targetDirectory, PredicateDbFormat<PredDbEntry> targetFormat)
             throws IOException {
 
-        try (Stream<TrainingSample<BPredicate, DecisionTimings>> samples =
+        try (Stream<TrainingSample<BPredicate, PredDbEntry>> samples =
                      sourceFormat.loadSamples(sourceFile)) {
+
+            Path dataSource = sourceFormat.getDataSource(sourceFile);
+            Path sampleSource = dataSource != null
+                    ? dataSource
+                    : stripCommonSourceDir(sourceFile, commonSourceDirectory);
+
             TrainingData data = new TrainingData<>(
-                    stripCommonSourceDir(sourceFile, commonSourceDirectory),
+                    sampleSource,
                     samples);
             return targetFormat.writeSamples(data, targetDirectory);
         }
@@ -197,7 +202,7 @@ public class PredicateDbMigration
     public <D extends Features, L extends Labelling>
     DataGenerationStats migrateFile(Path sourceFile, Path commonSourceDirectory,
             Path targetDirectory,
-            PredicateFeatureGenerating<D> featureGen, LabelTranslation<DecisionTimings, L> labelTrans,
+            PredicateFeatureGenerating<D> featureGen, LabelTranslation<PredDbEntry, L> labelTrans,
             TrainingDataFormat<D, L> targetFormat) throws IOException {
         return migrateFile(sourceFile, commonSourceDirectory, targetDirectory, null,
                 featureGen, labelTrans, targetFormat);
@@ -206,7 +211,7 @@ public class PredicateDbMigration
     public <D extends Features, L extends Labelling>
     DataGenerationStats migrateFile(Path sourceFile, Path commonSourceDirectory,
             Path targetDirectory, @Nullable BMachine origMachine,
-            PredicateFeatureGenerating<D> featureGen, LabelTranslation<DecisionTimings, L> labelTrans,
+            PredicateFeatureGenerating<D> featureGen, LabelTranslation<PredDbEntry, L> labelTrans,
             TrainingDataFormat<D, L> targetFormat) throws IOException {
 
         DataGenerationStats stats = new DataGenerationStats();
@@ -220,7 +225,7 @@ public class PredicateDbMigration
         }
 
         MachineAccess finalAccess = access;
-        try (Stream<TrainingSample<BPredicate, DecisionTimings>> rawSamples =
+        try (Stream<TrainingSample<BPredicate, PredDbEntry>> rawSamples =
                      sourceFormat.loadSamples(sourceFile)) {
             Stream<TrainingSample<D, L>> samples =
                     rawSamples.map(sample -> {
@@ -246,7 +251,7 @@ public class PredicateDbMigration
     /**
      * Translates a given sample from the data base according to the given mappings
      * for {@link de.hhu.stups.neurob.core.features.FeatureGenerating features}
-     * and {@link de.hhu.stups.neurob.core.labels.LabelTranslator labels}.
+     * and {@link de.hhu.stups.neurob.training.migration.labelling.LabelTranslation labels}.
      *
      * @param sample
      * @param featureGen
@@ -257,9 +262,9 @@ public class PredicateDbMigration
      * @return
      */
     <D extends Features, L extends Labelling>
-    TrainingSample<D, L> migrateSample(TrainingSample<BPredicate, DecisionTimings> sample,
+    TrainingSample<D, L> migrateSample(TrainingSample<BPredicate, PredDbEntry> sample,
             PredicateFeatureGenerating<D> featureGen,
-            LabelTranslation<DecisionTimings, L> labelTrans)
+            LabelTranslation<PredDbEntry, L> labelTrans)
             throws FeatureCreationException {
         return migrateSample(sample, featureGen, labelTrans, null);
     }
@@ -267,7 +272,7 @@ public class PredicateDbMigration
     /**
      * Translates a given sample from the data base according to the given mappings
      * for {@link de.hhu.stups.neurob.core.features.FeatureGenerating features}
-     * and {@link de.hhu.stups.neurob.core.labels.LabelTranslator labels}.
+     * and {@link de.hhu.stups.neurob.training.migration.labelling.LabelTranslation labels}.
      *
      * @param sample
      * @param featureGen
@@ -279,8 +284,8 @@ public class PredicateDbMigration
      * @return
      */
     <D extends Features, L extends Labelling>
-    TrainingSample<D, L> migrateSample(TrainingSample<BPredicate, DecisionTimings> sample,
-            PredicateFeatureGenerating<D> featureGen, LabelTranslation<DecisionTimings, L> labelTrans,
+    TrainingSample<D, L> migrateSample(TrainingSample<BPredicate, PredDbEntry> sample,
+            PredicateFeatureGenerating<D> featureGen, LabelTranslation<PredDbEntry, L> labelTrans,
             MachineAccess origMachine)
             throws FeatureCreationException {
 

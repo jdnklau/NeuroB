@@ -1,14 +1,20 @@
 package de.hhu.stups.neurob.training.db;
 
+import com.github.krukow.clj_lang.Obj;
 import com.google.gson.stream.JsonReader;
+import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.api.backends.SmtBackend;
+import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
+import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.labelling.DecisionTimings;
-import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -24,61 +30,49 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class JsonDbFormatTest {
     /**
      * Entry of a single sample wrt this unit test context.
      * Used for assertions.
      */
-    private final String SINGLE_JSON_ENTRY =
-            "{"
-            + "\"predicate\":\"pred\","
-            + "\"source\":\"non/existent.mch\","
-            + "\"timings\":{"
-            + "\"ProBBackend\":1.0,"
-            + "\"KodkodBackend\":2.0,"
-            + "\"Z3Backend\":3.0,"
-            + "\"SmtBackend\":-1.0"
-            + "}}";
-
-    /**
-     * Entry of a single sample wrt this unit test context, but without a
-     * source defined.
-     * Used for assertions.
-     */
-    private final String SINGLE_JSON_ENTRY_WITHOUT_SOURCE =
-            "{"
-            + "\"predicate\":\"pred\","
-            + "\"timings\":{"
-            + "\"ProBBackend\":1.0,"
-            + "\"KodkodBackend\":2.0,"
-            + "\"Z3Backend\":3.0,"
-            + "\"SmtBackend\":-1.0"
-            + "}}";
+    private final String SINGLE_PRED_ENTRY =
+            getPredicateJson(
+                    "pred",
+                    "b022209d472e8e192bcb096baf19bdf0e60c0b794e62a70da8e842f43b25f59b"
+                    + "cbcf1c42157aec97589ef858bef1b6ac287523e36efab00cc8f3adead45651af");
 
     @BeforeEach
     void setupLabelling() {
     }
 
     /**
-     * Returns a {@link DecisionTimings} instance that conforms the labelling
+     * Returns a {@link PredDbEntry} instance that conforms the labelling
      * format used by {@link JsonDbFormat}.
      *
-     * @param pred Wrapped predicate
+     * @param pred
+     * @param probLabel
+     * @param kodkodLabel
+     * @param z3Label
+     * @param smtLabel
      *
      * @return
      */
-    private DecisionTimings getLabelling(String pred,
-            Double probLabel, Double kodkodLabel, Double z3Label, Double smtLabel) {
+    private PredDbEntry getLabelling(String pred,
+            Answer probLabel, Answer kodkodLabel, Answer z3Label, Answer smtLabel) {
         // Prepare timing map
-        Map<Backend, Double> timings = new HashMap<>();
+        Map<Backend, TimedAnswer> timings = new HashMap<>();
+        timings.put(JsonDbFormat.BACKENDS_USED[0], new TimedAnswer(probLabel, 100L));
+        timings.put(JsonDbFormat.BACKENDS_USED[1], new TimedAnswer(kodkodLabel, 200L));
+        timings.put(JsonDbFormat.BACKENDS_USED[2], new TimedAnswer(z3Label, 300L));
+        timings.put(JsonDbFormat.BACKENDS_USED[3], new TimedAnswer(smtLabel, 400L));
 
-        timings.put(JsonDbFormat.BACKENDS_USED[0], probLabel);
-        timings.put(JsonDbFormat.BACKENDS_USED[1], kodkodLabel);
-        timings.put(JsonDbFormat.BACKENDS_USED[2], z3Label);
-        timings.put(JsonDbFormat.BACKENDS_USED[3], smtLabel);
+        return new PredDbEntry(BPredicate.of(pred), null, timings);
+    }
 
-        return new DecisionTimings(pred, timings, JsonDbFormat.BACKENDS_USED);
+    private PredDbEntry getLabelling(String pred) {
+        return getLabelling(pred, Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN);
     }
 
     @Test
@@ -98,17 +92,17 @@ class JsonDbFormatTest {
                 .getResource("db/predicates/example.json").getFile();
         Path dbFile = Paths.get(fileUrl);
 
-        TrainingSample sample1 = new TrainingSample<>(
+        TrainingSample<BPredicate, PredDbEntry> sample1 = new TrainingSample<>(
                 new BPredicate("pred1"),
-                getLabelling("pred1", 1., 2., 4., -1.),
+                getLabelling("pred1", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
                 Paths.get("non/existent.mch"));
-        TrainingSample sample2 = new TrainingSample<>(
+        TrainingSample<BPredicate, PredDbEntry> sample2 = new TrainingSample<>(
                 new BPredicate("pred1"),
-                getLabelling("pred1", 1., 2., 4., -1.),
+                getLabelling("pred1", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
                 Paths.get("non/existent.mch"));
-        TrainingSample sample3 = new TrainingSample<>(
+        TrainingSample<BPredicate, PredDbEntry> sample3 = new TrainingSample<>(
                 new BPredicate("pred1"),
-                getLabelling("pred1", 1., 2., 4., -1.),
+                getLabelling("pred1", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
                 Paths.get("other/non/existent.mch"));
 
         List<TrainingSample> expected = new ArrayList<>();
@@ -187,6 +181,7 @@ class JsonDbFormatTest {
         JsonDbFormat.PredicateDbIterator iterator =
                 new JsonDbFormat.PredicateDbIterator(reader);
 
+        iterator.hasNext(); // true, see #shouldHaveNextEntries() test case
         iterator.next();
         assertFalse(iterator.hasNext());
     }
@@ -211,108 +206,88 @@ class JsonDbFormatTest {
         JsonDbFormat.PredicateDbIterator iterator =
                 new JsonDbFormat.PredicateDbIterator(reader);
 
-        TrainingSample<BPredicate, DecisionTimings> expected =
+        TrainingSample<BPredicate, PredDbEntry> expected =
                 getSample(Paths.get("non/existent.mch"));
-        TrainingSample<BPredicate, DecisionTimings> actual = iterator.next();
+        TrainingSample<BPredicate, PredDbEntry> actual = iterator.next();
 
         assertEquals(expected, actual);
     }
 
     @Test
-    public void shouldThrowExceptionWhenTranslatingToMapWithUnexpectedProperties() throws IOException {
-        String json = "{\"samples\":["
-                      + "{"
+    public void shouldIgnoreUnexpectedPropertiesWhenTranslatingToMap() throws IOException {
+        String json = "{"
                       + "\"predicate\":\"pred\","
                       + "\"parade\":\"aww yes\"," // unexpected line
-                      + "\"source\":\"non/existent.mch\","
-                      + "\"timings\":{"
-                      + "\"ProBBackend\":1.0,"
-                      + "\"Z3Backend\":2.0,"
-                      + "\"KodkodBackend\":3.0,"
-                      + "\"SmtBackend\":-1"
-                      + "}}";
-        json += "]}";
+                      + "\"sha512\":\"hash\""
+                      + "}";
+        json += "]";
 
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(null);
 
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("predicate", BPredicate.of("pred"));
+        expected.put("sha512", "hash");
+        expected.put("results", new HashMap<>());
 
-        assertThrows(IllegalStateException.class,
-                iterator::nextSampleData);
+        Map<String, Object> actual = iterator.nextSampleData(reader);
+
+        assertEquals(expected, actual);
     }
 
     @Test
     public void shouldReadJsonAsMap() throws IOException {
-        String json = getSampleJson(1);
+        String hash = "b022209d472e8e192bcb096baf19bdf0e60c0b794e62a70da8e842f43b25f59b"
+                      + "cbcf1c42157aec97589ef858bef1b6ac287523e36efab00cc8f3adead45651af";
+        String json = getPredicateJson("pred", hash);
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(null);
 
-        Map<String, String> expected = new HashMap<>();
-        expected.put("predicate", "pred");
-        expected.put("source", "non/existent.mch");
-        expected.put("timings",
-                "ProBBackend:1.0,"
-                + "KodkodBackend:2.0,"
-                + "Z3Backend:3.0,"
-                + "SmtBackend:-1.0");
+        Map<String, TimedAnswer> resultMap = new HashMap<>();
+        resultMap.put("ProB, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 100L));
+        resultMap.put("Kodkod, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 200L));
+        resultMap.put("Z3, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 300L));
+        resultMap.put("SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.UNKNOWN, 400L));
 
-        Map<String, String> actual = iterator.nextSampleData();
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("predicate", new BPredicate("pred"));
+        expected.put("results", resultMap);
+        expected.put("sha512", hash);
 
-        assertEquals(expected, actual);
+        Map<String, Object> actual = iterator.nextSampleData(reader);
+
+        assertEquals(expected.get("results"), actual.get("results"));
     }
 
     @Test
-    public void shouldReadJsonAsMapWhenNoSourceIsGiven() throws IOException {
-        String json = "{\"samples\":["
-                      + "{"
-                      + "\"predicate\":\"pred\","
-                      + "\"timings\":{"
-                      + "\"ProBBackend\":1.0,"
-                      + "\"Z3Backend\":3.0,"
-                      + "\"KodkodBackend\":2.0,"
-                      + "\"SmtBackend\":-1"
-                      + "}}";
-        json += "]}";
+    public void shouldReadEmptyMapWhenNoTimingsAreGiven() throws IOException {
+        String hash = "b022209d472e8e192bcb096baf19bdf0e60c0b794e62a70da8e842f43b25f59b"
+                      + "cbcf1c42157aec97589ef858bef1b6ac287523e36efab00cc8f3adead45651af";
+        String json =
+                "{"
+                + "\"predicate\":\"pred\","
+                + "\"sha512\":\"" + hash + "\""
+                + "}";
 
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(null);
 
+        Map<String, TimedAnswer> resultMap = new HashMap<>();
 
-        Map<String, String> expected = new HashMap<>();
-        expected.put("predicate", "pred");
-        expected.put("timings",
-                "ProBBackend:1.0,"
-                + "KodkodBackend:2.0,"
-                + "Z3Backend:3.0,"
-                + "SmtBackend:-1.0");
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("predicate", new BPredicate("pred"));
+        expected.put("results", resultMap);
+        expected.put("sha512", hash);
 
-        Map<String, String> actual = iterator.nextSampleData();
+        Map<String, Object> actual = iterator.nextSampleData(reader);
 
         assertEquals(expected, actual);
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenNoTimingsAreGiven() throws IOException {
-        String json = "{\"samples\":["
-                      + "{"
-                      + "\"predicate\":\"pred\","
-                      + "\"source\":\"non/existent.mch\""
-                      + "}}";
-        json += "]}";
-
-        JsonReader reader = new JsonReader(new StringReader(json));
-
-        JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
-
-        assertThrows(IllegalStateException.class,
-                iterator::nextSampleData);
     }
 
     @Test
@@ -323,13 +298,19 @@ class JsonDbFormatTest {
         JsonDbFormat.PredicateDbIterator iterator =
                 new JsonDbFormat.PredicateDbIterator(reader);
 
-        Map<String, String> data = new HashMap<>();
-        data.put("predicate", "pred");
-        data.put("timings",
-                "KodkodBackend:2.0,"
-                + "ProBBackend:1.0,"
-                + "SmtBackend:-1.0,"
-                + "Z3Backend:3.0");
+        Map<String, TimedAnswer> resultMap = new HashMap<>();
+        resultMap.put("ProB, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 100L));
+        resultMap.put("Kodkod, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 200L));
+        resultMap.put("Z3, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 300L));
+        resultMap.put("SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.UNKNOWN, 400L));
+
+        String hash = "b022209d472e8e192bcb096baf19bdf0e60c0b794e62a70da8e842f43b25f59b"
+                      + "cbcf1c42157aec97589ef858bef1b6ac287523e36efab00cc8f3adead45651af";
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("predicate", new BPredicate("pred"));
+        data.put("results", resultMap);
+        data.put("sha512", hash);
 
         TrainingSample expected = getSample(null);
         TrainingSample actual = iterator.translateToDbSample(data);
@@ -337,71 +318,15 @@ class JsonDbFormatTest {
         assertEquals(expected, actual);
     }
 
-    @Test
-    public void shouldTranslateTimingsOrdered() throws IOException {
-        String json = getSampleJson(0);
-        JsonReader reader = new JsonReader(new StringReader(json));
-
-        JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
-
-        String timings =
-                "KodkodBackend:2.0,"
-                + "ProBBackend:1.0,"
-                + "SmtBackend:4.0,"
-                + "Z3Backend:3.0";
-        Labelling expected = new Labelling(1., 2., 3., 4.);
-        Labelling actual = iterator.translateTimings(timings);
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    public void shouldTranslateTimingsIgnoringAdditionalBackends() throws IOException {
-        String json = getSampleJson(0);
-        JsonReader reader = new JsonReader(new StringReader(json));
-
-        JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
-
-        String timings =
-                "KodkodBackend:2.0,"
-                + "ProBBackend:1.0,"
-                + "SmtBackend:4.0,"
-                + "NonExistingBackend:5.0," // does not exist
-                + "Z3Backend:3.0";
-        Labelling expected = new Labelling(1., 2., 3., 4.);
-        Labelling actual = iterator.translateTimings(timings);
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    public void shouldTranslateTimingsSubstitutingMissingEntriesWithNegativeOne()
-            throws IOException {
-        String json = getSampleJson(0);
-        JsonReader reader = new JsonReader(new StringReader(json));
-
-        JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
-
-        String timings =
-                "KodkodBackend:2.0,"
-                + "Z3Backend:3.0";
-        Labelling expected = new Labelling(-1., 2., 3., -1.);
-        Labelling actual = iterator.translateTimings(timings);
-
-        assertEquals(expected, actual);
-    }
 
     @Test
     public void shouldWriteSample() {
-        TrainingSample<BPredicate, DecisionTimings> sample =
+        TrainingSample<BPredicate, PredDbEntry> sample =
                 getSample(Paths.get("non/existent.mch"));
 
         JsonDbFormat format = new JsonDbFormat();
 
-        String expected = SINGLE_JSON_ENTRY;
+        String expected = SINGLE_PRED_ENTRY;
         String actual = format.translateSampleToJsonObject(sample);
 
         assertEquals(expected, actual,
@@ -410,11 +335,11 @@ class JsonDbFormatTest {
 
     @Test
     public void shouldWriteSampleWhenNoSourceExists() {
-        TrainingSample<BPredicate, DecisionTimings> sample = getSample();
+        TrainingSample<BPredicate, PredDbEntry> sample = getSample();
 
         JsonDbFormat format = new JsonDbFormat();
 
-        String expected = SINGLE_JSON_ENTRY_WITHOUT_SOURCE;
+        String expected = SINGLE_PRED_ENTRY;
         String actual = format.translateSampleToJsonObject(sample);
 
         assertEquals(expected, actual,
@@ -422,53 +347,18 @@ class JsonDbFormatTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenLessLabelsThanBackends() {
-        TrainingSample<BPredicate, Labelling> sample =
-                new TrainingSample<>(
-                        BPredicate.of("pred"),
-                        new Labelling(1., 2.)
-                );
-
-        JsonDbFormat format = new JsonDbFormat();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> format.translateSampleToJsonObject(sample));
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenMoreLabelsThanBackends() {
-        // Prepare training sample to write
-        BPredicate predicate = new BPredicate("pred");
-        Labelling labels = new Labelling(1., 2., 3., 4., 5.);
-        TrainingSample<BPredicate, Labelling> sample =
-                new TrainingSample<>(predicate, labels);
-
-        JsonDbFormat format = new JsonDbFormat();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> format.translateSampleToJsonObject(sample));
-    }
-
-    @Test
     public void shouldEscapeQuotesInPredicate() {
         BPredicate predWithString = BPredicate.of("pred = \"string\"");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
         Path source = Paths.get("non/existent.mch");
-        TrainingSample<BPredicate, Labelling> sample =
+        PredDbEntry labels = getLabelling(predWithString.getPredicate());
+        TrainingSample<BPredicate, PredDbEntry> sample =
                 new TrainingSample<>(predWithString, labels, source);
 
         JsonDbFormat format = new JsonDbFormat();
 
-
-        String expected = "{"
-                          + "\"predicate\":\"pred = \\\"string\\\"\","
-                          + "\"source\":\"non/existent.mch\","
-                          + "\"timings\":{"
-                          + "\"ProBBackend\":1.0,"
-                          + "\"KodkodBackend\":2.0,"
-                          + "\"Z3Backend\":3.0,"
-                          + "\"SmtBackend\":-1.0"
-                          + "}}";
+        String expected = getPredicateJson("pred = \\\"string\\\"",
+                "5fb270a2cdfe203e557085fb99ba4196314811362c894dad37a8dd20b6debdf4e0e1c8"
+                + "d2092a168c284803ab887ce9cfa490cca55a08dc2c6b508685507c2bea");
         String actual = format.translateSampleToJsonObject(sample);
 
         assertEquals(expected, actual);
@@ -477,23 +367,16 @@ class JsonDbFormatTest {
     @Test
     public void shouldEscapeBackslashInPredicate() {
         BPredicate predWithString = BPredicate.of("{1,2} /\\ {2,3} = {1,2,3}");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
         Path source = Paths.get("non/existent.mch");
-        TrainingSample<BPredicate, Labelling> sample =
+        PredDbEntry labels = getLabelling(predWithString.getPredicate());
+        TrainingSample<BPredicate, PredDbEntry> sample =
                 new TrainingSample<>(predWithString, labels, source);
 
         JsonDbFormat format = new JsonDbFormat();
 
-
-        String expected = "{"
-                          + "\"predicate\":\"{1,2} /\\\\ {2,3} = {1,2,3}\","
-                          + "\"source\":\"non/existent.mch\","
-                          + "\"timings\":{"
-                          + "\"ProBBackend\":1.0,"
-                          + "\"KodkodBackend\":2.0,"
-                          + "\"Z3Backend\":3.0,"
-                          + "\"SmtBackend\":-1.0"
-                          + "}}";
+        String expected = getPredicateJson("{1,2} /\\\\ {2,3} = {1,2,3}",
+                "7546137347059d6f816fe3fdeaa56fcb45a695df5f8fbb10b2c6f7c56ce25873529406"
+                + "47ceeb90d07ab2e61b1eb12f0dbcdef2c3d4f9b263effed50828390881");
         String actual = format.translateSampleToJsonObject(sample);
 
         assertEquals(expected, actual);
@@ -501,24 +384,17 @@ class JsonDbFormatTest {
 
     @Test
     public void shouldEscapeNewlineEscapeInPredicate() {
-        BPredicate predWithString = BPredicate.of("string = \"n\"");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
+        BPredicate predWithString = BPredicate.of("string = \"\\n\"");
         Path source = Paths.get("non/existent.mch");
-        TrainingSample<BPredicate, Labelling> sample =
+        PredDbEntry labels = getLabelling(predWithString.getPredicate());
+        TrainingSample<BPredicate, PredDbEntry> sample =
                 new TrainingSample<>(predWithString, labels, source);
 
         JsonDbFormat format = new JsonDbFormat();
 
-
-        String expected = "{"
-                          + "\"predicate\":\"string = \\\"n\\\"\","
-                          + "\"source\":\"non/existent.mch\","
-                          + "\"timings\":{"
-                          + "\"ProBBackend\":1.0,"
-                          + "\"KodkodBackend\":2.0,"
-                          + "\"Z3Backend\":3.0,"
-                          + "\"SmtBackend\":-1.0"
-                          + "}}";
+        String expected = getPredicateJson("string = \\\"\\\\n\\\"",
+                "80429e69552a61d24c6ae66d2697722d8d6a15b0361b3feca8f5815e42c11cbc1833f3794389"
+                + "433675ef4c9331150d135333841ff1c1e8dbcf01b9c94938f43b");
         String actual = format.translateSampleToJsonObject(sample);
 
         assertEquals(expected, actual);
@@ -526,52 +402,42 @@ class JsonDbFormatTest {
 
     @Test
     public void shouldLoadSampleWhenPredicateHasBackslashes() throws IOException {
-        String sampleJson = "{\"samples\": [{"
-                          + "\"predicate\":\"{1,2} /\\\\ {2,3} = {1,2,3}\","
-                          + "\"source\":\"non/existent.mch\","
-                          + "\"timings\":{"
-                          + "\"ProBBackend\":1.0,"
-                          + "\"KodkodBackend\":2.0,"
-                          + "\"Z3Backend\":3.0,"
-                          + "\"SmtBackend\":-1.0"
-                          + "}}]}";
+        String sampleJson = getPredicateJson("{1,2} /\\\\ {2,3} = {1,2,3}",
+                "7546137347059d6f816fe3fdeaa56fcb45a695df5f8fbb10b2c6f7c56ce25873529406"
+                + "47ceeb90d07ab2e61b1eb12f0dbcdef2c3d4f9b263effed50828390881");
+
+        JsonReader reader = new JsonReader(new StringReader(sampleJson));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(new JsonReader(new StringReader(sampleJson)));
+                new JsonDbFormat.PredicateDbIterator(null);
 
         BPredicate predWithString = BPredicate.of("{1,2} /\\ {2,3} = {1,2,3}");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
-        Path source = Paths.get("non/existent.mch");
-        TrainingSample<BPredicate, Labelling> expected =
-                new TrainingSample<>(predWithString, labels, source);
+        PredDbEntry labels = getLabelling(predWithString.getPredicate());
 
-        TrainingSample<BPredicate, DecisionTimings> actual = iterator.next();
+        TrainingSample<BPredicate, PredDbEntry> expected =
+                new TrainingSample<>(predWithString, labels);
+
+        TrainingSample<BPredicate, PredDbEntry> actual = iterator.readTrainingSample(reader);
 
         assertEquals(expected, actual);
     }
 
     @Test
     public void shouldLoadSampleContainingNewlineEscapeAndQuotationMarks() throws IOException {
-        String sampleJson = "{\"samples\":[{"
-                          + "\"predicate\":\"string = \\\"n\\\"\","
-                          + "\"source\":\"non/existent.mch\","
-                          + "\"timings\":{"
-                          + "\"ProBBackend\":1.0,"
-                          + "\"KodkodBackend\":2.0,"
-                          + "\"Z3Backend\":3.0,"
-                          + "\"SmtBackend\":-1.0"
-                          + "}}]}";
+        String sampleJson = getPredicateJson("string = \\\"\\\\n\\\"",
+                "f3e82f15fdb52c51b7d62b8b5ba986fc7ec5e708a9b096d5617c7a53d5e7f7f274a"
+                + "1dea1e97ceecef50c2c2ae341131500c230a22262616c041972a60fef2365");
+        JsonReader jsonReader = new JsonReader(new StringReader(sampleJson));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(new JsonReader(new StringReader(sampleJson)));
+                new JsonDbFormat.PredicateDbIterator(null);
 
-        BPredicate predWithString = BPredicate.of("string = \"n\"");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
-        Path source = Paths.get("non/existent.mch");
-        TrainingSample<BPredicate, Labelling> expected =
-                new TrainingSample<>(predWithString, labels, source);
+        BPredicate predWithString = BPredicate.of("string = \"\\n\"");
+        PredDbEntry labels = getLabelling(predWithString.getPredicate());
+        TrainingSample<BPredicate, PredDbEntry> expected =
+                new TrainingSample<>(predWithString, labels);
 
-        TrainingSample<BPredicate, DecisionTimings> actual = iterator.next();
+        TrainingSample<BPredicate, PredDbEntry> actual = iterator.readTrainingSample(jsonReader);
 
         assertEquals(expected, actual);
     }
@@ -580,14 +446,14 @@ class JsonDbFormatTest {
     public void shouldWriteStreamedSamplesToWriter() throws IOException {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
+        PredDbEntry labels = getLabelling(predicate.getPredicate());
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<BPredicate, Labelling>> sampleStream =
+        Stream<TrainingSample<BPredicate, PredDbEntry>> sampleStream =
                 Stream.of(
                         new TrainingSample<>(predicate, labels, source),
                         new TrainingSample<>(predicate, labels),
                         new TrainingSample<>(predicate, labels, source));
-        TrainingData<BPredicate, Labelling> trainingData =
+        TrainingData<BPredicate, PredDbEntry> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();
@@ -595,10 +461,13 @@ class JsonDbFormatTest {
         StringWriter writer = new StringWriter();
         format.writeSamples(trainingData, writer);
 
-        String expected = "{\"samples\":["
-                          + SINGLE_JSON_ENTRY + ","
-                          + SINGLE_JSON_ENTRY_WITHOUT_SOURCE + ","
-                          + SINGLE_JSON_ENTRY + "]}";
+        String expected = "{\"non/existent.mch\":{"
+                          + "\"sha512\":\"no-hashing-implemented-yet\","
+                          + "\"formalism\":\"CLASSICALB\","
+                          + "\"gathered-predicates\":["
+                          + SINGLE_PRED_ENTRY + ","
+                          + SINGLE_PRED_ENTRY + ","
+                          + SINGLE_PRED_ENTRY + "]}}";
         String actual = writer.toString();
 
         assertEquals(expected, actual);
@@ -608,14 +477,14 @@ class JsonDbFormatTest {
     public void shouldCountWrittenSamplesInStatistics() throws IOException {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
-        Labelling labels = new Labelling(1., 2., 3., -1.);
+        PredDbEntry labels = getLabelling("pred");
         Path source = Paths.get("non/existent.mch");
-        Stream<TrainingSample<BPredicate, Labelling>> sampleStream =
+        Stream<TrainingSample<BPredicate, PredDbEntry>> sampleStream =
                 Stream.of(
                         new TrainingSample<>(predicate, labels, source),
                         new TrainingSample<>(predicate, labels),
                         new TrainingSample<>(predicate, labels, source));
-        TrainingData<BPredicate, Labelling> trainingData =
+        TrainingData<BPredicate, PredDbEntry> trainingData =
                 new TrainingData<>(source, sampleStream);
 
         JsonDbFormat format = new JsonDbFormat();
@@ -629,25 +498,42 @@ class JsonDbFormatTest {
         assertEquals(expected, actual);
     }
 
+    private String getPredicateJson(String pred, String hash) {
+        String json =
+                "{"
+                + "\"predicate\":\"" + pred + "\","
+                + "\"sha512\":\"" + hash + "\","
+                + "\"results\":{"
+                + "\"ProB, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":100,\"timeout-in-ns\":2500000000},"
+                + "\"Kodkod, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":200,\"timeout-in-ns\":2500000000},"
+                + "\"Z3, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":300,\"timeout-in-ns\":2500000000},"
+                + "\"SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS\":{\"answer\":\"UNKNOWN\",\"time-in-ns\":400,\"timeout-in-ns\":2500000000}"
+                + "}}";
+        return json;
+    }
+
     private String getSampleJson(int numEntries) {
-        String json = "{\"samples\":[";
+        String json = "{\"non/existent.mch\":{"
+                      + "\"formalism\":\"CLASSICALB\","
+                      + "\"sha512\":\"I don't know which hash should be here\","
+                      + "\"gathered-predicates\":[";
         List<String> entries = new ArrayList<>();
         for (int i = 0; i < numEntries; i++) {
-            entries.add(SINGLE_JSON_ENTRY);
+            entries.add(SINGLE_PRED_ENTRY);
         }
         json += String.join(",", entries);
-        json += "]}";
+        json += "]}}";
 
         return json;
     }
 
-    private TrainingSample<BPredicate, DecisionTimings> getSample() {
+    private TrainingSample<BPredicate, PredDbEntry> getSample() {
         return getSample(null);
     }
 
-    private TrainingSample<BPredicate, DecisionTimings> getSample(Path source) {
+    private TrainingSample<BPredicate, PredDbEntry> getSample(Path source) {
         BPredicate pred = new BPredicate("pred");
-        DecisionTimings labels = getLabelling("pred", 1., 2., 3., -1.);
+        PredDbEntry labels = getLabelling("pred1", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN);
 
         return new TrainingSample<>(pred, labels, source);
 

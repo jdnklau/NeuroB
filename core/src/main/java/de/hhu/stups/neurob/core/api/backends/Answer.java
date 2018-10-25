@@ -13,7 +13,14 @@ public enum Answer {
     /** Predicate was not solvable within a specified timeout */
     TIMEOUT("TIMEOUT"),
     /** Predicate led to an error and thus was not solvable */
-    ERROR("ERROR");
+    ERROR("ERROR"),
+    /** Predicate is either VALID or INVALID
+     *
+     * This entry is only for legacy purposes and should not be used if
+     * it is known whether the predicate is VALID or INVALID.
+     */
+    SOLVABLE("SOLVABLE");
+
 
     private final String code;
 
