@@ -152,6 +152,8 @@ class BackendTest {
                 });
         when(backend.solvePredicate(predicate, bMachine))
                 .thenCallRealMethod();
+        when(backend.solvePredicate(predicate, bMachine, 0L, TimeUnit.MILLISECONDS))
+                .thenCallRealMethod();
         when(backend.getTimeOutValue()).thenReturn(0L); // unsatisfiable timeout
         when(backend.getTimeOutUnit()).thenReturn(TimeUnit.MILLISECONDS);
 
