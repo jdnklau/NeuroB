@@ -37,7 +37,7 @@ test:
 
 # Publish generated test reports as artifact
 test-reports:
-  stage: test
+  stage: deploy
   dependencies:
     - test
   script:
