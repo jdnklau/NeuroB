@@ -95,7 +95,8 @@ public class PredDbEntry extends PredicateLabelling {
     public static Double[] toArray(Map<Backend, TimedAnswer> results, Backend[] orderedBackends) {
         return Arrays.stream(orderedBackends)
                 .map(results::get)
-                .map(time -> time == null ? null : time.getTime().doubleValue())
+                .map(time -> time == null ? null : time.getTime())
+                .map(longTime -> longTime == null ? null : longTime.doubleValue())
                 .toArray(Double[]::new);
     }
 

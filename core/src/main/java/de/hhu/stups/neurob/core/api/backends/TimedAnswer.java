@@ -59,8 +59,8 @@ public class TimedAnswer {
     @Override
     public String toString() {
         return "["
-               + "answer=" + answer.name() + ", "
-               + "time=" + time.toString()
+               + "answer=" + answer + ", "
+               + "time=" + time
                 + (message != null ? ", message=" + message : "")
                 + "]";
     }

@@ -237,6 +237,20 @@ class PredDbEntryTest {
     }
 
     @Test
+    void shouldReturnArrayWithNullEntriesWhenDataIsPresentButHasNullTimings() {
+        Backend[] backendOrder = {new ProBBackend(), new KodkodBackend()};
+
+        Map<Backend, TimedAnswer> resultMap = new HashMap<>();
+        resultMap.put(backendOrder[0], new TimedAnswer(Answer.VALID, 100L));
+        resultMap.put(backendOrder[1], new TimedAnswer(Answer.UNKNOWN, null));
+
+        Double[] expected = { 100., null};
+        Double[] actual = PredDbEntry.toArray(resultMap, backendOrder);
+
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
     void shouldCollectSubsetOfDataWhenSubsetOfBackendsIsSpecified() {
         Backend[] backendOrder = {new ProBBackend(), new KodkodBackend(), new Z3Backend()};
 
