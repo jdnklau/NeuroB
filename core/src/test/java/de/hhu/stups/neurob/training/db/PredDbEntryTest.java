@@ -255,5 +255,33 @@ class PredDbEntryTest {
         assertArrayEquals(expected, actual);
     }
 
+    @Test
+    void shouldReturnProBTimedAnswer() {
+        Backend[] backendOrder = {new ProBBackend(), new KodkodBackend()};
+
+        Map<Backend, TimedAnswer> resultMap = new HashMap<>();
+        resultMap.put(backendOrder[0], new TimedAnswer(Answer.VALID, 100L));
+        resultMap.put(backendOrder[1], new TimedAnswer(Answer.UNKNOWN, 300L));
+
+        PredDbEntry entry = new PredDbEntry(null, null, resultMap);
+
+        TimedAnswer expected = new TimedAnswer(Answer.VALID, 100L);
+        TimedAnswer actual = entry.getResult(new ProBBackend());
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldReturnNullWhenNoAnswerIsStoredForRequestedBackend() {
+        Backend[] backendOrder = {new ProBBackend(), new KodkodBackend()};
+
+        Map<Backend, TimedAnswer> resultMap = new HashMap<>();
+        resultMap.put(backendOrder[0], new TimedAnswer(Answer.VALID, 100L));
+        resultMap.put(backendOrder[1], new TimedAnswer(Answer.UNKNOWN, 300L));
+
+        PredDbEntry entry = new PredDbEntry(null, null, resultMap);
+
+        assertNull(entry.getResult(new Z3Backend()));
+    }
 
 }

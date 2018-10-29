@@ -163,6 +163,17 @@ public class PredDbEntry extends PredicateLabelling {
         return results;
     }
 
+    /**
+     * Returns the result stored for the given backend.
+     *
+     * Might return {@code null} if no such backend exists.
+     * @param backend
+     * @return
+     */
+    public TimedAnswer getResult(Backend backend) {
+        return results.get(backend);
+    }
+
     public static class Generator implements PredicateLabelGenerating<PredDbEntry> {
 
         private int samplingSize;
