@@ -467,22 +467,10 @@ public class DecisionTimings extends PredicateLabelling {
         }
 
         @Override
-        public DecisionTimings generate(BPredicate predicate, BMachine bMachine)
+        public DecisionTimings generate(BPredicate predicate, MachineAccess machineAccess)
                 throws LabelCreationException {
-            try {
-                MachineAccess machineAccess = (bMachine != null)
-                        ? bMachine.getMachineAccess()
-                        : null;
-                DecisionTimings decisionTimings = new DecisionTimings(predicate, sampleSize,
-                        timeout, timeoutUnit, machineAccess, backends);
-                if (machineAccess != null) {
-                    bMachine.closeMachineAccess();
-                }
-                return decisionTimings;
-            } catch (MachineAccessException e) {
-                throw new LabelCreationException(
-                        "Could not generate labels due to missing machine access", e);
-            }
+            return new DecisionTimings(predicate, sampleSize,
+                    timeout, timeoutUnit, machineAccess, backends);
         }
     }
 

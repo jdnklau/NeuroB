@@ -218,7 +218,7 @@ class PredicateTrainingGeneratorTest {
     public void shouldUseGeneratorsToGenerateTrainingSampleWhenStateSpaceSupplied()
             throws Exception {
         // Mock StateSpace
-        BMachine bMachine = mock(BMachine.class);
+        MachineAccess bMachine = mock(MachineAccess.class);
 
         TrainingSample<PredicateFeatures, PredicateLabelling> expected =
                 new TrainingSample<>(
@@ -254,6 +254,9 @@ class PredicateTrainingGeneratorTest {
     @Test
     public void shouldStreamSamplesWithSourceInformationWhenCreatingFromFile() throws MachineAccessException {
         Path file = Paths.get("/not/existent/path");
+        BMachine bMachine = mock(BMachine.class);
+        when(bMachine.getMachineAccess()).thenReturn(null);
+        when(bMachine.getLocation()).thenReturn(file);
 
         generator = spy(new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock));
@@ -264,7 +267,7 @@ class PredicateTrainingGeneratorTest {
         doReturn(predicates.stream())
                 .when(generator).streamPredicatesFromFile(any(BMachine.class));
 
-        Path actual = generator.streamSamplesFromFile(file)
+        Path actual = generator.streamSamplesFromFile(bMachine)
                 .findFirst().get().getSourceFile();
 
         assertEquals(file, actual,

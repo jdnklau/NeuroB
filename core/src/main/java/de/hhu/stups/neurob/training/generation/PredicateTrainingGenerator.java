@@ -65,37 +65,38 @@ public class PredicateTrainingGenerator
     }
 
     public Stream<TrainingSample> streamSamplesFromFile(BMachine bMachine) {
-        Stream<BPredicate> predicates = null;
         try {
-            predicates = streamPredicatesFromFile(bMachine);
+            log.info("Accessing B machine {}", bMachine);
+            MachineAccess access = bMachine.getMachineAccess();
+            Stream<BPredicate> predicates = streamPredicatesFromFile(bMachine);
+
+            // Stream training samples
+            Stream<TrainingSample> samples = predicates.map(
+                    predicate -> {
+                        try {
+                            log.trace("Generating sample for {}", predicate);
+                            return generateSample(predicate, access);
+                        } catch (FeatureCreationException e) {
+                            log.warn("Could not create features from {}", predicate, e);
+                        } catch (LabelCreationException e) {
+                            log.warn("Could not create labelling for {}", predicate, e);
+                        }
+                        // If any exceptions occur, return nothing
+                        return null;
+                    })
+                    .onClose(bMachine::closeMachineAccess);
+
+            return samples.filter(Objects::nonNull)
+                    // add source file information
+                    .map(sample -> new TrainingSample<>(
+                            sample.getData(),
+                            sample.getLabelling(),
+                            bMachine.getLocation()));
+
         } catch (MachineAccessException e) {
             log.warn("Unable to access {}", bMachine, e);
             return Stream.empty();
         }
-
-        // Stream training samples
-        Stream<TrainingSample> samples = predicates.map(
-                predicate -> {
-                    try {
-                        log.trace("Generating sample for {}", predicate);
-                        return generateSample(predicate, bMachine);
-                    } catch (FeatureCreationException e) {
-                        log.warn("Could not create features from {}", predicate, e);
-                    } catch (LabelCreationException e) {
-                        log.warn("Could not create labelling for {}", predicate, e);
-                    }
-                    // If any exceptions occur, return nothing
-                    return null;
-                })
-                .onClose(bMachine::closeMachineAccess);
-
-        return samples.filter(Objects::nonNull)
-                // add source file information
-                .map(sample -> new TrainingSample<>(
-                        sample.getData(),
-                        sample.getLabelling(),
-                        bMachine.getLocation()));
-
     }
 
     /**
@@ -123,31 +124,23 @@ public class PredicateTrainingGenerator
      *
      * @param predicate Predicate to be translated into a training
      *         sample.
-     * @param bMachine Access to the machine file the predicate belongs to.
+     * @param access Access to the machine file the predicate belongs to.
      *
      * @return
      *
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample generateSample(BPredicate predicate, @Nullable BMachine bMachine)
+    public TrainingSample generateSample(BPredicate predicate, @Nullable MachineAccess access)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
-
-        // Access bMachine
-        MachineAccess access = null;
-        try {
-            access = bMachine != null ? bMachine.getMachineAccess() : null;
-        } catch (MachineAccessException e) {
-            log.warn("Could not access {}, continuing without", bMachine, e);
-        }
 
         Object features = ((PredicateFeatureGenerating) featureGenerator)
                 .generate(predicate, access);
 
         log.debug("Generating labelling for {}", predicate);
         Labelling labelling = ((PredicateLabelGenerating) labelGenerator)
-                .generate(predicate, bMachine);
+                .generate(predicate, access);
 
         return new TrainingSample<>(features, labelling);
     }
@@ -182,6 +175,8 @@ public class PredicateTrainingGenerator
      * <p>
      * The predicates are generated with the following functions:
      * <ul>
+     * <p>
+     * The stream needs to be closed after use.
      * <li>{@link FormulaGenerator#assertions(PredicateCollection)}</li>
      * <li>{@link FormulaGenerator#enablingRelationships(PredicateCollection)}</li>
      * <li>{@link FormulaGenerator#invariantPreservations(PredicateCollection)}</li>
@@ -195,16 +190,16 @@ public class PredicateTrainingGenerator
      */
     public Stream<BPredicate> streamPredicatesFromFile(Path file) {
         PredicateCollection pc;
+        MachineAccess bMachine;
         try {
-            MachineAccess bMachine = new MachineAccess(file);
+            bMachine = new MachineAccess(file);
             pc = new PredicateCollection(bMachine);
-            bMachine.close();
         } catch (MachineAccessException e) {
             log.warn("Could not load {}; no predicates generated", file, e);
             return Stream.empty();
         }
 
-        return streamPredicatesFromCollection(pc);
+        return streamPredicatesFromCollection(pc).onClose(bMachine::close);
     }
 
     /**
@@ -218,6 +213,8 @@ public class PredicateTrainingGenerator
      * <li>{@link FormulaGenerator#multiPreconditionFormulae(PredicateCollection)}</li>
      * <li>{@link FormulaGenerator#extendedPreconditionFormulae(PredicateCollection)}</li>
      * </ul>
+     * <p>
+     * The stream needs to be closed after use.
      *
      * @param bMachine B machine to access.
      *
@@ -225,7 +222,8 @@ public class PredicateTrainingGenerator
      */
     public Stream<BPredicate> streamPredicatesFromFile(BMachine bMachine) throws MachineAccessException {
         PredicateCollection pc = new PredicateCollection(bMachine.getMachineAccess());
-        return streamPredicatesFromCollection(pc);
+        return streamPredicatesFromCollection(pc)
+                .onClose(bMachine::closeMachineAccess);
     }
 
     /**

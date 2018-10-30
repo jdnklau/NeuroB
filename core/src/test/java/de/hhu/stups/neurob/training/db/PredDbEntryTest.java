@@ -168,8 +168,7 @@ class PredDbEntryTest {
                 null, backends,
                 new TimedAnswer(Answer.VALID, 15L),
                 new TimedAnswer(Answer.INVALID, 35L));
-        PredDbEntry actual = generator.generate(BPredicate.of("pred"),
-                null);
+        PredDbEntry actual = generator.generate(BPredicate.of("pred"), (BMachine) null);
 
         assertEquals(expected, actual);
     }
@@ -193,8 +192,7 @@ class PredDbEntryTest {
                 null, backends,
                 new TimedAnswer(Answer.VALID, 15L),
                 null);
-        PredDbEntry actual = generator.generate(BPredicate.of("pred"),
-                null);
+        PredDbEntry actual = generator.generate(BPredicate.of("pred"), (BMachine) null);
 
         assertEquals(expected, actual);
     }

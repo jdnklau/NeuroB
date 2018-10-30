@@ -207,18 +207,7 @@ public class PredDbEntry extends PredicateLabelling {
 
 
         @Override
-        public PredDbEntry generate(BPredicate predicate, BMachine bMachine) throws LabelCreationException {
-            // Get machine access
-            MachineAccess machineAccess;
-            try {
-                machineAccess = (bMachine != null)
-                        ? bMachine.getMachineAccess()
-                        : null;
-            } catch (MachineAccessException e) {
-                throw new LabelCreationException(
-                        "Could not sample predicate due to machine access problems", e);
-            }
-
+        public PredDbEntry generate(BPredicate predicate, MachineAccess machineAccess) throws LabelCreationException {
             // Gather results
             Map<Backend, TimedAnswer> results = new HashMap<>();
             for (Backend b : backends) {
@@ -234,9 +223,9 @@ public class PredDbEntry extends PredicateLabelling {
                 results.put(b, answer);
             }
 
-            if (machineAccess != null) {
-                bMachine.closeMachineAccess();
-            }
+            BMachine bMachine = machineAccess != null
+                    ? new BMachine(machineAccess.getSource())
+                    : null;
 
             return new PredDbEntry(predicate, bMachine, results);
         }
