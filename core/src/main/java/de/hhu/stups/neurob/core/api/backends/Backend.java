@@ -324,7 +324,7 @@ public abstract class Backend {
         Answer res;
         CbcSolveCommand cmd = createCbcSolveCommand(predicate, access);
 
-        access.execute(cmd);
+        access.execute(cmd); // FIXME: is it possible that acces is null at training set generation?
 
         // get value for result
         AbstractEvalResult cmdres = cmd.getValue();
