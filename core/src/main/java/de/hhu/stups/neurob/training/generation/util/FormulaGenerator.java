@@ -364,7 +364,7 @@ public class FormulaGenerator {
             }
             for (BPredicate unprimedInv : invariants) {
 
-                String primedInv = primedInvsMap.get(unprimedInv).toString();
+                BPredicate primedInv = primedInvsMap.get(unprimedInv);
                 // Skip if primed invariant was not properly collected
                 if (primedInv == null) {
                     continue;
