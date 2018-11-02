@@ -1,20 +1,14 @@
 package de.hhu.stups.neurob.training.db;
 
-import com.github.krukow.clj_lang.Obj;
 import com.google.gson.stream.JsonReader;
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
-import de.hhu.stups.neurob.core.api.backends.ProBBackend;
-import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
-import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -30,7 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 class JsonDbFormatTest {
     /**
@@ -42,10 +35,6 @@ class JsonDbFormatTest {
                     "pred",
                     "b022209d472e8e192bcb096baf19bdf0e60c0b794e62a70da8e842f43b25f59b"
                     + "cbcf1c42157aec97589ef858bef1b6ac287523e36efab00cc8f3adead45651af");
-
-    @BeforeEach
-    void setupLabelling() {
-    }
 
     /**
      * Returns a {@link PredDbEntry} instance that conforms the labelling
@@ -248,10 +237,10 @@ class JsonDbFormatTest {
                 new JsonDbFormat.PredicateDbIterator(null);
 
         Map<String, TimedAnswer> resultMap = new HashMap<>();
-        resultMap.put("ProB, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 100L));
-        resultMap.put("Kodkod, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 200L));
-        resultMap.put("Z3, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 300L));
-        resultMap.put("SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.UNKNOWN, 400L));
+        resultMap.put("ProB[TIME_OUT=2500]", new TimedAnswer(Answer.VALID, 100L));
+        resultMap.put("Kodkod[TIME_OUT=2500]", new TimedAnswer(Answer.VALID, 200L));
+        resultMap.put("Z3[TIME_OUT=2500]", new TimedAnswer(Answer.VALID, 300L));
+        resultMap.put("SMT_SUPPORTED_INTERPRETER[TIME_OUT=2500]", new TimedAnswer(Answer.UNKNOWN, 400L));
 
         Map<String, Object> expected = new HashMap<>();
         expected.put("predicate", new BPredicate("pred"));
@@ -299,10 +288,10 @@ class JsonDbFormatTest {
                 new JsonDbFormat.PredicateDbIterator(reader);
 
         Map<String, TimedAnswer> resultMap = new HashMap<>();
-        resultMap.put("ProB, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 100L));
-        resultMap.put("Kodkod, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 200L));
-        resultMap.put("Z3, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.VALID, 300L));
-        resultMap.put("SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS", new TimedAnswer(Answer.UNKNOWN, 400L));
+        resultMap.put("ProB[TIME_OUT=2500]", new TimedAnswer(Answer.VALID, 100L));
+        resultMap.put("Kodkod[TIME_OUT=2500]", new TimedAnswer(Answer.VALID, 200L));
+        resultMap.put("Z3[TIME_OUT=2500]", new TimedAnswer(Answer.VALID, 300L));
+        resultMap.put("SMT_SUPPORTED_INTERPRETER[TIME_OUT=2500]", new TimedAnswer(Answer.UNKNOWN, 400L));
 
         String hash = "b022209d472e8e192bcb096baf19bdf0e60c0b794e62a70da8e842f43b25f59b"
                       + "cbcf1c42157aec97589ef858bef1b6ac287523e36efab00cc8f3adead45651af";
@@ -504,10 +493,10 @@ class JsonDbFormatTest {
                 + "\"predicate\":\"" + pred + "\","
                 + "\"sha512\":\"" + hash + "\","
                 + "\"results\":{"
-                + "\"ProB, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":100,\"timeout-in-ns\":2500000000},"
-                + "\"Kodkod, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":200,\"timeout-in-ns\":2500000000},"
-                + "\"Z3, timeout: 2500MILLISECONDS\":{\"answer\":\"VALID\",\"time-in-ns\":300,\"timeout-in-ns\":2500000000},"
-                + "\"SMT_SUPPORTED_INTERPRETER, timeout: 2500MILLISECONDS\":{\"answer\":\"UNKNOWN\",\"time-in-ns\":400,\"timeout-in-ns\":2500000000}"
+                + "\"ProB[TIME_OUT=2500]\":{\"answer\":\"VALID\",\"time-in-ns\":100,\"timeout-in-ns\":2500000000},"
+                + "\"Kodkod[TIME_OUT=2500]\":{\"answer\":\"VALID\",\"time-in-ns\":200,\"timeout-in-ns\":2500000000},"
+                + "\"Z3[TIME_OUT=2500]\":{\"answer\":\"VALID\",\"time-in-ns\":300,\"timeout-in-ns\":2500000000},"
+                + "\"SMT_SUPPORTED_INTERPRETER[TIME_OUT=2500]\":{\"answer\":\"UNKNOWN\",\"time-in-ns\":400,\"timeout-in-ns\":2500000000}"
                 + "}}";
         return json;
     }

@@ -1,5 +1,7 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 import de.prob.animator.command.CbcSolveCommand;
 
 import java.util.concurrent.TimeUnit;
@@ -12,17 +14,40 @@ public class SmtBackend extends Backend {
 
     /**
      * Sets default time out to {@link #defaultTimeOut}
-     * with unit {@link #defaultTimeUnit}.
+     * with unit {@link #defaultTimeUnit} if no TIME_OUT preference is present.
+     *
+     * @param preferences Preferences to be set.
      */
-    public SmtBackend() {
+    public SmtBackend(BPreference... preferences) {
+        super(preferences);
     }
 
     /**
      * @param timeOutValue Maximum runtime
      * @param timeOutUnit
+     * @param preferences Preferences to be set.
      */
-    public SmtBackend(long timeOutValue, TimeUnit timeOutUnit) {
-        super(timeOutValue, timeOutUnit);
+    public SmtBackend(long timeOutValue, TimeUnit timeOutUnit, BPreference... preferences) {
+        super(timeOutValue, timeOutUnit, preferences);
+    }
+
+    /**
+     * Sets default time out to {@link #defaultTimeOut}
+     * with unit {@link #defaultTimeUnit} if no TIME_OUT preference is present.
+     *
+     * @param preferences Preferences to be set
+     */
+    public SmtBackend(BPreferences preferences) {
+        super(preferences);
+    }
+
+    /**
+     * @param timeOutValue Maximum runtime
+     * @param timeOutUnit
+     * @param preferences Preferences to be set.
+     */
+    public SmtBackend(long timeOutValue, TimeUnit timeOutUnit, BPreferences preferences) {
+        super(timeOutValue, timeOutUnit, preferences);
     }
 
     @Override
@@ -31,9 +56,7 @@ public class SmtBackend extends Backend {
     }
 
     @Override
-    public String getDescriptionString() {
-        String description =
-                "SMT_SUPPORTED_INTERPRETER, timeout: " + timeOutValue + timeOutUnit;
-        return description;
+    public String getName() {
+        return "SMT_SUPPORTED_INTERPRETER";
     }
 }

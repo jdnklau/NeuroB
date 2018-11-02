@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
@@ -9,8 +10,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 class ProBBackendIT {
 
@@ -117,4 +121,74 @@ class ProBBackendIT {
                 "ProB was unexpectedly able to decide " + pred);
     }
 
+    @Test
+    public void shouldAnswerTimeoutWhenTimeoutIsZero() throws FormulaException {
+        BPredicate pred = BPredicate.of("x > 0");
+        ProBBackend prob = new ProBBackend(0L, TimeUnit.NANOSECONDS);
+
+        Answer expected = Answer.TIMEOUT;
+        Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldOverrideDefaultTimeOut() throws FormulaException {
+        BPredicate pred = BPredicate.of("x > 0");
+        ProBBackend prob = spy(new ProBBackend(3500000000L, TimeUnit.NANOSECONDS));
+
+        when(prob.solvePredicateUntimed(pred, bMachine))
+                .thenAnswer(invocation -> {
+                    Thread.sleep(3000); // three seconds
+                    return Answer.VALID;
+                });
+
+        Answer expected = Answer.VALID;
+        Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldOverrideDefaultTimeOutWithPreferenceTimeout() throws FormulaException {
+        BPredicate pred = BPredicate.of("x > 0");
+        BPreference timeout = new BPreference("TIME_OUT", "3500");
+        ProBBackend prob = spy(new ProBBackend(Backend.defaultTimeOut, Backend.defaultTimeUnit, timeout));
+
+        when(prob.solvePredicateUntimed(pred, bMachine))
+                .thenAnswer(invocation -> {
+                    Thread.sleep(3000); // three seconds
+                    return Answer.VALID;
+                });
+
+        Answer expected = Answer.VALID;
+        Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldBeInvalidWhenMaxIntIsLessThanFive() throws FormulaException {
+        BPredicate pred = BPredicate.of("5 : INT");
+        BPreference maxInt = BPreference.set("MAXINT", "4");
+        ProBBackend prob = new ProBBackend(Backend.defaultTimeOut, Backend.defaultTimeUnit);
+
+        Answer expected = Answer.INVALID;
+        Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldBeInvalidWhenMaxIntIsGreaterOrEqualThanFive() throws FormulaException {
+        BPredicate pred = BPredicate.of("5 : INT");
+        BPreference maxInt = BPreference.set("MAXINT", "5");
+
+        ProBBackend prob = new ProBBackend(Backend.defaultTimeOut, Backend.defaultTimeUnit, maxInt);
+
+        Answer expected = Answer.VALID;
+        Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
+
+        assertEquals(expected, actual);
+    }
 }

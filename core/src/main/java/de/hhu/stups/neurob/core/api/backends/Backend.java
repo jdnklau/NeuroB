@@ -1,6 +1,8 @@
 package de.hhu.stups.neurob.core.api.backends;
 
 import de.hhu.stups.neurob.core.api.MachineType;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
@@ -17,6 +19,9 @@ import de.prob.exception.ProBError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,6 +33,7 @@ public abstract class Backend {
 
     protected final long timeOutValue;
     protected final TimeUnit timeOutUnit;
+    protected final BPreferences preferences;
 
     /** Default time out set for predicate evaluation. */
     public static final long defaultTimeOut = 2500L;
@@ -38,23 +44,64 @@ public abstract class Backend {
             LoggerFactory.getLogger(Backend.class);
 
     /**
-     * Sets the time out to the defaults.
+     * Sets the time out to the defaults if no TIME_OUT preference is present.
+     *
+     * @param preferences Preferences to be set
      *
      * @see #defaultTimeOut
      * @see #defaultTimeUnit
      */
-    public Backend() {
-        this(defaultTimeOut, defaultTimeUnit);
+    public Backend(BPreference... preferences) {
+        this(defaultTimeOut, defaultTimeUnit, preferences);
     }
 
     /**
      * @param timeOutValue Maximum runtime
      * @param timeOutUnit
+     * @param preferences Further preferences to be set
      */
-    public Backend(long timeOutValue, TimeUnit timeOutUnit) {
-        this.timeOutValue = timeOutValue;
-        this.timeOutUnit = timeOutUnit;
+    public Backend(long timeOutValue, TimeUnit timeOutUnit, BPreference... preferences) {
+
+        // Create timeout preference for backend
+        Long timeoutInMs = timeOutUnit.toMillis(timeOutValue);
+        BPreference timeout = BPreference.set("TIME_OUT", timeoutInMs.toString());
+
+        SortedMap<String, BPreference> prefMap = new TreeMap<>();
+        prefMap.put(timeout.getName(), timeout);
+        Arrays.stream(preferences)
+                .forEach(p -> prefMap.put(p.getName(), p));
+
+        this.preferences = new BPreferences(prefMap);
+
+        // When the preferences contained a TIME_OUT, it should override the timeOutValue and Unit
+        BPreference newestTimeout = this.preferences.get("TIME_OUT");
+        this.timeOutValue = Long.valueOf(newestTimeout.getValue());
+        this.timeOutUnit = TimeUnit.MILLISECONDS;
+
     }
+
+    /**
+     * Sets the time out to the defaults if no TIME_OUT preference is present.
+     *
+     * @param preferences Preferences to be set
+     */
+    public Backend(BPreferences preferences) {
+        this(defaultTimeOut, defaultTimeUnit, preferences);
+    }
+
+    /**
+     * @param timeOutValue Maximum runtime
+     * @param timeOutUnit
+     * @param preferences Further preferences to be set
+     */
+    public Backend(long timeOutValue, TimeUnit timeOutUnit, BPreferences preferences) {
+        this(timeOutValue, timeOutUnit, preferences.stream().toArray(BPreference[]::new));
+    }
+
+    /**
+     * @return Comprehensible and uniquely identifying name of the backend.
+     */
+    abstract public String getName();
 
     /**
      * Returns matching backend's {@link Solvers} enum from ProBBackend's
@@ -72,6 +119,10 @@ public abstract class Backend {
 
     public TimeUnit getTimeOutUnit() {
         return timeOutUnit;
+    }
+
+    public BPreferences getPreferences() {
+        return preferences;
     }
 
     /**
@@ -324,7 +375,10 @@ public abstract class Backend {
         Answer res;
         CbcSolveCommand cmd = createCbcSolveCommand(predicate, access);
 
-        access.execute(cmd); // FIXME: is it possible that acces is null at training set generation?
+        // set preferences
+        access.setPreferences(preferences);
+
+        access.execute(cmd); // FIXME: is it possible that access is null at training set generation?
 
         // get value for result
         AbstractEvalResult cmdres = cmd.getValue();
@@ -437,7 +491,9 @@ public abstract class Backend {
      *
      * @return String describing the backend
      */
-    abstract public String getDescriptionString();
+    public String getDescriptionString() {
+        return getName() + preferences.toString();
+    }
 
     @Override
     public int hashCode() {

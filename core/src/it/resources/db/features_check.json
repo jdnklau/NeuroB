@@ -1,1 +1,14 @@
-{"samples":[{"predicate":"(x:NATURAL) & (y:INTEGER) & (z:NATURAL) & (z<20) & (a:NAT) & (b:NAT1) & (a<7) & (c:INT) & (#y.(y<x)) & (!z.(z<15 => x>3)) & ((x:NATURAL) & (y:INTEGER) & (z:NATURAL) & (z<20) & (a:NAT) & (b:NAT1) & (a<7) & (c:INT) & (#y.(y<x)) & (!z.(z<15 => x>3)))","source":"/home/jannik/Code/STUPS/NeuroB/core/out/test/resources/machines/features_check.mch","timings":{"KodkodBackend":-0.3333333333333333,"ProBBackend":-0.3333333333333333,"SmtBackend":-0.3333333333333333,"Z3Backend":6.7004715333333336E7}}]}
+{
+  "samples": [
+    {
+      "predicate": "(x:NATURAL) & (y:INTEGER) & (z:NATURAL) & (z<20) & (a:NAT) & (b:NAT1) & (a<7) & (c:INT) & (#y.(y<x)) & (!z.(z<15 => x>3)) & ((x:NATURAL) & (y:INTEGER) & (z:NATURAL) & (z<20) & (a:NAT) & (b:NAT1) & (a<7) & (c:INT) & (#y.(y<x)) & (!z.(z<15 => x>3)))",
+      "source": "/home/jannik/Code/STUPS/NeuroB/core/out/test/resources/machines/features_check.mch",
+      "timings": {
+        "KodkodBackend": -0.3333333333333333,
+        "ProBBackend": -0.3333333333333333,
+        "SmtBackend": -0.3333333333333333,
+        "Z3Backend": 6.7004715333333336E7
+      }
+    }
+  ]
+}
