@@ -6,6 +6,7 @@ import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.testharness.TestMachines;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,11 @@ class ProBBackendIT {
     @BeforeEach
     public void loadBMachine() throws MachineAccessException {
         bMachine = new MachineAccess(Paths.get(TestMachines.FORMULAE_GEN_MCH));
+    }
+
+    @AfterEach
+    public void closeBMachine() {
+        bMachine.close();
     }
 
     @Test
@@ -76,12 +82,12 @@ class ProBBackendIT {
     }
 
     @Test
-    public void shouldBeUnknown() throws FormulaException {
+    public void shouldBeTimeout() throws FormulaException {
         BPredicate pred = BPredicate.of("x>y & y>x");
 
         ProBBackend prob = new ProBBackend();
 
-        Answer expected = Answer.UNKNOWN;
+        Answer expected = Answer.TIMEOUT;
         Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
 
         assertEquals(expected, actual,
