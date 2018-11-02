@@ -95,9 +95,7 @@ public class MachineAccess {
         }
 
         // Execute preference commands
-        newPrefs.stream()
-                .map(p -> new SetPreferenceCommand(p.getName(), p.getValue()))
-                .forEach(stateSpace::execute);
+        newPrefs.forEach(this::setPreference);
 
         // store full preferences
         BPreference[] fullPrefs = Stream.of(this.preferences.stream(), newPrefs.stream())
@@ -109,6 +107,13 @@ public class MachineAccess {
 
     public void setPreferences(BPreference... preferences) {
         setPreferences(new BPreferences(preferences));
+    }
+
+    void setPreference(BPreference pref) {
+        log.info("Setting preference {} for machine access of {}", pref, source);
+        SetPreferenceCommand prefCmd = new SetPreferenceCommand(pref.getName(), pref.getValue());
+
+        stateSpace.execute(prefCmd);
     }
 
     /**
