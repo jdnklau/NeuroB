@@ -18,7 +18,6 @@ import de.hhu.stups.neurob.testharness.TestMachines;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
-import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
@@ -39,7 +38,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -52,6 +50,16 @@ class PredicateTrainingGeneratorIT {
 
     private
     PredicateTrainingGenerator generator;
+
+    /**
+     * Backends used by this test suite
+     */
+    private final Backend[] BACKENDS_USED = {
+            new ProBBackend(),
+            new KodkodBackend(),
+            new Z3Backend(),
+            new SmtBackend(),
+    };
 
     private TrainingDataFormat<PredicateFeatures, PredicateLabelling> formatMock;
     private PredicateFeatureGenerating<PredicateFeatures> featureGen;
@@ -311,7 +319,7 @@ class PredicateTrainingGeneratorIT {
         ProBBackend prob = new ProBBackend();
         SmtBackend smt = new SmtBackend();
         Z3Backend z3 = new Z3Backend();
-        PredicateDbFormat format = new JsonDbFormat();
+        PredicateDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         PredicateTrainingGenerator gen = new PredicateTrainingGenerator();
 
@@ -345,7 +353,7 @@ class PredicateTrainingGeneratorIT {
     public void shouldRecogniseNonexistenceWhenDbFileNonexistent() throws IOException {
         Path tmpDir = Files.createTempDirectory("neurob-it");
         Path targetDir = tmpDir.resolve("target");
-        TrainingDataFormat format = new JsonDbFormat();
+        TrainingDataFormat format = new JsonDbFormat(JsonDbFormat.DEFAULT_BACKENDS);
 
         // File to use
         Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
@@ -362,7 +370,7 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     public void shouldRecogniseExistenceWhenDbFileExistent() throws IOException {
-        TrainingDataFormat format = new JsonDbFormat();
+        TrainingDataFormat format = new JsonDbFormat(BACKENDS_USED);
 
         // File to use
         Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
@@ -381,7 +389,7 @@ class PredicateTrainingGeneratorIT {
 
     @Test
     public void shouldStateNonexistentWhenSourceDataIsNewerThanTarget() throws IOException {
-        TrainingDataFormat format = new JsonDbFormat();
+        TrainingDataFormat format = new JsonDbFormat(BACKENDS_USED);
 
         // Copy file to emulate fresh version
         Path tmpDir = Files.createTempDirectory("neurob-it");

@@ -9,9 +9,6 @@ import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
-import de.hhu.stups.neurob.core.labelling.DecisionTimings;
-import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
@@ -21,8 +18,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,13 +25,23 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class JsonDbFormatIT {
 
+    /**
+     * Backends used by this test suite
+     */
+    private final Backend[] BACKENDS_USED = {
+            new ProBBackend(),
+            new KodkodBackend(),
+            new Z3Backend(),
+            new SmtBackend(),
+    };
+
     @Test
     public void shouldWriteSamplesToJson() throws IOException {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
         Path source = Paths.get("non/existent.mch");
         PredDbEntry labels =
-                new PredDbEntry(predicate, new BMachine(source), JsonDbFormat.BACKENDS_USED,
+                new PredDbEntry(predicate, new BMachine(source), BACKENDS_USED,
                         new TimedAnswer(Answer.VALID, 100L),
                         new TimedAnswer(Answer.VALID, 200L),
                         new TimedAnswer(Answer.VALID, 300L),
@@ -48,7 +53,7 @@ public class JsonDbFormatIT {
         TrainingData<BPredicate, PredDbEntry> trainingData =
                 new TrainingData<>(source, sampleStream);
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         Path targetDir = Files.createTempDirectory("neurob-it");
         Path targetFile = format.getTargetLocation(source, targetDir);
@@ -85,7 +90,7 @@ public class JsonDbFormatIT {
         BPredicate predicate = new BPredicate("pred");
         Path source = Paths.get("non/existent.mch");
         PredDbEntry labels =
-                new PredDbEntry(predicate, new BMachine(source), JsonDbFormat.BACKENDS_USED,
+                new PredDbEntry(predicate, new BMachine(source), BACKENDS_USED,
                         new TimedAnswer(Answer.VALID, 100L),
                         new TimedAnswer(Answer.VALID, 200L),
                         new TimedAnswer(Answer.VALID, 300L),
@@ -97,7 +102,7 @@ public class JsonDbFormatIT {
         TrainingData<BPredicate, PredDbEntry> trainingData =
                 new TrainingData<>(source, sampleStream);
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         Path targetDir = Files.createTempDirectory("neurob-it");
         Path targetFile = format.getTargetLocation(source, targetDir);

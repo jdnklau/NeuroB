@@ -1,5 +1,10 @@
 package de.hhu.stups.neurob.training.migration;
 
+import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.api.backends.SmtBackend;
+import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingSample;
@@ -21,6 +26,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PredicateDbMigrationIT {
 
+    /**
+     * Backends used by this test suite
+     */
+    private final Backend[] BACKENDS_USED = {
+            new ProBBackend(),
+            new KodkodBackend(),
+            new Z3Backend(),
+            new SmtBackend(),
+    };
+
     @Test
     void shouldTranslatePredicateDumpToJson() throws IOException {
         // Resource dir of pdump files for the tests
@@ -37,7 +52,7 @@ public class PredicateDbMigrationIT {
         Path firstJson = tempDir.resolve("machines/first.json");
         Path secondJson = tempDir.resolve("machines/subdir/second.json");
 
-        PredicateDbFormat<? extends Labelling> format = new JsonDbFormat();
+        PredicateDbFormat<? extends Labelling> format = new JsonDbFormat(BACKENDS_USED);
         PredicateDbMigration migration = new PredicateDbMigration(new PredicateDumpFormat());
 
         // Expected values
@@ -88,7 +103,7 @@ public class PredicateDbMigrationIT {
         Path secondPdump = tempDir.resolve("machines/subdir/second.pdump");
 
         PredicateDbFormat<? extends Labelling> format = new PredicateDumpFormat();
-        PredicateDbMigration migration = new PredicateDbMigration(new JsonDbFormat());
+        PredicateDbMigration migration = new PredicateDbMigration(new JsonDbFormat(BACKENDS_USED));
 
         // Expected values
         TrainingSample<BPredicate, ? extends Labelling> firstEntry = new TrainingSample<>(

@@ -3,12 +3,15 @@ package de.hhu.stups.neurob.training.db;
 import com.google.gson.stream.JsonReader;
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
+import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -37,6 +40,16 @@ class JsonDbFormatTest {
                     + "cbcf1c42157aec97589ef858bef1b6ac287523e36efab00cc8f3adead45651af");
 
     /**
+     * Backends used by this test suite
+     */
+    private final Backend[] BACKENDS_USED = {
+            new ProBBackend(),
+            new KodkodBackend(),
+            new Z3Backend(),
+            new SmtBackend(),
+    };
+
+    /**
      * Returns a {@link PredDbEntry} instance that conforms the labelling
      * format used by {@link JsonDbFormat}.
      *
@@ -52,12 +65,12 @@ class JsonDbFormatTest {
             Answer probLabel, Answer kodkodLabel, Answer z3Label, Answer smtLabel) {
         // Prepare timing map
         Map<Backend, TimedAnswer> timings = new HashMap<>();
-        timings.put(JsonDbFormat.BACKENDS_USED[0], new TimedAnswer(probLabel, 100L));
-        timings.put(JsonDbFormat.BACKENDS_USED[1], new TimedAnswer(kodkodLabel, 200L));
-        timings.put(JsonDbFormat.BACKENDS_USED[2], new TimedAnswer(z3Label, 300L));
-        timings.put(JsonDbFormat.BACKENDS_USED[3], new TimedAnswer(smtLabel, 400L));
+        timings.put(BACKENDS_USED[0], new TimedAnswer(probLabel, 100L));
+        timings.put(BACKENDS_USED[1], new TimedAnswer(kodkodLabel, 200L));
+        timings.put(BACKENDS_USED[2], new TimedAnswer(z3Label, 300L));
+        timings.put(BACKENDS_USED[3], new TimedAnswer(smtLabel, 400L));
 
-        return new PredDbEntry(BPredicate.of(pred), null, JsonDbFormat.BACKENDS_USED, timings);
+        return new PredDbEntry(BPredicate.of(pred), null, BACKENDS_USED, timings);
     }
 
     private PredDbEntry getLabelling(String pred) {
@@ -66,7 +79,7 @@ class JsonDbFormatTest {
 
     @Test
     public void shouldGiveJsonPathWhenMch() {
-        JsonDbFormat dbFormat = new JsonDbFormat();
+        JsonDbFormat dbFormat = new JsonDbFormat(BACKENDS_USED);
 
         Path source = Paths.get("non/existent/source.mch");
         Path targetDir = Paths.get("target/dir");
@@ -99,7 +112,7 @@ class JsonDbFormatTest {
         expected.add(sample2);
         expected.add(sample3);
 
-        List<TrainingSample> actual = new JsonDbFormat().loadSamples(dbFile)
+        List<TrainingSample> actual = new JsonDbFormat(BACKENDS_USED).loadSamples(dbFile)
                 .collect(Collectors.toList());
 
         assertEquals(expected, actual,
@@ -113,7 +126,7 @@ class JsonDbFormatTest {
         Path dbFile = Paths.get(fileUrl);
 
         long expected = 0;
-        long actual = new JsonDbFormat().loadSamples(dbFile).count();
+        long actual = new JsonDbFormat(BACKENDS_USED).loadSamples(dbFile).count();
 
         assertEquals(expected, actual,
                 "Stream should contain no elements");
@@ -125,7 +138,7 @@ class JsonDbFormatTest {
                 .getResource("db/predicates/no_samples.json").getFile();
         Path dbFile = Paths.get(fileUrl);
 
-        assertNull(new JsonDbFormat().getDataSource(dbFile));
+        assertNull(new JsonDbFormat(BACKENDS_USED).getDataSource(dbFile));
     }
 
     @Test
@@ -135,7 +148,7 @@ class JsonDbFormatTest {
         Path dbFile = Paths.get(fileUrl);
 
         Path expected = Paths.get("non/existent.mch");
-        Path actual = new JsonDbFormat().getDataSource(dbFile);
+        Path actual = new JsonDbFormat(BACKENDS_USED).getDataSource(dbFile);
 
         assertEquals(expected, actual);
     }
@@ -146,7 +159,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(reader, BACKENDS_USED);
 
         assertFalse(iterator.hasNext());
     }
@@ -157,7 +170,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(reader, BACKENDS_USED);
 
         assertTrue(iterator.hasNext());
     }
@@ -168,7 +181,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(reader, BACKENDS_USED);
 
         iterator.hasNext(); // true, see #shouldHaveNextEntries() test case
         iterator.next();
@@ -181,7 +194,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(reader, BACKENDS_USED);
 
         iterator.next();
         assertTrue(iterator.hasNext());
@@ -193,7 +206,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(reader, BACKENDS_USED);
 
         TrainingSample<BPredicate, PredDbEntry> expected =
                 getSample(Paths.get("non/existent.mch"));
@@ -214,7 +227,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(null);
+                new JsonDbFormat.PredicateDbIterator(null, BACKENDS_USED);
 
         Map<String, Object> expected = new HashMap<>();
         expected.put("predicate", BPredicate.of("pred"));
@@ -234,7 +247,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(null);
+                new JsonDbFormat.PredicateDbIterator(null, BACKENDS_USED);
 
         Map<String, TimedAnswer> resultMap = new HashMap<>();
         resultMap.put("ProB[TIME_OUT=2500]", new TimedAnswer(Answer.VALID, 100L));
@@ -265,7 +278,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(null);
+                new JsonDbFormat.PredicateDbIterator(null, BACKENDS_USED);
 
         Map<String, TimedAnswer> resultMap = new HashMap<>();
 
@@ -285,7 +298,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(json));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(reader);
+                new JsonDbFormat.PredicateDbIterator(reader, BACKENDS_USED);
 
         Map<String, TimedAnswer> resultMap = new HashMap<>();
         resultMap.put("ProB[TIME_OUT=2500]", new TimedAnswer(Answer.VALID, 100L));
@@ -313,7 +326,7 @@ class JsonDbFormatTest {
         TrainingSample<BPredicate, PredDbEntry> sample =
                 getSample(Paths.get("non/existent.mch"));
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         String expected = SINGLE_PRED_ENTRY;
         String actual = format.translateSampleToJsonObject(sample);
@@ -326,7 +339,7 @@ class JsonDbFormatTest {
     public void shouldWriteSampleWhenNoSourceExists() {
         TrainingSample<BPredicate, PredDbEntry> sample = getSample();
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         String expected = SINGLE_PRED_ENTRY;
         String actual = format.translateSampleToJsonObject(sample);
@@ -343,7 +356,7 @@ class JsonDbFormatTest {
         TrainingSample<BPredicate, PredDbEntry> sample =
                 new TrainingSample<>(predWithString, labels, source);
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         String expected = getPredicateJson("pred = \\\"string\\\"",
                 "5fb270a2cdfe203e557085fb99ba4196314811362c894dad37a8dd20b6debdf4e0e1c8"
@@ -361,7 +374,7 @@ class JsonDbFormatTest {
         TrainingSample<BPredicate, PredDbEntry> sample =
                 new TrainingSample<>(predWithString, labels, source);
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         String expected = getPredicateJson("{1,2} /\\\\ {2,3} = {1,2,3}",
                 "7546137347059d6f816fe3fdeaa56fcb45a695df5f8fbb10b2c6f7c56ce25873529406"
@@ -379,7 +392,7 @@ class JsonDbFormatTest {
         TrainingSample<BPredicate, PredDbEntry> sample =
                 new TrainingSample<>(predWithString, labels, source);
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         String expected = getPredicateJson("string = \\\"\\\\n\\\"",
                 "80429e69552a61d24c6ae66d2697722d8d6a15b0361b3feca8f5815e42c11cbc1833f3794389"
@@ -398,7 +411,7 @@ class JsonDbFormatTest {
         JsonReader reader = new JsonReader(new StringReader(sampleJson));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(null);
+                new JsonDbFormat.PredicateDbIterator(null, BACKENDS_USED);
 
         BPredicate predWithString = BPredicate.of("{1,2} /\\ {2,3} = {1,2,3}");
         PredDbEntry labels = getLabelling(predWithString.getPredicate());
@@ -419,7 +432,7 @@ class JsonDbFormatTest {
         JsonReader jsonReader = new JsonReader(new StringReader(sampleJson));
 
         JsonDbFormat.PredicateDbIterator iterator =
-                new JsonDbFormat.PredicateDbIterator(null);
+                new JsonDbFormat.PredicateDbIterator(null, BACKENDS_USED);
 
         BPredicate predWithString = BPredicate.of("string = \"\\n\"");
         PredDbEntry labels = getLabelling(predWithString.getPredicate());
@@ -445,7 +458,7 @@ class JsonDbFormatTest {
         TrainingData<BPredicate, PredDbEntry> trainingData =
                 new TrainingData<>(source, sampleStream);
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         StringWriter writer = new StringWriter();
         format.writeSamples(trainingData, writer);
@@ -476,7 +489,7 @@ class JsonDbFormatTest {
         TrainingData<BPredicate, PredDbEntry> trainingData =
                 new TrainingData<>(source, sampleStream);
 
-        JsonDbFormat format = new JsonDbFormat();
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
 
         StringWriter writer = new StringWriter();
         DataGenerationStats stats = format.writeSamples(trainingData, writer);

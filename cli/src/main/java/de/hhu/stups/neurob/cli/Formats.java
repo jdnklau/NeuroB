@@ -10,7 +10,7 @@ import java.util.concurrent.Callable;
 public enum Formats {
 
     JSON("Json format for training", JsonFormat::new),
-    JSONDB("Json for predicate data bases", JsonDbFormat::new),
+    JSONDB("Json for predicate data bases", () -> new JsonDbFormat(JsonDbFormat.DEFAULT_BACKENDS)),
     PDUMP("(Legacy) Predicate Dump data base format", PredicateDumpFormat::new);
 
     public final String description;

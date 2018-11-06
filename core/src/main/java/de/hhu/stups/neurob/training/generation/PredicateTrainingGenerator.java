@@ -52,8 +52,8 @@ public class PredicateTrainingGenerator
     public PredicateTrainingGenerator() {
         this(
                 (pred, ss) -> pred,
-                JsonDbFormat.LABEL_GENERATOR,
-                new JsonDbFormat()
+                JsonDbFormat.getLabelGenerator(JsonDbFormat.DEFAULT_BACKENDS),
+                new JsonDbFormat(JsonDbFormat.DEFAULT_BACKENDS)
         );
     }
 

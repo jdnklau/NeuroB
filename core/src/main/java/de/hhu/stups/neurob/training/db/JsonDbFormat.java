@@ -39,17 +39,49 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
      * <p>
      * The order used is the one stated for {@link PredDbEntry#DEFAULT_BACKENDS PredDbEntry}.
      */
-    public final static Backend[] BACKENDS_USED = PredDbEntry.DEFAULT_BACKENDS;
+    public final static Backend[] DEFAULT_BACKENDS = PredDbEntry.DEFAULT_BACKENDS;
 
-    /**
-     * Label generator to get data for predicates.
-     */
-    public final static PredicateLabelGenerating<PredDbEntry> LABEL_GENERATOR =
-            new PredDbEntry.Generator(3, PredDbEntry.DEFAULT_BACKENDS);
-
+    private final Backend[] BACKENDS_USED;
 
     private static final Logger log =
             LoggerFactory.getLogger(JsonDbFormat.class);
+
+    /**
+     * Sets the format up with the
+     * {@link PredDbEntry#DEFAULT_BACKENDS default backends}.
+     */
+    public JsonDbFormat() {
+        this(DEFAULT_BACKENDS);
+    }
+
+    /**
+     * Sets the format up with the given backends to be used.
+     *
+     * @param backendsUsed
+     */
+    public JsonDbFormat(Backend[] backendsUsed) {
+        this.BACKENDS_USED = backendsUsed;
+    }
+
+    /**
+     * Returns a label generator that generates labels conforming this format's
+     * backends
+     *
+     * @return
+     */
+    public PredicateLabelGenerating<PredDbEntry> getLabelGenerator() {
+        return new PredDbEntry.Generator(3, BACKENDS_USED);
+    }
+
+    /**
+     * Returns a label generator that generates labels associated with the given
+     * backends.
+     *
+     * @return
+     */
+    public static PredicateLabelGenerating<PredDbEntry> getLabelGenerator(Backend[] backends) {
+        return new PredDbEntry.Generator(3, backends);
+    }
 
     @Override
     public Stream<TrainingSample<BPredicate, PredDbEntry>> loadSamples(Path sourceFile)
@@ -58,7 +90,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
 
         return StreamSupport.stream(
                 Spliterators.spliteratorUnknownSize(
-                        new PredicateDbIterator(reader),
+                        new PredicateDbIterator(reader, BACKENDS_USED),
                         0),
                 false)
                 .filter(Objects::nonNull);
@@ -207,6 +239,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             implements Iterator<TrainingSample<BPredicate, PredDbEntry>> {
 
         private final JsonReader reader;
+        private final Backend[] backendsUsed;
         private boolean hasEnded;
         private boolean hasStarted;
         private final Map<String, Backend> backendKeyMap;
@@ -218,15 +251,17 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         private String currentHash;
         private MachineType currentFormalism;
 
-        public PredicateDbIterator(JsonReader reader) throws IOException {
+        public PredicateDbIterator(JsonReader reader, Backend[] backendsUsed) throws IOException {
             this.reader = reader;
             this.hasEnded = false;
 
             this.inMachineData = false;
 
+            this.backendsUsed = backendsUsed;
+
             // Map from Key to Backend
             backendKeyMap = new HashMap<>();
-            for (Backend b : BACKENDS_USED) {
+            for (Backend b : backendsUsed) {
                 backendKeyMap.put(b.getDescriptionString(), b);
             }
 
@@ -399,7 +434,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
 
             Map<Backend, TimedAnswer> results = new HashMap<>();
             Map<String, TimedAnswer> sampleResults = (Map<String, TimedAnswer>) sampleData.get("results");
-            Arrays.stream(BACKENDS_USED)
+            Arrays.stream(backendsUsed)
                     .forEach(b -> {
                         results.put(b, sampleResults.getOrDefault(
                                 b.getDescriptionString(), null));
@@ -408,7 +443,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             BMachine source = currentSourcePath != null
                     ? new BMachine(currentSourcePath)
                     : null;
-            PredDbEntry l = new PredDbEntry(pred, source, BACKENDS_USED, results);
+            PredDbEntry l = new PredDbEntry(pred, source, backendsUsed, results);
 
             return new TrainingSample<>(pred, l, currentSourcePath);
         }
@@ -470,18 +505,18 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             Answer answer = null;
 
             while (!json.peek().equals(JsonToken.END_OBJECT)) {
-               String property = json.nextName();
+                String property = json.nextName();
 
-               if (property.equals("time-in-ns")) {
-                   time = json.nextLong();
-               } else if(property.equals("timeout-in-ns")) {
-                   timeout = json.nextLong();
-               } else if (property.equals("answer")) {
-                   answer = Answer.valueOf(json.nextString());
-               } else { // unknown property
-                   log.warn("Unknown property \"{}\" in results object; skipping value", property);
-                   json.skipValue();
-               }
+                if (property.equals("time-in-ns")) {
+                    time = json.nextLong();
+                } else if (property.equals("timeout-in-ns")) {
+                    timeout = json.nextLong();
+                } else if (property.equals("answer")) {
+                    answer = Answer.valueOf(json.nextString());
+                } else { // unknown property
+                    log.warn("Unknown property \"{}\" in results object; skipping value", property);
+                    json.skipValue();
+                }
             }
 
             json.endObject();
