@@ -23,6 +23,13 @@ import static org.mockito.Mockito.when;
 
 class PredDbEntryTest {
 
+    private final Backend[] BACKENDS_USED = {
+            new ProBBackend(),
+            new KodkodBackend(),
+            new Z3Backend(),
+            new SmtBackend(),
+    };
+
     @Test
     void shouldTranslateResultMapToOrderedLabellingArrayContainingTimings() {
         Backend[] backendOrder = {new ProBBackend(), new KodkodBackend(), new Z3Backend()};
@@ -68,7 +75,7 @@ class PredDbEntryTest {
         resultMap.put(backendOrder[1], new TimedAnswer(Answer.INVALID, 200L));
         resultMap.put(backendOrder[2], new TimedAnswer(Answer.UNKNOWN, 300L));
 
-        PredDbEntry dbEntry = new PredDbEntry(pred, null, resultMap);
+        PredDbEntry dbEntry = new PredDbEntry(pred, null, BACKENDS_USED, resultMap);
 
         Double[] expected = {100., 200., 300., null};
         Double[] actual = dbEntry.getLabellingArray();
@@ -211,7 +218,8 @@ class PredDbEntryTest {
                 new TimedAnswer(Answer.INVALID, 200L),
                 new TimedAnswer(Answer.UNKNOWN, 300L)
         };
-        TimedAnswer[] actual = new PredDbEntry(null, null, resultMap).getAnswerArray(backendOrder);
+        TimedAnswer[] actual = new PredDbEntry(null, null, BACKENDS_USED, resultMap)
+                .getAnswerArray(backendOrder);
 
         assertArrayEquals(expected, actual);
     }
@@ -229,7 +237,8 @@ class PredDbEntryTest {
                 null,
                 new TimedAnswer(Answer.UNKNOWN, 300L)
         };
-        TimedAnswer[] actual = new PredDbEntry(null, null, resultMap).getAnswerArray(backendOrder);
+        TimedAnswer[] actual = new PredDbEntry(null, null, BACKENDS_USED, resultMap)
+                .getAnswerArray(backendOrder);
 
         assertArrayEquals(expected, actual);
     }
@@ -242,7 +251,7 @@ class PredDbEntryTest {
         resultMap.put(backendOrder[0], new TimedAnswer(Answer.VALID, 100L));
         resultMap.put(backendOrder[1], new TimedAnswer(Answer.UNKNOWN, null));
 
-        Double[] expected = { 100., null};
+        Double[] expected = {100., null};
         Double[] actual = PredDbEntry.toArray(resultMap, backendOrder);
 
         assertArrayEquals(expected, actual);
@@ -261,7 +270,7 @@ class PredDbEntryTest {
                 new TimedAnswer(Answer.VALID, 100L),
                 new TimedAnswer(Answer.UNKNOWN, 300L)
         };
-        TimedAnswer[] actual = new PredDbEntry(null, null, resultMap)
+        TimedAnswer[] actual = new PredDbEntry(null, null, BACKENDS_USED, resultMap)
                 .getAnswerArray(new ProBBackend(), new Z3Backend());
 
         assertArrayEquals(expected, actual);
@@ -275,7 +284,7 @@ class PredDbEntryTest {
         resultMap.put(backendOrder[0], new TimedAnswer(Answer.VALID, 100L));
         resultMap.put(backendOrder[1], new TimedAnswer(Answer.UNKNOWN, 300L));
 
-        PredDbEntry entry = new PredDbEntry(null, null, resultMap);
+        PredDbEntry entry = new PredDbEntry(null, null, BACKENDS_USED, resultMap);
 
         TimedAnswer expected = new TimedAnswer(Answer.VALID, 100L);
         TimedAnswer actual = entry.getResult(new ProBBackend());
@@ -291,7 +300,7 @@ class PredDbEntryTest {
         resultMap.put(backendOrder[0], new TimedAnswer(Answer.VALID, 100L));
         resultMap.put(backendOrder[1], new TimedAnswer(Answer.UNKNOWN, 300L));
 
-        PredDbEntry entry = new PredDbEntry(null, null, resultMap);
+        PredDbEntry entry = new PredDbEntry(null, null, BACKENDS_USED, resultMap);
 
         assertNull(entry.getResult(new Z3Backend()));
     }

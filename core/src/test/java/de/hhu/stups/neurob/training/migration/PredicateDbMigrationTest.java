@@ -33,14 +33,14 @@ class PredicateDbMigrationTest {
 
     private final TrainingSample<BPredicate, PredDbEntry> sample0 = new TrainingSample<>(
             new BPredicate("null:PREDICATES"),
-            new PredDbEntry(new BPredicate("null:PREDICATES"), null, PredDbEntry.BACKENDS_USED,
+            new PredDbEntry(new BPredicate("null:PREDICATES"), null, PredDbEntry.DEFAULT_BACKENDS,
                     new TimedAnswer(Answer.VALID, 1L),
                     new TimedAnswer(Answer.VALID, 2L),
                     new TimedAnswer(Answer.VALID, 3L),
                     new TimedAnswer(Answer.UNKNOWN, 4L)));
     private final TrainingSample<BPredicate, PredDbEntry> sample1 = new TrainingSample<>(
             new BPredicate("first:PREDICATES"),
-            new PredDbEntry(new BPredicate("first:PREDICATES"), new BMachine("first/source/machine.mch"), PredDbEntry.BACKENDS_USED,
+            new PredDbEntry(new BPredicate("first:PREDICATES"), new BMachine("first/source/machine.mch"), PredDbEntry.DEFAULT_BACKENDS,
                     new TimedAnswer(Answer.VALID, 1L),
                     new TimedAnswer(Answer.VALID, 2L),
                     new TimedAnswer(Answer.VALID, 3L),
@@ -48,7 +48,7 @@ class PredicateDbMigrationTest {
             Paths.get("first/source/machine.mch"));
     private final TrainingSample<BPredicate, PredDbEntry> sample2 = new TrainingSample<>(
             new BPredicate("second:PREDICATES"),
-            new PredDbEntry(new BPredicate("second:PREDICATES"), new BMachine("second/source/machine.mch"), PredDbEntry.BACKENDS_USED,
+            new PredDbEntry(new BPredicate("second:PREDICATES"), new BMachine("second/source/machine.mch"), PredDbEntry.DEFAULT_BACKENDS,
                     new TimedAnswer(Answer.VALID, 1L),
                     new TimedAnswer(Answer.VALID, 2L),
                     new TimedAnswer(Answer.VALID, 3L),
@@ -56,7 +56,7 @@ class PredicateDbMigrationTest {
             Paths.get("second/source/machine.mch"));
     private final TrainingSample<BPredicate, PredDbEntry> sample3 = new TrainingSample<>(
             new BPredicate("third:PREDICATES"),
-            new PredDbEntry(new BPredicate("third:PREDICATES"), new BMachine("second/source/machine.mch"), PredDbEntry.BACKENDS_USED,
+            new PredDbEntry(new BPredicate("third:PREDICATES"), new BMachine("second/source/machine.mch"), PredDbEntry.DEFAULT_BACKENDS,
                     new TimedAnswer(Answer.VALID, 1L),
                     new TimedAnswer(Answer.VALID, 2L),
                     new TimedAnswer(Answer.VALID, 3L),

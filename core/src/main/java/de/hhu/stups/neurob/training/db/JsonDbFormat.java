@@ -37,15 +37,15 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
     /**
      * Array over backends in use, also providing an ordering by id.
      * <p>
-     * The order used is the one stated for {@link PredDbEntry#BACKENDS_USED PredDbEntry}.
+     * The order used is the one stated for {@link PredDbEntry#DEFAULT_BACKENDS PredDbEntry}.
      */
-    public final static Backend[] BACKENDS_USED = PredDbEntry.BACKENDS_USED;
+    public final static Backend[] BACKENDS_USED = PredDbEntry.DEFAULT_BACKENDS;
 
     /**
      * Label generator to get data for predicates.
      */
     public final static PredicateLabelGenerating<PredDbEntry> LABEL_GENERATOR =
-            new PredDbEntry.Generator(3, PredDbEntry.BACKENDS_USED);
+            new PredDbEntry.Generator(3, PredDbEntry.DEFAULT_BACKENDS);
 
 
     private static final Logger log =
@@ -408,7 +408,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             BMachine source = currentSourcePath != null
                     ? new BMachine(currentSourcePath)
                     : null;
-            PredDbEntry l = new PredDbEntry(pred, source, results);
+            PredDbEntry l = new PredDbEntry(pred, source, BACKENDS_USED, results);
 
             return new TrainingSample<>(pred, l, currentSourcePath);
         }

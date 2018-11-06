@@ -57,7 +57,7 @@ class JsonDbFormatTest {
         timings.put(JsonDbFormat.BACKENDS_USED[2], new TimedAnswer(z3Label, 300L));
         timings.put(JsonDbFormat.BACKENDS_USED[3], new TimedAnswer(smtLabel, 400L));
 
-        return new PredDbEntry(BPredicate.of(pred), null, timings);
+        return new PredDbEntry(BPredicate.of(pred), null, JsonDbFormat.BACKENDS_USED, timings);
     }
 
     private PredDbEntry getLabelling(String pred) {

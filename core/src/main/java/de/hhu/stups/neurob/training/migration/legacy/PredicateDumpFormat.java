@@ -87,7 +87,8 @@ public class PredicateDumpFormat implements PredicateDbFormat<PredDbEntry> {
         Path source = pdump.getSource();
 
         Map<Backend, TimedAnswer> answers = translateTimings(pdump.getTimings());
-        PredDbEntry labels = new PredDbEntry(predicate, new BMachine(source), answers);
+        PredDbEntry labels = new PredDbEntry(predicate, new BMachine(source),
+                PredicateDump.BACKENDS_USED, answers);
 
         return new TrainingSample<>(predicate, labels, source);
     }

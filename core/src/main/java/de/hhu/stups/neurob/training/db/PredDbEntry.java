@@ -12,7 +12,6 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
-import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import org.slf4j.Logger;
@@ -30,6 +29,7 @@ public class PredDbEntry extends PredicateLabelling {
     private final Map<Backend, TimedAnswer> results;
     public static final Long DEFAULT_TIMEOUT = 2500L;
     public static final TimeUnit DEFAULT_TIMEUNIT = TimeUnit.MILLISECONDS;
+    private final Backend[] backendsUsed;
 
     private static final Logger log =
             LoggerFactory.getLogger(PredDbEntry.class);
@@ -43,7 +43,7 @@ public class PredDbEntry extends PredicateLabelling {
      * <li>SMT_SUPPORTED_INTERPRETER</li>
      * </ol>
      */
-    public final static Backend[] BACKENDS_USED = {
+    public final static Backend[] DEFAULT_BACKENDS = {
             new ProBBackend(),
             new KodkodBackend(),
             new Z3Backend(),
@@ -53,15 +53,38 @@ public class PredDbEntry extends PredicateLabelling {
     /**
      * Initialises this entry with the given results.
      *
+     * From the results, only the {@link #DEFAULT_BACKENDS} are used,
+     * which also imply an ordering.
+     *
      * @param pred Predicate over which the results were gathered
      * @param source Source machine from which the predicate originates
      * @param results Map of backends with corresponding results
+     *
+     * @
      */
     public PredDbEntry(BPredicate pred, BMachine source, Map<Backend, TimedAnswer> results) {
-        super(pred, toArray(results, BACKENDS_USED));
+        this(pred, source, DEFAULT_BACKENDS, results);
+    }
+
+    /**
+     * Initialises this entry with the given results.
+     *
+     * The given {@code orderedBackends} both dictate which backends
+     * are to be used from the {@code results}
+     * and imply an ordering over the backends.
+     *
+     * @param pred Predicate over which the results were gathered
+     * @param source Source machine from which the predicate originates
+     * @param orderedBackends Array of backends to be used
+     * @param results Map of backends with corresponding results
+     */
+    public PredDbEntry(BPredicate pred, BMachine source,
+            Backend[] orderedBackends,Map<Backend, TimedAnswer> results) {
+        super(pred, toArray(results, orderedBackends));
         this.pred = pred;
         this.source = source;
         this.results = results;
+        this.backendsUsed = orderedBackends;
     }
 
     /**
@@ -130,12 +153,12 @@ public class PredDbEntry extends PredicateLabelling {
 
     /**
      * Collects and returns the backends' answers as array,
-     * ordered by {@link #BACKENDS_USED}.
+     * ordered by {@link #DEFAULT_BACKENDS}.
      *
      * @return
      */
     public TimedAnswer[] getAnswerArray() {
-        return getAnswerArray(BACKENDS_USED);
+        return getAnswerArray(DEFAULT_BACKENDS);
     }
 
     /**
@@ -158,6 +181,10 @@ public class PredDbEntry extends PredicateLabelling {
 
     public BMachine getSource() {
         return source;
+    }
+
+    public Backend[] getBackendsUsed() {
+        return backendsUsed;
     }
 
     public Map<Backend, TimedAnswer> getResults() {

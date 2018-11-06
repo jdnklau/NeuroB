@@ -5,12 +5,10 @@ import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.labelling.DecisionTimings;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
-import org.datavec.api.transform.analysis.columns.TimeAnalysis;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -53,29 +51,30 @@ class PredicateDumpFormatTest {
                 new TimedAnswer(Answer.SOLVABLE, 4L));
 
         // Prepare samples
+        Backend[] backends = PredicateDump.BACKENDS_USED; // shortcut
         sample0 = new TrainingSample<>(
                 new BPredicate("null:PREDICATES"),
-                new PredDbEntry(new BPredicate("null:PREDICATES"), null, timings));
+                new PredDbEntry(new BPredicate("null:PREDICATES"), null, backends, timings));
         sample1 = new TrainingSample<>(
                 new BPredicate("first:PREDICATES"),
                 new PredDbEntry(
                         BPredicate.of("first:PREDICATES"),
                         new BMachine(Paths.get("first/source/machine.mch")),
-                        timings),
+                        backends, timings),
                 Paths.get("first/source/machine.mch"));
         sample2 = new TrainingSample<>(
                 new BPredicate("second:PREDICATES"),
                 new PredDbEntry(
                         BPredicate.of("second:PREDICATES"),
                         new BMachine(Paths.get("second/source/machine.mch")),
-                        timings),
+                        backends, timings),
                 Paths.get("second/source/machine.mch"));
         sample3 = new TrainingSample<>(
                 new BPredicate("third:PREDICATES"),
                 new PredDbEntry(
                         BPredicate.of("third:PREDICATES"),
                         new BMachine(Paths.get("second/source/machine.mch")),
-                        timings),
+                        backends, timings),
                 Paths.get("second/source/machine.mch"));
     }
 
