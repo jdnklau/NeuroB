@@ -35,7 +35,7 @@
 
 ### Other
 
-- [ ] Enhance versioning of Backends
+- [x] Enhance versioning of Backends
 
 ## Planned features
 
