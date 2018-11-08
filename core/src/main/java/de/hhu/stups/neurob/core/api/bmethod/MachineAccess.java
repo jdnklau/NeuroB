@@ -56,7 +56,18 @@ public class MachineAccess {
         this(source, MachineType.predictTypeFromLocation(source));
     }
 
-    public void load() throws MachineAccessException {
+    /**
+     * Loads the access to the machine internally.
+     * If the access is already established ({@link #isLoaded })
+     * it will be reloaded instead.
+     * <p>
+     * Returns a reference to this instance for method chaining.
+     *
+     * @return Reference to this instance for method chaining.
+     *
+     * @throws MachineAccessException
+     */
+    public MachineAccess load() throws MachineAccessException {
         if (stateSpace != null) {
             log.info("Reloading state space for {}, closing old connection", source);
             stateSpace.kill();
@@ -65,6 +76,8 @@ public class MachineAccess {
 
         stateSpace = loadStateSpace(source);
         isLoaded = true;
+
+        return this;
     }
 
 
@@ -155,6 +168,18 @@ public class MachineAccess {
 
     public IEvalElement parseFormula(BPredicate formula) {
         return stateSpace.getModel().parseFormula(formula.toString(), FormulaExpand.EXPAND);
+    }
+
+    /**
+     * Spawns another machine access, which accesses the same machine but
+     * does not contain any {@link BPreference B preferences} yet.
+     *
+     * @return Second access to this machine
+     *
+     * @throws MachineAccessException
+     */
+    public MachineAccess spawnFreshAccess() throws MachineAccessException {
+        return new MachineAccess(source, machineType, isLoaded);
     }
 
     /**
