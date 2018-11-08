@@ -1,12 +1,16 @@
 package de.hhu.stups.neurob.cli.data;
 
+import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
 import de.hhu.stups.neurob.cli.Formats;
+import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
+import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
+import de.hhu.stups.neurob.training.generation.TrainingSetGenerator;
 import de.hhu.stups.neurob.training.migration.PredicateDbMigration;
-import de.hhu.stups.neurob.training.migration.legacy.PredicateDumpFormat;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -34,8 +38,9 @@ public class DataCli implements CliModule {
     @Override
     public String getUsageInfo() {
         return
-                "data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT\n"
+                "\n"
+                + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [[-x] -b BACKENDS]\n"
                 + "\n";
 
     }
@@ -48,10 +53,13 @@ public class DataCli implements CliModule {
 
         formatter.printUsage(helpPrinter, 80, getUsageInfo());
         formatter.printOptions(helpPrinter, 80, options, 1, 5);
-
         helpPrinter.println();
 
         helpPrinter.append(Formats.getFormatInfo());
+        helpPrinter.println();
+
+        helpPrinter.append(BackendId.backendInfo);
+        helpPrinter.println();
 
         return helpText.toString();
     }
@@ -89,9 +97,23 @@ public class DataCli implements CliModule {
                 .required()
                 .build();
 
+        // BackendId
+        Option cross = Option.builder("x")
+                .longOpt("cross-options")
+                .desc("If set, enumerates any combination of options per backend")
+                .build();
+        Option backends = Option.builder("b")
+                .longOpt("backends")
+                .hasArgs()
+                .desc(
+                        "BackendId to be accounted for"
+                ).build();
+
 
         options.addOptionGroup(modeGroup);
         options.addOption(target);
+        options.addOption(backends);
+        options.addOption(cross);
     }
 
     @Override
@@ -106,7 +128,7 @@ public class DataCli implements CliModule {
 
             // Switch between migration and generation
             if (line.hasOption("g")) {
-                System.err.println("generation NYI");
+                generate(line, targetDir, targetFormat);
             } else if (line.hasOption("m")) {
 
                 Path sourceDir = Paths.get(line.getOptionValues("m")[0]);
@@ -134,6 +156,32 @@ public class DataCli implements CliModule {
         } catch (IOException e) {
             System.out.println("Unable to migrate data base: " + e);
         }
+    }
+
+    private void generate(CommandLine line, Path targetDir, TrainingDataFormat targetFormat) throws IOException {
+        Backend[] backends = PredDbEntry.DEFAULT_BACKENDS;
+        if (line.hasOption('b')) {
+            boolean crossCreate = line.hasOption('x');
+
+
+            for (String backend : line.getOptionValues('b')) {
+                backends = BackendId.makeBackends(backend, crossCreate);
+            }
+        } else {
+            backends = PredDbEntry.DEFAULT_BACKENDS;
+        }
+
+        Path sourceDir = Paths.get(line.getOptionValue("g"));
+
+        // TODO: make use of target format
+        JsonDbFormat format = new JsonDbFormat(backends);
+        PredicateTrainingGenerator generator = new PredicateTrainingGenerator(
+                (p,ss) -> p,
+                format.getLabelGenerator(),
+                format);
+
+        generator.generateTrainingData(sourceDir, targetDir, false);
+
     }
 
     @Override
