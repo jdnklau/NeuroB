@@ -9,14 +9,13 @@ import java.nio.file.Paths;
 /**
  * Abstraction of B machines as type.
  * <p>
- * By using {@link #getMachineAccess()} the machine access can directly be
+ * By using {@link #spawnMachineAccess()} the machine access can directly be
  * accessed.
  */
 public class BMachine implements BElement {
 
     private final Path location;
     private final MachineType machineType;
-    private MachineAccess machineAccess = null;
 
     public BMachine(Path location) {
         this.location = location;
@@ -36,32 +35,15 @@ public class BMachine implements BElement {
     }
 
     /**
-     * Accesses the B machine, loading it's state space internally.
-     * <p>
-     * This is a lazy operation: If the access was already established and
-     * is not yet closed, the same instance will be returned every time.
+     * Loads access to the B machine.
+     * The access needs to be closed after use.
      *
      * @return
      *
      * @throws MachineAccessException
      */
-    public MachineAccess getMachineAccess() throws MachineAccessException {
-        if (machineAccess == null) {
-            // load machine
-            machineAccess = new MachineAccess(location);
-        }
-
-        return machineAccess;
-    }
-
-    /**
-     * Closes the access to the machine.
-     */
-    public void closeMachineAccess() {
-        if (machineAccess != null) {
-            machineAccess.close();
-            machineAccess = null;
-        }
+    public MachineAccess spawnMachineAccess() throws MachineAccessException {
+        return new MachineAccess(location);
     }
 
     @Override

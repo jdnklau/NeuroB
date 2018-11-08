@@ -31,10 +31,10 @@ public interface PredicateLabelGenerating<L extends PredicateLabelling>
     default L generate(BPredicate predicate, BMachine bMachine) throws LabelCreationException {
         L labelling;
         try {
-            MachineAccess access = (bMachine != null) ? bMachine.getMachineAccess() : null;
+            MachineAccess access = (bMachine != null) ? bMachine.spawnMachineAccess() : null;
             labelling = generate(predicate, access);
             if(access != null) {
-                bMachine.closeMachineAccess();
+                access.close();
             }
         } catch (MachineAccessException e) {
             throw new LabelCreationException("Could not create features for " + predicate, e);

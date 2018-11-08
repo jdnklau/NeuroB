@@ -67,7 +67,7 @@ public class PredicateTrainingGenerator
     public Stream<TrainingSample> streamSamplesFromFile(BMachine bMachine) {
         try {
             log.info("Accessing B machine {}", bMachine);
-            MachineAccess access = bMachine.getMachineAccess();
+            MachineAccess access = bMachine.spawnMachineAccess();
             Stream<BPredicate> predicates = streamPredicatesFromFile(bMachine);
 
             // Stream training samples
@@ -84,7 +84,7 @@ public class PredicateTrainingGenerator
                         // If any exceptions occur, return nothing
                         return null;
                     })
-                    .onClose(bMachine::closeMachineAccess);
+                    .onClose(access::close);
 
             return samples.filter(Objects::nonNull)
                     // add source file information
@@ -221,9 +221,10 @@ public class PredicateTrainingGenerator
      * @return Stream of generated predicates.
      */
     public Stream<BPredicate> streamPredicatesFromFile(BMachine bMachine) throws MachineAccessException {
-        PredicateCollection pc = new PredicateCollection(bMachine.getMachineAccess());
+        MachineAccess access = bMachine.spawnMachineAccess();
+        PredicateCollection pc = new PredicateCollection(access);
         return streamPredicatesFromCollection(pc)
-                .onClose(bMachine::closeMachineAccess);
+                .onClose(access::close);
     }
 
     /**

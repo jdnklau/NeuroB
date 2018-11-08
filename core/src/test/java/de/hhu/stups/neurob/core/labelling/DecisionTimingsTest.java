@@ -44,7 +44,7 @@ class DecisionTimingsTest {
     public void mockBMachine() throws MachineAccessException {
         machineAccess = mock(MachineAccess.class);
         bMachine = mock(BMachine.class);
-        when(bMachine.getMachineAccess()).thenReturn(machineAccess);
+        when(bMachine.spawnMachineAccess()).thenReturn(machineAccess);
     }
 
     @BeforeEach

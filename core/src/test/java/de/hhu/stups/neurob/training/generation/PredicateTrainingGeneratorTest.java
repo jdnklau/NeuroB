@@ -57,6 +57,7 @@ class PredicateTrainingGeneratorTest {
         // Actually, the generator might better be declared in the tests
         // themselves, but due to generics the signature is waaay to long
         // and would only hurt readability.
+        // FIXME: No generics anymore, pull generator into each test?
         generator = null;
     }
 
@@ -123,6 +124,7 @@ class PredicateTrainingGeneratorTest {
 
         // Set up spy
         BMachine bMachine = mock(BMachine.class);
+        doReturn(mock(MachineAccess.class)).when(bMachine).spawnMachineAccess();
         generator = spy(new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock));
         doReturn(predicates.stream().map(BPredicate::new))
@@ -175,7 +177,7 @@ class PredicateTrainingGeneratorTest {
 
         BMachine bMachine = mock(BMachine.class);
         MachineAccess machineAccess = mock(MachineAccess.class);
-        doReturn(machineAccess).when(bMachine).getMachineAccess();
+        doReturn(machineAccess).when(bMachine).spawnMachineAccess();
         doReturn(ss).when(machineAccess).getStateSpace();
 
         List<String> expected = new ArrayList<>();
@@ -255,8 +257,8 @@ class PredicateTrainingGeneratorTest {
     public void shouldStreamSamplesWithSourceInformationWhenCreatingFromFile() throws MachineAccessException {
         Path file = Paths.get("/not/existent/path");
         BMachine bMachine = mock(BMachine.class);
-        when(bMachine.getMachineAccess()).thenReturn(null);
         when(bMachine.getLocation()).thenReturn(file);
+        doReturn(mock(MachineAccess.class)).when(bMachine).spawnMachineAccess();
 
         generator = spy(new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock));

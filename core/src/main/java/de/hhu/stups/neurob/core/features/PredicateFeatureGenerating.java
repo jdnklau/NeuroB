@@ -22,10 +22,10 @@ public interface PredicateFeatureGenerating<F>
     default F generate(BPredicate predicate, BMachine bMachine) throws FeatureCreationException {
         F features;
         try {
-            MachineAccess access = (bMachine != null) ? bMachine.getMachineAccess() : null;
+            MachineAccess access = (bMachine != null) ? bMachine.spawnMachineAccess() : null;
             features = generate(predicate, access);
             if(access != null) {
-                bMachine.closeMachineAccess();
+                access.close();
             }
         } catch (MachineAccessException e) {
             throw new FeatureCreationException("Could not create features for " + predicate, e);

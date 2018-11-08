@@ -137,10 +137,6 @@ public class PredicateDbMigration
                                         featureGen, labelTrans, targetFormat);
                         stats.mergeWith(fileStats);
 
-                        // close machine if opened
-                        if (origMachine != null) {
-                            origMachine.closeMachineAccess();
-                        }
                         log.info("Finished migration of {}", dbFile);
                     } catch (IOException e) {
                         log.warn("Unable to migrate {}", dbFile, e);
@@ -219,7 +215,7 @@ public class PredicateDbMigration
         // Access machine
         MachineAccess access = null;
         try {
-            access = origMachine != null ? origMachine.getMachineAccess() : null;
+            access = origMachine != null ? origMachine.spawnMachineAccess() : null;
         } catch (MachineAccessException e) {
             log.warn("Unable to access machine {} for migration context", origMachine, e);
         }
@@ -237,13 +233,18 @@ public class PredicateDbMigration
                             stats.increaseSamplesFailed();
                             return null;
                         }
-                    }).filter(Objects::nonNull);
+                    }).filter(Objects::nonNull)
+                    .onClose(() -> {
+                        if (finalAccess != null)
+                           finalAccess.close();
+                    });
 
             TrainingData<D, L> data = new TrainingData<>(
                     stripCommonSourceDir(sourceFile, commonSourceDirectory),
                     samples);
 
             stats.mergeWith(targetFormat.writeSamples(data, targetDirectory));
+            samples.close();
         }
         return stats;
     }

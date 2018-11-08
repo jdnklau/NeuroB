@@ -181,7 +181,7 @@ public class TheoryFeatures extends PredicateFeatures {
             // Access machine
             MachineAccess access = null;
             try {
-                access = bMachine != null ? bMachine.getMachineAccess() : null;
+                access = bMachine != null ? bMachine.spawnMachineAccess() : null;
             } catch (MachineAccessException e) {
                 e.printStackTrace();
             }
@@ -190,7 +190,7 @@ public class TheoryFeatures extends PredicateFeatures {
 
             // Close machine
             if (access != null) {
-                bMachine.closeMachineAccess();
+                access.close();
             }
 
             return features;
