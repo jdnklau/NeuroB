@@ -138,4 +138,21 @@ class BPreferencesTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    void shouldHaveEqualHashCodeWithEqualPreferences() {
+        BPreferences prefs1 = BPreferences
+                .set("PREF3", "value3")
+                .set("PREF1", "value1")
+                .set("PREF2", "value2")
+                .assemble();
+
+        BPreferences prefs2 = BPreferences
+                .set("PREF3", "value3")
+                .set("PREF1", "value1")
+                .set("PREF2", "value2")
+                .assemble();
+
+        assertEquals(prefs1.hashCode(), prefs2.hashCode());
+    }
+
 }

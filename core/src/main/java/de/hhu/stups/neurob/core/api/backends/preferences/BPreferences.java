@@ -96,6 +96,11 @@ public class BPreferences {
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        return preferences.hashCode();
+    }
+
     /**
      * Accesses the Builder pattern.
      * Allows to chain {@link #set(String, String)} methods,

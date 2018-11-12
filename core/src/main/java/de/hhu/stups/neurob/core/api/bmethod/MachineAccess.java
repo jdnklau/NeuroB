@@ -77,6 +77,8 @@ public class MachineAccess {
         stateSpace = loadStateSpace(source);
         isLoaded = true;
 
+        preferences.stream().forEach(this::setPreferenceInStateSpace);
+
         return this;
     }
 
@@ -108,7 +110,9 @@ public class MachineAccess {
         }
 
         // Execute preference commands
-        newPrefs.forEach(this::setPreference);
+        if (isLoaded) {
+            newPrefs.forEach(this::setPreferenceInStateSpace);
+        }
 
         // store full preferences
         BPreference[] fullPrefs = Stream.of(this.preferences.stream(), newPrefs.stream())
@@ -122,7 +126,7 @@ public class MachineAccess {
         setPreferences(new BPreferences(preferences));
     }
 
-    void setPreference(BPreference pref) {
+    void setPreferenceInStateSpace(BPreference pref) {
         log.info("Setting preference {} for machine access of {}", pref, source);
         SetPreferenceCommand prefCmd = new SetPreferenceCommand(pref.getName(), pref.getValue());
 
@@ -202,4 +206,29 @@ public class MachineAccess {
         stateSpace.sendInterrupt();
     }
 
+    @Override
+    public String toString() {
+        return source + "{"
+               + "machine type=" + machineType + ", "
+               + "loaded=" + isLoaded + ", "
+               + "preferences=" + preferences + "}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof MachineAccess) {
+            MachineAccess other = (MachineAccess) o;
+
+            return this.source.equals(other.source)
+                   && this.machineType.equals(other.machineType)
+                   && this.preferences.equals(other.preferences);
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return source.hashCode() + preferences.hashCode();
+    }
 }

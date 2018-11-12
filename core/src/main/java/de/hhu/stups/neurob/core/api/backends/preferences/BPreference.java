@@ -37,4 +37,9 @@ public class BPreference {
 
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode()+value.hashCode();
+    }
 }
