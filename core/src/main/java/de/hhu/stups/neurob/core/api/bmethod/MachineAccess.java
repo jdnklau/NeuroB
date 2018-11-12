@@ -25,10 +25,10 @@ public class MachineAccess {
     private final MachineType machineType;
 
     private final Api api;
-    private boolean isLoaded = false;
-    private StateSpace stateSpace = null;
+    protected boolean isLoaded = false;
+    protected StateSpace stateSpace = null;
 
-    private BPreferences preferences;
+    protected BPreferences preferences;
 
     private static final Logger log =
             LoggerFactory.getLogger(MachineAccess.class);
@@ -77,7 +77,7 @@ public class MachineAccess {
         stateSpace = loadStateSpace(source);
         isLoaded = true;
 
-        preferences.stream().forEach(this::setPreferenceInStateSpace);
+        preferences.stream().forEach(p -> setPreferenceInStateSpace(p, stateSpace));
 
         return this;
     }
@@ -111,7 +111,7 @@ public class MachineAccess {
 
         // Execute preference commands
         if (isLoaded) {
-            newPrefs.forEach(this::setPreferenceInStateSpace);
+            newPrefs.forEach(p -> setPreferenceInStateSpace(p, stateSpace));
         }
 
         // store full preferences
@@ -126,11 +126,11 @@ public class MachineAccess {
         setPreferences(new BPreferences(preferences));
     }
 
-    void setPreferenceInStateSpace(BPreference pref) {
+    void setPreferenceInStateSpace(BPreference pref, StateSpace ss) {
         log.info("Setting preference {} for machine access of {}", pref, source);
         SetPreferenceCommand prefCmd = new SetPreferenceCommand(pref.getName(), pref.getValue());
 
-        stateSpace.execute(prefCmd);
+        ss.execute(prefCmd);
     }
 
     /**
