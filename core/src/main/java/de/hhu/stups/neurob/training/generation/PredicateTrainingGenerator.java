@@ -131,7 +131,7 @@ public class PredicateTrainingGenerator
      * @throws FeatureCreationException
      * @throws LabelCreationException
      */
-    public TrainingSample generateSample(BPredicate predicate, @Nullable MachineAccess access)
+    public TrainingSample generateSample(BPredicate predicate, MachineAccess access)
             throws FeatureCreationException, LabelCreationException {
         log.debug("Generating features for {}", predicate);
 

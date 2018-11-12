@@ -10,8 +10,10 @@ import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
+import de.hhu.stups.neurob.core.api.bmethod.MultiMachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
+import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import org.slf4j.Logger;
@@ -52,7 +54,7 @@ public class PredDbEntry extends PredicateLabelling {
 
     /**
      * Initialises this entry with the given results.
-     *
+     * <p>
      * From the results, only the {@link #DEFAULT_BACKENDS} are used,
      * which also imply an ordering.
      *
@@ -68,7 +70,7 @@ public class PredDbEntry extends PredicateLabelling {
 
     /**
      * Initialises this entry with the given results.
-     *
+     * <p>
      * The given {@code orderedBackends} both dictate which backends
      * are to be used from the {@code results}
      * and imply an ordering over the backends.
@@ -79,7 +81,7 @@ public class PredDbEntry extends PredicateLabelling {
      * @param results Map of backends with corresponding results
      */
     public PredDbEntry(BPredicate pred, BMachine source,
-            Backend[] orderedBackends,Map<Backend, TimedAnswer> results) {
+            Backend[] orderedBackends, Map<Backend, TimedAnswer> results) {
         super(pred, toArray(results, orderedBackends));
         this.pred = pred;
         this.source = source;
@@ -193,9 +195,11 @@ public class PredDbEntry extends PredicateLabelling {
 
     /**
      * Returns the result stored for the given backend.
-     *
+     * <p>
      * Might return {@code null} if no such backend exists.
+     *
      * @param backend
+     *
      * @return
      */
     public TimedAnswer getResult(Backend backend) {
@@ -209,6 +213,8 @@ public class PredDbEntry extends PredicateLabelling {
         private final TimeUnit timeUnit;
         private final Backend[] backends;
 
+        private Map<MachineAccess, MultiMachineAccess> accessMap;
+
         /**
          * @param samplingSize Number of measurements per backend,
          *         from which the average run time is taken.
@@ -221,6 +227,8 @@ public class PredDbEntry extends PredicateLabelling {
             this.timeout = timeout;
             this.timeUnit = timeUnit;
             this.backends = backends;
+
+            this.accessMap = new HashMap<>();
         }
 
         /**
@@ -234,13 +242,22 @@ public class PredDbEntry extends PredicateLabelling {
 
 
         @Override
-        public PredDbEntry generate(BPredicate predicate, MachineAccess machineAccess) throws LabelCreationException {
+        public PredDbEntry generate(BPredicate predicate, MachineAccess machineAccess)
+                throws LabelCreationException {
+            MultiMachineAccess multiAccess;
+            try {
+                multiAccess = getMultiAccess(machineAccess);
+            } catch (MachineAccessException e) {
+                throw new LabelCreationException("Could not load access to machine for each backend", e);
+            }
+
             // Gather results
             Map<Backend, TimedAnswer> results = new HashMap<>();
             for (Backend b : backends) {
                 TimedAnswer answer;
+                MachineAccess backendAccess = multiAccess.getAccess(b);
                 try {
-                    answer = samplePredicate(predicate, b, machineAccess);
+                    answer = samplePredicate(predicate, b, backendAccess);
                 } catch (LabelCreationException e) {
                     log.error("Unable to sample {} with backend {}",
                             predicate, b, e);
@@ -255,6 +272,29 @@ public class PredDbEntry extends PredicateLabelling {
                     : null;
 
             return new PredDbEntry(predicate, bMachine, results);
+        }
+
+        MultiMachineAccess getMultiAccess(MachineAccess baseAccess) throws MachineAccessException {
+            if (baseAccess == null) {
+                return null;
+            } else if (accessMap.containsKey(baseAccess)) {
+                return accessMap.get(baseAccess);
+            }
+
+            // Access not yet mapped to a multi access; translate it, put in map, add closeHandler
+
+            MultiMachineAccess ma = new MultiMachineAccess(
+                    baseAccess.getSource(),
+                    baseAccess.getMachineType(),
+                    backends,
+                    baseAccess.isLoaded());
+
+            accessMap.put(baseAccess, ma);
+
+            baseAccess.onClose(a -> ma.close());
+            baseAccess.onClose(a -> accessMap.remove(baseAccess));
+
+            return ma;
         }
 
         public TimedAnswer samplePredicate(BPredicate pred, Backend backend, MachineAccess bMachine)
