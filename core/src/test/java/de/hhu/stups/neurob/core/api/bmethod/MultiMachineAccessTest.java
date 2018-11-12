@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -156,5 +158,27 @@ class MultiMachineAccessTest {
 
         assertNotEquals(access1, access2);
     }
+
+    @Test
+    void shouldCallCloseHandlers() throws MachineAccessException {
+        Backend b1 = new ProBBackend();
+        Backend b2 = new Z3Backend();
+
+        MachineAccess a1 = mock(MachineAccess.class);
+        MachineAccess a2 = mock(MachineAccess.class);
+
+        Map<Backend, MachineAccess> accessMap = new HashMap<>();
+        accessMap.put(b1, a1);
+        accessMap.put(b2, a2);
+
+        MultiMachineAccess access = new MultiMachineAccess(null, null, accessMap, false);
+
+        Consumer<MachineAccess> closeHandler = mock(Consumer.class);
+        access.onClose(closeHandler);
+        access.close();
+
+        verify(closeHandler).accept(access);
+    }
+
 
 }

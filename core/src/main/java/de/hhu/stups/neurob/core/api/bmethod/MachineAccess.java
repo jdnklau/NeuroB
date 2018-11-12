@@ -16,7 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,6 +29,8 @@ public class MachineAccess {
     private final Api api;
     protected boolean isLoaded = false;
     protected StateSpace stateSpace = null;
+
+    protected List<Consumer<MachineAccess>> closeHandlers;
 
     protected BPreferences preferences;
 
@@ -42,6 +46,7 @@ public class MachineAccess {
             throws MachineAccessException {
         this.source = source;
         this.machineType = machineType;
+        this.closeHandlers = new ArrayList<>();
 
         this.preferences = new BPreferences(); // empty preferences
 
@@ -191,8 +196,12 @@ public class MachineAccess {
      */
     public void close() {
         log.debug("Closed access to {}", source);
-        stateSpace.kill();
+        if (stateSpace != null) {
+            stateSpace.kill();
+        }
         isLoaded = false;
+
+        closeHandlers.forEach(h -> h.accept(this));
     }
 
     public void execute(AbstractCommand... commands) {
@@ -230,5 +239,16 @@ public class MachineAccess {
     @Override
     public int hashCode() {
         return source.hashCode() + preferences.hashCode();
+    }
+
+    /**
+     * Calls the closeHandler when {@link #close()} is called on this machine
+     * access.
+     * The closeHandler will receive this access as parameter.
+     *
+     * @param closeHandler
+     */
+    public void onClose(Consumer<MachineAccess> closeHandler) {
+        closeHandlers.add(closeHandler);
     }
 }

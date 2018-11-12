@@ -64,6 +64,7 @@ public class MultiMachineAccess extends MachineAccess {
                 .map(accessMap::get)
                 .forEach(MachineAccess::close);
         isLoaded = false;
+        closeHandlers.stream().forEach(c -> c.accept(this));
     }
 
     @Override

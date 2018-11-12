@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -161,6 +162,19 @@ class MachineAccessTest {
         m2.setPreferences(BPreference.set("PREF2", "val2"));
 
         assertNotEquals(m1.hashCode(), m2.hashCode());
+    }
+
+    @Test
+    void shouldCallCloseHandlers() throws MachineAccessException {
+        MachineAccess access = new MachineAccess(Paths.get("non/existent.mch"), MachineType.CLASSICALB, false);
+
+        AtomicInteger counter = new AtomicInteger(0);
+        access.onClose(s -> counter.addAndGet(1));
+        access.onClose(s -> counter.addAndGet(2));
+
+        access.close();
+
+        assertEquals(3, counter.get());
     }
 
 }
