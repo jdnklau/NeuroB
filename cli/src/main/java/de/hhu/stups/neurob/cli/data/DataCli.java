@@ -25,6 +25,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DataCli implements CliModule {
 
@@ -159,22 +162,23 @@ public class DataCli implements CliModule {
     }
 
     private void generate(CommandLine line, Path targetDir, TrainingDataFormat targetFormat) throws IOException {
-        Backend[] backends = PredDbEntry.DEFAULT_BACKENDS;
+        List<Backend> backends = new ArrayList<>();
         if (line.hasOption('b')) {
             boolean crossCreate = line.hasOption('x');
 
 
             for (String backend : line.getOptionValues('b')) {
-                backends = BackendId.makeBackends(backend, crossCreate);
+                Arrays.stream(BackendId.makeBackends(backend, crossCreate))
+                        .forEach(backends::add);
             }
         } else {
-            backends = PredDbEntry.DEFAULT_BACKENDS;
+            backends = Arrays.asList(PredDbEntry.DEFAULT_BACKENDS);
         }
 
         Path sourceDir = Paths.get(line.getOptionValue("g"));
 
         // TODO: make use of target format
-        JsonDbFormat format = new JsonDbFormat(backends);
+        JsonDbFormat format = new JsonDbFormat(backends.toArray(new Backend[0]));
         PredicateTrainingGenerator generator = new PredicateTrainingGenerator(
                 (p,ss) -> p,
                 format.getLabelGenerator(),
