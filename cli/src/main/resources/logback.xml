@@ -25,7 +25,7 @@
     </filter>
   </appender>
   
-  <logger name="de.hhu.stups.neurob" level="INFO">
+  <logger name="de.hhu.stups.neurob" level="DEBUG">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="LOGFILE" />
   </logger>
