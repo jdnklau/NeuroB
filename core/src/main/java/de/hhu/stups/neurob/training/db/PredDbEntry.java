@@ -253,7 +253,7 @@ public class PredDbEntry extends PredicateLabelling {
 
             // Gather results
             Map<Backend, TimedAnswer> results = new HashMap<>();
-            for (Backend b : backends) {
+            Arrays.stream(backends).parallel().forEach( b -> {
                 TimedAnswer answer;
                 MachineAccess backendAccess = multiAccess.getAccess(b);
                 try {
@@ -265,7 +265,7 @@ public class PredDbEntry extends PredicateLabelling {
                 }
 
                 results.put(b, answer);
-            }
+            });
 
             BMachine bMachine = machineAccess != null
                     ? new BMachine(machineAccess.getSource())
