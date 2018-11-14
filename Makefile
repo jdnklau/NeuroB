@@ -4,8 +4,16 @@
 all: neurob
 
 .PHONY: neurob
-neurob:
+neurob: core cli
+
+.PHONY: core
+core:
 	./gradlew core:assemble
+
+.PHONY: cli
+cli:
+	./gradlew cli:installDist
+	ln -sf ./cli/build/install/cli/bin/cli neurob-cli
 
 .PHONY: clean
 clean:
