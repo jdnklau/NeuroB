@@ -133,12 +133,12 @@ public class PredicateTrainingGenerator
      */
     public TrainingSample generateSample(BPredicate predicate, MachineAccess access)
             throws FeatureCreationException, LabelCreationException {
-        log.debug("Generating features for {}", predicate);
+        log.info("Generating features for {}", predicate);
 
         Object features = ((PredicateFeatureGenerating) featureGenerator)
                 .generate(predicate, access);
 
-        log.debug("Generating labelling for {}", predicate);
+        log.info("Generating labelling for {}", predicate);
         Labelling labelling = ((PredicateLabelGenerating) labelGenerator)
                 .generate(predicate, access);
 
