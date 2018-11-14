@@ -43,7 +43,7 @@ public class DataCli implements CliModule {
         return
                 "\n"
                 + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [[-x] -b BACKENDS]\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-[x][l]b BACKENDS]\n"
                 + "\n";
 
     }
@@ -111,12 +111,15 @@ public class DataCli implements CliModule {
                 .desc(
                         "BackendId to be accounted for"
                 ).build();
-
+        Option lazy = Option.builder("z")
+                .longOpt("lazy")
+                .desc("Data is generated lazily, aka already existent data is ignored").build();
 
         options.addOptionGroup(modeGroup);
         options.addOption(target);
         options.addOption(backends);
         options.addOption(cross);
+        options.addOption(lazy);
     }
 
     @Override
@@ -184,7 +187,7 @@ public class DataCli implements CliModule {
                 format.getLabelGenerator(),
                 format);
 
-        generator.generateTrainingData(sourceDir, targetDir, false);
+        generator.generateTrainingData(sourceDir, targetDir, line.hasOption('z'));
 
     }
 
