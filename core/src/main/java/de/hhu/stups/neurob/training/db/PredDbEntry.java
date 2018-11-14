@@ -253,7 +253,7 @@ public class PredDbEntry extends PredicateLabelling {
 
             // Gather results
             Map<Backend, TimedAnswer> results = new HashMap<>();
-            Arrays.stream(backends).parallel().forEach(b -> {
+            Arrays.stream(backends).forEach(b -> {
                 TimedAnswer answer;
                 MachineAccess backendAccess = multiAccess != null
                         ? multiAccess.getAccess(b)
