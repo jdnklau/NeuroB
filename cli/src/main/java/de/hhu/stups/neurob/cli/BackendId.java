@@ -6,10 +6,13 @@ import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -22,9 +25,9 @@ public enum BackendId {
 
 
     private final String id;
-    private final Function<BPreference[], Backend> generator;
+    private final Function<BPreferences, Backend> generator;
 
-    BackendId(String id, Function<BPreference[], Backend> generator) {
+    BackendId(String id, Function<BPreferences, Backend> generator) {
         this.id = id;
         this.generator = generator;
     }
@@ -56,11 +59,13 @@ public enum BackendId {
         }
 
         if (!allPrefCombinations) {
-            return new Backend[]{b.generator.apply(prefs)};
+            return new Backend[]{b.generator.apply(new BPreferences(prefs))};
         }
 
         return crossProducePrefs(prefs)
                 .map(ps -> ps.toArray(new BPreference[0]))
+                .map(BPreferences::new)
+                .distinct()
                 .map(b.generator)
                 .toArray(Backend[]::new);
 
@@ -87,11 +92,11 @@ public enum BackendId {
                 .toArray(BPreference[]::new);
     }
 
-    private static Stream<List<BPreference>> crossProducePrefs(BPreference[] prefs) {
+    private static Stream<Set<BPreference>> crossProducePrefs(BPreference[] prefs) {
         int length = prefs.length;
 
         if (length <= 0) {
-            return Stream.of(new ArrayList<>());
+            return Stream.of(new HashSet<>());
         }
 
         BPreference head = prefs[0];
