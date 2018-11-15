@@ -120,7 +120,7 @@ public class PredDbEntry extends PredicateLabelling {
     public static Double[] toArray(Map<Backend, TimedAnswer> results, Backend[] orderedBackends) {
         return Arrays.stream(orderedBackends)
                 .map(results::get)
-                .map(time -> time == null ? null : time.getTime())
+                .map(time -> time == null ? null : time.getNanoSeconds())
                 .map(longTime -> longTime == null ? null : longTime.doubleValue())
                 .toArray(Double[]::new);
     }
@@ -319,7 +319,7 @@ public class PredDbEntry extends PredicateLabelling {
                     if (answer.equals(Answer.ERROR) || answer.equals(Answer.TIMEOUT)) {
                         return timing;
                     }
-                    sampled += timing.getTime();
+                    sampled += timing.getNanoSeconds();
                     lastAnswer = timing;
                 } catch (FormulaException e) {
                     throw new LabelCreationException(

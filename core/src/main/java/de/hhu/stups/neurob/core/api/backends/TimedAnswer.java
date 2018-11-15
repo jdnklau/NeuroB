@@ -1,22 +1,21 @@
 package de.hhu.stups.neurob.core.api.backends;
 
 /**
- * Encapsulates an {@link Answer} with the corresponding time it took
- * to determine it.
+ * Encapsulates an {@link Answer} with the corresponding nanoSeconds in nanoseconds
+ * it took to determine it.
  */
 public class TimedAnswer {
     private final Answer answer;
-    private final Long time;
+    private final Long nanoSeconds;
     private final String message;
 
-    public TimedAnswer(Answer answer, Long time) {
-        this(answer, time, "empty message received");
+    public TimedAnswer(Answer answer, Long nanoseconds) {
+        this(answer, nanoseconds, "empty message received");
     }
 
-    public TimedAnswer(Answer answer, Long time, String message) {
-
+    public TimedAnswer(Answer answer, Long nanoseconds, String message) {
         this.answer = answer;
-        this.time = time;
+        this.nanoSeconds = nanoseconds;
         this.message = message;
     }
 
@@ -27,8 +26,8 @@ public class TimedAnswer {
     /**
      * @return Time needed to determine answer in nanoseconds.
      */
-    public Long getTime() {
-        return time;
+    public Long getNanoSeconds() {
+        return nanoSeconds;
     }
 
     public String getMessage() {
@@ -44,9 +43,9 @@ public class TimedAnswer {
                     ? this.answer.equals(that.answer)
                     : that.answer == null;
 
-            boolean timingsEqual = this.time != null
-                    ? this.time.equals(that.time)
-                    : that.time == null;
+            boolean timingsEqual = this.nanoSeconds != null
+                    ? this.nanoSeconds.equals(that.nanoSeconds)
+                    : that.nanoSeconds == null;
 
             // Messages are just an extra information and should not contribute to equality.
 
@@ -60,8 +59,8 @@ public class TimedAnswer {
     public String toString() {
         return "["
                + "answer=" + answer + ", "
-               + "time=" + time
-                + (message != null ? ", message=" + message : "")
-                + "]";
+               + "nanoSeconds=" + nanoSeconds
+               + (message != null ? ", message=" + message : "")
+               + "]";
     }
 }

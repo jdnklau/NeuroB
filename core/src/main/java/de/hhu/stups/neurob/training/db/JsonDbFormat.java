@@ -243,7 +243,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
 
         String answerData = "\"" + backend.getDescriptionString() + "\":{"
                             + "\"answer\":\"" + result.getAnswer().name() + "\","
-                            + "\"time-in-ns\":" + result.getTime() + ","
+                            + "\"time-in-ns\":" + result.getNanoSeconds() + ","
                             + "\"timeout-in-ns\":" + timeoutNs
                             + "}";
         return answerData;
