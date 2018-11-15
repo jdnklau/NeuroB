@@ -73,7 +73,7 @@ public class JsonDbFormatIT {
                 + "\"SMT_SUPPORTED_INTERPRETER[TIME_OUT=2500]\":{\"answer\":\"UNKNOWN\",\"time-in-ns\":400,\"timeout-in-ns\":2500000000}"
                 + "}}";
         String expected = "{\"non/existent.mch\":{"
-                          + "\"sha512\":\"no-hashing-implemented-yet\","
+                          + "\"sha512\":\"Hash error: File not found\","
                           + "\"formalism\":\"CLASSICALB\","
                           + "\"gathered-predicates\":["
                           + singleJsonEntry + ","

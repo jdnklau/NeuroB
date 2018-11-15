@@ -17,7 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -141,9 +144,12 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         // Set up stats
         DataGenerationStats stats = new DataGenerationStats();
 
+        // get machine hash
+        String machineHash = getMachineHash(trainingData.getSourceFile());
+
         // Header
         writer.write("{\"" + trainingData.getSourceFile() + "\":{");
-        writer.write("\"sha512\":\"no-hashing-implemented-yet\","); // TODO access machine hash
+        writer.write("\"sha512\":\"" + machineHash + "\","); // TODO access machine hash
         MachineType machineType = MachineType.predictTypeFromLocation(trainingData.getSourceFile());
         writer.write("\"formalism\":\"" + machineType + "\",");
         // Gathered predicates
@@ -177,6 +183,24 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         writer.flush();
 
         return stats;
+    }
+
+    public String getMachineHash(Path sourceFile) {
+        if (sourceFile == null) {
+            log.warn("Unable to generate hash for null file");
+            return "Hash error: File was null";
+        }
+
+        try {
+            InputStream inputStream = new FileInputStream(sourceFile.toFile());
+            return DigestUtils.sha512Hex(inputStream);
+        } catch (FileNotFoundException e) {
+            log.warn("Unable to generate hash for {}", sourceFile, e);
+            return "Hash error: File not found";
+        } catch (IOException e) {
+            log.warn("Unable to generate hash for {}", sourceFile, e);
+            return "Hash error: File not accessible";
+        }
     }
 
     public String translateSampleToJsonObject(TrainingSample<BPredicate, PredDbEntry> sample) {

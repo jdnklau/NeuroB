@@ -49,6 +49,9 @@ class JsonDbFormatTest {
             new SmtBackend(),
     };
 
+    private final Path BEVERAGE_VENDING_MACHINE = Paths.get(
+            JsonDbFormat.class.getClassLoader().getResource("db/mch/bvm.mch").getFile());
+
     /**
      * Returns a {@link PredDbEntry} instance that conforms the labelling
      * format used by {@link JsonDbFormat}.
@@ -449,7 +452,7 @@ class JsonDbFormatTest {
         // Prepare training sample data to encapsulate
         BPredicate predicate = new BPredicate("pred");
         PredDbEntry labels = getLabelling(predicate.getPredicate());
-        Path source = Paths.get("non/existent.mch");
+        Path source = BEVERAGE_VENDING_MACHINE;
         Stream<TrainingSample<BPredicate, PredDbEntry>> sampleStream =
                 Stream.of(
                         new TrainingSample<>(predicate, labels, source),
@@ -463,14 +466,51 @@ class JsonDbFormatTest {
         StringWriter writer = new StringWriter();
         format.writeSamples(trainingData, writer);
 
-        String expected = "{\"non/existent.mch\":{"
-                          + "\"sha512\":\"no-hashing-implemented-yet\","
+        String expected = "{\"" + BEVERAGE_VENDING_MACHINE.toString() + "\":{"
+                          + "\"sha512\":\"eea0db1101cc2928c3eb62d3b3409fd5456faca283ac61226789843619f757e1e5214d22811f66cab42f2949e706417b5f844b2fbc952d08073b8137e38c98ee\","
                           + "\"formalism\":\"CLASSICALB\","
                           + "\"gathered-predicates\":["
                           + SINGLE_PRED_ENTRY + ","
                           + SINGLE_PRED_ENTRY + ","
                           + SINGLE_PRED_ENTRY + "]}}";
         String actual = writer.toString();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldHashFile() throws IOException {
+        Path mchFile = Paths.get(
+                this.getClass().getClassLoader()
+                        .getResource("db/mch/bvm.mch").getFile()
+        );
+
+        JsonDbFormat format = new JsonDbFormat();
+
+        String expected = "eea0db1101cc2928c3eb62d3b3409fd5456faca283ac61226789843619f757e1e5214d22811f66cab42f2949e706417b5f844b2fbc952d08073b8137e38c98ee";
+        String actual = format.getMachineHash(mchFile);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldHashFileErrorWhenNonExistent() throws IOException {
+        Path mchFile = Paths.get("non/existent.mch");
+
+        JsonDbFormat format = new JsonDbFormat();
+
+        String expected = "Hash error: File not found";
+        String actual = format.getMachineHash(mchFile);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldHashFileAsNullWhenNullReference() throws IOException {
+        JsonDbFormat format = new JsonDbFormat();
+
+        String expected = "Hash error: File was null";
+        String actual = format.getMachineHash(null);
 
         assertEquals(expected, actual);
     }

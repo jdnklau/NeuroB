@@ -37,7 +37,7 @@ public class PredDbEntry extends PredicateLabelling {
             LoggerFactory.getLogger(PredDbEntry.class);
 
     /**
-     * Array over backends in use, also providing an ordering by id.
+     * Array over default backends in use, also providing an ordering by id.
      * <ol start="0">
      * <li>ProB</li>
      * <li>Kodkod</li>
