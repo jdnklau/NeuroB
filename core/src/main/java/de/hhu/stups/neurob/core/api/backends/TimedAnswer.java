@@ -1,5 +1,7 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Encapsulates an {@link Answer} with the corresponding nanoSeconds in nanoseconds
  * it took to determine it.
@@ -28,6 +30,20 @@ public class TimedAnswer {
      */
     public Long getNanoSeconds() {
         return nanoSeconds;
+    }
+
+    /**
+     * Converts the time it took to generate this answer into
+     * the given time unit.
+     * <p>
+     * Internally, the time is stored in nano seconds.
+     *
+     * @param timeUnit Unit in which the time shall be converted
+     *
+     * @return
+     */
+    public Long getTime(TimeUnit timeUnit) {
+        return timeUnit.convert(nanoSeconds, TimeUnit.NANOSECONDS);
     }
 
     public String getMessage() {

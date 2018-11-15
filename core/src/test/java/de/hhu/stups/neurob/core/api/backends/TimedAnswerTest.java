@@ -2,6 +2,8 @@ package de.hhu.stups.neurob.core.api.backends;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class TimedAnswerTest {
@@ -36,6 +38,26 @@ class TimedAnswerTest {
         TimedAnswer second = new TimedAnswer(Answer.VALID, 400L);
 
         assertFalse(first.equals(second));
+    }
+
+    @Test
+    void shouldTranslateToSeconds() {
+        TimedAnswer answer = new TimedAnswer(Answer.VALID, 2000000000L);
+
+        Long expected = 2L;
+        Long actual = answer.getTime(TimeUnit.SECONDS);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldTranslateToMilliSeconds() {
+        TimedAnswer answer = new TimedAnswer(Answer.VALID, 2000000000L);
+
+        Long expected = 2000L;
+        Long actual = answer.getTime(TimeUnit.MILLISECONDS);
+
+        assertEquals(expected, actual);
     }
 
 }
