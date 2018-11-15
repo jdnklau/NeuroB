@@ -320,7 +320,7 @@ public abstract class Backend {
      */
     public Boolean decidePredicate(BPredicate predicate, MachineAccess bMachine)
             throws FormulaException {
-        return !solvePredicateUntimed(predicate, bMachine).equals(Answer.UNKNOWN);
+        return !solvePredicateUntimed(predicate, bMachine).getAnswer().equals(Answer.UNKNOWN);
     }
 
     public TimedAnswer solvePredicate(BPredicate predicate, MachineAccess access)
@@ -332,47 +332,42 @@ public abstract class Backend {
             Long timeout, TimeUnit timeUnit) throws FormulaException {
         // Set up thread for timeout check
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<Answer> futureRes = executor.submit(
+        Future<AnnotatedAnswer> futureRes = executor.submit(
                 () -> solvePredicateUntimed(predicate, access));
 
         // Start thread and check for errors
-        Answer answer;
+        AnnotatedAnswer answer;
         Long start, duration;
-        String message;
         log.trace("{}: Deciding predicate {}", this.toString(), predicate);
         start = System.nanoTime(); // start measuring time
         try {
             answer = futureRes.get(timeout, timeUnit);
-            message = "Could solve predicate in time";
         } catch (IllegalStateException e) {
             access.sendInterrupt();
             // Forward the Illegal State, we really want to know when this happens.
             throw e;
         } catch (ProBError e) {
             access.sendInterrupt();
-            answer = Answer.ERROR;
-            message = e.getMessage();
+            answer = new AnnotatedAnswer(Answer.ERROR, "ProBError: " + e);
         } catch (TimeoutException e) {
             access.sendInterrupt();
-            answer = Answer.TIMEOUT;
-            message = "Timeout";
+            answer = new AnnotatedAnswer(Answer.TIMEOUT, "Timeout");
             log.warn("Timeout after {} {} for predicate {}",
                     getTimeOutValue(), getTimeOutUnit(), predicate);
         } catch (InterruptedException | ExecutionException e) {
             access.sendInterrupt();
-            answer = Answer.ERROR;
-            message = "Execution interrupted: " + e.getMessage();
+            String message = "Execution interrupted: " + e.getMessage();
+            answer = new AnnotatedAnswer(Answer.ERROR, message);
         } finally {
             executor.shutdown();
         }
         duration = System.nanoTime() - start; // stop measuring
 
-        return new TimedAnswer(answer, duration, message);
+        return answer.getTimedAnswer(duration);
     }
 
-    public Answer solvePredicateUntimed(BPredicate predicate, MachineAccess access)
+    public AnnotatedAnswer solvePredicateUntimed(BPredicate predicate, MachineAccess access)
             throws FormulaException {
-        Answer res;
         CbcSolveCommand cmd = createCbcSolveCommand(predicate, access);
 
         // set preferences
@@ -381,6 +376,8 @@ public abstract class Backend {
         access.execute(cmd); // FIXME: is it possible that access is null at training set generation?
 
         // get value for result
+        Answer res;
+        String msg;
         AbstractEvalResult cmdres = cmd.getValue();
         if (cmdres instanceof EvalResult) {
             if (EvalResult.FALSE.equals(cmdres)) {
@@ -388,16 +385,18 @@ public abstract class Backend {
             } else {
                 res = Answer.VALID;
             }
+            msg = ((EvalResult) cmdres).getValue();
         } else if (cmdres instanceof ComputationNotCompletedResult) {
             // Could neither solve nor disprove the predicate in question
             res = Answer.UNKNOWN;
+            msg = ((ComputationNotCompletedResult) cmdres).getReason();
         } else {
             // Technically, this branch should be unreachable.
             throw new IllegalStateException(
                     "Unexpected output received from command execution: "
                     + cmdres.toString());
         }
-        return res;
+        return new AnnotatedAnswer(res, msg);
     }
 
     public CbcSolveCommand createCbcSolveCommand(BPredicate predicate,

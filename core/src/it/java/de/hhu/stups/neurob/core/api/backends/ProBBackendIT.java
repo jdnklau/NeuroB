@@ -146,7 +146,7 @@ class ProBBackendIT {
         when(prob.solvePredicateUntimed(pred, bMachine))
                 .thenAnswer(invocation -> {
                     Thread.sleep(3000); // three seconds
-                    return Answer.VALID;
+                    return new AnnotatedAnswer(Answer.VALID, "x = 1");
                 });
 
         Answer expected = Answer.VALID;
@@ -164,7 +164,7 @@ class ProBBackendIT {
         when(prob.solvePredicateUntimed(pred, bMachine))
                 .thenAnswer(invocation -> {
                     Thread.sleep(3000); // three seconds
-                    return Answer.VALID;
+                    return new AnnotatedAnswer(Answer.VALID, "x = 1");
                 });
 
         Answer expected = Answer.VALID;
