@@ -13,7 +13,12 @@ Json format used to store Predicates which where generated over B machines.
     [
       {
         "predicate": "x > 0 & y > x",
-        "sha512": "abcdef00",
+        "sha512": "facedeed",
+        "probcli":
+        {
+          "version":"1.8.3-beta3",
+          "revision":"ac234c49933b20a2e82af965f8576b64a1063113"
+        },
         "results":
         {
           "ProB":
@@ -45,6 +50,9 @@ The data for each machine are
 * `gathered-predicates`: List of predicate objects gathered from the source,
   containing evaluation over various backends (see below).
 
+Also each file only should refer to one B machine, it is technically possible
+to have further machines matching the above pattern in the file.
+
 ## Format of gathered predicates
 
 The gathered predicates are stored as objects themselves.
@@ -52,17 +60,19 @@ They contain the following attributes:
 
 * `predicate`: The predicate itself.
 * `sha512`: Hash value of the predicate.
+* `probcli`: An object containing data about the ProB Cli version.
+  * `version`: The version string of the Cli.
+  * `revision`: Git sha of commit from which the Cli was build.
 * `results`: An object itself, storing information of solving time
   and answer on a per backend basis.
   For each backend the predicate was tried to solve over,
   this object contains an attribute which maps again to an object
   containing the following data:
-
-  * `time-in-ns`: Time it took the backend to solve the predicate in
-    nanoseconds.
-  * `timeout-in-ns`: The timeout given for the backend to
-    solve the predicate.
-  * `answer`: The answer the backend provided (see answer values below).
+    * `answer`: The answer the backend provided (see answer values below).
+    * `time-in-ns`: Time it took the backend to solve the predicate in
+      nanoseconds.
+    * `timeout-in-ns`: The timeout given for the backend to
+      solve the predicate.
 
 ## Answer Values
 
