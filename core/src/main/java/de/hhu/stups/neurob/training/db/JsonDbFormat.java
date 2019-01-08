@@ -12,6 +12,8 @@ import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
+import de.prob.Main;
+import de.prob.cli.CliVersionNumber;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -217,6 +219,21 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         String hash = DigestUtils.sha512Hex(predicate.getPredicate());
         String hashAttrib = "\"sha512\":\"" + hash + "\"";
 
+        // Setup prob cli information
+        String probCliAttrib = "";
+        CliVersionNumber cliVersion = sample.getLabelling().getProbRevision();
+        if (cliVersion != null) {
+            String probVersion = cliVersion.major + "." + cliVersion.minor + "." + cliVersion.service
+                                 + "-" + cliVersion.qualifier;
+            String proBRevision = cliVersion.revision;
+            probCliAttrib = "\"probcli\":{"
+                            + "\"version\":\"" + probVersion + "\","
+                            + "\"revision\":\"" + proBRevision + "\"}";
+        }
+        String probCliOptional = (cliVersion != null)
+                ? "," + probCliAttrib
+                : "";
+
         // Extract Backend Data
         Map<Backend, TimedAnswer> resultMap = sample.getLabelling().getResults();
         String resultString =
@@ -226,7 +243,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
                         .collect(Collectors.joining(","));
         String resultAttrib = "\"results\":{" + resultString + "}";
 
-        return "{" + predAttrib + "," + hashAttrib + "," + resultAttrib + "}";
+        return "{" + predAttrib + "," + hashAttrib + probCliOptional + "," + resultAttrib + "}";
     }
 
     String translateAnswerToJson(Backend backend, Map<Backend, TimedAnswer> resultMap) {
@@ -410,6 +427,9 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
                     currentFormalism = MachineType.valueOf(json.nextString());
                 } else if (attrib.equals("gathered-predicates")) {
                     // We do not want to advance the json any further
+                    // FIXME: Should not stop reading hash and formalism only because the preds are
+                    // incomming. Actually these values can be "injected" by Object reference if needed.
+                    // Thus readHash and readFormalism should be Boolean not boolean.
                     break;
                 } else {
                     json.skipValue(); // we don't care about any other values
@@ -456,18 +476,19 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         TrainingSample<BPredicate, PredDbEntry> translateToDbSample(Map<String, Object> sampleData) {
             BPredicate pred = (BPredicate) sampleData.get("predicate");
 
+            // Collect used backends
             Map<Backend, TimedAnswer> results = new HashMap<>();
             Map<String, TimedAnswer> sampleResults = (Map<String, TimedAnswer>) sampleData.get("results");
             Arrays.stream(backendsUsed)
-                    .forEach(b -> {
-                        results.put(b, sampleResults.getOrDefault(
-                                b.getDescriptionString(), null));
-                    });
+                    .forEach(b -> results.put(b, sampleResults.getOrDefault(
+                            b.getDescriptionString(), null)));
 
             BMachine source = currentSourcePath != null
                     ? new BMachine(currentSourcePath)
                     : null;
-            PredDbEntry l = new PredDbEntry(pred, source, backendsUsed, results);
+
+            CliVersionNumber version = (CliVersionNumber)  sampleData.get("probcli");
+            PredDbEntry l = new PredDbEntry(pred, source, backendsUsed, results, version);
 
             return new TrainingSample<>(pred, l, currentSourcePath);
         }
@@ -500,6 +521,9 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             } else if ("results".equals(property)) {
                 Map<String, TimedAnswer> results = readResultsMap(json);
                 data.put("results", results);
+            } else if ("probcli".equals(property)) {
+                CliVersionNumber cliVersionNumber = readProBVersion(json);
+                data.put("probcli", cliVersionNumber);
             } else {
                 log.warn("Unknown property \"{}\", skipping value", property);
                 json.skipValue();
@@ -552,6 +576,50 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
 
             return new TimedAnswer(answer, time);
         }
+
+        CliVersionNumber readProBVersion(JsonReader json) throws IOException {
+            json.beginObject();
+
+            String major = null;
+            String minor = null;
+            String service = null;
+            String qualifier = null;
+            String revision = "0000000000000000000000000000000000000000";
+
+            while(!json.peek().equals(JsonToken.END_OBJECT)) {
+                String property = json.nextName();
+
+                if ("version".equals(property)) {
+                    String probcli = json.nextString();
+                    // Encoding is major.minor.service-qualifier
+                    // qualifier is optional
+                    String[] dotSplit = probcli.split("\\.");
+                    major = dotSplit[0];
+                    minor = dotSplit[1];
+                    service = dotSplit[2]; // might contain the -qualifier part
+
+                    int firstMinus = probcli.indexOf("-");
+                    if (firstMinus > -1) {
+                        qualifier = probcli.substring(firstMinus + 1); // + 1 ignores the minus
+
+                        service = service.split("-")[0]; // scrap -qualifier from service
+                    }
+                } else if ("revision".equals(property)) {
+                    revision = json.nextString();
+                } else { // unknown property
+                    log.warn("Unknown property \"{}\" in probcli entry; skipping value", property);
+                    json.skipValue();
+                }
+            }
+
+            json.endObject();
+
+            return new CliVersionNumber(major, minor, service, qualifier, revision);
+        }
+    }
+
+    public void foo() {
+        Main.getVersion();
     }
 
 }

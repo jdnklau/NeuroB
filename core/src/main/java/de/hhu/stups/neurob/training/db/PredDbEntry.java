@@ -16,6 +16,9 @@ import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
+import de.prob.Main;
+import de.prob.cli.CliVersionNumber;
+import de.prob.scripting.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +35,8 @@ public class PredDbEntry extends PredicateLabelling {
     public static final Long DEFAULT_TIMEOUT = 2500L;
     public static final TimeUnit DEFAULT_TIMEUNIT = TimeUnit.MILLISECONDS;
     private final Backend[] backendsUsed;
+    /** Revision of ProB used to generate the answers */
+    private final CliVersionNumber probRevision;
 
     private static final Logger log =
             LoggerFactory.getLogger(PredDbEntry.class);
@@ -61,11 +66,25 @@ public class PredDbEntry extends PredicateLabelling {
      * @param pred Predicate over which the results were gathered
      * @param source Source machine from which the predicate originates
      * @param results Map of backends with corresponding results
-     *
-     * @
      */
     public PredDbEntry(BPredicate pred, BMachine source, Map<Backend, TimedAnswer> results) {
         this(pred, source, DEFAULT_BACKENDS, results);
+    }
+
+    /**
+     * Initialises this entry with the given results.
+     * <p>
+     * From the results, only the {@link #DEFAULT_BACKENDS} are used,
+     * which also imply an ordering.
+     *
+     * @param pred Predicate over which the results were gathered
+     * @param source Source machine from which the predicate originates
+     * @param results Map of backends with corresponding results
+     * @param probRevision Version of the ProB CLI
+     */
+    public PredDbEntry(BPredicate pred, BMachine source, Map<Backend, TimedAnswer> results,
+            CliVersionNumber probRevision) {
+        this(pred, source, DEFAULT_BACKENDS, results, probRevision);
     }
 
     /**
@@ -82,11 +101,31 @@ public class PredDbEntry extends PredicateLabelling {
      */
     public PredDbEntry(BPredicate pred, BMachine source,
             Backend[] orderedBackends, Map<Backend, TimedAnswer> results) {
+        this(pred, source, orderedBackends, results, null);
+    }
+
+    /**
+     * Initialises this entry with the given results.
+     * <p>
+     * The given {@code orderedBackends} both dictate which backends
+     * are to be used from the {@code results}
+     * and imply an ordering over the backends.
+     *
+     * @param pred Predicate over which the results were gathered
+     * @param source Source machine from which the predicate originates
+     * @param orderedBackends Array of backends to be used
+     * @param results Map of backends with corresponding results
+     * @param probRevision Hash of last git commit of the used revision of ProB Cli
+     */
+    public PredDbEntry(BPredicate pred, BMachine source,
+            Backend[] orderedBackends, Map<Backend, TimedAnswer> results,
+            CliVersionNumber probRevision) {
         super(pred, toArray(results, orderedBackends));
         this.pred = pred;
         this.source = source;
         this.results = results;
         this.backendsUsed = orderedBackends;
+        this.probRevision = probRevision;
     }
 
     /**
@@ -194,6 +233,15 @@ public class PredDbEntry extends PredicateLabelling {
     }
 
     /**
+     * Returns the ProB Cli version used to generate this entry.
+     *
+     * @return
+     */
+    public CliVersionNumber getProbRevision() {
+        return probRevision;
+    }
+
+    /**
      * Returns the result stored for the given backend.
      * <p>
      * Might return {@code null} if no such backend exists.
@@ -206,12 +254,42 @@ public class PredDbEntry extends PredicateLabelling {
         return results.get(backend);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof PredDbEntry) {
+            PredDbEntry other = (PredDbEntry) o;
+
+            boolean predsEqual = this.pred == null
+                    ? other.pred == null
+                    : this.pred.equals(other.pred);
+            boolean resultsEqual = this.results == null
+                    ? other.results == null
+                    : this.results.equals(other.results);
+            boolean probRevisionsEqual = this.probRevision == null
+                    ? other.probRevision == null
+                    : this.probRevision.equals(other.probRevision);
+
+            return predsEqual && resultsEqual && probRevisionsEqual;
+        }
+
+
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "[pred=" + pred + ", "
+               + "results=" + results + ","
+               + "cli-version=" + probRevision + "]";
+    }
+
     public static class Generator implements PredicateLabelGenerating<PredDbEntry> {
 
         private int samplingSize;
         private final Long timeout;
         private final TimeUnit timeUnit;
         private final Backend[] backends;
+        private final CliVersionNumber cliVersion;
 
         private Map<MachineAccess, MultiMachineAccess> accessMap;
 
@@ -223,10 +301,24 @@ public class PredDbEntry extends PredicateLabelling {
          * @param timeUnit
          */
         public Generator(int samplingSize, Long timeout, TimeUnit timeUnit, Backend... backends) {
+            this(samplingSize, Main.getInjector().getInstance(Api.class).getVersion(),
+                    timeout, timeUnit, backends);
+        }
+
+        /**
+         * @param samplingSize Number of measurements per backend,
+         *         from which the average run time is taken.
+         * @param backends Backends to run in given order for each predicate
+         * @param timeout
+         * @param timeUnit
+         */
+        public Generator(int samplingSize, CliVersionNumber cliVersion,
+                Long timeout, TimeUnit timeUnit, Backend... backends) {
             this.samplingSize = samplingSize;
             this.timeout = timeout;
             this.timeUnit = timeUnit;
             this.backends = backends;
+            this.cliVersion = cliVersion;
 
             this.accessMap = new HashMap<>();
         }
@@ -273,7 +365,7 @@ public class PredDbEntry extends PredicateLabelling {
                     ? new BMachine(machineAccess.getSource())
                     : null;
 
-            return new PredDbEntry(predicate, bMachine, results);
+            return new PredDbEntry(predicate, bMachine, results, cliVersion);
         }
 
         MultiMachineAccess getMultiAccess(MachineAccess baseAccess) throws MachineAccessException {

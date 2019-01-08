@@ -1,10 +1,13 @@
 package de.hhu.stups.neurob.training.generation;
 
+import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
+import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
@@ -32,6 +35,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -282,35 +287,66 @@ class PredicateTrainingGeneratorIT {
     }
 
     @Test
-    void shouldCreateJsonDbFiles() throws IOException {
-        KodkodBackend kodkod = new KodkodBackend();
-        ProBBackend prob = new ProBBackend();
-        SmtBackend smt = new SmtBackend();
-        Z3Backend z3 = new Z3Backend();
+    void shouldCreateJsonDbFiles() throws IOException, FormulaException {
+        // Set up mocked backends
+        Backend b1 = mock(Backend.class);
+        Backend b2 = mock(Backend.class);
+        Backend[] backends = {b1, b2};
+        for (int i = 0; i < backends.length; i++) {
+            Backend b = backends[i];
 
-        PredicateTrainingGenerator gen = new PredicateTrainingGenerator();
+            doReturn(new TimedAnswer(Answer.VALID, (long) i, "neurob-it mocked backend"))
+                    .when(b).solvePredicate(any(), any(), any(), any());
+            doReturn(new BPreferences()).when(b).getPreferences();
+            doReturn(2500L).when(b).getTimeOutValue();
+            doReturn(TimeUnit.MILLISECONDS).when(b).getTimeOutUnit();
+        }
+
+        JsonDbFormat format = new JsonDbFormat(new Backend[]{b1, b2});
+        PredicateTrainingGenerator gen = new PredicateTrainingGenerator(
+                (p, a) -> p,
+                format.getLabelGenerator(),
+                format
+        );
 
         // Set up working directory
         Path tmpDir = Files.createTempDirectory("neurob-it");
         Path mchDir = tmpDir.resolve("mch");
         Path targetDir = tmpDir.resolve("target");
         Files.createDirectories(mchDir);
+        Files.createDirectories(mchDir.resolve("subdir"));
         Files.createDirectories(targetDir);
 
-        // Copy machines to work with
+        // Copy machine to work with
         Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH),
-                mchDir.resolve("first.mch"));
+                mchDir.resolve("features_check.mch"));
         Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH),
-                mchDir.resolve("second.mch"));
+                mchDir.resolve("subdir/features_check.mch"));
 
         // Generate data
         gen.generateTrainingData(mchDir, targetDir);
 
-        assertAll("All db files exist",
-                () -> assertTrue(Files.exists(targetDir.resolve("first.json")),
-                        "first.json was not created"),
-                () -> assertTrue(Files.exists(targetDir.resolve("second.json")),
-                        "second.json was not created"));
+        // first file
+        Path expected1File = Paths.get(TestMachines.FEATURES_CHECK_JSON);
+        String expected1 = String.join("\n", Files.readAllLines(expected1File));
+        Path actual1File = targetDir.resolve("features_check.json");
+        String actual1 = String.join("\n", Files.readAllLines(actual1File));
+
+        // second file
+        Path expected2File = Paths.get(TestMachines.getDbPath("json/subdir/features_check.json"));
+        String expected2 = String.join("\n", Files.readAllLines(expected2File));
+        Path actual2File = targetDir.resolve("subdir/features_check.json");
+        String actual2 = String.join("\n", Files.readAllLines(actual2File));
+
+        assertAll("Equality of generated Db files",
+                () -> assertEquals(expected1, actual1,
+                        "Db files do not match for features_gen.mch"),
+                () -> assertEquals(expected2, actual2,
+                        "Db files do not match for subdir/features_gen.mch")
+
+        );
+        assertEquals(expected1, actual2,
+                "Files do not match");
     }
 
     @Test
@@ -376,7 +412,7 @@ class PredicateTrainingGeneratorIT {
         Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
 
         // Copy target file to ensure it is newer than the source
-        Path origTarget = Paths.get(TestMachines.FEATURES_CHECK_DB);
+        Path origTarget = Paths.get(TestMachines.FEATURES_CHECK_JSON);
         Path targetDir = Files.createTempDirectory("neurob-it");
         Path target = format.getTargetLocation(mch.getFileName(), targetDir);
         Files.copy(origTarget, target);

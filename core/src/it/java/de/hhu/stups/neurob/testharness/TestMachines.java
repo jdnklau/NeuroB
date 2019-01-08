@@ -22,8 +22,8 @@ public class TestMachines {
 
     public static String FEATURES_CHECK_MCH =
             getMachinePath("features_check.mch");
-    public static String FEATURES_CHECK_DB =
-            getDbPath("features_check.json");
+    public static String FEATURES_CHECK_JSON =
+            getDbPath("json/features_check.json");
 
     public static String EXAMPLE_BCM =
             getMachinePath("event-b/example/example.bcm");
@@ -46,7 +46,7 @@ public class TestMachines {
     /**
      * Generates the path to the src/it/resources/db/dbName file.
      *
-     * @param dbName Name of the machine without the "machine/"
+     * @param dbName Name of the file without the "db/"
      *         direcotry prefix.
      *
      * @return Correct path to machine resource at runtime.

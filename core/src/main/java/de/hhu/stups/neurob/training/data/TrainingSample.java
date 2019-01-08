@@ -94,8 +94,7 @@ public class TrainingSample<D, L extends Labelling> {
             // then trainingSample.data are also nonnull
             if (data != null && labelling != null) {
                 return data.equals(trainingSample.data)
-                       && Arrays.equals(labelling.getLabellingArray(),
-                        trainingSample.labelling.getLabellingArray())
+                       && this.labelling.equals(trainingSample.labelling)
                        && ((sourceFile == null)
                            || sourceFile.equals(trainingSample.sourceFile));
             } else {

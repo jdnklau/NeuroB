@@ -6,6 +6,7 @@
       {
         "predicate": "pred1",
         "sha512": "7bf761579ac10c097073d77fd885203d8ef562b74ac1f8882991500542f50396454738b6955ed8b800c35f87573fb8725c8569db19c5e42acf02d75293d9710f",
+        "probcli": {"version": "0.1.2-neurob", "revision": "revision-hash"},
         "results": {
           "ProB[TIME_OUT=2500]": {
             "answer": "VALID",
@@ -32,6 +33,7 @@
       {
         "predicate": "pred1",
         "sha512": "7bf761579ac10c097073d77fd885203d8ef562b74ac1f8882991500542f50396454738b6955ed8b800c35f87573fb8725c8569db19c5e42acf02d75293d9710f",
+        "probcli": {"version": "0.1.2-neurob", "revision": "revision-hash"},
         "results": {
           "ProB[TIME_OUT=2500]": {
             "answer": "VALID",
@@ -64,6 +66,7 @@
       {
         "predicate": "pred1",
         "sha512": "7bf761579ac10c097073d77fd885203d8ef562b74ac1f8882991500542f50396454738b6955ed8b800c35f87573fb8725c8569db19c5e42acf02d75293d9710f",
+        "probcli": {"version": "0.1.2-neurob", "revision": "revision-hash"},
         "results": {
           "ProB[TIME_OUT=2500]": {
             "answer": "VALID",

@@ -12,6 +12,7 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
+import de.prob.cli.CliVersionNumber;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -66,6 +67,26 @@ class JsonDbFormatTest {
      */
     private PredDbEntry getLabelling(String pred,
             Answer probLabel, Answer kodkodLabel, Answer z3Label, Answer smtLabel) {
+        return getLabelling(pred, probLabel, kodkodLabel, z3Label, smtLabel,
+                new CliVersionNumber("0", "1", "2", "neurob",
+                        "revision-hash"));
+    }
+
+    /**
+     * Returns a {@link PredDbEntry} instance that conforms the labelling
+     * format used by {@link JsonDbFormat}.
+     *
+     * @param pred
+     * @param probLabel
+     * @param kodkodLabel
+     * @param z3Label
+     * @param smtLabel
+     *
+     * @return
+     */
+    private PredDbEntry getLabelling(String pred,
+            Answer probLabel, Answer kodkodLabel, Answer z3Label, Answer smtLabel,
+            CliVersionNumber cliVersion) {
         // Prepare timing map
         Map<Backend, TimedAnswer> timings = new HashMap<>();
         timings.put(BACKENDS_USED[0], new TimedAnswer(probLabel, 100L));
@@ -73,7 +94,7 @@ class JsonDbFormatTest {
         timings.put(BACKENDS_USED[2], new TimedAnswer(z3Label, 300L));
         timings.put(BACKENDS_USED[3], new TimedAnswer(smtLabel, 400L));
 
-        return new PredDbEntry(BPredicate.of(pred), null, BACKENDS_USED, timings);
+        return new PredDbEntry(BPredicate.of(pred), null, BACKENDS_USED, timings, cliVersion);
     }
 
     private PredDbEntry getLabelling(String pred) {
@@ -317,6 +338,9 @@ class JsonDbFormatTest {
         data.put("results", resultMap);
         data.put("sha512", hash);
 
+        CliVersionNumber version = new CliVersionNumber("0", "1", "2", "neurob", "revision-hash");
+        data.put("probcli", version);
+
         TrainingSample expected = getSample(null);
         TrainingSample actual = iterator.translateToDbSample(data);
 
@@ -545,6 +569,7 @@ class JsonDbFormatTest {
                 "{"
                 + "\"predicate\":\"" + pred + "\","
                 + "\"sha512\":\"" + hash + "\","
+                + "\"probcli\":{\"version\":\"0.1.2-neurob\",\"revision\":\"revision-hash\"},"
                 + "\"results\":{"
                 + "\"ProB[TIME_OUT=2500]\":{\"answer\":\"VALID\",\"time-in-ns\":100,\"timeout-in-ns\":2500000000},"
                 + "\"Kodkod[TIME_OUT=2500]\":{\"answer\":\"VALID\",\"time-in-ns\":200,\"timeout-in-ns\":2500000000},"
@@ -575,7 +600,7 @@ class JsonDbFormatTest {
 
     private TrainingSample<BPredicate, PredDbEntry> getSample(Path source) {
         BPredicate pred = new BPredicate("pred");
-        PredDbEntry labels = getLabelling("pred1", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN);
+        PredDbEntry labels = getLabelling("pred", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN);
 
         return new TrainingSample<>(pred, labels, source);
 
