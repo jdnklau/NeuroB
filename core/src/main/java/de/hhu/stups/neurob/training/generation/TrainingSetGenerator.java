@@ -100,6 +100,7 @@ public abstract class TrainingSetGenerator {
                     })
                     .map(file -> new TrainingData(
                             stripCommonSourceDir(file, source),
+                            file,
                             streamSamplesFromFile(file)))
                     .forEach(samples ->
                     {

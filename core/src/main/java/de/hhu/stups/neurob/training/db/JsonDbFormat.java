@@ -70,7 +70,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
 
     /**
      * Returns a label generator that generates labels conforming this format's
-     * backends
+     * backends.
      *
      * @return
      */
@@ -82,10 +82,25 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
      * Returns a label generator that generates labels associated with the given
      * backends.
      *
+     * @param backends
+     *
      * @return
      */
     public static PredicateLabelGenerating<PredDbEntry> getLabelGenerator(Backend[] backends) {
         return new PredDbEntry.Generator(3, backends);
+    }
+
+    /**
+     * Returns a label generator that generates labels associated with the given
+     * backends and marks them as run with the specified CLI version.
+     *
+     * @param backends
+     *
+     * @return
+     */
+    public PredicateLabelGenerating<PredDbEntry> getLabelGenerator(
+            CliVersionNumber version, Backend... backends) {
+        return new PredDbEntry.Generator(3, version, backends);
     }
 
     @Override
@@ -147,11 +162,11 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         DataGenerationStats stats = new DataGenerationStats();
 
         // get machine hash
-        String machineHash = getMachineHash(trainingData.getSourceFile());
+        String machineHash = getMachineHash(trainingData.getAbsoluteSourcePath());
 
         // Header
         writer.write("{\"" + trainingData.getSourceFile() + "\":{");
-        writer.write("\"sha512\":\"" + machineHash + "\","); // TODO access machine hash
+        writer.write("\"sha512\":\"" + machineHash + "\",");
         MachineType machineType = MachineType.predictTypeFromLocation(trainingData.getSourceFile());
         writer.write("\"formalism\":\"" + machineType + "\",");
         // Gathered predicates

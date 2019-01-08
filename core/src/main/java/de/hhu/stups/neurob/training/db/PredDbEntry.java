@@ -332,6 +332,15 @@ public class PredDbEntry extends PredicateLabelling {
             this(samplingSize, PredDbEntry.DEFAULT_TIMEOUT, PredDbEntry.DEFAULT_TIMEUNIT, backends);
         }
 
+        /**
+         * @param samplingSize Number of measurements per backend,
+         *         from which the average run time is taken.
+         * @param backends
+         */
+        public Generator(int samplingSize, CliVersionNumber version, Backend... backends) {
+            this(samplingSize, version, PredDbEntry.DEFAULT_TIMEOUT, PredDbEntry.DEFAULT_TIMEUNIT, backends);
+        }
+
 
         @Override
         public PredDbEntry generate(BPredicate predicate, MachineAccess machineAccess)

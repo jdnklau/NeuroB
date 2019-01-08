@@ -25,6 +25,7 @@ import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
+import de.prob.cli.CliVersionNumber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -305,7 +306,9 @@ class PredicateTrainingGeneratorIT {
         JsonDbFormat format = new JsonDbFormat(new Backend[]{b1, b2});
         PredicateTrainingGenerator gen = new PredicateTrainingGenerator(
                 (p, a) -> p,
-                format.getLabelGenerator(),
+                format.getLabelGenerator(
+                        new CliVersionNumber("0", "1", "2", "neurob", "revision-hash"),
+                        backends),
                 format
         );
 
@@ -345,8 +348,6 @@ class PredicateTrainingGeneratorIT {
                         "Db files do not match for subdir/features_gen.mch")
 
         );
-        assertEquals(expected1, actual2,
-                "Files do not match");
     }
 
     @Test
