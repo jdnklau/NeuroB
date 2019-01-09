@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -210,10 +211,38 @@ class PredicateTrainingGeneratorTest {
                 featureGen, labelGen, formatMock);
 
         TrainingSample<PredicateFeatures, Labelling> actual =
-                generator.generateSample(BPredicate.of("predicate"));
+                generator.generateSamples(BPredicate.of("predicate")).findFirst().get();
 
         assertEquals(expected, actual,
                 "Training Sample does not match");
+    }
+
+    @Test
+    public void shouldSampleTrainingDataSpecifiedAmountOfTimes() throws Exception {
+        PredicateFeatures features = new PredicateFeatures("predicate", 1., 2., 3.);
+        PredicateLabelling[] labelling = {
+                new PredicateLabelling("predicate", 1., 2., 3.),
+                new PredicateLabelling("predicate", 2., 2., 3.),
+                new PredicateLabelling("predicate", 3., 2., 3.)
+        };
+
+        List expected = new ArrayList<>();
+        expected.add(new TrainingSample<>(features, labelling[0]));
+        expected.add(new TrainingSample<>(features, labelling[1]));
+        expected.add(new TrainingSample<>(features, labelling[2]));
+
+        // stub a generator
+        AtomicInteger i = new AtomicInteger(0);
+        PredicateLabelGenerating<PredicateLabelling> labelGen = (p, ss) -> labelling[i.getAndIncrement()];
+
+        generator = new PredicateTrainingGenerator(
+                featureGen, labelGen, 3, formatMock);
+
+        List actual =
+                generator.generateSamples(BPredicate.of("predicate")).collect(Collectors.toList());
+
+        assertEquals(expected, actual,
+                "Training Samples does not match");
     }
 
     @Test
@@ -229,7 +258,8 @@ class PredicateTrainingGeneratorTest {
 
         generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, null);
-        TrainingSample actual = generator.generateSample(BPredicate.of("pred"), bMachine);
+        TrainingSample actual =
+                generator.generateSamples(BPredicate.of("pred"), bMachine).findFirst().get();
 
         assertEquals(expected, actual,
                 "Training Sample does not match");
@@ -247,7 +277,8 @@ class PredicateTrainingGeneratorTest {
         generator = new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock);
 
-        TrainingSample actual = generator.generateSample(BPredicate.of("predicate"), null);
+        TrainingSample actual =
+                generator.generateSamples(BPredicate.of("predicate"), null).findFirst().get();
 
         assertEquals(expected, actual,
                 "Training Sample does not match");
