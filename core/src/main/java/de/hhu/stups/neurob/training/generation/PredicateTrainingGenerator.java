@@ -95,6 +95,20 @@ public class PredicateTrainingGenerator
         this(
                 (pred, ss) -> pred,
                 JsonDbFormat.getLabelGenerator(JsonDbFormat.DEFAULT_BACKENDS),
+                1,
+                new JsonDbFormat(JsonDbFormat.DEFAULT_BACKENDS)
+        );
+    }
+
+    /**
+     * Constructor for creating a data base of predicates, labelling each one
+     * the given amount of times.
+     */
+    public PredicateTrainingGenerator(int labellingSamples) {
+        this(
+                (pred, ss) -> pred,
+                JsonDbFormat.getLabelGenerator(JsonDbFormat.DEFAULT_BACKENDS),
+                labellingSamples,
                 new JsonDbFormat(JsonDbFormat.DEFAULT_BACKENDS)
         );
     }
