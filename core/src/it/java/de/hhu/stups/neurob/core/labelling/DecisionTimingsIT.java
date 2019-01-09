@@ -29,8 +29,7 @@ class DecisionTimingsIT {
 
         ProBBackend prob = new ProBBackend();
 
-        DecisionTimings timings = new DecisionTimings(pred, 1, bMachine,
-                prob);
+        DecisionTimings timings = new DecisionTimings(pred, bMachine, prob);
 
         assertTrue(timings.getTiming(prob) < 0,
                 "ProB was unexpectedly able to decide the predicate");
@@ -42,8 +41,7 @@ class DecisionTimingsIT {
 
         Z3Backend backend = new Z3Backend();
 
-        DecisionTimings timings = new DecisionTimings(pred, 1, bMachine,
-                backend);
+        DecisionTimings timings = new DecisionTimings(pred, bMachine, backend);
 
         assertFalse(timings.getTiming(backend) < 0,
                 "Z3 was unexpectedly not able to decide the predicate, "
@@ -58,8 +56,7 @@ class DecisionTimingsIT {
         Z3Backend z3 = new Z3Backend();
         KodkodBackend kodkod = new KodkodBackend();
 
-        DecisionTimings timings = new DecisionTimings(pred, 1, bMachine,
-                prob, z3, kodkod);
+        DecisionTimings timings = new DecisionTimings(pred, bMachine, prob, z3, kodkod);
 
         assertAll("Generating for multiple backends",
                 () -> assertTrue(timings.getTiming(prob) < 0,

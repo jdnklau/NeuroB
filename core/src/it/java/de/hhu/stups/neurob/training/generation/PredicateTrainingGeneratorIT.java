@@ -56,7 +56,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 class PredicateTrainingGeneratorIT {
 
     private
@@ -269,7 +268,7 @@ class PredicateTrainingGeneratorIT {
         PredicateTrainingGenerator generator =
                 new PredicateTrainingGenerator(
                         new TheoryFeatures.Generator(),
-                        new DecisionTimings.Generator(1, backend),
+                        new DecisionTimings.Generator(backend),
                         format
                 );
 

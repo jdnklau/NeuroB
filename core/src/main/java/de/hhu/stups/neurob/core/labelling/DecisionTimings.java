@@ -26,9 +26,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class DecisionTimings extends PredicateLabelling {
 
-    /** Number of times each timing is run; final timing is average of all calls */
-    private final int sampleSize;
-
     // Time out how long a predicate will maximally run in evaluation.
     private final Long timeOut;
     private final TimeUnit timeUnit;
@@ -48,55 +45,41 @@ public class DecisionTimings extends PredicateLabelling {
      * Sets the default timeout for predicate evaluation.
      *
      * @param predicate
-     * @param sampleSize Number of times each timing is run; final time
-     *         is taken from the average.
      * @param bMachine Access to the B machine the predicate belongs to
      * @param backends List of backend for which the labelling is
      *         created.
      */
-    public DecisionTimings(BPredicate predicate, int sampleSize,
-            MachineAccess bMachine,
-            Backend... backends)
+    public DecisionTimings(BPredicate predicate, MachineAccess bMachine, Backend... backends)
             throws LabelCreationException {
-        this(predicate, sampleSize, defaultTimeout, defaultTimeoutUnit,
-                bMachine, backends);
+        this(predicate, defaultTimeout, defaultTimeoutUnit, bMachine, backends);
     }
 
     /**
      * Sets the default timeout for predicate evaluation.
      *
      * @param predicate
-     * @param sampleSize Number of times each timing is run; final time
-     *         is taken from the average.
      * @param bMachine Access to the B machine the predicate belongs to
      * @param backends List of backend for which the labelling is
      *         created.
      */
-    public DecisionTimings(String predicate, int sampleSize,
-            MachineAccess bMachine,
-            Backend... backends)
+    public DecisionTimings(String predicate, MachineAccess bMachine, Backend... backends)
             throws LabelCreationException {
-        this(BPredicate.of(predicate), sampleSize, defaultTimeout, defaultTimeoutUnit,
-                bMachine, backends);
+        this(BPredicate.of(predicate), defaultTimeout, defaultTimeoutUnit, bMachine, backends);
     }
 
     /**
      * @param predicate
-     * @param sampleSize Number of times each timing is run; final time
-     *         is taken from the average.
      * @param timeOut Maximal runtime given for each backend to solve the predicate
      * @param timeOutUnit Unit in which the time out is measured
      * @param bMachine Access to the B machine the predicate belongs to
      * @param backends List of backend for which the labelling is
      *         created.
      */
-    public DecisionTimings(BPredicate predicate, int sampleSize,
-            Long timeOut, TimeUnit timeOutUnit,
+    public DecisionTimings(BPredicate predicate, Long timeOut, TimeUnit timeOutUnit,
             MachineAccess bMachine, Backend... backends)
             throws LabelCreationException {
         super(predicate, new Double[backends.length]);
 
-        this.sampleSize = sampleSize;
         this.usedBackends = backends;
 
         this.timeOut = timeOut;
@@ -110,19 +93,17 @@ public class DecisionTimings extends PredicateLabelling {
 
     /**
      * @param predicate
-     * @param sampleSize Number of times each timing is run; final time
-     *         is taken from the average.
      * @param timeOut Maximal runtime given for each backend to solve the predicate
      * @param timeOutUnit Unit in which the time out is measured
      * @param bMachine Access to the B machine the predicate belongs to
      * @param backends List of backend for which the labelling is
      *         created.
      */
-    public DecisionTimings(String predicate, int sampleSize,
+    public DecisionTimings(String predicate,
             Long timeOut, TimeUnit timeOutUnit,
             MachineAccess bMachine, Backend... backends)
             throws LabelCreationException {
-        this(BPredicate.of(predicate), sampleSize,
+        this(BPredicate.of(predicate),
                 timeOut, timeOutUnit, bMachine, backends);
     }
 
@@ -152,7 +133,7 @@ public class DecisionTimings extends PredicateLabelling {
      */
     public DecisionTimings(BPredicate predicate, Map<Backend, Double> timeMapping,
             Backend... backends) {
-        this(predicate, 1, defaultTimeout, defaultTimeoutUnit, timeMapping, backends);
+        this(predicate, defaultTimeout, defaultTimeoutUnit, timeMapping, backends);
     }
 
     /**
@@ -179,9 +160,8 @@ public class DecisionTimings extends PredicateLabelling {
      * @param backends List of backend for which the labelling is
      *         created.
      */
-    public DecisionTimings(String predicate, Map<Backend, Double> timeMapping,
-            Backend... backends) {
-        this(BPredicate.of(predicate), 1, defaultTimeout, defaultTimeoutUnit, timeMapping, backends);
+    public DecisionTimings(String predicate, Map<Backend, Double> timeMapping, Backend... backends) {
+        this(BPredicate.of(predicate), defaultTimeout, defaultTimeoutUnit, timeMapping, backends);
     }
 
     /**
@@ -199,8 +179,6 @@ public class DecisionTimings extends PredicateLabelling {
      * will result in the vector {@code <1.0, 2.0, -1.0>}.
      *
      * @param predicate
-     * @param sampleSize Number of times each timing was run; final time
-     *         is taken from the average.
      * @param timeOut Maximal runtime given for each backend to solve the predicate
      * @param timeOutUnit Unit in which the time out is measured
      * @param timeMapping Mapping of backends to time measures. Will be translated into a
@@ -208,12 +186,10 @@ public class DecisionTimings extends PredicateLabelling {
      * @param backends List of backend for which the labelling is
      *         created.
      */
-    public DecisionTimings(BPredicate predicate, int sampleSize,
-            Long timeOut, TimeUnit timeOutUnit,
+    public DecisionTimings(BPredicate predicate, Long timeOut, TimeUnit timeOutUnit,
             Map<Backend, Double> timeMapping, Backend[] backends) {
         super(predicate, new Double[backends.length]);
 
-        this.sampleSize = sampleSize;
         this.usedBackends = backends;
 
         this.timeOut = timeOut;
@@ -242,8 +218,6 @@ public class DecisionTimings extends PredicateLabelling {
      * will result in the vector {@code <1.0, 2.0, -1.0>}.
      *
      * @param predicate
-     * @param sampleSize Number of times each timing was run; final time
-     *         is taken from the average.
      * @param timeOut Maximal runtime given for each backend to solve the predicate
      * @param timeOutUnit Unit in which the time out is measured
      * @param timeMapping Mapping of backends to time measures. Will be translated into a
@@ -251,10 +225,10 @@ public class DecisionTimings extends PredicateLabelling {
      * @param backends List of backend for which the labelling is
      *         created.
      */
-    public DecisionTimings(String predicate, int sampleSize,
+    public DecisionTimings(String predicate,
             Long timeOut, TimeUnit timeOutUnit,
             Map<Backend, Double> timeMapping, Backend[] backends) {
-        this(BPredicate.of(predicate), sampleSize, timeOut, timeOutUnit,
+        this(BPredicate.of(predicate), timeOut, timeOutUnit,
                 timeMapping, backends);
     }
 
@@ -321,7 +295,6 @@ public class DecisionTimings extends PredicateLabelling {
                     "Number of given timings must match number of backends");
         }
 
-        this.sampleSize = sampleSize;
         this.timeOut = timeOut;
         this.timeUnit = timeOutUnit;
 
@@ -338,42 +311,29 @@ public class DecisionTimings extends PredicateLabelling {
         Map<Backend, Double> timings = new HashMap<>();
 
         // TODO: set timeout inside of state space as well
+        // NOTE: I think the above has already been done.
 
         log.debug("Sample timings for the backends {} over predicate {}",
                 backends, predicate);
         for (Backend backend : backends) {
-            timings.put(backend, sampleTimings(bMachine, backend));
+            timings.put(backend, Double.valueOf(sampleTimings(bMachine, backend)));
         }
 
         return timings;
     }
 
-    private Double sampleTimings(MachineAccess bMachine, Backend backend)
+    private Long sampleTimings(MachineAccess bMachine, Backend backend)
             throws LabelCreationException {
-        Double sampled = 0.;
-        log.trace("Sampling timing over backend {}; {} times",
-                backend, sampleSize);
-        for (int i = 0; i < sampleSize; i++) {
-            try {
-                Long timing = backend.measureEvalTime(predicate, bMachine,
-                        timeOut, timeUnit);
-                // stop if already not decidable
-                if (timing < 0) {
-                    sampled = -1.;
-                    break;
-                }
-                sampled += timing;
+        log.trace("Measuring runtime of backend {}", backend);
 
-            } catch (FormulaException e) {
-                throw new LabelCreationException(
-                        "Could not create timing sample #" + i
-                        + " for " + backend.toString() + "over predicate "
-                        + predicate,
-                        e);
-            }
+        try {
+            // TODO: Change this to timed-answer query and adapt code semantics accordingly.
+            return backend.measureEvalTime(predicate, bMachine, timeOut, timeUnit);
+        } catch (FormulaException e) {
+            throw new LabelCreationException(
+                    "Could not create timing sample for " + backend.toString()
+                    + " over predicate " + predicate, e);
         }
-
-        return sampled / sampleSize;
     }
 
     /**
@@ -412,17 +372,6 @@ public class DecisionTimings extends PredicateLabelling {
     }
 
     /**
-     * Returns number of times the predicate was queried for each backend. The
-     * average
-     * is taken for the final labelling.
-     *
-     * @return
-     */
-    public int getSampleSize() {
-        return sampleSize;
-    }
-
-    /**
      * Returns an array of used backends for which the times were generated.
      *
      * @return
@@ -434,7 +383,6 @@ public class DecisionTimings extends PredicateLabelling {
     public static class Generator
             implements PredicateLabelGenerating<DecisionTimings> {
 
-        private final int sampleSize;
         private final Backend[] backends;
         private final Long timeout;
         private final TimeUnit timeoutUnit;
@@ -443,24 +391,20 @@ public class DecisionTimings extends PredicateLabelling {
          * Sets the timeout for predicate evaluation to default of
          * {@link DecisionTimings}.
          *
-         * @param sampleSize Number of times each backend runs
          * @param backends List of backends for which the timings are
          *         calculated.
          */
-        public Generator(int sampleSize, Backend... backends) {
-            this(sampleSize, defaultTimeout, defaultTimeoutUnit, backends);
+        public Generator(Backend... backends) {
+            this(defaultTimeout, defaultTimeoutUnit, backends);
         }
 
         /**
-         * @param sampleSize Number of times each backend runs
          * @param backends List of backends for which the timings are
          *         calculated.
          * @param timeout
          * @param timeoutUnit
          */
-        public Generator(int sampleSize, Long timeout, TimeUnit timeoutUnit,
-                Backend... backends) {
-            this.sampleSize = sampleSize;
+        public Generator(Long timeout, TimeUnit timeoutUnit, Backend... backends) {
             this.backends = backends;
             this.timeout = timeout;
             this.timeoutUnit = timeoutUnit;
@@ -469,8 +413,7 @@ public class DecisionTimings extends PredicateLabelling {
         @Override
         public DecisionTimings generate(BPredicate predicate, MachineAccess machineAccess)
                 throws LabelCreationException {
-            return new DecisionTimings(predicate, sampleSize,
-                    timeout, timeoutUnit, machineAccess, backends);
+            return new DecisionTimings(predicate, timeout, timeoutUnit, machineAccess, backends);
         }
     }
 

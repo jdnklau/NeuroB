@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -65,8 +66,8 @@ class DecisionTimingsTest {
 
     @Test
     public void shouldUseProBAndZ3Backends() throws LabelCreationException {
-        DecisionTimings timings = new DecisionTimings(BPredicate.of("predicate"),
-                1, machineAccess, prob, z3);
+        DecisionTimings timings =
+                new DecisionTimings(BPredicate.of("predicate"), machineAccess, prob, z3);
 
         Backend[] usedBackends = timings.getUsedBackends();
 
@@ -167,8 +168,7 @@ class DecisionTimingsTest {
     @Test
     public void shouldReturn1AsLabellingDimensionWhenOnlyOneBackEndProvided()
             throws LabelCreationException {
-        DecisionTimings timings = new DecisionTimings("predicate",
-                1, machineAccess, prob);
+        DecisionTimings timings = new DecisionTimings("predicate", machineAccess, prob);
 
         int expected = 1;
         int actual = timings.getLabellingDimension();
@@ -178,54 +178,25 @@ class DecisionTimingsTest {
     }
 
     @Test
-    public void shouldReturn1AsSampleSizeWhen1WasSpecified()
-            throws LabelCreationException {
-        DecisionTimings timings = new DecisionTimings("predicate",
-                1, machineAccess, prob);
-
-        int expected = 1;
-        int actual = timings.getSampleSize();
-
-        assertEquals(expected, actual,
-                "Sampling size does not match");
-    }
-
-    @Test
     public void shouldReturnPredicate() throws Exception {
-        DecisionTimings timings = new DecisionTimings("predicate",
-                1, machineAccess, prob);
-
+        DecisionTimings timings = new DecisionTimings("predicate", machineAccess, prob);
         assertEquals(BPredicate.of("predicate"), timings.getPredicate());
-    }
-
-    @Test
-    public void shouldReturn3AsSampleSizeWhen3WasSpecified()
-            throws LabelCreationException {
-        DecisionTimings timings = new DecisionTimings("predicate",
-                3, machineAccess, prob);
-
-        int expected = 3;
-        int actual = timings.getSampleSize();
-
-        assertEquals(expected, actual,
-                "Sampling size does not match");
     }
 
     @Test
     public void shouldReturn3AsLabellingDimensionWhenThreeBackendsAreProvided()
             throws LabelCreationException {
-        DecisionTimings timings = new DecisionTimings("predicate",
-                1, machineAccess, prob, kodkod, z3);
+        DecisionTimings timings =
+                new DecisionTimings("predicate", machineAccess, prob, kodkod, z3);
 
         int expected = 3;
         int actual = timings.getLabellingDimension();
 
-        assertEquals(expected, actual,
-                "Labelling dimension does not match");
+        assertEquals(expected, actual, "Labelling dimension does not match");
     }
 
     @Test
-    public void shouldSampleOnce() throws Exception {
+    public void shouldSampleTimeOnce() throws Exception {
         BPredicate predicate = BPredicate.of("predicate");
 
         // Stub ProB
@@ -234,7 +205,7 @@ class DecisionTimingsTest {
                 .thenReturn(1L)
                 .thenReturn(100L);
 
-        DecisionTimings timings = new DecisionTimings(predicate, 1, machineAccess, prob);
+        DecisionTimings timings = new DecisionTimings(predicate, machineAccess, prob);
 
         Double expected = 1.;
         Double actual = timings.getTiming(prob);
@@ -244,66 +215,41 @@ class DecisionTimingsTest {
     }
 
     @Test
-    public void shouldSampleThrice() throws Exception {
+    public void shouldReturnNegativeWhenUndecidable() throws Exception {
         BPredicate predicate = BPredicate.of("predicate");
 
         // Stub ProB
         when(prob.measureEvalTime(predicate, machineAccess,
                 DecisionTimings.defaultTimeout, DecisionTimings.defaultTimeoutUnit))
-                .thenReturn(1L)
-                .thenReturn(2L)
-                .thenReturn(6L);
-
-        DecisionTimings timings = new DecisionTimings(predicate, 3, machineAccess, prob);
-
-        Double expected = 3.;
-        Double actual = timings.getTiming(prob);
-
-        assertEquals(expected, actual, 1e-5,
-                "Measured time should be 3ns");
-    }
-
-    @Test
-    public void shouldReturnNegativeWhenOneSamplingIsUndecidable() throws Exception {
-        BPredicate predicate = BPredicate.of("predicate");
-
-        // Stub ProB
-        when(prob.measureEvalTime(predicate, machineAccess,
-                DecisionTimings.defaultTimeout, DecisionTimings.defaultTimeoutUnit))
-                .thenReturn(1L)
                 .thenReturn(-1L) // undecidable
                 .thenReturn(6L);
 
-        DecisionTimings timings = new DecisionTimings(predicate, 3, machineAccess, prob);
+        DecisionTimings timings = new DecisionTimings(predicate, machineAccess, prob);
 
-        assertTrue(0 > timings.getTiming(prob),
-                "Measured time should be negative");
+        assertTrue(0 > timings.getTiming(prob), "Measured time should be negative");
     }
 
     @Test
-    void shouldSampleThriceForEachBackend() throws Exception {
+    void shouldSampleForEachBackend() throws Exception {
         BPredicate predicate = BPredicate.of("predicate");
 
         // Stub ProB
         when(prob.measureEvalTime(predicate, machineAccess,
                 DecisionTimings.defaultTimeout, DecisionTimings.defaultTimeoutUnit))
                 .thenReturn(1L)
-                .thenReturn(2L)
                 .thenReturn(6L);
         // Stub KodKod
         when(kodkod.measureEvalTime(predicate, machineAccess,
                 DecisionTimings.defaultTimeout, DecisionTimings.defaultTimeoutUnit))
                 .thenReturn(4L)
-                .thenReturn(12L)
                 .thenReturn(5L);
 
-        DecisionTimings timings = new DecisionTimings(predicate, 3, machineAccess,
-                prob, kodkod);
+        DecisionTimings timings = new DecisionTimings(predicate, machineAccess, prob, kodkod);
 
-        assertAll("Average of three runs for ProB and KodKod",
-                () -> assertEquals(3., timings.getTiming(prob), 1e-5,
+        assertAll(
+                () -> assertEquals(1., timings.getTiming(prob), 1e-5,
                         "Measured time for ProB should be 3ns"),
-                () -> assertEquals(7., timings.getTiming(kodkod), 1e-5,
+                () -> assertEquals(4., timings.getTiming(kodkod), 1e-5,
                         "Measured time for KodKod should be 3ns")
         );
     }
@@ -315,23 +261,18 @@ class DecisionTimingsTest {
         // Stub ProB
         when(prob.measureEvalTime(predicate, machineAccess,
                 DecisionTimings.defaultTimeout, DecisionTimings.defaultTimeoutUnit))
-                .thenReturn(1L)
-                .thenReturn(2L)
-                .thenReturn(6L);
+                .thenReturn(1L);
         // Stub KodKod
         when(kodkod.measureEvalTime(predicate, machineAccess,
                 DecisionTimings.defaultTimeout, DecisionTimings.defaultTimeoutUnit))
-                .thenReturn(4L)
-                .thenReturn(12L)
-                .thenReturn(5L);
+                .thenReturn(4L);
 
-        DecisionTimings timings = new DecisionTimings(predicate, 3, machineAccess,
-                prob, kodkod);
+        DecisionTimings timings = new DecisionTimings(predicate, machineAccess, prob, kodkod);
 
-        assertAll("Average of three runs for ProB and KodKod",
-                () -> assertEquals(3., timings.getLabellingArray()[0], 1e-5,
+        assertAll("Runtimes for ProB and KodKod",
+                () -> assertEquals(1., timings.getLabellingArray()[0], 1e-5,
                         "Measured time for ProB should be 3ns"),
-                () -> assertEquals(7., timings.getLabellingArray()[1], 1e-5,
+                () -> assertEquals(4., timings.getLabellingArray()[1], 1e-5,
                         "Measured time for KodKod should be 3ns")
         );
     }
@@ -347,7 +288,7 @@ class DecisionTimingsTest {
                 .thenReturn(100L);
 
         DecisionTimings timings =
-                new DecisionTimings.Generator(1, prob)
+                new DecisionTimings.Generator(prob)
                         .generate(predicate, bMachine);
 
         Double expected = 1.;
@@ -368,15 +309,15 @@ class DecisionTimingsTest {
                 .thenReturn(2L)
                 .thenReturn(6L);
 
-        DecisionTimings timings =
-                new DecisionTimings.Generator(3, prob)
-                        .generate(predicate, bMachine);
+        List<DecisionTimings> timings =
+                new DecisionTimings.Generator(prob)
+                        .generateSamples(predicate, bMachine, 3);
 
-        Double expected = 3.;
-        Double actual = timings.getTiming(prob);
+        double[] expected = {1., 2., 6.};
+        double[] actual = timings.stream().mapToDouble(d -> d.getTiming(prob)).toArray();
 
-        assertEquals(expected, actual, 1e-5,
-                "Measured time should be 3ns");
+        assertArrayEquals(expected, actual, 1e-5,
+                "Measured times not equal");
     }
 
     @Test
@@ -396,15 +337,21 @@ class DecisionTimingsTest {
                 .thenReturn(12L)
                 .thenReturn(5L);
 
-        DecisionTimings timings =
-                new DecisionTimings.Generator(3, prob, kodkod)
-                        .generate(predicate, bMachine);
+        List<DecisionTimings> timings =
+                new DecisionTimings.Generator(prob, kodkod)
+                        .generateSamples(predicate, bMachine, 3);
+
+        double[] probExpected = {1., 2., 6.};
+        double[] probActual = timings.stream().mapToDouble(d -> d.getTiming(prob)).toArray();
+
+        double[] kodkodExpected = {4., 12., 5.};
+        double[] kodkodActual = timings.stream().mapToDouble(d -> d.getTiming(kodkod)).toArray();
 
         assertAll("Average of three runs for ProB and KodKod",
-                () -> assertEquals(3., timings.getTiming(prob), 1e-5,
-                        "Measured time for ProB should be 3ns"),
-                () -> assertEquals(7., timings.getTiming(kodkod), 1e-5,
-                        "Measured time for KodKod should be 3ns")
+                () -> assertArrayEquals(probExpected, probActual, 1e-5,
+                        "Measured timings for ProB do not match"),
+                () -> assertArrayEquals(kodkodExpected, kodkodActual, 1e-5,
+                        "Measured timings for KodKod do not match")
         );
     }
 
@@ -416,19 +363,14 @@ class DecisionTimingsTest {
         // Stub ProB
         when(prob.measureEvalTime(predicate, machineAccess,
                 DecisionTimings.defaultTimeout, DecisionTimings.defaultTimeoutUnit))
-                .thenReturn(1L)
-                .thenReturn(2L)
-                .thenReturn(6L);
+                .thenReturn(2L);
         // Stub KodKod
         when(kodkod.measureEvalTime(predicate, machineAccess,
                 DecisionTimings.defaultTimeout, DecisionTimings.defaultTimeoutUnit))
-                .thenReturn(4L)
-                .thenThrow(new FormulaException())
-                .thenReturn(5L);
+                .thenThrow(new FormulaException());
 
         assertThrows(LabelCreationException.class,
-                () -> new DecisionTimings(predicate, 3,
-                        machineAccess, prob, kodkod),
+                () -> new DecisionTimings(predicate, machineAccess, prob, kodkod),
                 "Timings should not be creatable");
 
     }
@@ -458,8 +400,8 @@ class DecisionTimingsTest {
         when(backend.getTimeOutValue()).thenReturn(20L);
         when(backend.getTimeOutUnit()).thenReturn(TimeUnit.SECONDS);
 
-        DecisionTimings timings = new DecisionTimings(predicate, 1,
-                0L, TimeUnit.MILLISECONDS, // Labelling should timeout
+        // Labelling should timeout
+        DecisionTimings timings = new DecisionTimings(predicate, 0L, TimeUnit.MILLISECONDS,
                 machineAccess, backend);
 
         assertTrue(timings.getTiming(backend) < 0,
@@ -492,8 +434,7 @@ class DecisionTimingsTest {
         when(backend.getTimeOutUnit()).thenReturn(TimeUnit.MILLISECONDS);
 
         // Has default timeout of 20 seconds
-        DecisionTimings timings = new DecisionTimings(predicate, 1,
-                machineAccess, backend);
+        DecisionTimings timings = new DecisionTimings(predicate, machineAccess, backend);
 
         assertTrue(timings.getTiming(backend) >= 0,
                 "Did not timeout correctly");
