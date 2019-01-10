@@ -82,9 +82,8 @@ public abstract class TrainingSetGenerator {
 
         DataGenerationStats stats = new DataGenerationStats();
         try (Stream<Path> sourceFiles = Files.walk(source)) {
-            sourceFiles
-                    .parallel()
-                    .filter(Files::isRegularFile)
+            sourceFiles.collect(Collectors.toList())
+                    .parallelStream()
                     .filter(file -> file.toString().endsWith(".mch")
                                     || file.toString().endsWith(".bcm"))
                     // Only create if non-lazy or non-existent
