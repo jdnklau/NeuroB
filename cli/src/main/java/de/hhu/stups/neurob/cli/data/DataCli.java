@@ -43,7 +43,7 @@ public class DataCli implements CliModule {
         return
                 "\n"
                 + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-[x][l]b BACKENDS]\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-[x][z]b BACKENDS]\n"
                 + "\n";
 
     }
