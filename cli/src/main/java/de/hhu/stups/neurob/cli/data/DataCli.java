@@ -28,6 +28,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 
 public class DataCli implements CliModule {
 
@@ -43,7 +45,7 @@ public class DataCli implements CliModule {
         return
                 "\n"
                 + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-[x][z]b BACKENDS]\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-[x][z]b BACKENDS]\n"
                 + "\n";
 
     }
@@ -83,7 +85,7 @@ public class DataCli implements CliModule {
                 .longOpt("generate-from")
                 .hasArg()
                 .argName("PATH")
-                .desc("Source directory from which the data is generated")
+                .desc("Source directory from which the data is generated.")
                 .required()
                 .build();
 
@@ -96,30 +98,39 @@ public class DataCli implements CliModule {
                 .longOpt("target-dir")
                 .numberOfArgs(2)
                 .argName("PATH FORMAT")
-                .desc("Directory and format into which the data is to be migrated")
+                .desc("Directory and format into which the data is to be migrated.")
                 .required()
+                .build();
+
+        // Number of cores
+        Option cores = Option.builder("c")
+                .longOpt("threats")
+                .hasArg()
+                .argName("THREADS")
+                .desc("Number of threads to be run in parallel. "
+                      + "Defaults to number of processors minus one.")
                 .build();
 
         // BackendId
         Option cross = Option.builder("x")
                 .longOpt("cross-options")
-                .desc("If set, enumerates any combination of options per backend")
+                .desc("If set, enumerates any combination of options per backend.")
                 .build();
         Option backends = Option.builder("b")
                 .longOpt("backends")
                 .hasArgs()
-                .desc(
-                        "BackendId to be accounted for"
-                ).build();
+                .desc("BackendId to be accounted for.")
+                .build();
         Option lazy = Option.builder("z")
                 .longOpt("lazy")
-                .desc("Data is generated lazily, aka already existent data is ignored").build();
+                .desc("Data is generated lazily, i.e. already existent data is ignored.").build();
 
         options.addOptionGroup(modeGroup);
         options.addOption(target);
         options.addOption(backends);
         options.addOption(cross);
         options.addOption(lazy);
+        options.addOption(cores);
     }
 
     @Override
@@ -168,8 +179,6 @@ public class DataCli implements CliModule {
         List<Backend> backends = new ArrayList<>();
         if (line.hasOption('b')) {
             boolean crossCreate = line.hasOption('x');
-
-
             for (String backend : line.getOptionValues('b')) {
                 Arrays.stream(BackendId.makeBackends(backend, crossCreate))
                         .forEach(backends::add);
@@ -187,7 +196,21 @@ public class DataCli implements CliModule {
                 format.getLabelGenerator(),
                 format);
 
-        generator.generateTrainingData(sourceDir, targetDir, line.hasOption('z'));
+        int numThreads = (line.hasOption("c"))
+                ? Integer.parseInt(line.getOptionValue("c"))
+                : Runtime.getRuntime().availableProcessors() - 1;
+
+        ForkJoinPool threadPool = new ForkJoinPool(numThreads);
+        try {
+            threadPool.submit(
+                    () -> generator.generateTrainingData(sourceDir, targetDir, line.hasOption('z')))
+                    .get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        } finally {
+            threadPool.shutdown();
+        }
+
 
     }
 
