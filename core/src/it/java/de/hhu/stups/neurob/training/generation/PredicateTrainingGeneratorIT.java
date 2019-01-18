@@ -90,17 +90,11 @@ class PredicateTrainingGeneratorIT {
     }
 
     private PredicateFeatures generateMockedFeatures(BPredicate pred) {
-        PredicateFeatures f = mock(PredicateFeatures.class);
-        when(f.getFeatureArray()).thenReturn(new Double[]{1., 2., 3.});
-        when(f.getPredicate()).thenReturn(pred);
-        return f;
+        return new PredicateFeatures(pred, 1., 2., 3.);
     }
 
     private PredicateLabelling generateMockedLabels(BPredicate pred) {
-        PredicateLabelling f = mock(PredicateLabelling.class);
-        when(f.getLabellingArray()).thenReturn(new Double[]{1., 2., 3.});
-        when(f.getPredicate()).thenReturn(pred);
-        return f;
+        return new PredicateLabelling(pred, 1., 2., 3.);
     }
 
     @Test
@@ -348,8 +342,6 @@ class PredicateTrainingGeneratorIT {
                         "Db files do not match for subdir/features_gen.mch"),
                 () -> assertEquals(new DataGenerationStats(2, 2, 0, 2, 0), stats,
                         "Generation stats do not match")
-
-
         );
     }
 
