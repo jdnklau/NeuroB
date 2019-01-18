@@ -73,10 +73,7 @@ public abstract class TrainingSetGenerator {
     DataGenerationStats generateTrainingData(Path source, Path targetDir,
             boolean lazy) throws IOException {
 
-        // TODO: Set target dir to targetDir/labelling/features/
         final Path fullTargetDir = targetDir;
-//                .resolve(labelling.getClass().getSimpleName())
-//                .resolve(features.getClass().getSimpleName());
         log.info("Generating training data from {}, storing in {}",
                 source, fullTargetDir);
 
