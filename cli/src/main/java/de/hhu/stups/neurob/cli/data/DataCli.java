@@ -23,13 +23,18 @@ import org.apache.commons.cli.ParseException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DataCli implements CliModule {
 
@@ -45,7 +50,8 @@ public class DataCli implements CliModule {
         return
                 "\n"
                 + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-[x][z]b BACKENDS]\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] "
+                        + "[-i EXCLUDE_LIST] [-[x][z]b BACKENDS]\n"
                 + "\n";
 
     }
@@ -111,6 +117,14 @@ public class DataCli implements CliModule {
                       + "Defaults to number of processors minus one.")
                 .build();
 
+        Option exclude = Option.builder("i")
+                .longOpt("exclude-list")
+                .hasArg()
+                .argName("EXCLUDE_FILE")
+                .desc("Path to a text file, linewise containing sources to be ignored during "
+                      + "data generation.")
+                .build();
+
         // BackendId
         Option cross = Option.builder("x")
                 .longOpt("cross-options")
@@ -131,6 +145,7 @@ public class DataCli implements CliModule {
         options.addOption(cross);
         options.addOption(lazy);
         options.addOption(cores);
+        options.addOption(exclude);
     }
 
     @Override
@@ -200,10 +215,16 @@ public class DataCli implements CliModule {
                 ? Integer.parseInt(line.getOptionValue("c"))
                 : Runtime.getRuntime().availableProcessors() - 1;
 
+        Collection<Path> excludes = getExcludes(line);
+
         ForkJoinPool threadPool = new ForkJoinPool(numThreads);
         try {
             threadPool.submit(
-                    () -> generator.generateTrainingData(sourceDir, targetDir, line.hasOption('z')))
+                    () -> generator.generateTrainingData(
+                            sourceDir,
+                            targetDir,
+                            line.hasOption('z'),
+                            excludes))
                     .get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -211,7 +232,21 @@ public class DataCli implements CliModule {
             threadPool.shutdown();
         }
 
+    }
 
+    private Collection<Path> getExcludes(CommandLine line) {
+        if (line.hasOption('i')) {
+            Path excludes = Paths.get(line.getOptionValue('i'));
+            try (Stream<String> lines = Files.lines(excludes)) {
+                return lines
+                        .filter(s->!s.isEmpty())
+                        .map(Paths::get)
+                        .collect(Collectors.toSet());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return new HashSet<>();
     }
 
     @Override
