@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -72,6 +74,27 @@ public abstract class TrainingSetGenerator {
     public <F extends Features, L extends Labelling>
     DataGenerationStats generateTrainingData(Path source, Path targetDir,
             boolean lazy) throws IOException {
+        return generateTrainingData(source, targetDir, lazy, new HashSet<>());
+    }
+
+    /**
+     * Creates the training data from respective source files in
+     * <code>source</code> and writes them to <code>targetDir</code>.
+     * <p>
+     * In <code>targetDir</code>, a subdirectory is created,
+     * named after the combination of the Labelling and Features in use.
+     * </p>
+     *
+     * @param source path to single file or directory
+     * @param targetDir path to target directory
+     * @param lazy whether existing training data should be kept
+     *         (<code>true</code>) or freshly generated.
+     * @param excluded Collection of excluded paths (either files or directories) relative to source
+     */
+    public <F extends Features, L extends Labelling>
+    DataGenerationStats generateTrainingData(
+            Path source, Path targetDir, boolean lazy, Collection<Path> excluded)
+            throws IOException {
 
         final Path fullTargetDir = targetDir;
         log.info("Generating training data from {}, storing in {}",
@@ -83,6 +106,9 @@ public abstract class TrainingSetGenerator {
                     .parallelStream()
                     .filter(file -> file.toString().endsWith(".mch")
                                     || file.toString().endsWith(".bcm"))
+                    // Skip excluded files
+                    .filter(path -> !excluded.stream().anyMatch(
+                                    ex -> stripCommonSourceDir(path, source).startsWith(ex)))
                     // Only create if non-lazy or non-existent
                     .filter(file -> {
                         boolean nonexistent = !lazy || !dataAlreadyExists(file,

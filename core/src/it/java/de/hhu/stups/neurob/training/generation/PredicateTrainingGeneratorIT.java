@@ -15,6 +15,7 @@ import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.features.TheoryFeatures;
 import de.hhu.stups.neurob.core.labelling.DecisionTimings;
+import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.testharness.TestMachines;
@@ -34,8 +35,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -436,6 +441,65 @@ class PredicateTrainingGeneratorIT {
 
         assertFalse(gen.dataAlreadyExists(newMch, target),
                 "Data should be marked as nonexistent");
+    }
+
+    @Test
+    public void shouldIgnoreFilesFromExcludeList() throws IOException {
+        PredicateDbFormat format = mock(PredicateDbFormat.class);
+        Set<Path> computedFiles = Collections.synchronizedSet(new HashSet<>());
+        doAnswer(invocation -> {
+            TrainingData data = invocation.getArgument(0);
+            Path file = data.getSourceFile();
+            computedFiles.add(file);
+            return new DataGenerationStats();
+        }).when(format).writeSamples(any(), any());
+
+
+        PredicateTrainingGenerator gen = new PredicateTrainingGenerator(
+                (p, a) -> p,
+                (p, a) -> new PredicateLabelling("pred", 1., 2., 3.),
+                format
+        );
+
+        // Set up working directory
+        // tmp/
+        // +- features_check.mch
+        // +- subdir/
+        // |  +- features_check.mch
+        // |  +- featurinos.mch
+        // +- subdir2/
+        //    +- features_check.mch
+
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path mchDir = tmpDir.resolve("mch");
+        Path targetDir = tmpDir.resolve("target");
+        Files.createDirectories(mchDir);
+        Files.createDirectories(mchDir.resolve("subdir"));
+        Files.createDirectories(mchDir.resolve("subdir2"));
+        Files.createDirectories(targetDir);
+
+        // Copy machine to work with
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH),
+                mchDir.resolve("features_check.mch"));
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH),
+                mchDir.resolve("subdir/features_check.mch"));
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH),
+                mchDir.resolve("subdir/featurinos.mch"));
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH),
+                mchDir.resolve("subdir2/features_check.mch"));
+
+        Collection<Path> excludes = new HashSet<>();
+        excludes.add(Paths.get("subdir/featurinos.mch"));
+        excludes.add(Paths.get("subdir2/"));
+
+        // Generate data
+        gen.generateTrainingData(mchDir, targetDir, false, excludes);
+
+        Set<Path> expected = new HashSet<>();
+        expected.add(Paths.get("features_check.mch"));
+        expected.add(Paths.get("subdir/features_check.mch"));
+
+        assertEquals(expected, computedFiles);
     }
 
 }
