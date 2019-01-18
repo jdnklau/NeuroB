@@ -327,7 +327,7 @@ class PredicateTrainingGeneratorIT {
                 mchDir.resolve("subdir/features_check.mch"));
 
         // Generate data
-        gen.generateTrainingData(mchDir, targetDir);
+        DataGenerationStats stats = gen.generateTrainingData(mchDir, targetDir);
 
         // first file
         Path expected1File = Paths.get(TestMachines.FEATURES_CHECK_JSON);
@@ -345,7 +345,10 @@ class PredicateTrainingGeneratorIT {
                 () -> assertEquals(expected1, actual1,
                         "Db files do not match for features_gen.mch"),
                 () -> assertEquals(expected2, actual2,
-                        "Db files do not match for subdir/features_gen.mch")
+                        "Db files do not match for subdir/features_gen.mch"),
+                () -> assertEquals(new DataGenerationStats(2, 2, 0, 2, 0), stats,
+                        "Generation stats do not match")
+
 
         );
     }

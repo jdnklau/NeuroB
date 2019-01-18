@@ -45,7 +45,7 @@ public class DataGenerationStats {
      *
      * @return New number of files used.
      */
-    public int increaseFilesSeen() {
+    public synchronized int increaseFilesSeen() {
         return increaseFilesSeen(1);
     }
 
@@ -56,7 +56,7 @@ public class DataGenerationStats {
      *
      * @return New number of files used.
      */
-    public int increaseFilesSeen(int amount) {
+    public synchronized int increaseFilesSeen(int amount) {
         filesSeen += amount;
         return filesSeen;
     }
@@ -70,7 +70,7 @@ public class DataGenerationStats {
      *
      * @return New number of files created
      */
-    public int increaseFilesCreated() {
+    public synchronized int increaseFilesCreated() {
         return increaseFilesCreated(1);
     }
 
@@ -81,7 +81,7 @@ public class DataGenerationStats {
      *
      * @return New number of files created
      */
-    public int increaseFilesCreated(int amount) {
+    public synchronized int increaseFilesCreated(int amount) {
         filesCreated += amount;
         return filesCreated;
     }
@@ -95,7 +95,7 @@ public class DataGenerationStats {
      *
      * @return New number of files created
      */
-    public int increaseFilesWithErrors() {
+    public synchronized int increaseFilesWithErrors() {
         return increaseFilesWithErrors(1);
     }
 
@@ -106,7 +106,7 @@ public class DataGenerationStats {
      *
      * @return New number of inaccessible files
      */
-    public int increaseFilesWithErrors(int amount) {
+    public synchronized int increaseFilesWithErrors(int amount) {
         filesWithErrors += amount;
         return filesWithErrors;
     }
@@ -120,7 +120,7 @@ public class DataGenerationStats {
      *
      * @return New number of samples written
      */
-    public int increaseSamplesWritten() {
+    public synchronized int increaseSamplesWritten() {
         return increaseSamplesWritten(1);
     }
 
@@ -131,7 +131,7 @@ public class DataGenerationStats {
      *
      * @return New number of samples written
      */
-    public int increaseSamplesWritten(int amount) {
+    public synchronized int increaseSamplesWritten(int amount) {
         samplesWritten += amount;
         return samplesWritten;
     }
@@ -145,7 +145,7 @@ public class DataGenerationStats {
      *
      * @return New number of samples that encountered errors
      */
-    public int increaseSamplesFailed() {
+    public synchronized int increaseSamplesFailed() {
         return increaseSamplesFailed(1);
     }
 
@@ -156,7 +156,7 @@ public class DataGenerationStats {
      *
      * @return New number of samples that encountered errors
      */
-    public int increaseSamplesFailed(int amount) {
+    public synchronized int increaseSamplesFailed(int amount) {
         samplesFailed += amount;
         return samplesFailed;
     }
@@ -189,5 +189,20 @@ public class DataGenerationStats {
                 .append("Training samples that lead to errors: ").append(samplesFailed);
 
         return builder.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof DataGenerationStats) {
+            DataGenerationStats other = (DataGenerationStats) o;
+
+            return this.filesCreated == other.filesCreated
+                    && this.filesSeen == other.filesSeen
+                    && this.filesWithErrors == other.filesWithErrors
+                    && this.samplesFailed == other.samplesFailed
+                    && this.samplesWritten == other.samplesWritten;
+        }
+
+        return false;
     }
 }

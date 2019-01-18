@@ -2,6 +2,9 @@ package de.hhu.stups.neurob.training.generation.statistics;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataGenerationStatsTest {
@@ -148,5 +151,43 @@ class DataGenerationStatsTest {
         String actual = stats.toString();
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSynchroniseOverMultipleThreads() throws ExecutionException, InterruptedException {
+        DataGenerationStats stats = new DataGenerationStats();
+
+        ForkJoinPool pool = new ForkJoinPool(2);
+        pool.submit(() -> {
+            Thread t1 = new Thread(() -> incAll(stats, 471));
+            Thread t2 = new Thread(() -> incAll(stats, 529));
+
+            t1.start();
+            t2.start();
+
+            try {
+                t1.join();
+                t2.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).get();
+
+        assertAll("Counters must match",
+                () -> assertEquals(1000, stats.getFilesCreated()),
+                () -> assertEquals(1000, stats.getFilesSeen()),
+                () -> assertEquals(1000, stats.getFilesWithErrors()),
+                () -> assertEquals(1000, stats.getSamplesFailed()),
+                () -> assertEquals(1000, stats.getSamplesWritten()));
+    }
+
+    private void incAll(DataGenerationStats stats, int times) {
+        for (int i = 0; i < times; i++) {
+            stats.increaseFilesCreated();
+            stats.increaseFilesSeen();
+            stats.increaseFilesWithErrors();
+            stats.increaseSamplesFailed();
+            stats.increaseSamplesWritten();
+        }
     }
 }
