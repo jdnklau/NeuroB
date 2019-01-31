@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -564,6 +565,30 @@ class JsonDbFormatTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void shouldBeValidJson() {
+        String json = getPredicateJson("pred", "hashihash");
+        JsonDbFormat format = new JsonDbFormat();
+        JsonReader reader = new JsonReader(new StringReader(json));
+        assertTrue(format.isValidJsonDb(reader));
+    }
+
+    @Test
+    public void shouldNotBeValidJson() {
+        String json = getPredicateJson("pred", "hashihash").substring(0, 16);
+        JsonDbFormat format = new JsonDbFormat();
+        JsonReader reader = new JsonReader(new StringReader(json));
+        assertFalse(format.isValidJsonDb(reader));
+    }
+
+    @Test
+    public void shouldNotBeValidJsonDbWhenNoObject() {
+        String json = "\"test\"";
+        JsonDbFormat format = new JsonDbFormat();
+        JsonReader reader = new JsonReader(new StringReader(json));
+        assertFalse(format.isValidJsonDb(reader));
+    }
+
     private String getPredicateJson(String pred, String hash) {
         String json =
                 "{"
@@ -603,7 +628,6 @@ class JsonDbFormatTest {
         PredDbEntry labels = getLabelling("pred", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN);
 
         return new TrainingSample<>(pred, labels, source);
-
     }
 
 }

@@ -24,6 +24,9 @@ public class TestMachines {
             getMachinePath("features_check.mch");
     public static String FEATURES_CHECK_JSON =
             getDbPath("json/features_check.json");
+    /** Location of a JSON file which is not in valid JSON format */
+    public static String FEATURES_CHECK_CORRUPT_JSON =
+            getDbPath("json/features_check_corrupt.json");
 
     public static String EXAMPLE_BCM =
             getMachinePath("event-b/example/example.bcm");

@@ -1,5 +1,7 @@
 package de.hhu.stups.neurob.training.db;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import de.hhu.stups.neurob.core.api.MachineType;
@@ -12,7 +14,6 @@ import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
-import de.prob.Main;
 import de.prob.cli.CliVersionNumber;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -119,6 +120,26 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
     @Override
     public String getFileExtension() {
         return "json";
+    }
+
+    @Override
+    public Boolean isValidFile(Path file) {
+        try {
+            JsonReader reader = new JsonReader(Files.newBufferedReader(file));
+            return isValidJsonDb(reader);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public Boolean isValidJsonDb(JsonReader reader) {
+        try {
+            JsonParser parser = new JsonParser();
+            JsonElement parseResult = parser.parse(reader);
+            return parseResult.isJsonObject();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
@@ -502,7 +523,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
                     ? new BMachine(currentSourcePath)
                     : null;
 
-            CliVersionNumber version = (CliVersionNumber)  sampleData.get("probcli");
+            CliVersionNumber version = (CliVersionNumber) sampleData.get("probcli");
             PredDbEntry l = new PredDbEntry(pred, source, backendsUsed, results, version);
 
             return new TrainingSample<>(pred, l, currentSourcePath);
@@ -601,7 +622,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             String qualifier = null;
             String revision = "0000000000000000000000000000000000000000";
 
-            while(!json.peek().equals(JsonToken.END_OBJECT)) {
+            while (!json.peek().equals(JsonToken.END_OBJECT)) {
                 String property = json.nextName();
 
                 if ("version".equals(property)) {

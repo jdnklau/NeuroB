@@ -156,7 +156,7 @@ public class PredicateTrainingGenerator
 
                 // last edit source file <= last edit target file -> nothing to do here
                 if (sourceLastModified.compareTo(targetLastModified) <= 0) {
-                    return true;
+                    return format.isValidFile(targetLocation);
                 }
             } catch (IOException e) {
                 log.warn("Could not determine whether for the source file {} "

@@ -80,4 +80,14 @@ public interface TrainingDataFormat<D, L extends Labelling> {
      */
     String getFileExtension();
 
+    /**
+     * Checks whether the file in the given path matches this format.
+     *
+     * @param file
+     * @return
+     */
+    default Boolean isValidFile(Path file) {
+        return file.toString().endsWith(getFileExtension());
+    }
+
 }

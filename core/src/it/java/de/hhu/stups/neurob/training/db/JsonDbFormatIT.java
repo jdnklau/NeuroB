@@ -9,8 +9,11 @@ import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+import de.hhu.stups.neurob.testharness.TestMachines;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
+import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
+import de.hhu.stups.neurob.training.generation.TrainingSetGenerator;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.junit.jupiter.api.Test;
 
@@ -116,5 +119,51 @@ public class JsonDbFormatIT {
                         "Should only have created one file"),
                 () -> assertEquals(2, stats.getSamplesWritten(),
                         "Should have written two samples"));
+    }
+
+    @Test
+    public void fileShouldBeValid() {
+        Path file = Paths.get(TestMachines.FEATURES_CHECK_JSON);
+        JsonDbFormat format = new JsonDbFormat();
+        assertTrue(format.isValidFile(file));
+    }
+
+    @Test
+    public void fileShouldBeInvalid() {
+        Path file = Paths.get(TestMachines.FEATURES_CHECK_CORRUPT_JSON);
+        JsonDbFormat format = new JsonDbFormat();
+        assertFalse(format.isValidFile(file));
+    }
+
+    @Test
+    public void fileShouldBeFlaggedAsNotAlreadyExistent() throws IOException {
+        Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path json = tmpDir.resolve("corrupt.json");
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_CORRUPT_JSON), json);
+
+        TrainingSetGenerator gen = new PredicateTrainingGenerator(
+                (predicate, machineAccess) -> null,
+                (predicate, machineAccess) -> null,
+                new JsonDbFormat()
+        );
+
+        assertFalse(gen.dataAlreadyExists(mch,json));
+    }
+
+    @Test
+    public void fileShouldBeFlaggedAsAlreadyExistent() throws IOException {
+        Path mch = Paths.get(TestMachines.FEATURES_CHECK_MCH);
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path json = tmpDir.resolve("corrupt.json");
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_JSON), json);
+
+        TrainingSetGenerator gen = new PredicateTrainingGenerator(
+                (predicate, machineAccess) -> null,
+                (predicate, machineAccess) -> null,
+                new JsonDbFormat()
+        );
+
+        assertTrue(gen.dataAlreadyExists(mch,json));
     }
 }
