@@ -632,9 +632,4 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             return new CliVersionNumber(major, minor, service, qualifier, revision);
         }
     }
-
-    public void foo() {
-        Main.getVersion();
-    }
-
 }
