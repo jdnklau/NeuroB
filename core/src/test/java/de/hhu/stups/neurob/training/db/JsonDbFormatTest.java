@@ -13,6 +13,7 @@ import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import de.prob.cli.CliVersionNumber;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -142,6 +143,55 @@ class JsonDbFormatTest {
 
         assertEquals(expected, actual,
                 "Loaded entries do not match");
+    }
+
+    @Test
+    public void shouldLoadDataWhenInGeneratedOrder() throws IOException {
+        String json = "{\"" + BEVERAGE_VENDING_MACHINE.toString() + "\":{"
+                      + "\"sha512\":\"eea0db1101cc2928c3eb62d3b3409fd5456faca283ac61226789843619f75"
+                      + "7e1e5214d22811f66cab42f2949e706417b5f844b2fbc952d08073b8137e38c98ee\","
+                      + "\"formalism\":\"CLASSICALB\","
+                      + "\"gathered-predicates\":[" + SINGLE_PRED_ENTRY + "]}}";
+
+        JsonReader jreader = new JsonReader(new StringReader(json));
+        JsonDbFormat.PredicateDbIterator iter =
+                new JsonDbFormat.PredicateDbIterator(jreader, BACKENDS_USED);
+
+        TrainingSample<BPredicate, PredDbEntry> expected = new TrainingSample<>(
+                new BPredicate("pred"),
+                getLabelling("pred", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
+                BEVERAGE_VENDING_MACHINE);
+        TrainingSample<BPredicate, PredDbEntry> actual = iter.next();
+
+        assertAll(
+                () -> assertEquals(expected, actual),
+                () -> assertFalse(iter.hasNext())
+        );
+    }
+
+    @Test
+    @Disabled("Not possible to implement upon current code")
+    public void shouldLoadDataIrregardlessOfOrder() throws IOException {
+        String json = "{\"" + BEVERAGE_VENDING_MACHINE.toString() + "\":{"
+                      + "\"formalism\":\"CLASSICALB\","
+                      + "\"gathered-predicates\":[" + SINGLE_PRED_ENTRY + "],"
+                      + "\"sha512\":\"eea0db1101cc2928c3eb62d3b3409fd5456faca283ac61226789843619f75"
+                      + "7e1e5214d22811f66cab42f2949e706417b5f844b2fbc952d08073b8137e38c98ee\"}}";
+
+        JsonReader jreader = new JsonReader(new StringReader(json));
+        JsonDbFormat.PredicateDbIterator iter =
+                new JsonDbFormat.PredicateDbIterator(jreader, BACKENDS_USED);
+
+        TrainingSample<BPredicate, PredDbEntry> expected = new TrainingSample<>(
+                new BPredicate("pred"),
+                getLabelling("pred", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
+                BEVERAGE_VENDING_MACHINE);
+        TrainingSample<BPredicate, PredDbEntry> actual = iter.next();
+
+        assertAll(
+                () -> assertEquals(expected, actual),
+                () -> assertFalse(iter.hasNext())
+        );
     }
 
     @Test

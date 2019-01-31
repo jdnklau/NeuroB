@@ -463,9 +463,13 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
                     currentFormalism = MachineType.valueOf(json.nextString());
                 } else if (attrib.equals("gathered-predicates")) {
                     // We do not want to advance the json any further
-                    // FIXME: Should not stop reading hash and formalism only because the preds are
-                    // incomming. Actually these values can be "injected" by Object reference if needed.
-                    // Thus readHash and readFormalism should be Boolean not boolean.
+                    // FIXME: Should still read hash and formalism after preds
+                    // Why is here a `break` in the first place?
+                    // Due to the nature of the code, we are streaming training samples from the
+                    // file. Thing is, we do not actually want to crawl through all the predicates
+                    // only to get the hash or formalism to complete the first sample to return.
+                    // Might employ a second reader that skips the predicates and only is
+                    // responsible for reading the hash and formalism.
                     break;
                 } else {
                     json.skipValue(); // we don't care about any other values
