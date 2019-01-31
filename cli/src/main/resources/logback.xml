@@ -2,6 +2,7 @@
   <timestamp key="timeStamp" datePattern="yyyy-MM-dd"/>
   
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <target>System.out</target>
     <encoder>
       <pattern>%d{"HH:mm:ss,SSS"} [%thread] %5level %logger{0} - %msg%n</pattern>
     </encoder>
@@ -29,9 +30,8 @@
     <appender-ref ref="STDOUT" />
   </logger>
 
-  <logger name="de.hhu.stups.neurob" level="DEBUG">
+  <logger name="de.hhu.stups.neurob" level="WARN">
     <appender-ref ref="STDERR" />
-    <appender-ref ref="LOGFILE" />
   </logger>
 
 </configuration>
