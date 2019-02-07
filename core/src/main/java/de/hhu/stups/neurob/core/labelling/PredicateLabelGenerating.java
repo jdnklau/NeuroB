@@ -5,6 +5,8 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,9 +106,11 @@ public interface PredicateLabelGenerating<L extends PredicateLabelling>
      */
     default List<L> generateSamples(BPredicate predicate, MachineAccess access, int sampleSize)
             throws LabelCreationException {
+        Logger log = LoggerFactory.getLogger(PredicateLabelGenerating.class);
         List<L> results = new ArrayList<>();
 
-        for (int i = 0; i < sampleSize; i++) {
+        for (int i = 1; i < sampleSize+1; i++) {
+            log.info("Generating labelling sample {}/{} for {}", i, sampleSize, predicate);
             results.add(generate(predicate, access));
         }
 
