@@ -114,7 +114,15 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
                         new PredicateDbIterator(reader, BACKENDS_USED),
                         0),
                 false)
-                .filter(Objects::nonNull);
+                .filter(Objects::nonNull)
+                .onClose(() -> {
+                    try {
+                        reader.close();
+                        log.trace("Closed access to {}", sourceFile);
+                    } catch (IOException e) {
+                        log.warn("Unable to close access to {}", sourceFile, e);
+                    }
+                });
     }
 
     @Override
@@ -124,8 +132,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
 
     @Override
     public Boolean isValidFile(Path file) {
-        try {
-            JsonReader reader = new JsonReader(Files.newBufferedReader(file));
+        try (JsonReader reader = new JsonReader(Files.newBufferedReader(file))){
             return isValidJsonDb(reader);
         } catch (Exception e) {
             return false;
@@ -160,10 +167,8 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             return stats;
         }
 
-        try {
-            log.info("Writing samples from {} to {}",
-                    sourceFile, targetFile);
-            BufferedWriter writer = Files.newBufferedWriter(targetFile);
+        log.info("Writing samples from {} to {}", sourceFile, targetFile);
+        try (BufferedWriter writer = Files.newBufferedWriter(targetFile)){
             DataGenerationStats writeStats =
                     writeSamples(trainingData, writer);
             writer.close();
@@ -172,6 +177,8 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             stats.mergeWith(writeStats);
         } catch (IOException e) {
             log.warn("Could not create samples", e);
+        } finally {
+            log.trace("Closed write access to {}", targetFile);
         }
 
         return stats;
