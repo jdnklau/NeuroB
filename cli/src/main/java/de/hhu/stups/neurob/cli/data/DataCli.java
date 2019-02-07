@@ -51,7 +51,7 @@ public class DataCli implements CliModule {
                 "\n"
                 + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
                 + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] "
-                        + "[-i EXCLUDE_LIST] [-[x][z]b BACKENDS]\n"
+                        + "[-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS]\n"
                 + "\n";
 
     }
@@ -125,6 +125,13 @@ public class DataCli implements CliModule {
                       + "data generation.")
                 .build();
 
+        Option samplingSize = Option.builder("s")
+                .longOpt("sampling-size")
+                .hasArg()
+                .argName("SAMPLING_SIZE")
+                .desc("Number of times each sample is to be measured. Defaults to 1.")
+                .build();
+
         // BackendId
         Option cross = Option.builder("x")
                 .longOpt("cross-options")
@@ -146,6 +153,7 @@ public class DataCli implements CliModule {
         options.addOption(lazy);
         options.addOption(cores);
         options.addOption(exclude);
+        options.addOption(samplingSize);
     }
 
     @Override
@@ -204,11 +212,16 @@ public class DataCli implements CliModule {
 
         Path sourceDir = Paths.get(line.getOptionValue("g"));
 
+        int samplingSize = line.hasOption("s")
+                ? Integer.parseInt(line.getOptionValue("s"))
+                : 1;
+
         // TODO: make use of target format
         JsonDbFormat format = new JsonDbFormat(backends.toArray(new Backend[0]));
         PredicateTrainingGenerator generator = new PredicateTrainingGenerator(
                 (p,ss) -> p,
                 format.getLabelGenerator(),
+                samplingSize,
                 format);
 
         int numThreads = (line.hasOption("c"))
