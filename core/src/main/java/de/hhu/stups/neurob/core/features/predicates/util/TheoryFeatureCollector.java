@@ -1,15 +1,16 @@
-package de.hhu.stups.neurob.core.features.util;
+package de.hhu.stups.neurob.core.features.predicates.util;
 
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.node.Node;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
+import de.hhu.stups.neurob.core.features.predicates.TheoryFeatures;
 import de.prob.animator.domainobjects.IBEvalElement;
 
 /**
  * Utility class for collection data of
- * {@link de.hhu.stups.neurob.core.features.TheoryFeatures} from a predicate.
+ * {@link TheoryFeatures} from a predicate.
  */
 public class TheoryFeatureCollector {
 

@@ -1,16 +1,5 @@
 package de.hhu.stups.neurob.core.features.predicates.util;
 
-import de.be4.classicalb.core.parser.BParser;
-import de.be4.classicalb.core.parser.node.Node;
-import de.hhu.stups.neurob.core.api.MachineType;
-import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
-import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
-import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
-import de.hhu.stups.neurob.core.features.util.IdentifierRelationsHandler;
-import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
-import de.prob.statespace.StateSpace;
-
 public class BAstFeatureData {
 
     /** Number of conjuncts in predicate */

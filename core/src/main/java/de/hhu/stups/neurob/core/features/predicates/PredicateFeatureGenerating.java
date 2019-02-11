@@ -1,10 +1,11 @@
-package de.hhu.stups.neurob.core.features;
+package de.hhu.stups.neurob.core.features.predicates;
 
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
+import de.hhu.stups.neurob.core.features.FeatureGenerating;
 
 import javax.annotation.Nullable;
 

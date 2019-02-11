@@ -2,7 +2,6 @@ package de.hhu.stups.neurob.core.features.predicates.util;
 
 import de.be4.classicalb.core.parser.analysis.DepthFirstAdapter;
 import de.be4.classicalb.core.parser.node.*;
-import de.hhu.stups.neurob.core.features.util.IdentifierRelationsHandler;
 
 import java.util.List;
 

@@ -1,11 +1,13 @@
-package de.hhu.stups.neurob.core.features.util;
+package de.hhu.stups.neurob.core.features.predicates.util;
+
+import de.hhu.stups.neurob.core.features.predicates.TheoryFeatures;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
  * Data object for collecting the feature values for
- * {@link de.hhu.stups.neurob.core.features.TheoryFeatures}.
+ * {@link TheoryFeatures}.
  */
 public class TheoryFeatureData {
     // Dimensions

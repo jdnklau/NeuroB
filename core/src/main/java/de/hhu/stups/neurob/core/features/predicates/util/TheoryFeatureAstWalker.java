@@ -1,13 +1,14 @@
-package de.hhu.stups.neurob.core.features.util;
+package de.hhu.stups.neurob.core.features.predicates.util;
 
 import java.util.LinkedList;
 
 import de.be4.classicalb.core.parser.analysis.DepthFirstAdapter;
 import de.be4.classicalb.core.parser.node.*;
+import de.hhu.stups.neurob.core.features.predicates.TheoryFeatures;
 
 /**
  * Class traversing an AST of a B predicate, when applied to it.
- * Collects data for {@link de.hhu.stups.neurob.core.features.TheoryFeatures}
+ * Collects data for {@link TheoryFeatures}
  * and can return a {@link TheoryFeatureData} object.
  */
 class TheoryFeatureAstWalker extends DepthFirstAdapter {

@@ -6,7 +6,7 @@ import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.features.Features;
-import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
+import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;

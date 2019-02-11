@@ -1,5 +1,6 @@
-package de.hhu.stups.neurob.core.features.util;
+package de.hhu.stups.neurob.core.features.predicates.util;
 
+import de.hhu.stups.neurob.core.features.predicates.util.AdjacencyList;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

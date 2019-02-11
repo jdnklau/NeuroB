@@ -6,7 +6,7 @@ import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
-import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
+import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
@@ -18,7 +18,6 @@ import de.hhu.stups.neurob.training.generation.util.PredicateCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;

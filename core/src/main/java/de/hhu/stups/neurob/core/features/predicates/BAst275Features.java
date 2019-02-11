@@ -3,8 +3,6 @@ package de.hhu.stups.neurob.core.features.predicates;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
-import de.hhu.stups.neurob.core.features.PredicateFeatureGenerating;
-import de.hhu.stups.neurob.core.features.PredicateFeatures;
 import de.hhu.stups.neurob.core.features.predicates.util.BAstFeatureCollector;
 import de.hhu.stups.neurob.core.features.predicates.util.BAstFeatureData;
 

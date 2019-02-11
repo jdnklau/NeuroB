@@ -1,4 +1,4 @@
-package de.hhu.stups.neurob.core.features;
+package de.hhu.stups.neurob.core.features.predicates;
 
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import org.junit.jupiter.api.Test;

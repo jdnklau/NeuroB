@@ -1,4 +1,4 @@
-package de.hhu.stups.neurob.core.features.util;
+package de.hhu.stups.neurob.core.features.predicates.util;
 
 import java.util.ArrayList;
 import java.util.List;
