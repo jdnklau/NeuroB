@@ -119,6 +119,21 @@ public class CsvFormat implements TrainingDataFormat<Features, Labelling> {
         Path targetFile = getTargetLocation(
                 trainingData.getSourceFile(),
                 targetDirectory);
+
+        // Ensure target subdirectory exists
+        Path targetSubdir = targetFile.getParent();
+
+        if (!Files.exists(targetSubdir)) {
+            try {
+                log.trace("Creating directory {}", targetSubdir);
+                Files.createDirectories(targetSubdir);
+            } catch (IOException e) {
+                log.error("Could not create target directory {}",
+                        targetSubdir, e);
+                return new DataGenerationStats();
+            }
+        }
+
         Writer out = Files.newBufferedWriter(targetFile);
         log.info("Writing to {}", targetFile);
 
