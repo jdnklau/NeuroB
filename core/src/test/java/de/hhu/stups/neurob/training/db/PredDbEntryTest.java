@@ -305,4 +305,28 @@ class PredDbEntryTest {
         assertNull(entry.getResult(new Z3Backend()));
     }
 
+    @Test
+    void shouldUseGeneratorBackendsForPredDbEntry() throws FormulaException, LabelCreationException {
+        // Mock backends
+        TimedAnswer answer = new TimedAnswer(Answer.VALID, 200L);
+        Backend[] backends = new Backend[]{
+                mock(ProBBackend.class),
+                mock(KodkodBackend.class),
+        };
+        when(backends[0].solvePredicate(any(),any())).thenReturn(answer);
+        when(backends[0].solvePredicate(any(),any(),any(),any())).thenReturn(answer);
+        when(backends[1].solvePredicate(any(),any())).thenReturn(answer);
+        when(backends[1].solvePredicate(any(),any(),any(),any())).thenReturn(answer);
+
+        PredDbEntry.Generator generator = new PredDbEntry.Generator(1, backends);
+
+        PredDbEntry entry = generator.generate("pred");
+
+        Backend[] expected = backends;
+        Backend[] actual = entry.getBackendsUsed();
+
+        assertArrayEquals(expected, actual);
+
+    }
+
 }

@@ -374,7 +374,7 @@ public class PredDbEntry extends PredicateLabelling {
                     ? new BMachine(machineAccess.getSource())
                     : null;
 
-            return new PredDbEntry(predicate, bMachine, results, cliVersion);
+            return new PredDbEntry(predicate, bMachine, backends, results, cliVersion);
         }
 
         MultiMachineAccess getMultiAccess(MachineAccess baseAccess) throws MachineAccessException {
