@@ -13,9 +13,9 @@
   - [x] Skip already existing data
     - [x] naively by timestamp
     - [ ] _optional_ by versioned generation step
-  - [ ] Generation statistics
+  - [x] Generation statistics
     - [x] Return statistics after creation of data
-    - [ ] Split DataGeneration statistics into single file and directory hierarchy versions
+    - [ ] ~~Split DataGeneration statistics into single file and directory hierarchy versions~~
   - [x] Wrap StateSpaces
   - [x] CLI Option to create data
   - [x] Incorporate BPredicate/BElement classes more
@@ -25,6 +25,9 @@
   - [ ] downsample training set
   - [ ] shuffle training set
 - [ ] Training set analysis
+  - [x] Classification analysis tool
+  - [x] Regression analysis tool
+  - [ ] PredicateDb analysis
 - [x] Data Base translation
   - [x] Migrate from old pdump to new JSON
   - [x] Translate Db to Training Format
@@ -40,9 +43,10 @@
 ## Planned features
 
 - [ ] enhanced documentation
-  - [ ] documentation of JSON entries, (legacy) Predicate dumps, other formats
+  - [x] documentation of JSON entries, (legacy) Predicate dumps, other formats
   - [ ] usage examples
     - [ ] Training data generation
+    - [x] Training data migration
     - [ ] Training/using neural networks
 - [ ] RNN support
   - [x] set training set structure
