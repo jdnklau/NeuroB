@@ -46,6 +46,8 @@ import java.util.stream.Collectors;
  * <li>Average runtime</li>
  * </ul>
  * </li>
+ * <li>Number of predicates answered to fastest per backend.
+ * Note that this accounts only predicates which did not run into an Error or Timeout.</li>
  * <li>
  * Answers per backend and combination of any backends.
  * Note that the combination of backends, like ProB+Z3 acts as conjunction constraint:
@@ -73,6 +75,8 @@ public class PredDbAnalysis {
     private Map<Backend, RegressionAnalysis<Long>> answeredRegressions;
     private Map<Backend, RegressionAnalysis<Long>> timedRegressions;
 
+    private ClassificationAnalysis<Backend> fastest;
+
     public PredDbAnalysis() {
         predCount = 0L;
         answers = new ClassificationAnalysis<>();
@@ -82,6 +86,8 @@ public class PredDbAnalysis {
         backendRegressions = new HashMap<>();
         answeredRegressions = new HashMap<>();
         timedRegressions = new HashMap<>();
+
+        fastest = new ClassificationAnalysis<>();
     }
 
     /**
@@ -123,6 +129,9 @@ public class PredDbAnalysis {
 
         // Regression
         addRuntimes(metrics.getResults());
+
+        // fastest
+        countFastest(metrics.getResults());
 
         return this;
     }
@@ -574,5 +583,43 @@ public class PredDbAnalysis {
      */
     public Double getThirdQuartileTimedRuntime(Backend backend) {
         return getTimedRegressionAnalysis(backend).getThirdQuartile();
+    }
+
+    void countFastest(Map<Backend, TimedAnswer> timings) {
+        Set<Backend> fastestBackends = new HashSet<>();
+        Long fastestTime = Long.MAX_VALUE;
+
+        for (Map.Entry<Backend, TimedAnswer> entry : timings.entrySet()) {
+            Answer answer = entry.getValue().getAnswer();
+
+            // Skip errors and timeouts
+            if (answer.equals(Answer.TIMEOUT) || answer.equals(Answer.ERROR)) {
+                continue;
+            }
+
+            Long time = entry.getValue().getNanoSeconds();
+            if (fastestTime > time) {
+                fastestTime = time;
+                fastestBackends.clear();
+                fastestBackends.add(entry.getKey());
+            } else if (fastestTime.equals(time)) {
+                fastestBackends.add(entry.getKey());
+            }
+        }
+
+        fastestBackends.stream().forEach(fastest::add);
+    }
+
+    /**
+     * Returns the number of times the given backend answered faster than others.
+     * <p>
+     * Only takes the answers VALID, INVALID, SOLVABLE, and UNKNOWN into account.
+     *
+     * @param b
+     *
+     * @return
+     */
+    public Long getFastestAnswerCount(Backend b) {
+        return fastest.getCount(b);
     }
 }

@@ -682,4 +682,87 @@ class PredDbAnalysisTest {
 
         assertEquals(new Long(300), analysis.getMaximumTimedRuntime(backends[0]));
     }
+
+    @Test
+    void shouldCountFastestAnswersPerBackend() {
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+
+        TimedAnswer prob1 = new TimedAnswer(Answer.VALID, 100L); // fastest
+        TimedAnswer prob2 = new TimedAnswer(Answer.INVALID, 100L); // fastest
+        TimedAnswer prob3 = new TimedAnswer(Answer.SOLVABLE, 100L);
+        TimedAnswer prob4 = new TimedAnswer(Answer.UNKNOWN, 100L); // fastest
+
+        TimedAnswer kodkod1 = new TimedAnswer(Answer.VALID, 200L);
+        TimedAnswer kodkod2 = new TimedAnswer(Answer.INVALID, 50L); // fastest
+        TimedAnswer kodkod3 = new TimedAnswer(Answer.SOLVABLE, 200L);
+        TimedAnswer kodkod4 = new TimedAnswer(Answer.UNKNOWN, 200L);
+
+        PredDbEntry entry1 = new PredDbEntry(null, null, backends, prob1, kodkod1);
+        PredDbEntry entry2 = new PredDbEntry(null, null, backends, prob2, kodkod2);
+        PredDbEntry entry3 = new PredDbEntry(null, null, backends, prob3, kodkod3);
+        PredDbEntry entry4 = new PredDbEntry(null, null, backends, prob4, kodkod4);
+
+        PredDbAnalysis analysis = new PredDbAnalysis();
+        analysis.add(null, entry1);
+        analysis.add(null, entry2);
+        analysis.add(null, entry3);
+        analysis.add(null, entry4);
+
+        assertAll(
+                () -> assertEquals(new Long(3), analysis.getFastestAnswerCount(backends[0]),
+                        "Fastest count for ProB does not match."),
+                () -> assertEquals(new Long(1), analysis.getFastestAnswerCount(backends[1]),
+                        "Fastest count for Kodkod does not match.")
+        );
+    }
+
+    @Test
+    void shouldSkipErrorsAndTimeOutsWhenCountingFastest() {
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+
+        TimedAnswer prob1 = new TimedAnswer(Answer.ERROR, 100L);
+        TimedAnswer prob2 = new TimedAnswer(Answer.TIMEOUT, 100L);
+
+        TimedAnswer kodkod1 = new TimedAnswer(Answer.VALID, 200L);
+        TimedAnswer kodkod2 = new TimedAnswer(Answer.INVALID, 200L);
+
+        PredDbEntry entry1 = new PredDbEntry(null, null, backends, prob1, kodkod1);
+        PredDbEntry entry2 = new PredDbEntry(null, null, backends, prob2, kodkod2);
+
+        PredDbAnalysis analysis = new PredDbAnalysis();
+        analysis.add(null, entry1);
+        analysis.add(null, entry2);
+
+        assertAll(
+                () -> assertEquals(new Long(0), analysis.getFastestAnswerCount(backends[0]),
+                        "Fastest count for ProB does not match."),
+                () -> assertEquals(new Long(2), analysis.getFastestAnswerCount(backends[1]),
+                        "Fastest count for Kodkod does not match.")
+        );
+    }
+
+    @Test
+    void shouldCountAllFastestBackendsWhenSomeShareFastestTime() {
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+
+        TimedAnswer prob1 = new TimedAnswer(Answer.ERROR, 100L);
+        TimedAnswer prob2 = new TimedAnswer(Answer.INVALID, 100L);
+
+        TimedAnswer kodkod1 = new TimedAnswer(Answer.VALID, 200L);
+        TimedAnswer kodkod2 = new TimedAnswer(Answer.INVALID, 100L); // same as ProB
+
+        PredDbEntry entry1 = new PredDbEntry(null, null, backends, prob1, kodkod1);
+        PredDbEntry entry2 = new PredDbEntry(null, null, backends, prob2, kodkod2);
+
+        PredDbAnalysis analysis = new PredDbAnalysis();
+        analysis.add(null, entry1);
+        analysis.add(null, entry2);
+
+        assertAll(
+                () -> assertEquals(new Long(1), analysis.getFastestAnswerCount(backends[0]),
+                        "Fastest count for ProB does not match."),
+                () -> assertEquals(new Long(2), analysis.getFastestAnswerCount(backends[1]),
+                        "Fastest count for Kodkod does not match.")
+        );
+    }
 }
