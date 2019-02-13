@@ -225,6 +225,20 @@ class PredDbEntryTest {
     }
 
     @Test
+    void shouldMatchUsedBackendsWithThatOfAnswerMap() {
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+
+        Map<Backend, TimedAnswer> resultMap = new HashMap<>();
+        resultMap.put(backends[0], new TimedAnswer(Answer.VALID, 100L));
+        resultMap.put(backends[1], new TimedAnswer(Answer.INVALID, 200L));
+
+        Backend[] expected = resultMap.keySet().toArray(new Backend[0]);
+        Backend[] actual = new PredDbEntry(null, null, resultMap).getBackendsUsed();
+
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
     void shouldCollectResultMapToArrayWithNullEntriesIfSomeDataIsMissing() {
         Backend[] backendOrder = {new ProBBackend(), new KodkodBackend(), new Z3Backend()};
 

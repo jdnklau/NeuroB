@@ -59,16 +59,13 @@ public class PredDbEntry extends PredicateLabelling {
 
     /**
      * Initialises this entry with the given results.
-     * <p>
-     * From the results, only the {@link #DEFAULT_BACKENDS} are used,
-     * which also imply an ordering.
      *
      * @param pred Predicate over which the results were gathered
      * @param source Source machine from which the predicate originates
      * @param results Map of backends with corresponding results
      */
     public PredDbEntry(BPredicate pred, BMachine source, Map<Backend, TimedAnswer> results) {
-        this(pred, source, DEFAULT_BACKENDS, results);
+        this(pred, source, results.keySet().toArray(new Backend[0]), results);
     }
 
     /**
@@ -140,7 +137,7 @@ public class PredDbEntry extends PredicateLabelling {
      */
     public PredDbEntry(BPredicate pred, BMachine source,
             Backend[] orderedBackends, TimedAnswer... answers) {
-        this(pred, source, toMap(orderedBackends, answers));
+        this(pred, source, orderedBackends, toMap(orderedBackends, answers));
     }
 
     /**
