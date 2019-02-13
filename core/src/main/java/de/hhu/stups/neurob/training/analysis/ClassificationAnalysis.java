@@ -3,8 +3,10 @@ package de.hhu.stups.neurob.training.analysis;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,44 +28,22 @@ import java.util.stream.Stream;
  */
 public class ClassificationAnalysis<C> {
     /** Classes to be used. Implies an ordering. */
-    private final C[] classes;
-    private Map<List<C>, Long> classCounters;
+    private Map<Set<C>, Long> classCounters;
 
 
-    public ClassificationAnalysis(C... classes) {
-        this.classes = classes;
+    public ClassificationAnalysis() {
         this.classCounters = new HashMap<>();
     }
 
     /**
-     * Returns the classes in an ordered list.
-     * The ordering accounts for the order used by
-     * {@link #ClassificationAnalysis(Object[]) initialisation}.
+     * Returns the classes as set used for mapping the class counter.
      *
      * @param cs
      *
      * @return
      */
-    List<C> getKey(C... cs) {
-        return getKey(Arrays.stream(cs).collect(Collectors.toList()));
-    }
-
-    /**
-     * Returns the classes in an ordered list.
-     * The ordering accounts for the order used by
-     * {@link #ClassificationAnalysis(Object[]) initialisation}.
-     *
-     * @param cs
-     *
-     * @return
-     */
-    List<C> getKey(List<C> cs) {
-        // TODO: Should the result be memoized?
-        List<C> key = new ArrayList<>();
-        Arrays.stream(classes)
-                .filter(c -> cs.stream().anyMatch(c::equals))
-                .forEach(key::add);
-        return key;
+    Set<C> getKey(C... cs) {
+        return Arrays.stream(cs).collect(Collectors.toSet());
     }
 
     /**
@@ -74,8 +54,8 @@ public class ClassificationAnalysis<C> {
      * @return
      */
     public Long getCount(C... clss) {
-        List<C> key = getKey(clss);
-        return classCounters.getOrDefault(key, 0L);
+        Set<C> key = getKey(clss);
+        return getCount(key);
     }
 
     /**
@@ -85,9 +65,8 @@ public class ClassificationAnalysis<C> {
      *
      * @return
      */
-    public Long getCount(List<C> clss) {
-        List<C> key = getKey(clss);
-        return classCounters.getOrDefault(key, 0L);
+    public Long getCount(Set<C> clss) {
+        return classCounters.getOrDefault(clss, 0L);
     }
 
     /**
@@ -104,30 +83,32 @@ public class ClassificationAnalysis<C> {
         return this;
     }
 
-    void increaseCount(List<C> sampleClass) {
-        List<C> key = getKey(sampleClass);
+    void increaseCount(Set<C> sampleClass) {
         Long counter = getCount(sampleClass);
-        classCounters.put(key, counter + 1);
+        classCounters.put(sampleClass, counter + 1);
     }
 
-    Stream<List<C>> getAllSubsets(C... cs) {
+    Stream<Set<C>> getAllSubsets(C... cs) {
         return getAllSubsets(Arrays.stream(cs).collect(Collectors.toList()));
     }
 
-    Stream<List<C>> getAllSubsets(List<C> cs) {
+    Stream<Set<C>> getAllSubsets(List<C> cs) {
         int length = cs.size();
 
         if (length <= 1) {
-            return Stream.of(cs);
+            return Stream.of(new HashSet<>(cs));
         }
 
         C head = cs.get(0);
-        List<C> tail1 = new ArrayList<>(cs.subList(1,length));
+        List<C> tail1 = new ArrayList<>(cs.subList(1, length));
         List<C> tail2 = new ArrayList<>(tail1); // Need two due to tailWithHead modifying tail1
 
-        Stream<List<C>> headOnly = getAllSubsets(head);
-        Stream<List<C>> tailWithHead = getAllSubsets(tail1).map(l -> {l.add(0, head); return l;});
-        Stream<List<C>> tailWithoutHead = getAllSubsets(tail2);
+        Stream<Set<C>> headOnly = getAllSubsets(head);
+        Stream<Set<C>> tailWithHead = getAllSubsets(tail1).map(l -> {
+            l.add(head);
+            return l;
+        });
+        Stream<Set<C>> tailWithoutHead = getAllSubsets(tail2);
 
         return Stream.of(headOnly, tailWithoutHead, tailWithHead)
                 .flatMap(s -> s);

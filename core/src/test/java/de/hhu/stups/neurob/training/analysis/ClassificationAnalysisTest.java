@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,31 +14,19 @@ import static org.junit.jupiter.api.Assertions.*;
 class ClassificationAnalysisTest {
 
     @Test
-    void shouldYieldSingleListForSingleEntry() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+    void shouldYieldSingleElementSetForSingleEntry() {
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
-        List<Integer> expected = new ArrayList<>();
+        Set<Integer> expected = new HashSet<>();
         expected.add(2);
-        List<Integer> actual = analysis.getKey(2);
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    void shouldYieldKeysInInitialisationOrder() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
-
-        List<Integer> expected = new ArrayList<>();
-        expected.add(1);
-        expected.add(3);
-        List<Integer> actual = analysis.getKey(3, 1);
+        Set<Integer> actual = analysis.getKey(2);
 
         assertEquals(expected, actual);
     }
 
     @Test
     void shouldHaveNoEntries() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
         Long expected = 0L;
         Long actual = analysis.getCount(1);
@@ -45,7 +35,7 @@ class ClassificationAnalysisTest {
 
     @Test
     void shouldHaveNoEntriesWhenOtherClassWasAddedTo() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
         analysis.add(1).add(1);
 
@@ -56,7 +46,7 @@ class ClassificationAnalysisTest {
 
     @Test
     void shouldIncreaseClassCounter() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
         analysis.add(1).add(1);
 
@@ -67,7 +57,7 @@ class ClassificationAnalysisTest {
 
     @Test
     void shouldIncreaseCombinedClassCountForMultilabelClassification() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
         analysis.add(1, 2).add(1, 2);
 
@@ -78,7 +68,7 @@ class ClassificationAnalysisTest {
 
     @Test
     void shouldIncreaseCombinedClassCountForAffectedClassesOnly() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
         analysis.add(1, 2).add(1, 2).add(1, 3).add(2, 3);
 
@@ -89,7 +79,7 @@ class ClassificationAnalysisTest {
 
     @Test
     void shouldIncreaseIndividualClassCountForMultiLabelClassification() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
         analysis.add(1, 2).add(1, 2).add(1, 3);
 
@@ -100,7 +90,7 @@ class ClassificationAnalysisTest {
 
     @Test
     void shouldIncreaseClassCountForEachSubsetInMultiLabelClassification() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
         analysis.add(1, 2).add(1, 2).add(1, 3).add(2).add(2, 3).add(1, 2, 3);
 
@@ -124,50 +114,50 @@ class ClassificationAnalysisTest {
 
     @Test
     void shouldGetSingleValueAsSubset() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
-        List<Integer> expected = new ArrayList<>();
+        Set<Integer> expected = new HashSet<>();
         expected.add(1);
-        List<Integer> actual = analysis.getAllSubsets(1)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        Set<Integer> actual = analysis.getAllSubsets(1)
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
 
         assertEquals(expected, actual);
     }
 
     @Test
     void shouldGetSubsetsOfTuple() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
-        List<List<Integer>> expected = new ArrayList<>();
-        expected.add(toList(1));
-        expected.add(toList(2));
-        expected.add(toList(1, 2));
+        Set<Set<Integer>> expected = new HashSet<>();
+        expected.add(toSet(1));
+        expected.add(toSet(2));
+        expected.add(toSet(1, 2));
 
-        List<List<Integer>> actual = analysis.getAllSubsets(1, 2).collect(Collectors.toList());
+        Set<Set<Integer>> actual = analysis.getAllSubsets(1, 2).collect(Collectors.toSet());
 
         assertEquals(expected, actual);
     }
 
     @Test
     void shouldGetSubsetsOfTriple() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>(1, 2, 3);
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
-        List<List<Integer>> expected = new ArrayList<>();
-        expected.add(toList(1));
-        expected.add(toList(2));
-        expected.add(toList(3));
-        expected.add(toList(2, 3));
-        expected.add(toList(1, 2));
-        expected.add(toList(1, 3));
-        expected.add(toList(1, 2, 3));
+        Set<Set<Integer>> expected = new HashSet<>();
+        expected.add(toSet(1));
+        expected.add(toSet(2));
+        expected.add(toSet(3));
+        expected.add(toSet(2, 3));
+        expected.add(toSet(1, 2));
+        expected.add(toSet(1, 3));
+        expected.add(toSet(1, 2, 3));
 
-        List<List<Integer>> actual = analysis.getAllSubsets(1, 2, 3).collect(Collectors.toList());
+        Set<Set<Integer>> actual = analysis.getAllSubsets(1, 2, 3).collect(Collectors.toSet());
 
         assertEquals(expected, actual);
     }
 
-    List<Integer> toList(Integer... entry) {
-        return Arrays.stream(entry).collect(Collectors.toList());
+    Set<Integer> toSet(Integer... entry) {
+        return Arrays.stream(entry).collect(Collectors.toSet());
     }
 }
