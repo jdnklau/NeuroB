@@ -7,7 +7,7 @@ import java.util.List;
  * Single valued regression analysis.
  * Samples the minimum, 1st quartile, median, 3rd quartile, maximum and average.
  */
-public class RegressionAnalysis<N extends Number> {
+public class RegressionAnalysis<N extends Number> implements AnalysisData<N, RegressionAnalysis<N>> {
     private List<N> samples;
     private N minimum;
     private N maximum;
@@ -104,6 +104,7 @@ public class RegressionAnalysis<N extends Number> {
      *
      * @return Reference to this analysis.
      */
+    @Override
     public RegressionAnalysis<N> add(N sample) {
         isSorted = false; // Due to ArrayList implementation.
         samples.add(sample);
@@ -167,6 +168,7 @@ public class RegressionAnalysis<N extends Number> {
      *
      * @return
      */
+    @Override
     public synchronized RegressionAnalysis<N> mergeWith(RegressionAnalysis<N> other) {
         isSorted = false;
 

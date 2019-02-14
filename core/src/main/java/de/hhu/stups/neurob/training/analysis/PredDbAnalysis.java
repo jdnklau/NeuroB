@@ -66,7 +66,8 @@ import java.util.stream.Collectors;
  * </li>
  * </ul>
  */
-public class PredDbAnalysis {
+public class PredDbAnalysis
+        implements AnalysisData<TrainingSample<BPredicate, PredDbEntry>, PredDbAnalysis> {
 
     private Long predCount;
     private ClassificationAnalysis<Answer> answers;
@@ -136,6 +137,7 @@ public class PredDbAnalysis {
      *
      * @return
      */
+    @Override
     public PredDbAnalysis add(TrainingSample<BPredicate, PredDbEntry> sample) {
         return add(sample.getData(), sample.getLabelling());
     }
@@ -674,6 +676,7 @@ public class PredDbAnalysis {
      *
      * @return
      */
+    @Override
     public synchronized PredDbAnalysis mergeWith(PredDbAnalysis other) {
 
         this.predCount += other.predCount;
@@ -685,19 +688,17 @@ public class PredDbAnalysis {
         this.fastest.mergeWith(other.fastest);
 
         // Merge classification map
-        this.backendAnswers = mergeClassificationMap(
-                this.backendAnswers,
-                other.backendAnswers );
+        this.backendAnswers = mergeAnalysisMap(this.backendAnswers, other.backendAnswers);
 
         // Merge the regression maps
-        answeredRegressions = mergeRegressionMap(answeredRegressions, other.answeredRegressions);
-        timedRegressions = mergeRegressionMap(timedRegressions, other.timedRegressions);
+        answeredRegressions = mergeAnalysisMap(answeredRegressions, other.answeredRegressions);
+        timedRegressions = mergeAnalysisMap(timedRegressions, other.timedRegressions);
 
         for (Answer a : other.backendRegressions.keySet()) {
             if (this.backendRegressions.containsKey(a)) {
                 this.backendRegressions.put(
                         a,
-                        mergeRegressionMap(
+                        mergeAnalysisMap(
                                 this.backendRegressions.get(a),
                                 other.backendRegressions.get(a)));
             } else {
@@ -708,25 +709,23 @@ public class PredDbAnalysis {
         return this;
     }
 
-    Map<Backend, RegressionAnalysis<Long>>
-    mergeRegressionMap(Map<Backend, RegressionAnalysis<Long>> analysisMap,
-            Map<Backend, RegressionAnalysis<Long>> mergeMap) {
-        Set<Backend> mergeKeys = mergeMap.keySet();
-        for (Backend key : mergeKeys) {
-            if (analysisMap.containsKey(key)) {
-                analysisMap.get(key).mergeWith(mergeMap.get(key));
-            } else {
-                analysisMap.put(key, mergeMap.get(key));
-            }
-        }
-        return analysisMap;
-    }
-
-    Map<Answer, ClassificationAnalysis<Backend>>
-    mergeClassificationMap(Map<Answer, ClassificationAnalysis<Backend>> analysisMap,
-            Map<Answer, ClassificationAnalysis<Backend>> mergeMap) {
-        Set<Answer> mergeKeys = mergeMap.keySet();
-        for (Answer key : mergeKeys) {
+    /**
+     * Merges two maps which have analysis data as values.
+     * <p>
+     * Returns the merged map.
+     *
+     * @param analysisMap
+     * @param mergeMap
+     * @param <K>
+     * @param <S>
+     * @param <A>
+     *
+     * @return
+     */
+    <K, S, A extends AnalysisData<S, A>> Map<K, A> mergeAnalysisMap(
+            Map<K, A> analysisMap, Map<K, A> mergeMap) {
+        Set<K> mergeKeys = mergeMap.keySet();
+        for (K key : mergeKeys) {
             if (analysisMap.containsKey(key)) {
                 analysisMap.get(key).mergeWith(mergeMap.get(key));
             } else {

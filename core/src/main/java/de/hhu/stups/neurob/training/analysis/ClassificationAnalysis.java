@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  *
  * @param <C> Type of Class labels.
  */
-public class ClassificationAnalysis<C> {
+public class ClassificationAnalysis<C> implements AnalysisData<C, ClassificationAnalysis<C>>{
     /** Classes to be used. Implies an ordering. */
     private Map<Set<C>, Long> classCounters;
 
@@ -68,6 +68,20 @@ public class ClassificationAnalysis<C> {
      */
     public Long getCount(Set<C> clss) {
         return classCounters.getOrDefault(clss, 0L);
+    }
+
+    /**
+     * Counts a sample for the given class.
+     * <p>
+     * Returns itself for method chaining.
+     *
+     * @param sampleClass
+     *
+     * @return Reference to this analysis.
+     */
+    public ClassificationAnalysis<C> add(C sampleClass) {
+        getAllSubsets(sampleClass).forEach(this::increaseCount);
+        return this;
     }
 
     /**
