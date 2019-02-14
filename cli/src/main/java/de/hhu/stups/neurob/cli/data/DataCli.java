@@ -4,6 +4,8 @@ import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
 import de.hhu.stups.neurob.cli.Formats;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.training.analysis.PredDbAnalysis;
+import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
@@ -50,8 +52,8 @@ public class DataCli implements CliModule {
         return
                 "\n"
                 + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] "
-                        + "[-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS]\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS]\n"
+                + "       data -a SOURCE_DIR [FORMAT] [-c THREATS] [-[x]b BACKENDS]\n"
                 + "\n";
 
     }
@@ -95,17 +97,26 @@ public class DataCli implements CliModule {
                 .required()
                 .build();
 
+        // Analysis
+        Option analyse = Option.builder("a")
+                .longOpt("analyse")
+                .hasArgs()
+                .argName("PATH")
+                .desc("Path to database to analyse")
+                .required()
+                .build();
+
         OptionGroup modeGroup = new OptionGroup();
         modeGroup.addOption(migrate);
         modeGroup.addOption(generate);
+        modeGroup.addOption(analyse);
 
         // Target
         Option target = Option.builder("t")
                 .longOpt("target-dir")
                 .numberOfArgs(2)
                 .argName("PATH FORMAT")
-                .desc("Directory and format into which the data is to be migrated.")
-                .required()
+                .desc("Directory and format into which the generated data is placed.")
                 .build();
 
         // Number of cores
@@ -162,6 +173,19 @@ public class DataCli implements CliModule {
         try {
             CommandLine line = parser.parse(options, args);
 
+            // Check for analysis
+            if (line.hasOption("a")) {
+                Path sourceDir = Paths.get(line.getOptionValues("a")[0]);
+
+                String formatId = line.getOptionValues("a")[1];
+                List<Backend> backends = parseBackends(line);
+                PredicateDbFormat dbFormat = (PredicateDbFormat) Formats.parseFormat(formatId);
+                // TODO: make use of format parsing
+                PredicateDbFormat format = new JsonDbFormat(backends.toArray(new Backend[0]));
+
+                analyse(sourceDir, format, backends);
+            }
+
             // load common values
             Path targetDir = Paths.get(line.getOptionValues("t")[0]);
             TrainingDataFormat targetFormat = Formats.parseFormat(line.getOptionValues("t")[1]);
@@ -189,6 +213,20 @@ public class DataCli implements CliModule {
         }
     }
 
+    private void analyse(Path sourceDir, TrainingDataFormat format, List<Backend> backends) {
+        if (format instanceof PredicateDbFormat) {
+            PredicateDbFormat<PredDbEntry> dbFormat = (PredicateDbFormat<PredDbEntry>) format;
+            PredicateDbAnalyser analyser = new PredicateDbAnalyser(dbFormat);
+            try {
+                System.out.println(analyser.analyse(sourceDir));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("Analysis for non-pred-db formats not yet implemented.");
+        }
+    }
+
     private void migrate(Path sourceDir, PredicateDbFormat sourceFormat, Path targetDir, PredicateDbFormat targetFormat) {
         try {
             new PredicateDbMigration(sourceFormat)
@@ -199,16 +237,7 @@ public class DataCli implements CliModule {
     }
 
     private void generate(CommandLine line, Path targetDir, TrainingDataFormat targetFormat) throws IOException {
-        List<Backend> backends = new ArrayList<>();
-        if (line.hasOption('b')) {
-            boolean crossCreate = line.hasOption('x');
-            for (String backend : line.getOptionValues('b')) {
-                Arrays.stream(BackendId.makeBackends(backend, crossCreate))
-                        .forEach(backends::add);
-            }
-        } else {
-            backends = Arrays.asList(PredDbEntry.DEFAULT_BACKENDS);
-        }
+        List<Backend> backends = parseBackends(line);
 
         Path sourceDir = Paths.get(line.getOptionValue("g"));
 
@@ -219,7 +248,7 @@ public class DataCli implements CliModule {
         // TODO: make use of target format
         JsonDbFormat format = new JsonDbFormat(backends.toArray(new Backend[0]));
         PredicateTrainingGenerator generator = new PredicateTrainingGenerator(
-                (p,ss) -> p,
+                (p, ss) -> p,
                 format.getLabelGenerator(),
                 samplingSize,
                 format);
@@ -244,7 +273,29 @@ public class DataCli implements CliModule {
         } finally {
             threadPool.shutdown();
         }
+    }
 
+    /**
+     * Parses the list of backends to use from the command line.
+     * <p>
+     * This represents the -b option.
+     *
+     * @param line
+     *
+     * @return
+     */
+    private List<Backend> parseBackends(CommandLine line) {
+        List<Backend> backends = new ArrayList<>();
+        if (line.hasOption('b')) {
+            boolean crossCreate = line.hasOption('x');
+            for (String backend : line.getOptionValues('b')) {
+                Arrays.stream(BackendId.makeBackends(backend, crossCreate))
+                        .forEach(backends::add);
+            }
+        } else {
+            backends = Arrays.asList(PredDbEntry.DEFAULT_BACKENDS);
+        }
+        return backends;
     }
 
     private Collection<Path> getExcludes(CommandLine line) {
@@ -252,7 +303,7 @@ public class DataCli implements CliModule {
             Path excludes = Paths.get(line.getOptionValue('i'));
             try (Stream<String> lines = Files.lines(excludes)) {
                 return lines
-                        .filter(s->!s.isEmpty())
+                        .filter(s -> !s.isEmpty())
                         .map(Paths::get)
                         .collect(Collectors.toSet());
             } catch (IOException e) {
