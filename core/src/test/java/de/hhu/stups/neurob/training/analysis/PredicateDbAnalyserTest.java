@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -58,7 +59,7 @@ class PredicateDbAnalyserTest {
                 new TrainingData<BPredicate, PredDbEntry>(null, samples2.stream())
         ));
 
-        PredDbAnalysis analysis = new PredicateDbAnalyser(dbFormat).analyse(null);
+        PredDbAnalysis analysis = new PredicateDbAnalyser(dbFormat).analyse(Paths.get("non/existent"));
 
         assertAll("Check analysis after stream is done",
                 // Number of predicates

@@ -24,11 +24,18 @@ public class PredicateDbAnalyser {
     public PredDbAnalysis analyse(Path db) throws IOException {
         log.info("Analysing Database located at {}", db);
 
-        PredDbAnalysis data = new PredDbAnalysis();
+        PredDbAnalysis analysis = new PredDbAnalysis();
         format.loadTrainingData(db)
-                .flatMap(TrainingData::getSamples)
-                .forEach(data::add); // TODO: Check whether close is called correctly.
+                .parallel()
+                .map(this::analyse)
+                .forEach(analysis::mergeWith); // TODO: Check whether close is called correctly.
 
-        return data;
+        return analysis;
+    }
+
+    public PredDbAnalysis analyse(TrainingData<BPredicate, PredDbEntry> data) {
+        PredDbAnalysis analysis = new PredDbAnalysis();
+        data.getSamples().forEach(analysis::add);
+        return analysis;
     }
 }
