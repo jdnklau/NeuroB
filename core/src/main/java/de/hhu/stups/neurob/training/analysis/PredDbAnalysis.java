@@ -71,6 +71,9 @@ public class PredDbAnalysis {
     private Set<BPredicate> contradictions;
     private Map<Answer, ClassificationAnalysis<Backend>> backendAnswers;
 
+    /** All the different Backends seen so far. */
+    private Set<Backend> backendsSeen;
+
     private Map<Answer, Map<Backend, RegressionAnalysis<Long>>> backendRegressions;
     private Map<Backend, RegressionAnalysis<Long>> answeredRegressions;
     private Map<Backend, RegressionAnalysis<Long>> timedRegressions;
@@ -88,6 +91,12 @@ public class PredDbAnalysis {
         timedRegressions = new HashMap<>();
 
         fastest = new ClassificationAnalysis<>();
+
+        backendsSeen = new HashSet<>();
+    }
+
+    public Set<Backend> getBackendsSeen() {
+        return backendsSeen;
     }
 
     /**
@@ -125,6 +134,9 @@ public class PredDbAnalysis {
             Set<Backend> cluster = entry.getValue();
             Backend[] clusterArray = cluster.toArray(new Backend[0]);
             addAnswer(answer, clusterArray);
+
+            // Add seen backends
+            backendsSeen.addAll(cluster);
         }
 
         // Regression

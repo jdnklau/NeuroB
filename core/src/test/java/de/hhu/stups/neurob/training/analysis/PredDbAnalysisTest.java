@@ -277,6 +277,31 @@ class PredDbAnalysisTest {
     }
 
     @Test
+    void shouldDetectBackendsSeen() {
+        ProBBackend prob = new ProBBackend();
+        KodkodBackend kodkod = new KodkodBackend();
+        Z3Backend z3 = new Z3Backend();
+        Backend[] backends = {prob, kodkod, z3};
+        PredDbEntry entry1 = new PredDbEntry(null, null, backends, valid, valid, solvable);
+        PredDbEntry entry2 = new PredDbEntry(null, null, backends, unknown, error, unknown);
+        PredDbEntry entry3 = new PredDbEntry(null, null, backends, unknown, invalid, invalid);
+
+        PredDbAnalysis analysis = new PredDbAnalysis();
+        analysis.add(null, entry1);
+        analysis.add(null, entry2);
+        analysis.add(null, entry3);
+
+        Set<Backend> expected = new HashSet<>();
+        expected.add(prob);
+        expected.add(kodkod);
+        expected.add(z3);
+
+        Set<Backend> actual = analysis.getBackendsSeen();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void shouldCalculateAverageRuntimePerAnswer() {
         Backend[] backends = {new ProBBackend()};
         TimedAnswer t1 = new TimedAnswer(Answer.VALID, 100L);
