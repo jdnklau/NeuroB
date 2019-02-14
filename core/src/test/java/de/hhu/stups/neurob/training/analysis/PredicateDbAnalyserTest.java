@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,7 +55,7 @@ class PredicateDbAnalyserTest {
         samples2.add(createSample("pred3", Answer.INVALID, 300L, Answer.ERROR, 500L, Answer.UNKNOWN, 400L));
         samples2.add(createSample("pred4", Answer.ERROR, 400L, Answer.VALID, 100L, Answer.SOLVABLE, 600L));
 
-        when(dbFormat.loadTrainingData(null)).thenReturn(Stream.of(
+        when(dbFormat.loadTrainingData(any())).thenReturn(Stream.of(
                 new TrainingData<BPredicate, PredDbEntry>(null, samples1.stream()),
                 new TrainingData<BPredicate, PredDbEntry>(null, samples2.stream())
         ));
