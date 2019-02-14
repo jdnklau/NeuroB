@@ -155,7 +155,7 @@ public class PredDbAnalysis
      */
     public PredDbAnalysis add(BPredicate data, PredDbEntry metrics) {
         // Classification: Predicate level
-        log.debug("Analysing metrics of {}", data);
+        log.info("Analysing metrics of {}", data);
         predCount++;
         countBestAnswer(data, metrics.getResults().values());
         // Classification: Backend Level
