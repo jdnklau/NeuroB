@@ -790,4 +790,89 @@ class PredDbAnalysisTest {
                         "Fastest count for Kodkod does not match.")
         );
     }
+
+    @Test
+    void shouldBeUnequal() {
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        TimedAnswer t1 = new TimedAnswer(Answer.VALID, 100L);
+        TimedAnswer t2 = new TimedAnswer(Answer.VALID, 200L);
+        TimedAnswer t3 = new TimedAnswer(Answer.VALID, 300L);
+        TimedAnswer t4 = new TimedAnswer(Answer.VALID, 400L);
+        TimedAnswer t5 = new TimedAnswer(Answer.VALID, 500L);
+        TimedAnswer t6 = new TimedAnswer(Answer.VALID, 600L);
+
+        PredDbEntry entry1 = new PredDbEntry(null, null, backends, t1, t2);
+        PredDbEntry entry2 = new PredDbEntry(null, null, backends, t3, t4);
+        PredDbEntry entry3 = new PredDbEntry(null, null, backends, t5, t6);
+
+        PredDbAnalysis analysis1 = new PredDbAnalysis();
+        analysis1.add(null, entry1);
+        analysis1.add(null, entry2);
+
+        PredDbAnalysis analysis2 = new PredDbAnalysis();
+        analysis2.add(null, entry1);
+        analysis2.add(null, entry3);
+
+        assertNotEquals(analysis1, analysis2);
+    }
+
+    @Test
+    void shouldBeEqual() {
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        TimedAnswer t1 = new TimedAnswer(Answer.VALID, 100L);
+        TimedAnswer t2 = new TimedAnswer(Answer.VALID, 200L);
+        TimedAnswer t3 = new TimedAnswer(Answer.VALID, 300L);
+        TimedAnswer t4 = new TimedAnswer(Answer.VALID, 400L);
+        TimedAnswer t5 = new TimedAnswer(Answer.VALID, 500L);
+        TimedAnswer t6 = new TimedAnswer(Answer.VALID, 600L);
+
+        PredDbEntry entry1 = new PredDbEntry(null, null, backends, t1, t2);
+        PredDbEntry entry2 = new PredDbEntry(null, null, backends, t3, t4);
+        PredDbEntry entry3 = new PredDbEntry(null, null, backends, t5, t6);
+
+        PredDbAnalysis analysis1 = new PredDbAnalysis();
+        analysis1.add(null, entry1);
+        analysis1.add(null, entry2);
+        analysis1.add(null, entry3);
+
+        PredDbAnalysis analysis2 = new PredDbAnalysis();
+        analysis2.add(null, entry1);
+        analysis2.add(null, entry2);
+        analysis2.add(null, entry3);
+
+        assertEquals(analysis1, analysis2);
+    }
+
+    @Test
+    void shouldMergeTwoAnalyses() {
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        TimedAnswer t1 = new TimedAnswer(Answer.VALID, 100L);
+        TimedAnswer t2 = new TimedAnswer(Answer.VALID, 200L);
+        TimedAnswer t3 = new TimedAnswer(Answer.VALID, 300L);
+        TimedAnswer t4 = new TimedAnswer(Answer.VALID, 400L);
+        TimedAnswer t5 = new TimedAnswer(Answer.VALID, 500L);
+        TimedAnswer t6 = new TimedAnswer(Answer.VALID, 600L);
+
+        PredDbEntry entry1 = new PredDbEntry(null, null, backends, t1, t2);
+        PredDbEntry entry2 = new PredDbEntry(null, null, backends, t3, t4);
+        PredDbEntry entry3 = new PredDbEntry(null, null, backends, t5, t6);
+
+        PredDbAnalysis oneStep = new PredDbAnalysis();
+        oneStep.add(null, entry1);
+        oneStep.add(null, entry1);
+        oneStep.add(null, entry2);
+        oneStep.add(null, entry3);
+
+        PredDbAnalysis merged = new PredDbAnalysis();
+        merged.add(null, entry1);
+        merged.add(null, entry2);
+
+        PredDbAnalysis other = new PredDbAnalysis();
+        other.add(null, entry1);
+        other.add(null, entry3);
+
+        merged.mergeWith(other);
+
+        assertEquals(oneStep, merged);
+    }
 }

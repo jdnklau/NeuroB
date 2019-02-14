@@ -240,4 +240,85 @@ class RegressionAnalysisTest {
         analysis.add(1L).add(2L).add(3L).add(4L).getThirdQuartile();
         assertTrue(analysis.isSorted);
     }
+
+    @Test
+    void shouldMergeTwoAnalyses() {
+        RegressionAnalysis<Integer> analysis = new RegressionAnalysis<>();
+        analysis.add(1).add(1).add(2).add(5);
+
+        RegressionAnalysis<Integer> other = new RegressionAnalysis<>();
+        other.add(0).add(4).add(7).add(9).add(34);
+
+        // 0 1 1 2 4 5 7 9 29
+
+        analysis.mergeWith(other);
+
+        assertAll(
+                () -> assertEquals(9, analysis.getSampleCount(),
+                        "Sample count does not match"),
+                () -> assertEquals(new Integer(0), analysis.getMinimum(),
+                        "Minimum does not match"),
+                () -> assertEquals(new Integer(34), analysis.getMaximum(),
+                        "Maximum does not match"),
+                () -> assertEquals(new Double(4), analysis.getMedian(),
+                        "Median does not match"),
+                () -> assertEquals(new Double(1), analysis.getFirstQuartile(),
+                        "FirstQuartile does not match"),
+                () -> assertEquals(new Double(7), analysis.getThirdQuartile(),
+                        "ThirdQuartile does not match"),
+                () -> assertEquals(7, analysis.getAverage(), Math.ulp(7.),
+                        "Average does not match")
+        );
+    }
+
+    @Test
+    void shouldMergeToEqualAnalysisAsIfAllDataWentThroughOne() {
+        RegressionAnalysis<Integer> oneStep = new RegressionAnalysis<>();
+        oneStep.add(1).add(1).add(2).add(5);
+        oneStep.add(0).add(4).add(7).add(9).add(34);
+
+        RegressionAnalysis<Integer> merged = new RegressionAnalysis<>();
+        merged.add(1).add(1).add(2).add(5);
+        RegressionAnalysis<Integer> other = new RegressionAnalysis<>();
+        other.add(0).add(4).add(7).add(9).add(34);
+
+        merged.mergeWith(other);
+
+        assertEquals(oneStep, merged);
+
+    }
+
+    @Test
+    void shouldBeUnsortedAfterMerge() {
+        RegressionAnalysis<Integer> analysis = new RegressionAnalysis<>();
+        analysis.add(1).add(1).add(2).add(5);
+
+        RegressionAnalysis<Integer> other = new RegressionAnalysis<>();
+        other.add(0).add(4).add(7).add(9).add(34);
+
+        analysis.getMedian(); // Should be sorted now, covered by other test case
+        analysis.mergeWith(other);
+
+        assertFalse(analysis.isSorted);
+    }
+
+    @Test
+    void shouldNotBeEqual() {
+        RegressionAnalysis<Integer> analysis = new RegressionAnalysis<>();
+        analysis.add(1).add(1).add(2).add(5);
+        RegressionAnalysis<Integer> other = new RegressionAnalysis<>();
+        other.add(0).add(4).add(7).add(9).add(34);
+
+        assertNotEquals(analysis, other);
+    }
+
+    @Test
+    void shouldBeEqual() {
+        RegressionAnalysis<Integer> analysis = new RegressionAnalysis<>();
+        analysis.add(0).add(4).add(7).add(9).add(34);
+        RegressionAnalysis<Integer> other = new RegressionAnalysis<>();
+        other.add(0).add(4).add(7).add(9).add(34);
+
+        assertEquals(analysis, other);
+    }
 }

@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.training.analysis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -115,4 +116,34 @@ public class ClassificationAnalysis<C> {
 
     }
 
+    /**
+     * Merges the data of the other analysis into this.
+     * <p>
+     * Returns reference to itself for method chaining.
+     *
+     * @param other Analysis data to merge into this.
+     *
+     * @return
+     */
+    public synchronized ClassificationAnalysis<C> mergeWith(ClassificationAnalysis<C> other) {
+        Set<Set<C>> classes = other.classCounters.keySet();
+
+        for (Set<C> cls : classes) {
+            Long count = this.getCount(cls);
+            Long otherCount = other.getCount(cls);
+            classCounters.put(cls, count + otherCount);
+        }
+
+
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof ClassificationAnalysis) {
+            ClassificationAnalysis other = (ClassificationAnalysis) o;
+            return this.classCounters.equals(other.classCounters);
+        }
+        return false;
+    }
 }

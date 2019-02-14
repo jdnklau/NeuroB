@@ -160,4 +160,62 @@ class ClassificationAnalysisTest {
     Set<Integer> toSet(Integer... entry) {
         return Arrays.stream(entry).collect(Collectors.toSet());
     }
+
+    @Test
+    void shouldMergeTwoAnalyses() {
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
+        analysis.add(1).add(1).add(2).add(2);
+
+        ClassificationAnalysis<Integer> other = new ClassificationAnalysis<>();
+        other.add(2).add(3);
+
+        analysis.mergeWith(other);
+
+        assertAll(
+                () -> assertEquals(new Long(2), analysis.getCount(1),
+                        "Amount of 1 does not match"),
+                () -> assertEquals(new Long(3), analysis.getCount(2),
+                        "Amount of 2 does not match"),
+                () -> assertEquals(new Long(1), analysis.getCount(3),
+                        "Amount of 3 does not match")
+        );
+    }
+
+    @Test
+    void shouldResultInEqualAnalysisWhenMergedAndWhenRunInOneStep() {
+
+        ClassificationAnalysis<Integer> oneStep = new ClassificationAnalysis<>();
+        oneStep.add(1).add(1).add(2).add(2);
+        oneStep.add(2).add(3);
+
+        ClassificationAnalysis<Integer> merged = new ClassificationAnalysis<>();
+        merged.add(1).add(1).add(2).add(2);
+        ClassificationAnalysis<Integer> other = new ClassificationAnalysis<>();
+        other.add(2).add(3);
+
+        merged.mergeWith(other);
+
+        assertEquals(oneStep, merged);
+
+    }
+
+    @Test
+    void shouldNotBeEqual() {
+        ClassificationAnalysis<Integer> analysis1 = new ClassificationAnalysis<>();
+        analysis1.add(1);
+        ClassificationAnalysis<String> analysis2 = new ClassificationAnalysis<>();
+        analysis2.add("1");
+
+        assertNotEquals(analysis1, analysis2);
+    }
+
+    @Test
+    void shouldBeEqual() {
+        ClassificationAnalysis<Integer> analysis1 = new ClassificationAnalysis<>();
+        analysis1.add(1);
+        ClassificationAnalysis<Integer> analysis2 = new ClassificationAnalysis<>();
+        analysis2.add(1);
+
+        assertEquals(analysis1, analysis2);
+    }
 }

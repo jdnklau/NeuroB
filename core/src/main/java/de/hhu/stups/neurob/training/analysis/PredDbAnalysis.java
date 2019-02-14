@@ -99,6 +99,29 @@ public class PredDbAnalysis {
         backendsSeen = new HashSet<>();
     }
 
+    /**
+     * Summarises the analysis of data seen so far in a text.
+     *
+     * @return
+     */
+    public String getSummary() {
+        StringBuilder summary = new StringBuilder();
+
+        // General predicate information
+        summary.append("Predicates seen in total: ").append(predCount);
+        // Per Answer
+        Answer[] answerOrder = {Answer.VALID, Answer.INVALID, Answer.SOLVABLE,
+                Answer.UNKNOWN, Answer.TIMEOUT, Answer.ERROR};
+        for (Answer a : answerOrder) {
+            Long amount = answers.getCount(a);
+            Double fraction = amount / (double) predCount;
+            summary.append("  ").append(amount).append(" are ").append(a)
+                    .append(" (").append(fraction * 100).append("%)");
+        }
+
+        return summary.toString();
+    }
+
     public Set<Backend> getBackendsSeen() {
         return backendsSeen;
     }
@@ -640,5 +663,95 @@ public class PredDbAnalysis {
      */
     public Long getFastestAnswerCount(Backend b) {
         return fastest.getCount(b);
+    }
+
+    /**
+     * Merges the data of the other analysis into this.
+     * <p>
+     * Returns reference to itself for method chaining.
+     *
+     * @param other Analysis data to merge into this.
+     *
+     * @return
+     */
+    public synchronized PredDbAnalysis mergeWith(PredDbAnalysis other) {
+
+        this.predCount += other.predCount;
+        this.answers.mergeWith(other.answers);
+
+        this.contradictions.addAll(other.contradictions);
+
+        this.backendsSeen.addAll(other.backendsSeen);
+        this.fastest.mergeWith(other.fastest);
+
+        // Merge classification map
+        this.backendAnswers = mergeClassificationMap(
+                this.backendAnswers,
+                other.backendAnswers );
+
+        // Merge the regression maps
+        answeredRegressions = mergeRegressionMap(answeredRegressions, other.answeredRegressions);
+        timedRegressions = mergeRegressionMap(timedRegressions, other.timedRegressions);
+
+        for (Answer a : other.backendRegressions.keySet()) {
+            if (this.backendRegressions.containsKey(a)) {
+                this.backendRegressions.put(
+                        a,
+                        mergeRegressionMap(
+                                this.backendRegressions.get(a),
+                                other.backendRegressions.get(a)));
+            } else {
+                this.backendRegressions.put(a, other.backendRegressions.get(a));
+            }
+        }
+
+        return this;
+    }
+
+    Map<Backend, RegressionAnalysis<Long>>
+    mergeRegressionMap(Map<Backend, RegressionAnalysis<Long>> analysisMap,
+            Map<Backend, RegressionAnalysis<Long>> mergeMap) {
+        Set<Backend> mergeKeys = mergeMap.keySet();
+        for (Backend key : mergeKeys) {
+            if (analysisMap.containsKey(key)) {
+                analysisMap.get(key).mergeWith(mergeMap.get(key));
+            } else {
+                analysisMap.put(key, mergeMap.get(key));
+            }
+        }
+        return analysisMap;
+    }
+
+    Map<Answer, ClassificationAnalysis<Backend>>
+    mergeClassificationMap(Map<Answer, ClassificationAnalysis<Backend>> analysisMap,
+            Map<Answer, ClassificationAnalysis<Backend>> mergeMap) {
+        Set<Answer> mergeKeys = mergeMap.keySet();
+        for (Answer key : mergeKeys) {
+            if (analysisMap.containsKey(key)) {
+                analysisMap.get(key).mergeWith(mergeMap.get(key));
+            } else {
+                analysisMap.put(key, mergeMap.get(key));
+            }
+        }
+        return analysisMap;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof PredDbAnalysis) {
+            PredDbAnalysis other = (PredDbAnalysis) o;
+
+            return this.predCount.equals(other.predCount)
+                   && this.answers.equals(other.answers)
+                   && this.contradictions.equals(other.contradictions)
+                   && this.backendAnswers.equals(other.backendAnswers)
+                   && this.backendsSeen.equals(other.backendsSeen)
+                   && this.backendRegressions.equals(other.backendRegressions)
+                   && this.answeredRegressions.equals(other.answeredRegressions)
+                   && this.timedRegressions.equals(other.timedRegressions)
+                   && this.fastest.equals(other.fastest);
+
+        }
+        return false;
     }
 }

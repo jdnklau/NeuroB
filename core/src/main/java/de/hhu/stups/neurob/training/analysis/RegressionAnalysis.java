@@ -42,13 +42,13 @@ public class RegressionAnalysis<N extends Number> {
     }
 
     public Double getMedian() {
-        return getMedianOfSlice(samples, 0,samples.size()-1);
+        return getMedianOfSlice(samples, 0, samples.size() - 1);
     }
 
     public Double getFirstQuartile() {
         // Find index for splicing
         int size = samples.size();
-        int index = (size %2 == 0) ? size/2-1 : size/2;
+        int index = (size % 2 == 0) ? size / 2 - 1 : size / 2;
 
         return getMedianOfSlice(samples, 0, index);
     }
@@ -56,9 +56,9 @@ public class RegressionAnalysis<N extends Number> {
     public Double getThirdQuartile() {
         // Find index for splicing
         int size = samples.size();
-        int index = size/2;
+        int index = size / 2;
 
-        return getMedianOfSlice(samples, index, size-1);
+        return getMedianOfSlice(samples, index, size - 1);
     }
 
     Double getMedianOfSlice(List<N> samps, int startIndex, int endIndex) {
@@ -158,4 +158,49 @@ public class RegressionAnalysis<N extends Number> {
         average += (sample.doubleValue() - average) / (samples.size());
     }
 
+    /**
+     * Merges the data of the other analysis into this.
+     * <p>
+     * Returns reference to itself for method chaining.
+     *
+     * @param other Analysis data to merge into this.
+     *
+     * @return
+     */
+    public synchronized RegressionAnalysis<N> mergeWith(RegressionAnalysis<N> other) {
+        isSorted = false;
+
+        // Set minima and maxima
+        this.minimum = (greaterThan(this.minimum, other.minimum)) ? other.minimum : this.minimum;
+        this.maximum = (greaterThan(other.maximum, this.maximum)) ? other.maximum : this.maximum;
+
+        // Recalculate average
+        int sizeThis = this.getSampleCount();
+        int sizeOther = other.getSampleCount();
+        double denominator = sizeThis + sizeOther;
+        Double avgFactorThis = sizeThis / denominator;
+        Double avgFactorOther = sizeOther / denominator;
+
+        this.average = avgFactorThis * this.average + avgFactorOther * other.average;
+        // Add data
+        this.samples.addAll(other.samples);
+
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof RegressionAnalysis) {
+            RegressionAnalysis other = (RegressionAnalysis) o;
+
+            assureSorted();
+            other.assureSorted();
+
+            return this.minimum.equals(other.minimum)
+                   && this.maximum.equals(other.maximum)
+                   && this.average - other.average < Math.ulp(this.average)
+                   && this.samples.equals(other.samples);
+        }
+        return false;
+    }
 }
