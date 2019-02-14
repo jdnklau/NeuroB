@@ -6,6 +6,8 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.core.api.backends.Answer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -80,6 +82,8 @@ public class PredDbAnalysis {
 
     private ClassificationAnalysis<Backend> fastest;
 
+    private static final Logger log = LoggerFactory.getLogger(PredDbAnalysis.class);
+
     public PredDbAnalysis() {
         predCount = 0L;
         answers = new ClassificationAnalysis<>();
@@ -126,6 +130,7 @@ public class PredDbAnalysis {
      */
     public PredDbAnalysis add(BPredicate data, PredDbEntry metrics) {
         // Classification: Predicate level
+        log.debug("Analysing metrics of {}", data);
         predCount++;
         countBestAnswer(data, metrics.getResults().values());
         // Classification: Backend Level
@@ -209,6 +214,8 @@ public class PredDbAnalysis {
             // Find contradictions
             if (best.equals(Answer.VALID) && answer.equals(Answer.INVALID)
                 || best.equals(Answer.INVALID) && answer.equals(Answer.VALID)) {
+                log.warn("Contradiction found: {} is classified as VALID and INVALID "
+                         + "by different backends", pred);
                 contradictions.add(pred);
                 return;
             }
