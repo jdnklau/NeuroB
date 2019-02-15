@@ -38,7 +38,9 @@ public class RegressionAnalysis<N extends Number> implements AnalysisData<N, Reg
     }
 
     public Double getAverage() {
-        return average;
+        int size = getSampleCount();
+        return samples.stream().map(s -> s.doubleValue() / size)
+                .reduce(0.0, (a, b) -> a + b);
     }
 
     public Double getMedian() {
@@ -110,7 +112,7 @@ public class RegressionAnalysis<N extends Number> implements AnalysisData<N, Reg
         samples.add(sample);
         adjustMinimum(sample);
         adjustMaximum(sample);
-        adjustAverage(sample);
+//        adjustAverage(sample);
         return this;
     }
 
@@ -176,14 +178,14 @@ public class RegressionAnalysis<N extends Number> implements AnalysisData<N, Reg
         this.minimum = (greaterThan(this.minimum, other.minimum)) ? other.minimum : this.minimum;
         this.maximum = (greaterThan(other.maximum, this.maximum)) ? other.maximum : this.maximum;
 
-        // Recalculate average
-        int sizeThis = this.getSampleCount();
-        int sizeOther = other.getSampleCount();
-        double denominator = sizeThis + sizeOther;
-        Double avgFactorThis = sizeThis / denominator;
-        Double avgFactorOther = sizeOther / denominator;
-
-        this.average = avgFactorThis * this.average + avgFactorOther * other.average;
+//        // Recalculate average
+//        int sizeThis = this.getSampleCount();
+//        int sizeOther = other.getSampleCount();
+//        double denominator = sizeThis + sizeOther;
+//        Double avgFactorThis = sizeThis / denominator;
+//        Double avgFactorOther = sizeOther / denominator;
+//
+//        this.average = avgFactorThis * this.average + avgFactorOther * other.average;
         // Add data
         this.samples.addAll(other.samples);
 
@@ -200,7 +202,7 @@ public class RegressionAnalysis<N extends Number> implements AnalysisData<N, Reg
 
             return this.minimum.equals(other.minimum)
                    && this.maximum.equals(other.maximum)
-                   && this.average - other.average < Math.ulp(this.average)
+//                   && this.average - other.average < Math.ulp(this.average)
                    && this.samples.equals(other.samples);
         }
         return false;

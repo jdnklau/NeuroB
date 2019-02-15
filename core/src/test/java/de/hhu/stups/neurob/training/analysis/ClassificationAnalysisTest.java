@@ -89,7 +89,31 @@ class ClassificationAnalysisTest {
     }
 
     @Test
-    void shouldIncreaseClassCountForEachSubsetInMultiLabelClassification() {
+    void shouldIncreaseClassCountForEachSubsetInMultiLabelClassificationWhenSingleAdditon() {
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
+
+        analysis.add(1, 2, 3);
+
+        assertAll("Subset sizes should match",
+                () -> assertEquals(new Long(1L), analysis.getCount(1),
+                        "Class 1 does not match."),
+                () -> assertEquals(new Long(1L), analysis.getCount(2),
+                        "Class 2 does not match."),
+                () -> assertEquals(new Long(1L), analysis.getCount(3),
+                        "Class 3 does not match."),
+                () -> assertEquals(new Long(1L), analysis.getCount(1, 2),
+                        "Class 1+2 does not match."),
+                () -> assertEquals(new Long(1L), analysis.getCount(1, 3),
+                        "Class 1+3 does not match."),
+                () -> assertEquals(new Long(1L), analysis.getCount(2, 3),
+                        "Class 2+3 does not match."),
+                () -> assertEquals(new Long(1L), analysis.getCount(1, 2, 3),
+                        "Class 1+2+3 does not match.")
+        );
+    }
+
+    @Test
+    void shouldIncreaseClassCountForEachSubsetInMultiLabelClassificationWhenMultipleAdditions() {
         ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
         analysis.add(1, 2).add(1, 2).add(1, 3).add(2).add(2, 3).add(1, 2, 3);
@@ -110,55 +134,6 @@ class ClassificationAnalysisTest {
                 () -> assertEquals(new Long(1L), analysis.getCount(1, 2, 3),
                         "Class 1+2+3 does not match.")
         );
-    }
-
-    @Test
-    void shouldGetSingleValueAsSubset() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
-
-        Set<Integer> expected = new HashSet<>();
-        expected.add(1);
-        Set<Integer> actual = analysis.getAllSubsets(1)
-                .flatMap(Set::stream)
-                .collect(Collectors.toSet());
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    void shouldGetSubsetsOfTuple() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
-
-        Set<Set<Integer>> expected = new HashSet<>();
-        expected.add(toSet(1));
-        expected.add(toSet(2));
-        expected.add(toSet(1, 2));
-
-        Set<Set<Integer>> actual = analysis.getAllSubsets(1, 2).collect(Collectors.toSet());
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    void shouldGetSubsetsOfTriple() {
-        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
-
-        Set<Set<Integer>> expected = new HashSet<>();
-        expected.add(toSet(1));
-        expected.add(toSet(2));
-        expected.add(toSet(3));
-        expected.add(toSet(2, 3));
-        expected.add(toSet(1, 2));
-        expected.add(toSet(1, 3));
-        expected.add(toSet(1, 2, 3));
-
-        Set<Set<Integer>> actual = analysis.getAllSubsets(1, 2, 3).collect(Collectors.toSet());
-
-        assertEquals(expected, actual);
-    }
-
-    Set<Integer> toSet(Integer... entry) {
-        return Arrays.stream(entry).collect(Collectors.toSet());
     }
 
     @Test
@@ -217,5 +192,9 @@ class ClassificationAnalysisTest {
         analysis2.add(1);
 
         assertEquals(analysis1, analysis2);
+    }
+
+    Set<Integer> toSet(Integer... entry) {
+        return Arrays.stream(entry).collect(Collectors.toSet());
     }
 }

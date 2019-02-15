@@ -1,13 +1,19 @@
 package de.hhu.stups.neurob.training.analysis;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,6 +37,7 @@ public class ClassificationAnalysis<C> implements AnalysisData<C, Classification
     /** Classes to be used. Implies an ordering. */
     private Map<Set<C>, Long> classCounters;
 
+    private static final Logger log = LoggerFactory.getLogger(ClassificationAnalysis.class);
 
     public ClassificationAnalysis() {
         this.classCounters = new HashMap<>();
@@ -56,7 +63,11 @@ public class ClassificationAnalysis<C> implements AnalysisData<C, Classification
      */
     public Long getCount(C... clss) {
         Set<C> key = getKey(clss);
-        return getCount(key);
+        Long count = classCounters.keySet()
+                .stream().filter(k -> k.containsAll(key))
+                .map(classCounters::get)
+                .reduce(0L, (a, b) -> a+b);
+        return count;
     }
 
     /**
@@ -80,7 +91,9 @@ public class ClassificationAnalysis<C> implements AnalysisData<C, Classification
      * @return Reference to this analysis.
      */
     public ClassificationAnalysis<C> add(C sampleClass) {
-        getAllSubsets(sampleClass).forEach(this::increaseCount);
+        HashSet<C> set = new HashSet<C>();
+        set.add(sampleClass);
+        increaseCount(set);
         return this;
     }
 
@@ -94,40 +107,13 @@ public class ClassificationAnalysis<C> implements AnalysisData<C, Classification
      * @return Reference to this analysis.
      */
     public ClassificationAnalysis<C> add(C... sampleClass) {
-        getAllSubsets(sampleClass).forEach(this::increaseCount);
+        increaseCount(getKey(sampleClass));
         return this;
     }
 
     void increaseCount(Set<C> sampleClass) {
         Long counter = getCount(sampleClass);
         classCounters.put(sampleClass, counter + 1);
-    }
-
-    Stream<Set<C>> getAllSubsets(C... cs) {
-        return getAllSubsets(Arrays.stream(cs).collect(Collectors.toList()));
-    }
-
-    Stream<Set<C>> getAllSubsets(List<C> cs) {
-        int length = cs.size();
-
-        if (length <= 1) {
-            return Stream.of(new HashSet<>(cs));
-        }
-
-        C head = cs.get(0);
-        List<C> tail1 = new ArrayList<>(cs.subList(1, length));
-        List<C> tail2 = new ArrayList<>(tail1); // Need two due to tailWithHead modifying tail1
-
-        Stream<Set<C>> headOnly = getAllSubsets(head);
-        Stream<Set<C>> tailWithHead = getAllSubsets(tail1).map(l -> {
-            l.add(head);
-            return l;
-        });
-        Stream<Set<C>> tailWithoutHead = getAllSubsets(tail2);
-
-        return Stream.of(headOnly, tailWithoutHead, tailWithHead)
-                .flatMap(s -> s);
-
     }
 
     /**
@@ -147,7 +133,6 @@ public class ClassificationAnalysis<C> implements AnalysisData<C, Classification
             Long otherCount = other.getCount(cls);
             classCounters.put(cls, count + otherCount);
         }
-
 
         return this;
     }
