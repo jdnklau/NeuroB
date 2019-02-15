@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,9 +57,11 @@ public class ClassificationAnalysis<C> implements AnalysisData<C, Classification
      */
     public Long getCount(C... clss) {
         Set<C> key = getKey(clss);
+
         Long count = classCounters.keySet()
                 .stream().filter(k -> k.containsAll(key))
                 .map(classCounters::get)
+                .filter(Objects::nonNull)
                 .reduce(0L, (a, b) -> a + b);
         return count;
     }
