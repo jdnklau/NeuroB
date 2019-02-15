@@ -110,6 +110,7 @@ public class PredDbAnalysis
 
         // General predicate information
         summary.append("Predicates seen in total: ").append(predCount);
+        summary.append('\n');
         // Per Answer
         Answer[] answerOrder = {Answer.VALID, Answer.INVALID, Answer.SOLVABLE,
                 Answer.UNKNOWN, Answer.TIMEOUT, Answer.ERROR};
@@ -118,9 +119,89 @@ public class PredDbAnalysis
             Double fraction = amount / (double) predCount;
             summary.append("  ").append(amount).append(" are ").append(a)
                     .append(" (").append(fraction * 100).append("%)");
+            summary.append('\n');
+        }
+
+        if (contradictions.size() > 0) {
+            summary.append("NOTE: There were ").append(contradictions.size())
+                    .append(" contradictions!");
+        }
+
+        // Backend-specific data
+        for (Backend b : backendsSeen) {
+            summary.append(getBackendSummary(b, answerOrder));
         }
 
         return summary.toString();
+    }
+
+    public String getBackendSummary(Backend b, Answer[] answerOrder) {
+        if (!backendsSeen.contains(b)) {
+            return "Backend " + b.toString() + " was not seen in the data.\n";
+        }
+
+        StringBuilder summary = new StringBuilder();
+
+        summary.append("Backend: ").append(b);
+        summary.append('\n');
+
+        // Answers
+        for (Answer a : answerOrder) {
+            ClassificationAnalysis<Backend> classification =
+                    backendAnswers.getOrDefault(a, new ClassificationAnalysis<>());
+
+            Long amount = classification
+                    .getCount(b);
+            Double fraction = amount / (double) predCount;
+            summary.append("  ").append(amount).append(" are ").append(a)
+                    .append(" (").append(fraction * 100).append("%)");
+            summary.append('\n');
+
+            // Intersatisfiability
+            Set<Set<Backend>> multilabels = classification.getSeenMultilabels()
+                    .stream().filter(s -> s.contains(b)).collect(Collectors.toSet());
+            for (Set<Backend> others : multilabels) {
+                if (others.size() <= 1) {
+                    continue; // Should be this very backend
+                }
+
+                String combination = others.stream()
+                        .filter(x -> !x.equals(b)) // don't print this backend
+                        .map(Backend::getDescriptionString)
+                        .collect(Collectors.joining(" & "));
+
+                Long othersCount = classification.getCount(others);
+                summary.append("    ")
+                        .append(othersCount)
+                        .append(" (").append(100 * othersCount / (double) amount).append("%)")
+                        .append(" where also ").append(a)
+                        .append(" for ").append(combination);
+                summary.append('\n');
+            }
+
+        }
+
+        // Fastest
+        Long fst = fastest.getCount(b);
+        if (fst > 0) {
+            int answered = answeredRegressions.getOrDefault(b, new RegressionAnalysis<>())
+                    .getSampleCount();
+            summary.append("  Fastest for ")
+                    .append(fst).append(" of ").append(answered)
+                    .append(" answered predicates")
+                    .append(" (").append(fst / (double) answered * 100).append("%)");
+        } else {
+            summary.append("  Never the fastest");
+        }
+        summary.append('\n');
+
+
+        return summary.toString();
+    }
+
+    @Override
+    public String toString() {
+        return getSummary();
     }
 
     public Set<Backend> getBackendsSeen() {
