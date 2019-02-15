@@ -162,18 +162,21 @@ public class PredDbAnalysis
         for (Map.Entry<Answer, Set<Backend>> entry : clusterBackendsByAnswer(metrics).entrySet()) {
             Answer answer = entry.getKey();
             Set<Backend> cluster = entry.getValue();
+            log.debug("Add answer {} for cluster {}", answer, cluster);
             Backend[] clusterArray = cluster.toArray(new Backend[0]);
             addAnswer(answer, clusterArray);
-
-            // Add seen backends
-            backendsSeen.addAll(cluster);
         }
 
-        // Regression
-        addRuntimes(metrics.getResults());
+        // Add seen backends
+        backendsSeen.addAll(metrics.getResults().keySet());
 
         // fastest
+        log.debug("Analyse fastest answer for {}", data);
         countFastest(metrics.getResults());
+
+        // Regression
+        log.debug("Analyse runtime metrics for {}", data);
+        addRuntimes(metrics.getResults());
 
         return this;
     }
@@ -264,7 +267,6 @@ public class PredDbAnalysis
         if (!backendAnswers.containsKey(answer)) {
             backendAnswers.put(answer, new ClassificationAnalysis<>());
         }
-
         backendAnswers.get(answer).add(backends);
     }
 
