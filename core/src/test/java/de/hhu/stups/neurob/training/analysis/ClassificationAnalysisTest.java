@@ -194,6 +194,36 @@ class ClassificationAnalysisTest {
         assertEquals(analysis1, analysis2);
     }
 
+    @Test
+    void shouldReturnSeenMultiLabels() {
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
+
+        analysis.add(1, 2).add(2, 3).add(1, 3).add(1);
+
+        Set<Set<Integer>> expected = new HashSet<>();
+        expected.add(toSet(1));
+        expected.add(toSet(1, 2));
+        expected.add(toSet(2, 3));
+        expected.add(toSet(1, 3));
+
+        Set<Set<Integer>> actual = analysis.getSeenMultilabels();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldReturnSeenClasses() {
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
+
+        analysis.add(1, 2).add(2, 3).add(1, 3).add(1);
+
+        Set<Integer> expected = toSet(1, 2, 3);
+
+        Set<Integer> actual = analysis.getSeenClasses();
+
+        assertEquals(expected, actual);
+    }
+
     Set<Integer> toSet(Integer... entry) {
         return Arrays.stream(entry).collect(Collectors.toSet());
     }

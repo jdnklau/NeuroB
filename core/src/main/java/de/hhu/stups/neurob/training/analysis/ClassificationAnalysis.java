@@ -3,19 +3,12 @@ package de.hhu.stups.neurob.training.analysis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Analysis for classification tasks.
@@ -33,7 +26,7 @@ import java.util.stream.Stream;
  *
  * @param <C> Type of Class labels.
  */
-public class ClassificationAnalysis<C> implements AnalysisData<C, ClassificationAnalysis<C>>{
+public class ClassificationAnalysis<C> implements AnalysisData<C, ClassificationAnalysis<C>> {
     /** Classes to be used. Implies an ordering. */
     private Map<Set<C>, Long> classCounters;
 
@@ -66,7 +59,7 @@ public class ClassificationAnalysis<C> implements AnalysisData<C, Classification
         Long count = classCounters.keySet()
                 .stream().filter(k -> k.containsAll(key))
                 .map(classCounters::get)
-                .reduce(0L, (a, b) -> a+b);
+                .reduce(0L, (a, b) -> a + b);
         return count;
     }
 
@@ -109,6 +102,27 @@ public class ClassificationAnalysis<C> implements AnalysisData<C, Classification
     public ClassificationAnalysis<C> add(C... sampleClass) {
         increaseCount(getKey(sampleClass));
         return this;
+    }
+
+    /**
+     * Returns the multi-labels seen so far.
+     * <p>
+     * Each inner set consists of labels for the combination of which
+     * at least one sample exists.
+     *
+     * @return
+     */
+    public Set<Set<C>> getSeenMultilabels() {
+        return classCounters.keySet();
+    }
+
+    /**
+     * Returns as set containing the distinct classes seen during analysis.
+     *
+     * @return
+     */
+    public Set<C> getSeenClasses() {
+        return getSeenMultilabels().stream().flatMap(Set::stream).collect(Collectors.toSet());
     }
 
     void increaseCount(Set<C> sampleClass) {
