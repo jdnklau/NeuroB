@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 
 public class DataCli implements CliModule {
 
-    private final Options options;
+    final Options options;
 
     public DataCli() {
         options = new Options();
@@ -53,7 +53,7 @@ public class DataCli implements CliModule {
                 "\n"
                 + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
                 + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS]\n"
-                + "       data -a SOURCE_DIR [FORMAT] [-c THREATS] [-[x]b BACKENDS]\n"
+                + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n"
                 + "\n";
 
     }
@@ -100,9 +100,9 @@ public class DataCli implements CliModule {
         // Analysis
         Option analyse = Option.builder("a")
                 .longOpt("analyse")
-                .hasArgs()
-                .argName("PATH")
-                .desc("Path to database to analyse")
+                .numberOfArgs(2)
+                .argName("PATH FORMAT")
+                .desc("Path to database to analyse and corresponding format")
                 .required()
                 .build();
 
@@ -175,7 +175,7 @@ public class DataCli implements CliModule {
 
             // Check for analysis
             if (line.hasOption("a")) {
-                Path sourceDir = Paths.get(line.getOptionValues("a")[0]);
+                Path sourceDir = parseSourceDirectory(line, "a");
 
                 String formatId = line.getOptionValues("a")[1];
                 List<Backend> backends = parseBackends(line);
@@ -184,16 +184,13 @@ public class DataCli implements CliModule {
                 PredicateDbFormat format = new JsonDbFormat(backends.toArray(new Backend[0]));
 
                 analyse(sourceDir, format, backends);
-            }
 
-            // load common values
-            Path targetDir = Paths.get(line.getOptionValues("t")[0]);
-            TrainingDataFormat targetFormat = Formats.parseFormat(line.getOptionValues("t")[1]);
+            } else if (line.hasOption("g")) {
+                TrainingDataFormat targetFormat = Formats.parseFormat(line.getOptionValues("t")[1]);
+                generate(line, parseTargetDirectory(line), targetFormat);
 
-            // Switch between migration and generation
-            if (line.hasOption("g")) {
-                generate(line, targetDir, targetFormat);
             } else if (line.hasOption("m")) {
+                TrainingDataFormat targetFormat = Formats.parseFormat(line.getOptionValues("t")[1]);
 
                 Path sourceDir = Paths.get(line.getOptionValues("m")[0]);
                 PredicateDbFormat sourceFormat =
@@ -201,7 +198,8 @@ public class DataCli implements CliModule {
 
                 // If the target format is a DbFormat as well, we need a different mode for migration
                 if (targetFormat instanceof PredicateDbFormat) {
-                    migrate(sourceDir, sourceFormat, targetDir, (PredicateDbFormat) targetFormat);
+                    migrate(sourceDir, sourceFormat, parseTargetDirectory(line),
+                            (PredicateDbFormat) targetFormat);
                 } else {
                     System.out.println("Not yet implemented");
                 }
@@ -284,18 +282,55 @@ public class DataCli implements CliModule {
      *
      * @return
      */
-    private List<Backend> parseBackends(CommandLine line) {
-        List<Backend> backends = new ArrayList<>();
+    List<Backend> parseBackends(CommandLine line) {
         if (line.hasOption('b')) {
+            String[] backends = line.getOptionValues('b');
             boolean crossCreate = line.hasOption('x');
-            for (String backend : line.getOptionValues('b')) {
+            return parseBackends(backends, crossCreate);
+        } else {
+            return Arrays.asList(PredDbEntry.DEFAULT_BACKENDS);
+        }
+    }
+
+    /**
+     * Parses the list of backends to use from the ids specified in the command line.
+     * Might cross-create the preferences.
+     * <p>
+     * This represents the -b option.
+     *
+     * @param ids Commandline entries given.
+     * @param crossCreate Whether the preferences shall be mixed.
+     *
+     * @return
+     */
+    List<Backend> parseBackends(String[] ids, boolean crossCreate) {
+        List<Backend> backends = new ArrayList<>();
+            for (String backend : ids) {
                 Arrays.stream(BackendId.makeBackends(backend, crossCreate))
                         .forEach(backends::add);
             }
-        } else {
-            backends = Arrays.asList(PredDbEntry.DEFAULT_BACKENDS);
-        }
         return backends;
+    }
+
+    Path parseSourceDirectory(CommandLine line, String fromOption) {
+        if (line.hasOption(fromOption)) {
+            return Paths.get(line.getOptionValues(fromOption)[0]);
+        }
+        return null;
+    }
+
+    Path parseTargetDirectory(CommandLine line) {
+        if (line.hasOption("t")) {
+            return Paths.get(line.getOptionValues("t")[0]);
+        }
+        return null;
+    }
+
+    int parseCores(CommandLine line) {
+        int numThreads = (line.hasOption("c"))
+                ? Integer.parseInt(line.getOptionValue("c"))
+                : Runtime.getRuntime().availableProcessors() - 1;
+        return numThreads;
     }
 
     private Collection<Path> getExcludes(CommandLine line) {

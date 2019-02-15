@@ -71,7 +71,7 @@ public enum BackendId {
 
     }
 
-    public static BackendId matchBackend(String parameter) {
+    static BackendId matchBackend(String parameter) {
         for (BackendId b : BackendId.values()) {
             if (parameter.startsWith(b.id)) {
                 return b;
@@ -82,7 +82,7 @@ public enum BackendId {
         return null;
     }
 
-    private static BPreference[] parsePrefs(String prefString) {
+    static BPreference[] parsePrefs(String prefString) {
         String[] prefArray = prefString.split(",");
         return Arrays.stream(prefArray)
                 .map(pref -> {
@@ -92,7 +92,7 @@ public enum BackendId {
                 .toArray(BPreference[]::new);
     }
 
-    private static Stream<Set<BPreference>> crossProducePrefs(BPreference[] prefs) {
+    static Stream<Set<BPreference>> crossProducePrefs(BPreference[] prefs) {
         int length = prefs.length;
 
         if (length <= 0) {
