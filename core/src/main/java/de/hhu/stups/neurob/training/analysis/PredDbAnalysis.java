@@ -10,13 +10,16 @@ import de.hhu.stups.neurob.core.api.backends.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Summary of the analysis of a predicate database.
@@ -72,7 +75,7 @@ public class PredDbAnalysis
 
     private Long predCount;
     private ClassificationAnalysis<Answer> answers;
-    private Set<BPredicate> contradictions;
+    private Set<PredDbEntry> contradictions;
     private Map<Answer, ClassificationAnalysis<Backend>> backendAnswers;
     private Set<BMachine> bMachines;
 
@@ -132,6 +135,8 @@ public class PredDbAnalysis
             summary.append("NOTE: There were ").append(contradictions.size())
                     .append(" contradictions!")
                     .append("\n");
+            contradictions.stream().map(this::getContradictionSummary)
+                    .forEach(summary::append);
         }
 
         // Backend-specific data
@@ -206,6 +211,45 @@ public class PredDbAnalysis
         return summary.toString();
     }
 
+    public String getContradictionSummary(PredDbEntry dbEntry) {
+        StringBuilder summary = new StringBuilder();
+        BPredicate predicate = dbEntry.getPredicate();
+
+        List<Backend> valids = new ArrayList<>();
+        List<Backend> invalids = new ArrayList<>();
+
+        for (Map.Entry<Backend, TimedAnswer> pair : dbEntry.getResults().entrySet()) {
+            Backend b = pair.getKey();
+            TimedAnswer answer = pair.getValue();
+
+            switch (answer.getAnswer()) {
+                case VALID:
+                    valids.add(b);
+                    break;
+                case INVALID:
+                    invalids.add(b);
+                    break;
+            }
+        }
+
+        summary.append("  ").append(predicate);
+        summary.append('\n');
+        summary.append("    VALID for ");
+        valids.stream()
+                .flatMap(b -> Stream.of(", ", b.getDescriptionString()))
+                .skip(1)
+                .forEach(summary::append);
+        summary.append('\n');
+        summary.append("    INVALID for ");
+        invalids.stream()
+                .flatMap(b -> Stream.of(", ", b.getDescriptionString()))
+                .skip(1)
+                .forEach(summary::append);
+        summary.append('\n');
+
+        return summary.toString();
+    }
+
     @Override
     public String toString() {
         return getSummary();
@@ -247,7 +291,7 @@ public class PredDbAnalysis
         // Classification: Predicate level
         log.info("Analysing metrics of {}", data);
         predCount++;
-        countBestAnswer(data, metrics.getResults().values());
+        countBestAnswer(data, metrics);
         // Classification: Backend Level
         for (Map.Entry<Answer, Set<Backend>> entry : clusterBackendsByAnswer(metrics).entrySet()) {
             Answer answer = entry.getKey();
@@ -302,8 +346,9 @@ public class PredDbAnalysis
         return result;
     }
 
-    void countBestAnswer(BPredicate pred, Collection<TimedAnswer> values) {
+    void countBestAnswer(BPredicate pred, PredDbEntry dbEntry) {
         Answer best = Answer.ERROR;
+        Collection<TimedAnswer> values = dbEntry.getResults().values();
 
         for (TimedAnswer timedAnswer : values) {
             Answer answer = timedAnswer.getAnswer();
@@ -334,7 +379,7 @@ public class PredDbAnalysis
                 || best.equals(Answer.INVALID) && answer.equals(Answer.VALID)) {
                 log.warn("Contradiction found: {} is classified as VALID and INVALID "
                          + "by different backends", pred);
-                contradictions.add(pred);
+                contradictions.add(dbEntry);
                 return;
             }
         }
@@ -403,14 +448,14 @@ public class PredDbAnalysis
     }
 
     /**
-     * Gets the predicates which lead to contradictions.
+     * Gets the database entries which contain a contradiction.
      * <p>
      * A contradiction is caused by a predicate being classified as VALID by one,
      * and INVALID by another backend.
      *
      * @return
      */
-    public Set<BPredicate> getContradictions() {
+    public Set<PredDbEntry> getContradictions() {
         return contradictions;
     }
 

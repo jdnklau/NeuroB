@@ -40,9 +40,9 @@ class PredDbAnalysisTest {
     @Test
     void shouldCountTimeoutWhenTimeoutAndError() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answers = new ArrayList<>();
-        answers.add(error);
-        answers.add(timeout);
+
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry answers = new PredDbEntry(null, null, backends, error, timeout);
 
         analysis.countBestAnswer(null, answers);
 
@@ -52,9 +52,9 @@ class PredDbAnalysisTest {
     @Test
     void shouldCountUnknownWhenTimeoutAndUnknown() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answers = new ArrayList<>();
-        answers.add(timeout);
-        answers.add(unknown);
+
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry answers = new PredDbEntry(null, null, backends, unknown, timeout);
 
         analysis.countBestAnswer(null, answers);
 
@@ -64,9 +64,9 @@ class PredDbAnalysisTest {
     @Test
     void shouldCountSolvableWhenSolvableAndUnknown() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answers = new ArrayList<>();
-        answers.add(unknown);
-        answers.add(solvable);
+
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry answers = new PredDbEntry(null, null, backends, unknown, solvable);
 
         analysis.countBestAnswer(null, answers);
 
@@ -76,9 +76,9 @@ class PredDbAnalysisTest {
     @Test
     void shouldCountValidWhenSolvableAndValid() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answers = new ArrayList<>();
-        answers.add(valid);
-        answers.add(solvable);
+
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry answers = new PredDbEntry(null, null, backends, valid, solvable);
 
         analysis.countBestAnswer(null, answers);
 
@@ -86,11 +86,11 @@ class PredDbAnalysisTest {
     }
 
     @Test
-    void shouldCountInvalidWhenSolvableAndValid() {
+    void shouldCountInvalidWhenSolvableAndInvalid() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answers = new ArrayList<>();
-        answers.add(invalid);
-        answers.add(solvable);
+
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry answers = new PredDbEntry(null, null, backends, invalid, solvable);
 
         analysis.countBestAnswer(null, answers);
 
@@ -100,10 +100,10 @@ class PredDbAnalysisTest {
     @Test
     void shouldCountValidAndInvalidAsSolvable() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answersValid = new ArrayList<>();
-        answersValid.add(valid);
-        List<TimedAnswer> answersInvalid = new ArrayList<>();
-        answersInvalid.add(invalid);
+
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry answersValid = new PredDbEntry(null, null, backends, valid, valid);
+        PredDbEntry answersInvalid = new PredDbEntry(null, null, backends, invalid, invalid);
 
         analysis.countBestAnswer(null, answersValid);
         analysis.countBestAnswer(null, answersInvalid);
@@ -121,11 +121,11 @@ class PredDbAnalysisTest {
     @Test
     void shouldCountContradictions() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answers = new ArrayList<>();
-        answers.add(invalid);
-        answers.add(valid);
 
-        analysis.countBestAnswer(null, answers);
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry contradiction = new PredDbEntry(null, null, backends, valid, invalid);
+
+        analysis.countBestAnswer(null, contradiction);
 
         assertEquals(new Long(1), analysis.getContradictionCount());
     }
@@ -133,11 +133,12 @@ class PredDbAnalysisTest {
     @Test
     void shouldNotCountContradictionsAsValidNorInvalid() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answers = new ArrayList<>();
-        answers.add(invalid);
-        answers.add(valid);
 
-        analysis.countBestAnswer(null, answers);
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry contradiction = new PredDbEntry(null, null, backends, valid, invalid);
+
+        analysis.countBestAnswer(null, contradiction);
+
         assertAll(
                 () -> assertEquals(new Long(0), analysis.getPredCount(Answer.VALID),
                         "Valid count does not match"),
@@ -149,10 +150,10 @@ class PredDbAnalysisTest {
     @Test
     void shouldNotCountContradictionWhenOnePredicateIsValidAndAnotherIsInvalid() {
         PredDbAnalysis analysis = new PredDbAnalysis();
-        List<TimedAnswer> answersValid = new ArrayList<>();
-        answersValid.add(valid);
-        List<TimedAnswer> answersInvalid = new ArrayList<>();
-        answersInvalid.add(invalid);
+
+        Backend[] backends = {new ProBBackend(), new KodkodBackend()};
+        PredDbEntry answersValid = new PredDbEntry(null, null, backends, valid, valid);
+        PredDbEntry answersInvalid = new PredDbEntry(null, null, backends, invalid, invalid);
 
         analysis.countBestAnswer(null, answersValid);
         analysis.countBestAnswer(null, answersInvalid);
