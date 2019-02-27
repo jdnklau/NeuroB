@@ -24,10 +24,10 @@
   - [ ] upsample training set
   - [ ] downsample training set
   - [ ] shuffle training set
-- [ ] Training set analysis
+- [x] Training set analysis
   - [x] Classification analysis tool
   - [x] Regression analysis tool
-  - [ ] PredicateDb analysis
+  - [x] PredicateDb analysis
 - [x] Data Base translation
   - [x] Migrate from old pdump to new JSON
   - [x] Translate Db to Training Format
