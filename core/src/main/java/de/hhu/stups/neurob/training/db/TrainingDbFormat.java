@@ -28,16 +28,22 @@ public interface TrainingDbFormat<D, L extends Labelling>
      * @throws IOException
      */
     default Stream<TrainingData<D, L>> loadTrainingData(Path source) throws IOException {
+        final Logger log = LoggerFactory.getLogger(TrainingDbFormat.class);
         return Files.walk(source)
                 .filter(p -> p.toString().endsWith(getFileExtension())) // only account for matching files
                 .map(dbFile ->
                 {
                     try {
+                        // Check whether file is valid
+                        if (!this.isValidFile(dbFile)) {
+                            log.warn("Found invalid file {}", dbFile);
+                            return null;
+                        }
                         return new TrainingData<>(
                                 this.getDataSource(dbFile),
                                 this.loadSamples(dbFile)); // FIXME: Is this getting properly closed?
                     } catch (IOException e) {
-                        // TODO: handle properly
+                        log.error("Unable to access {}", dbFile, e);
                         return null;
                     }
                 })
