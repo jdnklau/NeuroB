@@ -39,6 +39,15 @@ class ProBBackendTest {
     }
 
     @Test
+    public void shouldNotBeEqualWhenDifferentSettings() {
+        ProBBackend first = new ProBBackend(new BPreference("FOO", "BAR"));
+        ProBBackend second = new ProBBackend(new BPreference("FIZ", "BAZ"));
+
+        assertNotEquals(second, first,
+                "Backends should not be equal");
+    }
+
+    @Test
     public void shouldNotBeEqualWithDifferentBackend() {
         ProBBackend prob = new ProBBackend(Backend.defaultTimeOut, Backend.defaultTimeUnit);
         Backend other = mock(Backend.class);

@@ -477,7 +477,8 @@ public abstract class Backend {
         Backend other = (Backend) o;
 
         return this.timeOutValue == other.getTimeOutValue()
-               && this.timeOutUnit == other.getTimeOutUnit();
+               && this.timeOutUnit == other.getTimeOutUnit()
+               && this.preferences.equals(other.preferences);
     }
 
     /**
