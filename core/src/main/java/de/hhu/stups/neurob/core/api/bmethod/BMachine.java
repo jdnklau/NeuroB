@@ -50,4 +50,23 @@ public class BMachine implements BElement {
     public String toString() {
         return location + "[" + machineType + "]";
     }
+
+    @Override
+    public int hashCode() {
+        if (location == null) {
+            return 0;
+        }
+        return location.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof BMachine) {
+            BMachine other = (BMachine) o;
+            if (this.location == null)
+                return other.location == null;
+            return this.location.equals(other.location);
+        }
+        return false;
+    }
 }

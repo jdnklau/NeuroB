@@ -6,6 +6,7 @@ import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
@@ -44,16 +45,16 @@ class PredicateDbAnalyserTest {
     void shouldAnalyseStreamOfPredicates() throws IOException {
         // Setup stream
         Set<TrainingSample<BPredicate, PredDbEntry>> samples1 = new HashSet<>();
-        samples1.add(createSample("pred1", Answer.VALID, 100L, Answer.VALID, 300L, Answer.UNKNOWN, 100L));
-        samples1.add(createSample("pred2", Answer.TIMEOUT, 200L, Answer.TIMEOUT, 200L, Answer.ERROR, 300L));
-        samples1.add(createSample("pred3", Answer.VALID, 300L, Answer.ERROR, 500L, Answer.INVALID, 400L));
-        samples1.add(createSample("pred4", Answer.VALID, 400L, Answer.UNKNOWN, 100L, Answer.UNKNOWN, 600L));
+        samples1.add(createSample("pred1", "source1.mch", Answer.VALID, 100L, Answer.VALID, 300L, Answer.UNKNOWN, 100L));
+        samples1.add(createSample("pred2", "source1.mch", Answer.TIMEOUT, 200L, Answer.TIMEOUT, 200L, Answer.ERROR, 300L));
+        samples1.add(createSample("pred3", "source1.mch", Answer.VALID, 300L, Answer.ERROR, 500L, Answer.INVALID, 400L));
+        samples1.add(createSample("pred4", "source1.mch", Answer.VALID, 400L, Answer.UNKNOWN, 100L, Answer.UNKNOWN, 600L));
 
         Set<TrainingSample<BPredicate, PredDbEntry>> samples2 = new HashSet<>();
-        samples2.add(createSample("pred1", Answer.VALID, 100L, Answer.INVALID, 300L, Answer.VALID, 100L));
-        samples2.add(createSample("pred2", Answer.TIMEOUT, 200L, Answer.TIMEOUT, 200L, Answer.ERROR, 300L));
-        samples2.add(createSample("pred3", Answer.INVALID, 300L, Answer.ERROR, 500L, Answer.UNKNOWN, 400L));
-        samples2.add(createSample("pred4", Answer.ERROR, 400L, Answer.VALID, 100L, Answer.SOLVABLE, 600L));
+        samples2.add(createSample("pred5", "source2.mch", Answer.VALID, 100L, Answer.INVALID, 300L, Answer.VALID, 100L));
+        samples2.add(createSample("pred6", "source2.mch", Answer.TIMEOUT, 200L, Answer.TIMEOUT, 200L, Answer.ERROR, 300L));
+        samples2.add(createSample("pred7", "source2.mch", Answer.INVALID, 300L, Answer.ERROR, 500L, Answer.UNKNOWN, 400L));
+        samples2.add(createSample("pred8", "source3.mch", Answer.ERROR, 400L, Answer.VALID, 100L, Answer.SOLVABLE, 600L));
 
         when(dbFormat.loadTrainingData(any())).thenReturn(Stream.of(
                 new TrainingData<BPredicate, PredDbEntry>(null, samples1.stream()),
@@ -66,6 +67,9 @@ class PredicateDbAnalyserTest {
                 // Number of predicates
                 () -> assertEquals(new Long(8), analysis.getPredCount(),
                         "Number of Predicates does not match"),
+                // Number of B Machines
+                () -> assertEquals(3, analysis.getBMachineCount(),
+                        "Number of BMachines does not match"),
                 // Number of predicates per answer
                 () -> assertEquals(new Long(3), analysis.getPredCount(Answer.VALID),
                         "Number of VALID Predicates does not match"),
@@ -192,6 +196,7 @@ class PredicateDbAnalyserTest {
 
     private TrainingSample<BPredicate, PredDbEntry> createSample(
             String pred,
+            String source,
             Answer probAnswer, long probTime,
             Answer kodkodAnswer, long kodkodTime,
             Answer z3Answer, long z3Time) {
@@ -201,7 +206,7 @@ class PredicateDbAnalyserTest {
         TimedAnswer kodkodTimedAnswer = new TimedAnswer(kodkodAnswer, kodkodTime);
         TimedAnswer z3TimedAnswer = new TimedAnswer(z3Answer, z3Time);
 
-        PredDbEntry entry = new PredDbEntry(bpred, null, backends,
+        PredDbEntry entry = new PredDbEntry(bpred, new BMachine(source), backends,
                 probTimedAnswer, kodkodTimedAnswer, z3TimedAnswer);
         return new TrainingSample<>(bpred, entry);
     }

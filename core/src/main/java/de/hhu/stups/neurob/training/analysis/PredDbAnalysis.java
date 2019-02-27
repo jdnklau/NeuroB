@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.training.analysis;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
@@ -73,6 +74,7 @@ public class PredDbAnalysis
     private ClassificationAnalysis<Answer> answers;
     private Set<BPredicate> contradictions;
     private Map<Answer, ClassificationAnalysis<Backend>> backendAnswers;
+    private Set<BMachine> bMachines;
 
     /** All the different Backends seen so far. */
     private Set<Backend> backendsSeen;
@@ -98,6 +100,8 @@ public class PredDbAnalysis
         fastest = new ClassificationAnalysis<>();
 
         backendsSeen = new HashSet<>();
+
+        bMachines = new HashSet<>();
     }
 
     /**
@@ -110,6 +114,8 @@ public class PredDbAnalysis
 
         // General predicate information
         summary.append("Predicates seen in total: ").append(predCount);
+        summary.append('\n');
+        summary.append("  Collected from ").append(bMachines.size()).append(" B Machines");
         summary.append('\n');
         // Per Answer
         Answer[] answerOrder = {Answer.VALID, Answer.INVALID, Answer.SOLVABLE,
@@ -124,7 +130,8 @@ public class PredDbAnalysis
 
         if (contradictions.size() > 0) {
             summary.append("NOTE: There were ").append(contradictions.size())
-                    .append(" contradictions!");
+                    .append(" contradictions!")
+                    .append("\n");
         }
 
         // Backend-specific data
@@ -235,6 +242,8 @@ public class PredDbAnalysis
      * @return
      */
     public PredDbAnalysis add(BPredicate data, PredDbEntry metrics) {
+        // Count BMachine
+        bMachines.add(metrics.getSource());
         // Classification: Predicate level
         log.info("Analysing metrics of {}", data);
         predCount++;
@@ -751,6 +760,15 @@ public class PredDbAnalysis
     }
 
     /**
+     * Returns the number of BMachines from which the database was build.
+     *
+     * @return
+     */
+    public int getBMachineCount() {
+        return bMachines.size();
+    }
+
+    /**
      * Merges the data of the other analysis into this.
      * <p>
      * Returns reference to itself for method chaining.
@@ -769,6 +787,8 @@ public class PredDbAnalysis
 
         this.backendsSeen.addAll(other.backendsSeen);
         this.fastest.mergeWith(other.fastest);
+
+        this.bMachines.addAll(other.bMachines);
 
         // Merge classification map
         this.backendAnswers = mergeAnalysisMap(this.backendAnswers, other.backendAnswers);
