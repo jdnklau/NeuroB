@@ -50,7 +50,7 @@ public class DataCli implements CliModule {
     public String getUsageInfo() {
         return
                 "\n"
-                + "       data -m SOURCE_DIR [FORMAT] -t TARGET_DIR TARGET_FORMAT\n"
+                + "       data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
                 + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS]\n"
                 + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n"
                 + "\n";
@@ -83,8 +83,7 @@ public class DataCli implements CliModule {
                 .hasArgs()
                 .numberOfArgs(2)
                 .argName("PATH [FORMAT]")
-                .desc("Source directory from which the data is migrated."
-                      + " Database format defaults to jsonDb")
+                .desc("Source directory from which the data is migrated.")
                 .required()
                 .build();
 
@@ -240,10 +239,10 @@ public class DataCli implements CliModule {
                 ? Integer.parseInt(line.getOptionValue("s"))
                 : 1;
 
-        TrainingDataFormat format = parseFormat(line, "g");
+        TrainingDataFormat format = parseFormat(line, "t");
 
         // FIXME: Plain training data not supported yet
-        if (!(format instanceof PredicateLabelGenerating)) {
+        if (!(format instanceof PredicateDbFormat)) {
             System.out.println("Non-database formats not yet supported.");
             return;
         }
