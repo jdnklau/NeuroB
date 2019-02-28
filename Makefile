@@ -18,6 +18,9 @@ cli:
 .PHONY: clean
 clean:
 	./gradlew -q clean
+	rm -r build/
+	rm -r cli/out cli/bin
+	rm -r core/out core/bin
 
 .PHONY: test
 test:
