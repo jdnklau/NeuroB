@@ -4,10 +4,9 @@
 
 ### Training sets
 
-- [ ] Generation of training set
-  - [ ] Training data formats
+- [x] Generation of training set
+  - [x] Training data formats
     - [x] Loading of samples from the format
-    - [ ] Appending to a format
   - [x] Create DB
   - [x] Create features and labels
   - [x] Skip already existing data
@@ -15,7 +14,6 @@
     - [ ] _optional_ by versioned generation step
   - [x] Generation statistics
     - [x] Return statistics after creation of data
-    - [ ] ~~Split DataGeneration statistics into single file and directory hierarchy versions~~
   - [x] Wrap StateSpaces
   - [x] CLI Option to create data
   - [x] Incorporate BPredicate/BElement classes more
@@ -42,6 +40,7 @@
 
 ## Planned features
 
+- [ ] Appending to a format
 - [ ] enhanced documentation
   - [x] documentation of JSON entries, (legacy) Predicate dumps, other formats
   - [ ] usage examples
@@ -49,11 +48,11 @@
     - [x] Training data migration
     - [ ] Training/using neural networks
 - [ ] RNN support
-  - [x] set training set structure
+  - [ ] set training set structure
     - [ ] set/implement appropriate RecordReader
-  - [x] create RNNTrainingDataGenerator(s)
+  - [ ] create RNNTrainingDataGenerator(s)
   - [ ] create RNN features
-    - [x] raw predicate features
+    - [ ] raw predicate features
     - [ ] predicate AST features
 - [ ] Data augmentation utilities
   - [ ] PCA: whitening
@@ -70,10 +69,3 @@
   - [ ] Random forests 
   - [ ] Deep Forest
 
-# Future Work
-
-- model check machines
-    - generate 100 states per solver
-        - give credit to fastest one
-    - or: state space exploration over a fixed time
-        - give credit to the one with the most states generated
