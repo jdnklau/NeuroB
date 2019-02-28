@@ -70,6 +70,15 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
     }
 
     /**
+     * Returns the backends used by this format.
+     *
+     * @return
+     */
+    public Backend[] getBackendsUsed() {
+        return BACKENDS_USED;
+    }
+
+    /**
      * Returns a label generator that generates labels conforming this format's
      * backends.
      *
@@ -132,7 +141,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
 
     @Override
     public Boolean isValidFile(Path file) {
-        try (JsonReader reader = new JsonReader(Files.newBufferedReader(file))){
+        try (JsonReader reader = new JsonReader(Files.newBufferedReader(file))) {
             return isValidJsonDb(reader);
         } catch (Exception e) {
             return false;
@@ -168,7 +177,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         }
 
         log.info("Writing samples from {} to {}", sourceFile, targetFile);
-        try (BufferedWriter writer = Files.newBufferedWriter(targetFile)){
+        try (BufferedWriter writer = Files.newBufferedWriter(targetFile)) {
             DataGenerationStats writeStats =
                     writeSamples(trainingData, writer);
             writer.close();
