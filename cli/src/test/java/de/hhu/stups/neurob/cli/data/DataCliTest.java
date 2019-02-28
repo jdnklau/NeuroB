@@ -4,6 +4,9 @@ import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
+import de.hhu.stups.neurob.training.db.JsonDbFormat;
+import de.hhu.stups.neurob.training.formats.JsonFormat;
+import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.ParseException;
@@ -144,6 +147,46 @@ class DataCliTest {
         Path actual = new DataCli().parseTargetDirectory(line);
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldParseJsonFormat() throws ParseException {
+        String cliInput = "-g foo/ -t bar/ json";
+        CommandLine line = parseCommandLine(cliInput);
+
+        TrainingDataFormat format = new DataCli().parseFormat(line, "t");
+
+        assertTrue(format instanceof JsonFormat);
+    }
+
+    @Test
+    void shouldParseJsonDbFormat() throws ParseException {
+        String cliInput = "-g foo/ -t bar/ jsondb -b prob z3";
+        CommandLine line = parseCommandLine(cliInput);
+
+        TrainingDataFormat format = new DataCli().parseFormat(line, "t");
+
+        JsonDbFormat jsonDbFormat = (JsonDbFormat) format;
+
+        Backend[] expected = {new ProBBackend(), new Z3Backend()};
+        Backend[] actual = jsonDbFormat.getBackendsUsed();
+
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void shouldParseJsonDbFormatWithDefaultBackends() throws ParseException {
+        String cliInput = "-g foo/ -t bar/ jsondb";
+        CommandLine line = parseCommandLine(cliInput);
+
+        TrainingDataFormat format = new DataCli().parseFormat(line, "t");
+
+        JsonDbFormat jsonDbFormat = (JsonDbFormat) format;
+
+        Backend[] expected = JsonDbFormat.DEFAULT_BACKENDS;
+        Backend[] actual = jsonDbFormat.getBackendsUsed();
+
+        assertArrayEquals(expected, actual);
     }
 
     private List<Backend> backendList(Backend... backends) {

@@ -2,16 +2,15 @@ package de.hhu.stups.neurob.cli.data;
 
 import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
-import de.hhu.stups.neurob.cli.Formats;
+import de.hhu.stups.neurob.cli.formats.Formats;
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.training.analysis.PredDbAnalysis;
+import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
-import de.hhu.stups.neurob.training.generation.TrainingSetGenerator;
 import de.hhu.stups.neurob.training.migration.PredicateDbMigration;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -82,6 +81,7 @@ public class DataCli implements CliModule {
         Option migrate = Option.builder("m")
                 .longOpt("migrate")
                 .hasArgs()
+                .numberOfArgs(2)
                 .argName("PATH [FORMAT]")
                 .desc("Source directory from which the data is migrated."
                       + " Database format defaults to jsonDb")
@@ -177,24 +177,21 @@ public class DataCli implements CliModule {
             if (line.hasOption("a")) {
                 Path sourceDir = parseSourceDirectory(line, "a");
 
-                String formatId = line.getOptionValues("a")[1];
                 List<Backend> backends = parseBackends(line);
-                PredicateDbFormat dbFormat = (PredicateDbFormat) Formats.parseFormat(formatId);
-                // TODO: make use of format parsing
-                PredicateDbFormat format = new JsonDbFormat(backends.toArray(new Backend[0]));
 
-                analyse(sourceDir, format, backends);
+                PredicateDbFormat dbFormat = (PredicateDbFormat) parseFormat(line, "a");
+
+                analyse(sourceDir, dbFormat, backends);
 
             } else if (line.hasOption("g")) {
-                TrainingDataFormat targetFormat = Formats.parseFormat(line.getOptionValues("t")[1]);
-                generate(line, parseTargetDirectory(line), targetFormat);
+                generate(line, parseTargetDirectory(line));
 
             } else if (line.hasOption("m")) {
-                TrainingDataFormat targetFormat = Formats.parseFormat(line.getOptionValues("t")[1]);
+                TrainingDataFormat targetFormat = parseFormat(line, "t");
 
-                Path sourceDir = Paths.get(line.getOptionValues("m")[0]);
+                Path sourceDir = parseSourceDirectory(line, "m");
                 PredicateDbFormat sourceFormat =
-                        (PredicateDbFormat) Formats.parseFormat(line.getOptionValues("m")[1]);
+                        (PredicateDbFormat) parseFormat(line, "m");
 
                 // If the target format is a DbFormat as well, we need a different mode for migration
                 if (targetFormat instanceof PredicateDbFormat) {
@@ -207,7 +204,7 @@ public class DataCli implements CliModule {
             }
 
         } catch (ParseException e) {
-            System.out.println("Unable to parse command line arguments: " + e);
+            System.out.println("Unable to get command line arguments: " + e);
         }
     }
 
@@ -234,7 +231,7 @@ public class DataCli implements CliModule {
         }
     }
 
-    private void generate(CommandLine line, Path targetDir, TrainingDataFormat targetFormat) throws IOException {
+    private void generate(CommandLine line, Path targetDir) throws IOException {
         List<Backend> backends = parseBackends(line);
 
         Path sourceDir = Paths.get(line.getOptionValue("g"));
@@ -243,13 +240,21 @@ public class DataCli implements CliModule {
                 ? Integer.parseInt(line.getOptionValue("s"))
                 : 1;
 
-        // TODO: make use of target format
-        JsonDbFormat format = new JsonDbFormat(backends.toArray(new Backend[0]));
+        TrainingDataFormat format = parseFormat(line, "g");
+
+        // FIXME: Plain training data not supported yet
+        if (!(format instanceof PredicateLabelGenerating)) {
+            System.out.println("Non-database formats not yet supported.");
+            return;
+        }
+
+        PredicateDbFormat dbFormat = (PredicateDbFormat) format;
+
         PredicateTrainingGenerator generator = new PredicateTrainingGenerator(
                 (p, ss) -> p,
-                format.getLabelGenerator(),
+                new PredDbEntry.Generator(samplingSize, backends.toArray(new Backend[0])),
                 samplingSize,
-                format);
+                dbFormat);
 
         int numThreads = (line.hasOption("c"))
                 ? Integer.parseInt(line.getOptionValue("c"))
@@ -271,6 +276,28 @@ public class DataCli implements CliModule {
         } finally {
             threadPool.shutdown();
         }
+    }
+
+    /**
+     * Parses the format from the specified command line option.
+     * <p>
+     * Per convention, the identifier of the format resides in index position 1
+     * of the arguments to that option
+     *
+     * @param line
+     * @param fromOption
+     *
+     * @return
+     *
+     * @throws Exception
+     */
+    TrainingDataFormat parseFormat(CommandLine line, String fromOption) {
+        String[] arguments = line.getOptionValues(fromOption);
+        String formatId = arguments[1];
+
+        List<Backend> backends = parseBackends(line);
+
+        return Formats.parseFormat(formatId, backends);
     }
 
     /**
@@ -305,10 +332,10 @@ public class DataCli implements CliModule {
      */
     List<Backend> parseBackends(String[] ids, boolean crossCreate) {
         List<Backend> backends = new ArrayList<>();
-            for (String backend : ids) {
-                Arrays.stream(BackendId.makeBackends(backend, crossCreate))
-                        .forEach(backends::add);
-            }
+        for (String backend : ids) {
+            Arrays.stream(BackendId.makeBackends(backend, crossCreate))
+                    .forEach(backends::add);
+        }
         return backends;
     }
 

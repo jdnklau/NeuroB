@@ -1,22 +1,26 @@
-package de.hhu.stups.neurob.cli;
+package de.hhu.stups.neurob.cli.formats;
 
+import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.formats.JsonFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.migration.legacy.PredicateDumpFormat;
 
-import java.util.concurrent.Callable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 public enum Formats {
 
-    JSON("Json format for training", JsonFormat::new),
-    JSONDB("Json for predicate data bases", () -> new JsonDbFormat(JsonDbFormat.DEFAULT_BACKENDS)),
-    PDUMP("(Legacy) Predicate Dump data base format", PredicateDumpFormat::new);
+    JSON("Json format for training", (b) -> new JsonFormat()),
+    JSONDB("Json for predicate data bases", (b) -> new JsonDbFormat(b.toArray(new Backend[0]))),
+    PDUMP("(Legacy) Predicate Dump data base format", (b) -> new PredicateDumpFormat());
 
     public final String description;
-    public final Callable<TrainingDataFormat> getter;
+    public final FormatParser getter;
 
-    Formats(String id, Callable<TrainingDataFormat> getter) {
+    Formats(String id, FormatParser getter) {
         this.description = id;
         this.getter = getter;
     }
@@ -42,7 +46,11 @@ public enum Formats {
         return info.toString();
     }
 
-    public static TrainingDataFormat parseFormat(String id) throws Exception {
-        return Formats.valueOf(id.toUpperCase()).getter.call();
+    public static TrainingDataFormat parseFormat(String id) {
+        return Formats.valueOf(id.toUpperCase()).getter.get(new ArrayList<>());
+    }
+
+    public static TrainingDataFormat parseFormat(String id, List<Backend> backends) {
+        return Formats.valueOf(id.toUpperCase()).getter.get(backends);
     }
 }
