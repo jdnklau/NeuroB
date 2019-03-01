@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
@@ -25,10 +26,13 @@ class Z3BackendIT {
             throws FormulaException {
         Z3Backend z3 = new Z3Backend();
 
-        assertTrue(z3.isDecidable("TRUE = TRUE", bMachine),
+        AnnotatedAnswer answer = z3.solvePredicateUntimed(BPredicate.of("TRUE = TRUE"), bMachine);
+
+        assertEquals(Answer.VALID, answer.getAnswer(),
                 "Could not decide trivial predicate with Z3; "
                 + "might indicate that  Z3 is not available "
                 + "in executing system.");
+
     }
 
 }
