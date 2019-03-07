@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.training.db;
 
 import de.hhu.stups.neurob.core.labelling.Labelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
+import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
 import org.slf4j.Logger;
@@ -10,8 +11,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface TrainingDbFormat<D, L extends Labelling>
@@ -75,7 +79,8 @@ public interface TrainingDbFormat<D, L extends Labelling>
      * @param source Source of the training data to split.
      * @param first Location of the samples by the specified ratio.
      * @param second Location of the samples by the complement ratio.
-     * @param ratioFirst The ratio of samples partitioned into the first location over all samples
+     * @param ratioFirst The ratio of samples partitioned into the first location over all
+     *         samples
      *
      * @return Array with two entries of DataGenerationStats, index 0 corresponding to the first,
      *         index 1 corresponding to the second location.
@@ -96,7 +101,8 @@ public interface TrainingDbFormat<D, L extends Labelling>
      * @param source Source of the training data to split.
      * @param first Location of the samples by the specified ratio.
      * @param second Location of the samples by the complement ratio.
-     * @param ratioFirst The ratio of samples partitioned into the first location over all samples
+     * @param ratioFirst The ratio of samples partitioned into the first location over all
+     *         samples
      * @param seed Seed for the Random Number Generator
      *
      * @return Array with two entries of DataGenerationStats, index 0 corresponding to the first,
@@ -112,15 +118,38 @@ public interface TrainingDbFormat<D, L extends Labelling>
         Random rng = new Random(seed);
 
         loadTrainingData(source).map(d -> d.split(ratioFirst, rng))
-        .forEach(data -> {
-            try {
-                stats[0].mergeWith(writeSamples(data[0], first));
-                stats[1].mergeWith(writeSamples(data[1], second));
-            } catch (IOException e) {
-                log.error("Unable to split data from {}", data[0].getSourceFile(), e);
-            }
-        });
+                .forEach(data -> {
+                    try {
+                        stats[0].mergeWith(writeSamples(data[0], first));
+                        stats[1].mergeWith(writeSamples(data[1], second));
+                    } catch (IOException e) {
+                        log.error("Unable to split data from {}", data[0].getSourceFile(), e);
+                    }
+                });
 
         return stats;
+    }
+
+    default DataGenerationStats copyShuffled(Path source, Path target, Random rng) throws IOException {
+        final Logger log = LoggerFactory.getLogger(TrainingDbFormat.class);
+
+        List<TrainingSample<D, L>> samples = Files.walk(source)
+                .filter(this::isValidFile)
+                .flatMap(f -> {
+                    try {
+                        return loadSamples(f);
+                    } catch (IOException e) {
+                        log.error("Unable to load data from {}", f);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Collections.shuffle(samples, rng);
+
+        TrainingData<D, L> shuffled = new TrainingData<>(source, samples.stream());
+
+        return writeSamples(shuffled, target);
     }
 }
