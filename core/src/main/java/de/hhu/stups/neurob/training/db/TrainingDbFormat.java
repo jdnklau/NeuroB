@@ -133,17 +133,8 @@ public interface TrainingDbFormat<D, L extends Labelling>
     default DataGenerationStats copyShuffled(Path source, Path target, Random rng) throws IOException {
         final Logger log = LoggerFactory.getLogger(TrainingDbFormat.class);
 
-        List<TrainingSample<D, L>> samples = Files.walk(source)
-                .filter(this::isValidFile)
-                .flatMap(f -> {
-                    try {
-                        return loadSamples(f);
-                    } catch (IOException e) {
-                        log.error("Unable to load data from {}", f);
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
+        List<TrainingSample<D, L>> samples = loadTrainingData(source)
+                .flatMap(TrainingData::getSamples)
                 .collect(Collectors.toList());
 
         Collections.shuffle(samples, rng);
