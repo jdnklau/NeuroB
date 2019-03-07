@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 /**
  * Storage format for training data.
- *
+ * <p>
  * Stores labelled training data on disk.
  *
  * @param <D> Type of stored data
@@ -56,7 +56,7 @@ public interface TrainingDataFormat<D, L extends Labelling> {
 
     /**
      * Streams training samples from the given source file.
-     *
+     * <p>
      * As this is an IO access to the given sourceFile, the stream
      * needs to be closed after use.
      *
@@ -84,6 +84,7 @@ public interface TrainingDataFormat<D, L extends Labelling> {
      * Checks whether the file in the given path matches this format.
      *
      * @param file
+     *
      * @return
      */
     default Boolean isValidFile(Path file) {

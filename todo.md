@@ -18,7 +18,7 @@
   - [x] CLI Option to create data
   - [x] Incorporate BPredicate/BElement classes more
 - [ ] Training set manipulation
-  - [ ] Split training set
+  - [x] Split training set
   - [ ] upsample training set
   - [ ] downsample training set
   - [ ] shuffle training set
