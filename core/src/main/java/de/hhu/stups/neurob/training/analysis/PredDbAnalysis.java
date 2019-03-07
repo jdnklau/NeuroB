@@ -170,8 +170,11 @@ public class PredDbAnalysis
             summary.append('\n');
 
             // Intersatisfiability
-            Set<Set<Backend>> multilabels = classification.getSeenMultilabels()
-                    .stream().filter(s -> s.contains(b)).collect(Collectors.toSet());
+            List<Set<Backend>> multilabels = classification.getSeenMultilabels()
+                    .stream()
+                    .filter(s -> s.contains(b))
+                    .sorted((x, y) -> y.size() - x.size())
+                    .collect(Collectors.toList());
             for (Set<Backend> others : multilabels) {
                 if (others.size() <= 1) {
                     continue; // Should be this very backend

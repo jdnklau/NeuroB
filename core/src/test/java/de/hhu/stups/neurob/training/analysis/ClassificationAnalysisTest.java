@@ -89,6 +89,16 @@ class ClassificationAnalysisTest {
     }
 
     @Test
+    void shouldIncreaseCountForSubsetsOfMultilabel() {
+        ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
+
+        analysis.add(1, 2, 3).add(1, 2, 3);
+        Long expected = 2L;
+        Long actual = analysis.getCount(1, 2);
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void shouldIncreaseClassCountForEachSubsetInMultiLabelClassificationWhenSingleAdditon() {
         ClassificationAnalysis<Integer> analysis = new ClassificationAnalysis<>();
 
