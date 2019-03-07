@@ -4,6 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
+import com.sun.org.apache.regexp.internal.RE;
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
@@ -29,10 +31,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -195,6 +200,87 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
 
     public DataGenerationStats writeSamples(TrainingData<BPredicate, PredDbEntry> trainingData,
             Writer writer) throws IOException {
+        writer.write("{");
+        DataGenerationStats stats = addEntryToOpenWriter(trainingData, writer);
+        writer.write("}");
+        writer.flush();
+
+        return stats;
+    }
+
+    public DataGenerationStats writeSamples(
+            Stream<TrainingData<BPredicate, PredDbEntry>> dataStream,
+            Path targetFile) {
+        DataGenerationStats stats = new DataGenerationStats();
+
+        // Ensure target subdirectory exists
+        Path targetSubdir = targetFile.getParent();
+        try {
+            log.trace("Creating directory {}", targetSubdir);
+            Files.createDirectories(targetSubdir);
+        } catch (IOException e) {
+            log.error("Could not create target directory {}",
+                    targetSubdir, e);
+            return stats;
+        }
+
+        log.info("Writing samples to {}", targetFile);
+        try (BufferedWriter writer = Files.newBufferedWriter(targetFile)) {
+            DataGenerationStats writeStats =
+                    writeSamples(dataStream, writer);
+            writer.close();
+
+            stats.increaseFilesCreated();
+            stats.mergeWith(writeStats);
+        } catch (IOException e) {
+            log.warn("Could not create samples", e);
+        } finally {
+            log.trace("Closed write access to {}", targetFile);
+        }
+
+        return stats;
+    }
+
+    public DataGenerationStats writeSamples(
+            Stream<TrainingData<BPredicate, PredDbEntry>> dataStream,
+            Writer writer)
+            throws IOException {
+        // Open Json File
+        writer.write("{");
+
+        DataGenerationStats stats = new DataGenerationStats();
+
+        dataStream.flatMap(d -> Stream.of(null, d))
+                // null objects will be separators between the data
+                .skip(1) // skip first null
+                .forEach(d -> {
+                    if (d == null) {
+                        try {
+                            writer.write(",");
+                        } catch (IOException e) {
+                            log.error("Unable to write separator", e);
+                        }
+                    } else {
+                        try {
+                            stats.mergeWith(addEntryToOpenWriter(d, writer));
+                        } catch (IOException e) {
+                            log.error("Unable to add training data for {}", d.getSourceFile());
+                        }
+                    }
+                });
+
+        // Close Json File
+        writer.write("}");
+        writer.flush();
+
+        return stats;
+
+    }
+
+    DataGenerationStats addEntryToOpenWriter(
+            TrainingData<BPredicate, PredDbEntry> trainingData,
+            Writer writer)
+            throws IOException {
         // Set up stats
         DataGenerationStats stats = new DataGenerationStats();
 
@@ -202,7 +288,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         String machineHash = getMachineHash(trainingData.getAbsoluteSourcePath());
 
         // Header
-        writer.write("{\"" + trainingData.getSourceFile() + "\":{");
+        writer.write("\"" + trainingData.getSourceFile() + "\":{");
         writer.write("\"sha512\":\"" + machineHash + "\",");
         MachineType machineType = MachineType.predictTypeFromLocation(trainingData.getSourceFile());
         writer.write("\"formalism\":\"" + machineType + "\",");
@@ -232,8 +318,8 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
                         stats.increaseSamplesFailed();
                     }
                 });
-        // Footer: Close gathered-predicates array in machine object in file object
-        writer.write("]}}");
+        // Footer: Close gathered-predicates array in machine object
+        writer.write("]}");
         writer.flush();
 
         return stats;
@@ -317,6 +403,27 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
                             + "}";
         return answerData;
 
+    }
+
+    @Override
+    public DataGenerationStats copyShuffled(Path source, Path target, Random rng) throws IOException {
+        Path targetFile = target.resolve("shuffled.json");
+        log.info("Creating a shuffled copy of {} at {}", source, targetFile);
+
+        log.info("Loading data from {}", source);
+        List<TrainingSample<BPredicate, PredDbEntry>> samples = loadTrainingData(source)
+                .flatMap(TrainingData::getSamples)
+                .collect(Collectors.toList());
+        log.debug("Shuffling data");
+        Collections.shuffle(samples, rng);
+
+        log.info("Writing shuffled data to {}", targetFile);
+        Stream<TrainingData<BPredicate, PredDbEntry>> trainingDataStream =
+                samples.stream().map(s -> new TrainingData<>(s.getSourceFile(), Stream.of(s)));
+
+        DataGenerationStats stats = writeSamples(trainingDataStream, targetFile);
+
+        return stats;
     }
 
     @Override
