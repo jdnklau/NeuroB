@@ -21,7 +21,8 @@
   - [x] Split training set
   - [ ] upsample training set
   - [ ] downsample training set
-  - [ ] shuffle training set
+  - [x] shuffle training set
+  - [ ] shuffling of big data sets that do not fit totally into memory
 - [x] Training set analysis
   - [x] Classification analysis tool
   - [x] Regression analysis tool
