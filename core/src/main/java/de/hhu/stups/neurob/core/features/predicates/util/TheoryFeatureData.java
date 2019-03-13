@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  */
 public class TheoryFeatureData {
     // Dimensions
-    public static final int featureCount = 17;
+    public static final int FEATURE_COUNT = 17;
     // Helpers
     protected IdentifierRelationsHandler ids;
     // Features

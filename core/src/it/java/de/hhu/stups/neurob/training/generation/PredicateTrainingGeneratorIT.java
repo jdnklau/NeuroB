@@ -263,7 +263,7 @@ class PredicateTrainingGeneratorIT {
         when(backend.measureEvalTime(anyString(), any(MachineAccess.class)))
                 .thenReturn(1L);
 
-        CsvFormat format = new CsvFormat(TheoryFeatures.featureDimension, 1);
+        CsvFormat format = new CsvFormat(TheoryFeatures.FEATURE_DIMENSION, 1);
         PredicateTrainingGenerator generator =
                 new PredicateTrainingGenerator(
                         new TheoryFeatures.Generator(),

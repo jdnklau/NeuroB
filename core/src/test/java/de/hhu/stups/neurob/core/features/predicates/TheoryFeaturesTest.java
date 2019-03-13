@@ -118,7 +118,7 @@ class TheoryFeaturesTest {
     public void shouldHaveMatchingDimensions() throws Exception {
         TheoryFeatures features = new TheoryFeatures.Generator().generate(predicate);
 
-        int expected = TheoryFeatures.featureDimension;
+        int expected = TheoryFeatures.FEATURE_DIMENSION;
         int actual = features.getFeatureArray().length;
 
         assertEquals(expected, actual,

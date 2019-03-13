@@ -172,7 +172,7 @@ public class PredicateDbMigrationIT {
         migration.migrate(tmpJson, tmpCsv, MCH_DIR,
                 TheoryFeatures::new,
                 dbEntry -> new BackendClassification(dbEntry.getPredicate(), dbEntry.getBackendsUsed(), dbEntry.getResults()),
-                new CsvFormat(TheoryFeatures.featureDimension, 1));
+                new CsvFormat(TheoryFeatures.FEATURE_DIMENSION, 1));
 
         Path expectedCsv = Paths.get(getClass().getClassLoader().getResource("formats/csv/formulae_generation.csv").getFile());
         List<String> expected = Files.readAllLines(expectedCsv);

@@ -34,7 +34,7 @@ import de.hhu.stups.neurob.core.features.predicates.util.TheoryFeatureCollector;
  */
 public class TheoryFeatures extends PredicateFeatures {
 
-    public static final int featureDimension = 17;
+    public static final int FEATURE_DIMENSION = 17;
 
     /**
      * Generates the TheoryFeatures from the given predicate.
@@ -93,7 +93,7 @@ public class TheoryFeatures extends PredicateFeatures {
 
     /**
      * Wraps the given feature array in a TheoryFeature instance.
-     * The features must be exactly {@link #featureDimension} entries long.
+     * The features must be exactly {@link #FEATURE_DIMENSION} entries long.
      *
      * @param features
      */
@@ -103,7 +103,7 @@ public class TheoryFeatures extends PredicateFeatures {
 
     /**
      * Wraps the given feature array in a TheoryFeature instance.
-     * The features must be exactly {@link #featureDimension} entries long.
+     * The features must be exactly {@link #FEATURE_DIMENSION} entries long.
      *
      * @param predicate
      * @param features
@@ -114,7 +114,7 @@ public class TheoryFeatures extends PredicateFeatures {
 
     /**
      * Wraps the given feature array in a TheoryFeature instance.
-     * The features must be exactly {@link #featureDimension} entries long.
+     * The features must be exactly {@link #FEATURE_DIMENSION} entries long.
      *
      * @param predicate
      * @param features
@@ -122,10 +122,10 @@ public class TheoryFeatures extends PredicateFeatures {
     public TheoryFeatures(BPredicate predicate, Double... features) {
         super(predicate, features);
         // Check feature length
-        if (features.length != featureDimension) {
+        if (features.length != FEATURE_DIMENSION) {
             throw new IllegalArgumentException(
                     "TheoryFeatures need exactly "
-                    + featureDimension + " entries, "
+                    + FEATURE_DIMENSION + " entries, "
                     + "but received " + features.length);
         }
     }
@@ -165,9 +165,9 @@ public class TheoryFeatures extends PredicateFeatures {
     public static class Generator
             implements PredicateFeatureGenerating<TheoryFeatures> {
         @Override
-        public TheoryFeatures generate(BPredicate predicate, MachineAccess bMachine)
+        public TheoryFeatures generate(BPredicate predicate, MachineAccess machineAccess)
                 throws FeatureCreationException {
-            return new TheoryFeatures(predicate, generateArray(predicate, bMachine));
+            return new TheoryFeatures(predicate, generateArray(predicate, machineAccess));
         }
 
         public Double[] generateArray(BPredicate predicate, MachineAccess machineAccess)
