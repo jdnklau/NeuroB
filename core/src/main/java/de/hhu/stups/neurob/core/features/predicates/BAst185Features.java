@@ -17,8 +17,13 @@ public class BAst185Features extends PredicateFeatures {
         super(predicate, features);
 
         if (features.length != FEATURE_DIMENSION) {
-            throw new IllegalArgumentException("Must have 275 features exactly.");
+            throw new IllegalArgumentException("Must have 185 features exactly.");
         }
+    }
+
+    public BAst185Features(BPredicate predicate, MachineAccess access)
+            throws FeatureCreationException {
+        super(predicate, new BAst185Features.Generator().generateArray(predicate, access));
     }
 
     public static class Generator implements PredicateFeatureGenerating<BAst185Features> {
@@ -26,10 +31,13 @@ public class BAst185Features extends PredicateFeatures {
         @Override
         public BAst185Features generate(BPredicate predicate, @Nullable MachineAccess machineAccess)
                 throws FeatureCreationException {
+            return new BAst185Features(predicate, generateArray(predicate, machineAccess));
+        }
 
+        public Double[] generateArray(BPredicate predicate, MachineAccess machineAccess)
+                throws FeatureCreationException {
             BAstFeatureData data = BAstFeatureCollector.collect(predicate, machineAccess);
-            return new BAst185Features(predicate, generateArray(data));
-
+            return generateArray(data);
         }
 
         public static Double[] generateArray(BAstFeatureData data) {

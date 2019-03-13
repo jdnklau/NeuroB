@@ -21,15 +21,24 @@ public class BAst275Features extends PredicateFeatures {
         }
     }
 
-    public static class Generator implements PredicateFeatureGenerating<BAst275Features> {
+    public BAst275Features(BPredicate predicate, MachineAccess access)
+            throws FeatureCreationException {
+        super(predicate, new Generator().generateArray(predicate, access));
+    }
+
+    public static class Generator
+            implements PredicateFeatureGenerating<BAst275Features> {
 
         @Override
         public BAst275Features generate(BPredicate predicate, @Nullable MachineAccess machineAccess)
                 throws FeatureCreationException {
+            return new BAst275Features(predicate, generateArray(predicate, machineAccess));
+        }
 
+        public Double[] generateArray(BPredicate predicate, MachineAccess machineAccess)
+                throws FeatureCreationException {
             BAstFeatureData data = BAstFeatureCollector.collect(predicate, machineAccess);
-            return new BAst275Features(predicate, generateArray(data));
-
+            return generateArray(data);
         }
 
         public static Double[] generateArray(BAstFeatureData data) {
