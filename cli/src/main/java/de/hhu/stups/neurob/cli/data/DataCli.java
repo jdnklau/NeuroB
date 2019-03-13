@@ -4,11 +4,15 @@ import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
 import de.hhu.stups.neurob.cli.formats.Formats;
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
+import de.hhu.stups.neurob.core.features.predicates.BAst185Features;
+import de.hhu.stups.neurob.core.features.predicates.BAst275Features;
+import de.hhu.stups.neurob.core.features.predicates.TheoryFeatures;
+import de.hhu.stups.neurob.core.labelling.RuntimeRegression;
 import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
+import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
 import de.hhu.stups.neurob.training.migration.PredicateDbMigration;
@@ -50,10 +54,11 @@ public class DataCli implements CliModule {
     public String getUsageInfo() {
         return
                 "\n"
-                + "       data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS]\n"
-                + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n"
-                + "\n";
+                        + "       data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
+                        + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS]\n"
+                        + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n"
+                        + "       data -rm SOURCE_DIR FEATURE_DIMENSION -t TARGET_DIR -mch MACHINE_DIR -b BACKEND\n"
+                        + "\n";
 
     }
 
@@ -87,6 +92,16 @@ public class DataCli implements CliModule {
                 .required()
                 .build();
 
+        // Migration for regression
+        Option regressionMigrate = Option.builder("rm")
+                .longOpt("regression")
+                .hasArgs()
+                .numberOfArgs(2)
+                .argName("PATH DIMENSION")
+                .desc("Source directory from which the data is migrated and dimension of the feature vectors (default: 275).")
+                .required()
+                .build();
+
         // Generation
         Option generate = Option.builder("g")
                 .longOpt("generate-from")
@@ -107,6 +122,7 @@ public class DataCli implements CliModule {
 
         OptionGroup modeGroup = new OptionGroup();
         modeGroup.addOption(migrate);
+        modeGroup.addOption(regressionMigrate);
         modeGroup.addOption(generate);
         modeGroup.addOption(analyse);
 
@@ -116,6 +132,15 @@ public class DataCli implements CliModule {
                 .numberOfArgs(2)
                 .argName("PATH FORMAT")
                 .desc("Directory and format into which the generated data is placed.")
+                .optionalArg(true)
+                .build();
+
+        // Machine directory
+        Option machineSource = Option.builder("mch")
+                .longOpt("machine-dir")
+                .numberOfArgs(1)
+                .argName("PATH")
+                .desc("Path to the B machines from which the database was sampled.")
                 .build();
 
         // Number of cores
@@ -124,7 +149,7 @@ public class DataCli implements CliModule {
                 .hasArg()
                 .argName("THREADS")
                 .desc("Number of threads to be run in parallel. "
-                      + "Defaults to number of processors minus one.")
+                        + "Defaults to number of processors minus one.")
                 .build();
 
         Option exclude = Option.builder("i")
@@ -132,7 +157,7 @@ public class DataCli implements CliModule {
                 .hasArg()
                 .argName("EXCLUDE_FILE")
                 .desc("Path to a text file, linewise containing sources to be ignored during "
-                      + "data generation.")
+                        + "data generation.")
                 .build();
 
         Option samplingSize = Option.builder("s")
@@ -158,6 +183,7 @@ public class DataCli implements CliModule {
 
         options.addOptionGroup(modeGroup);
         options.addOption(target);
+        options.addOption(machineSource);
         options.addOption(backends);
         options.addOption(cross);
         options.addOption(lazy);
@@ -200,6 +226,13 @@ public class DataCli implements CliModule {
                     System.out.println("Not yet implemented");
                 }
 
+            } else if (line.hasOption("rm")) {
+                migrateRegression(
+                        parseSourceDirectory(line, "rm"),
+                        parseTargetDirectory(line),
+                        parseMachineDirectory(line),
+                        parseBackends(line).get(0),
+                        parseFeatureDimension(line));
             }
 
         } catch (ParseException e) {
@@ -227,6 +260,34 @@ public class DataCli implements CliModule {
                     .migrate(sourceDir, targetDir, targetFormat);
         } catch (IOException e) {
             System.out.println("Unable to migrate data base: " + e);
+        }
+    }
+
+    private void migrateRegression(Path sourceDir, Path targetDir, Path mchDir, Backend backend, int dimension)
+            throws IOException {
+        JsonDbFormat dbFormat = new JsonDbFormat(new Backend[]{backend});
+        PredicateDbMigration migration = new PredicateDbMigration(dbFormat);
+        switch (dimension) {
+            case 17:
+                migration.migrate(sourceDir, targetDir, mchDir,
+                        TheoryFeatures::new,
+                        dbEntry -> new RuntimeRegression(dbEntry.getPredicate(), backend, dbEntry.getResults()),
+                        new CsvFormat(TheoryFeatures.FEATURE_DIMENSION, 1));
+                break;
+            case 185:
+                migration.migrate(sourceDir, targetDir, mchDir,
+                        BAst185Features::new,
+                        dbEntry -> new RuntimeRegression(dbEntry.getPredicate(), backend, dbEntry.getResults()),
+                        new CsvFormat(BAst185Features.FEATURE_DIMENSION, 1));
+                break;
+            case 275:
+                migration.migrate(sourceDir, targetDir, mchDir,
+                        BAst275Features::new,
+                        dbEntry -> new RuntimeRegression(dbEntry.getPredicate(), backend, dbEntry.getResults()),
+                        new CsvFormat(BAst275Features.FEATURE_DIMENSION, 1));
+                break;
+            default:
+                break;
         }
     }
 
@@ -285,9 +346,7 @@ public class DataCli implements CliModule {
      *
      * @param line
      * @param fromOption
-     *
      * @return
-     *
      * @throws Exception
      */
     TrainingDataFormat parseFormat(CommandLine line, String fromOption) {
@@ -305,7 +364,6 @@ public class DataCli implements CliModule {
      * This represents the -b option.
      *
      * @param line
-     *
      * @return
      */
     List<Backend> parseBackends(CommandLine line) {
@@ -324,9 +382,8 @@ public class DataCli implements CliModule {
      * <p>
      * This represents the -b option.
      *
-     * @param ids Commandline entries given.
+     * @param ids         Commandline entries given.
      * @param crossCreate Whether the preferences shall be mixed.
-     *
      * @return
      */
     List<Backend> parseBackends(String[] ids, boolean crossCreate) {
@@ -352,11 +409,25 @@ public class DataCli implements CliModule {
         return null;
     }
 
+    Path parseMachineDirectory(CommandLine line) {
+        if (line.hasOption("mch")) {
+            return Paths.get(line.getOptionValues("mch")[0]);
+        }
+        return null;
+    }
+
     int parseCores(CommandLine line) {
         int numThreads = (line.hasOption("c"))
                 ? Integer.parseInt(line.getOptionValue("c"))
                 : Runtime.getRuntime().availableProcessors() - 1;
         return numThreads;
+    }
+
+    private int parseFeatureDimension(CommandLine line) {
+        if (line.hasOption("rm")) {
+            return Integer.parseInt(line.getOptionValues("rm")[1]);
+        }
+        return 275;
     }
 
     private Collection<Path> getExcludes(CommandLine line) {
