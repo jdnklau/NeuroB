@@ -36,6 +36,7 @@ public interface TrainingDbFormat<D, L extends Labelling>
     default Stream<TrainingData<D, L>> loadTrainingData(Path source) throws IOException {
         final Logger log = LoggerFactory.getLogger(TrainingDbFormat.class);
         return Files.walk(source)
+                .filter(Files::isRegularFile)
                 .filter(p -> p.toString().endsWith(getFileExtension())) // only account for matching files
                 .map(dbFile ->
                 {

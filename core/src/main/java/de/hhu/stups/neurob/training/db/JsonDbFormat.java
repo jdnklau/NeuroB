@@ -347,7 +347,9 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
         BPredicate predicate = sample.getData();
         String escapedPredicate = predicate.getPredicate()
                 .replaceAll("\\\\", "\\\\\\\\") // Escape backslashes
-                .replaceAll("\"", "\\\\\\\""); // escape quotation marks
+                .replaceAll("\"", "\\\\\\\"") // escape quotation marks
+                .replaceAll("\n", "\\\\n") // Escape line breaks
+                .replaceAll("\r", "\\\\r"); // Escape line feeds
 
         // Setup predicate attribute
         String predAttrib = "\"predicate\":\"" + escapedPredicate + "\"";

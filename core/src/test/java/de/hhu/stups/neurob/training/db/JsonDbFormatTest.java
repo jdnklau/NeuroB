@@ -481,6 +481,24 @@ class JsonDbFormatTest {
     }
 
     @Test
+    public void shouldEscapeLinebreaksInPredicate() {
+        BPredicate predWithString = BPredicate.of("string = \"\n\r\"");
+        Path source = Paths.get("non/existent.mch");
+        PredDbEntry labels = getLabelling(predWithString.getPredicate());
+        TrainingSample<BPredicate, PredDbEntry> sample =
+                new TrainingSample<>(predWithString, labels, source);
+
+        JsonDbFormat format = new JsonDbFormat(BACKENDS_USED);
+
+        String expected = getPredicateJson("string = \\\"\\n\\r\\\"",
+                "c64f548a1142d08ae0554dba5365469ef976b6deb529ef3875867c725988c4c44ae7d8723d62"
+                + "d623b717f63fbe2792812dcffda3aea351ba5d3f6e15fc199eb2");
+        String actual = format.translateSampleToJsonObject(sample);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void shouldLoadSampleWhenPredicateHasBackslashes() throws IOException {
         String sampleJson = getPredicateJson("{1,2} /\\\\ {2,3} = {1,2,3}",
                 "7546137347059d6f816fe3fdeaa56fcb45a695df5f8fbb10b2c6f7c56ce25873529406"
