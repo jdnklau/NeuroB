@@ -15,12 +15,15 @@ import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
 import de.hhu.stups.neurob.training.generation.TrainingSetGenerator;
 import de.hhu.stups.neurob.training.generation.statistics.DataGenerationStats;
+import org.codehaus.groovy.tools.shell.IO;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -166,4 +169,98 @@ public class JsonDbFormatIT {
 
         assertTrue(gen.dataAlreadyExists(mch,json));
     }
+
+    @Test
+    void shouldContainAllDataInBuckets() throws IOException {
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path json = tmpDir.resolve("formulae_gen.json");
+        Files.copy(Paths.get(TestMachines.getDbPath("json/formulae_generation.json")), json);
+
+        JsonDbFormat format = new JsonDbFormat();
+
+        Path shuffle = tmpDir.resolve("shuffled.json");
+        Random rng = new Random(1);
+
+        format.shuffleWithBuckets(json, 2, tmpDir, rng);
+
+        Path bucket0 = tmpDir.resolve("bucket-0.json");
+        Path bucket1 = tmpDir.resolve("bucket-1.json");
+
+        long expected0 = 84;
+        long actual0 = format.loadSamples(bucket0).count();
+
+        long expected1 = 65;
+        long actual1 = format.loadSamples(bucket1).count();
+
+        long expectedSum = 149;
+        long actualSum = actual0 + actual1;
+
+        assertAll(
+                () -> assertEquals(expected0, actual0,
+                        "Number of samples in first bucket does not match."),
+                () -> assertEquals(expected1, actual1,
+                        "Number of samples in second bucket does not match."),
+                () -> assertEquals(expectedSum, actualSum,
+                        "Sum of samples from both buckets does not match.")
+        );
+    }
+
+    @Test
+    void shouldContainAllDataAfterShuffling() throws IOException {
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path json = tmpDir.resolve("formulae_gen.json");
+        Files.copy(Paths.get(TestMachines.getDbPath("json/formulae_generation.json")), json);
+
+        JsonDbFormat format = new JsonDbFormat();
+
+        Path shuffle = tmpDir.resolve("shuffled.json");
+        Random rng = new Random(1);
+
+        format.shuffleWithBuckets(json, 2, tmpDir, rng);
+
+        long expected = format.loadSamples(json).count(); // 149
+        long actual = format.loadSamples(shuffle).count();
+
+        assertEquals(expected, actual, "Number of samples in shuffled data does not match");
+    }
+
+    @Test
+    void shouldBeValidJsonAfterBucketShuffle() throws IOException {
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path json = tmpDir.resolve("formulae_gen.json");
+        Files.copy(Paths.get(TestMachines.getDbPath("json/formulae_generation.json")), json);
+
+        JsonDbFormat format = new JsonDbFormat();
+
+        Path shuffle = tmpDir.resolve("shuffled.json");
+        Random rng = new Random(1);
+
+        format.shuffleWithBuckets(json, 2, tmpDir, rng);
+
+        assertTrue(format.isValidFile(shuffle));
+
+    }
+
+    @Test
+    void shouldShuffleFileWithBuckets() throws IOException {
+        Path tmpDir = Files.createTempDirectory("neurob-it");
+        Path json = tmpDir.resolve("formulae_gen.json");
+        Path expectedShuffle = Paths.get(TestMachines.getDbPath("json/formulae_generation_shuffled.json"));
+        Files.copy(Paths.get(TestMachines.getDbPath("json/formulae_generation.json")), json);
+
+        JsonDbFormat format = new JsonDbFormat();
+
+        Path shuffle = tmpDir.resolve("shuffled.json");
+        Random rng = new Random(1);
+
+        format.shuffleWithBuckets(json, 2, tmpDir, rng);
+
+        List<TrainingSample<BPredicate, PredDbEntry>> expected =
+                format.loadSamples(expectedShuffle).collect(Collectors.toList());
+        List<TrainingSample<BPredicate, PredDbEntry>> actual =
+                format.loadSamples(shuffle).collect(Collectors.toList());
+
+        assertEquals(expected, actual, "Shuffled order is unexpected");
+    }
+
 }

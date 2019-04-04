@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
@@ -423,6 +422,142 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
                 samples.stream().map(s -> new TrainingData<>(s.getSourceFile(), Stream.of(s)));
 
         DataGenerationStats stats = writeSamples(trainingDataStream, targetFile);
+
+        return stats;
+    }
+
+    @Override
+    public DataGenerationStats shuffleWithBuckets(Path source, int numBuckets, Path targetDir, Random rng)
+            throws IOException {
+        log.info("Shuffling data from {}", source);
+        // Ensure target directory exists
+        try {
+            log.trace("Creating directory {}", targetDir);
+            Files.createDirectories(targetDir);
+        } catch (IOException e) {
+            log.error("Could not create target directory {}",
+                    targetDir, e);
+            return new DataGenerationStats();
+        }
+
+        // Prepare buckets
+        log.info("Splitting data into {} buckets at {}", numBuckets, targetDir);
+        Path[] bucketPaths = new Path[numBuckets];
+        Writer[] buckets = new Writer[numBuckets];
+        final String ext = getFileExtension();
+        for (int i = 0; i < numBuckets; i++) {
+            bucketPaths[i] = targetDir.resolve("bucket-" + i + "." + ext);
+
+            buckets[i] = Files.newBufferedWriter(bucketPaths[i]);
+            buckets[i].write("{"); // Begin Json.
+            buckets[i].flush();
+        }
+
+        splitIntoBuckets(loadTrainingData(source), buckets, rng);
+
+        // Close buckets
+        for (Writer b : buckets) {
+//            b.write("\b}"); // Replace ',' at end with '}'
+            b.flush();
+            b.close();
+        }
+
+        // Merge buckets into single file
+        Path shuffleFilePath = targetDir.resolve("shuffled." + getFileExtension());
+        return mergeShuffledBuckets(shuffleFilePath, bucketPaths, rng);
+
+    }
+
+    void splitIntoBuckets(
+            Stream<TrainingData<BPredicate, PredDbEntry>> trainingData,
+            Writer[] buckets,
+            Random rng) {
+
+        trainingData
+                .flatMap(TrainingData::getSamples)
+                .forEach(s -> writeSampleToRandomBucket(s, buckets, rng));
+    }
+
+    void writeSampleToRandomBucket(
+            TrainingSample<BPredicate, PredDbEntry> sample,
+            Writer[] buckets,
+            Random rng) {
+        // Determine bucket.
+        int b = rng.nextInt(buckets.length);
+        // Need training data with single value for writing it to target bucket
+        TrainingData<BPredicate, PredDbEntry> data =
+                new TrainingData<>(sample.getSourceFile(), Stream.of(sample));
+        try {
+            addEntryToOpenWriter(data, buckets[b]);
+            buckets[b].write(","); // FIXME: Will also be written after last sample, maybe leading to faulty JSON format
+            buckets[b].flush();
+        } catch (IOException e) {
+            log.error("Unable to write {} to bucket", sample, e);
+            new DataGenerationStats();
+        }
+    }
+
+    /**
+     * Merges data from bucket files into a single file.
+     *
+     * @param mergeFile Target file
+     * @param bucketPaths Array of paths to buckets to be merged
+     *
+     * @return
+     *
+     * @throws IOException
+     */
+    DataGenerationStats mergeShuffledBuckets(Path mergeFile, Path[] bucketPaths, Random rng)
+            throws IOException {
+        // Collect bucket data into single file
+        log.info("Shuffling data from buckets and merging them into {}", mergeFile);
+
+        log.trace("Setting up {}", mergeFile);
+        Writer shuffleFile = Files.newBufferedWriter(mergeFile);
+        shuffleFile.write("{");
+        shuffleFile.flush();
+
+        DataGenerationStats stats = new DataGenerationStats();
+        stats.increaseFilesCreated();
+        int numBuckets = bucketPaths.length;
+        for (int i = 0; i < numBuckets; i++) {
+            Path b = bucketPaths[i];
+            log.error("Loading bucket {}", b);
+            List<TrainingSample<BPredicate, PredDbEntry>> samples =
+                    loadSamples(b).collect(Collectors.toList());
+            log.info("Shuffling bucket {}", b);
+            Collections.shuffle(samples, rng);
+            Stream<TrainingData<BPredicate, PredDbEntry>> trainingDataStream =
+                    samples.stream().map(s -> new TrainingData<>(s.getSourceFile(), Stream.of(s)));
+
+            log.error("Writing shuffled data to {}", mergeFile);
+            trainingDataStream
+                    .flatMap(d -> Stream.of(null, d))
+                    .skip(1)
+                    .forEach(d -> {
+                        if (d == null) {
+                            try {
+                                shuffleFile.write(",");
+                            } catch (IOException e) {
+                                log.error("Unable to write separator", e);
+                            }
+                        } else {
+                            try {
+                                stats.mergeWith(addEntryToOpenWriter(d, shuffleFile));
+                            } catch (IOException e) {
+                                log.error("Unable to write {} to {}", d, mergeFile);
+                            }
+                        }
+                    });
+
+            if (i + 1 < numBuckets) {
+                shuffleFile.write(","); // Separate contents of multiple buckets
+            }
+        }
+
+        // Closing target file
+        shuffleFile.write("}"); // Close Json
+        shuffleFile.close();
 
         return stats;
     }

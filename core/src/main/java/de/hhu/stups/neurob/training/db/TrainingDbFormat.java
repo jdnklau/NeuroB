@@ -144,4 +144,34 @@ public interface TrainingDbFormat<D, L extends Labelling>
 
         return writeSamples(shuffled, target);
     }
+
+    /**
+     * Shuffles the data set located at {@code source} by splitting it into
+     * the specified amount of buckets first, shuffling those,
+     * then assembling the data from all buckets into a single file file.
+     * <p>
+     * Let M be the number of buckets. Assuming N training samples in the source,
+     * M files (bucket-0.ext .. bucket-(M-1).ext with .ext being the
+     * {@link #getFileExtension() respective file extension})
+     * will be created in the targetDir.
+     * Each such bucket file will contain N/M samples on average
+     * (the distribution will happen uniformly but random).
+     * Chose an M which is small enough so it is possible to create M files and hold
+     * M open file handles,
+     * yet large enough that N/M samples fit easily into the available memory.
+     * <p>
+     * The resulting shuffled data file will be located at targetDir/shuffled.ext.
+     *
+     * @param source Path to the database
+     * @param numBuckets Number of buckets (M) to be used for shuffling
+     * @param targetDir Target directory to contain the shuffled data
+     * @param rng Random number generator which decides the splitting into buckets and
+     *         following shuffling
+     *
+     * @return
+     *
+     * @throws IOException
+     */
+    DataGenerationStats shuffleWithBuckets(Path source, int numBuckets, Path targetDir, Random rng)
+            throws IOException;
 }

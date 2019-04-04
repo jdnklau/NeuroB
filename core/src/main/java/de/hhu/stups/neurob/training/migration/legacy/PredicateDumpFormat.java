@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -220,6 +221,13 @@ public class PredicateDumpFormat implements PredicateDbFormat<PredDbEntry> {
                 .filter(line -> line.startsWith("#source:"))
                 .map(line -> line.substring(8))
                 .map(Paths::get)
-                .findFirst().get();
+                .findFirst().orElseGet(() -> null);
+    }
+
+    @Override
+    public DataGenerationStats shuffleWithBuckets(Path source, int numBuckets, Path targetDir, Random rng) throws IOException {
+        // TODO
+        log.error("Bucket shuffle of PDump not yet implemented");
+        return null;
     }
 }
