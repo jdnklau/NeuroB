@@ -51,7 +51,7 @@ public class DataCli implements CliModule {
         return
                 "\n"
                 + "       data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS]\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
                 + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n"
                 + "\n";
 
@@ -142,6 +142,11 @@ public class DataCli implements CliModule {
                 .desc("Number of times each sample is to be measured. Defaults to 1.")
                 .build();
 
+        Option noBackends = Option.builder("n")
+                .longOpt("no-backends")
+                .desc("Indicates that no backends shall be used instead of the default ones.")
+                .build();
+
         // BackendId
         Option cross = Option.builder("x")
                 .longOpt("cross-options")
@@ -159,6 +164,7 @@ public class DataCli implements CliModule {
         options.addOptionGroup(modeGroup);
         options.addOption(target);
         options.addOption(backends);
+        options.addOption(noBackends);
         options.addOption(cross);
         options.addOption(lazy);
         options.addOption(cores);
@@ -313,6 +319,8 @@ public class DataCli implements CliModule {
             String[] backends = line.getOptionValues('b');
             boolean crossCreate = line.hasOption('x');
             return parseBackends(backends, crossCreate);
+        } else if (line.hasOption('n')) {
+            return new ArrayList<>();
         } else {
             return Arrays.asList(PredDbEntry.DEFAULT_BACKENDS);
         }

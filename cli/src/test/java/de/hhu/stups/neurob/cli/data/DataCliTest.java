@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -66,7 +67,7 @@ class DataCliTest {
     @Test
     void shouldParseBackendsWhenCrossCreatingMultipleBackends() {
         String[] backendIds = {"prob[FOO=BAR,FIZ=BAZ]",
-                               "z3[BRRAP=BRRAPP"};
+                               "z3[BRRAP=BRRAPP]"};
 
         BPreference foo = BPreference.set("FOO", "BAR");
         BPreference fiz = BPreference.set("FIZ", "BAZ");
@@ -89,7 +90,7 @@ class DataCliTest {
     @Test
     void shouldParseBackendsWhenNotCrossCreatingMultipleBackends() {
         String[] backendIds = {"prob[FOO=BAR,FIZ=BAZ]",
-                "z3[BRRAP=BRRAPP"};
+                "z3[BRRAP=BRRAPP]"};
 
         BPreference foo = BPreference.set("FOO", "BAR");
         BPreference fiz = BPreference.set("FIZ", "BAZ");
@@ -101,6 +102,17 @@ class DataCliTest {
         ));
         Set<Backend> actual =
                 new HashSet<>(new DataCli().parseBackends(backendIds, false));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldParseNoBackends() throws ParseException {
+        String cli = "-g foo -t bar jsondb -n";
+        CommandLine line = parseCommandLine(cli);
+
+        List<Backend> expected = new ArrayList<>();
+        List<Backend> actual = new DataCli().parseBackends(line);
 
         assertEquals(expected, actual);
     }
