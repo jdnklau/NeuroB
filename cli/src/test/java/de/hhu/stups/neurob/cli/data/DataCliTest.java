@@ -71,7 +71,7 @@ class DataCliTest {
 
         BPreference foo = BPreference.set("FOO", "BAR");
         BPreference fiz = BPreference.set("FIZ", "BAZ");
-        BPreference brrap = BPreference.set("BRRAP", "BRRAP");
+        BPreference brrap = BPreference.set("BRRAP", "BRRAPP");
 
         Set<Backend> expected = new HashSet<>(backendList(
                 new ProBBackend(),
@@ -94,7 +94,7 @@ class DataCliTest {
 
         BPreference foo = BPreference.set("FOO", "BAR");
         BPreference fiz = BPreference.set("FIZ", "BAZ");
-        BPreference brrap = BPreference.set("BRRAP", "BRRAP");
+        BPreference brrap = BPreference.set("BRRAP", "BRRAPP");
 
         Set<Backend> expected = new HashSet<>(backendList(
                 new ProBBackend(foo, fiz),
