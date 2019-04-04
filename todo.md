@@ -4,7 +4,13 @@
 
 ### Training sets
 
-- [x] Generation of training set
+- [ ] Generation of predicates
+  - [ ] Use respective B model classes of ProB2
+  - [ ] subsitute definitions
+  - [ ] Generation of predicate lists
+- [ ] Generation of training set
+  - [x] From directory of machine files
+  - [ ] From predicate lists
   - [x] Training data formats
     - [x] Loading of samples from the format
   - [x] Create DB
@@ -60,6 +66,7 @@
   - [ ] add type information to identifiers
     - [ ] hungarian notation: "x + y" -> "xInt + yInt"
     - [ ] joshua notation: "x + y" -> "i1 + i2"
+  - [ ] Normalisation of predicates
 - [ ] Enhanced analysis of feature sets
   - [ ] feature dimensionality reduction
     - [ ] PCA
