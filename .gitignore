@@ -1,11 +1,16 @@
 ### Project specific
 # symbolic link for NeuroB cli script
 NeuroB
+neurob-cli
 # developer's personal todo list
 mytodo.md
 # different directories
 examples/
 .vscode/
+
+# Machine files
+prob_examples/
+exclude.list
 
 # logging specific
 src/main/resources/logback.xml
