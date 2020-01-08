@@ -86,7 +86,7 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 		LargeBASTFeatureData data = new LargeBASTFeatureData(source, bParser, mtype, ss);
 
 		// get some constants
-		final double epsilon = 0.000001; // for division if something could be 0
+		final double epsilon = 1e-7; // for division if something could be 0
 		final double conjuncts = data.getConjunctsCount();
 		final double arithmeticOps =
 				data.getArithmeticAdditionCount()
@@ -98,32 +98,27 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				+ data.getArithmeticGeneralisedSumCount()
 				+ data.getSuccCount()
 				+ data.getPredecCount()
-				+ data.getSizeComparisonCount()
-				+ epsilon;
+				+ data.getSizeComparisonCount();
 		final double quantifiers =
 				data.getExistentialQuantifiersCount()
-				+ data.getUniversalQuantifiersCount()
-				+ epsilon;
+				+ data.getUniversalQuantifiersCount();
 		final double setBelongings =
 				data.getMemberCount()
 				+ data.getNotMemberCount()
 				+ data.getNotSubsetCount()
-				+ data.getSubsetCount()
-				+ epsilon;
+				+ data.getSubsetCount();
 		final double setOperations =
 				data.getSetUnionCount()+data.getSetIntersectCount()
 				+ data.getSetSubtractionCount()
 				+ data.getSetGeneralIntersectCount()
 				+ data.getSetGeneralUnionCount()
 				+ data.getSetQuantifiedIntersectCount()
-				+ data.getSetQuantifiedUnionCount()
-				+ epsilon;
+				+ data.getSetQuantifiedUnionCount();
 		final double relations =
 				data.getRelationCount()
 				+ data.getRelationTotalCount()
 				+ data.getRelationSurjCount()
-				+ data.getRelationTotalSurjCount()
-				+ epsilon;
+				+ data.getRelationTotalSurjCount();
 		final double relationOps =
 				data.getRelationalImageCount()
 				+ data.getRelationInverseCount()
@@ -138,8 +133,7 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				+ data.getDomainRestrictionCount()
 				+ data.getDomainSubtractionCount()
 				+ data.getRangeRestrictionCount()
-				+ data.getRangeSubtractionCount()
-				+ epsilon;
+				+ data.getRangeSubtractionCount();
 		final double functions =
 				data.getFunPartialCount()
 				+ data.getFunTotalCount()
@@ -149,12 +143,10 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				+ data.getFunTotalSurjCount()
 				+ data.getFunPartialBijCount()
 				+ data.getFunTotalBijCount()
-				+ data.getLambdaCount()
-				+ epsilon;
+				+ data.getLambdaCount();
 		final double sequences =
 				+ data.getSeqCount()
-				+ data.getIseqCount()
-				+ epsilon;
+				+ data.getIseqCount();
 		final double sequenceOps =
 				+ data.getSizeCount()
 				+ data.getFirstCount()
@@ -168,11 +160,10 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				+ data.getTailInsertionCount()
 				+ data.getFrontRestrictionCount()
 				+ data.getTailRestrictionCount()
-				+ data.getGeneralConcatCount()
-				+ epsilon;
+				+ data.getGeneralConcatCount();
 
 		// identifiers
-		double ids = data.getIdentifiersCount()+epsilon;
+		double ids = data.getIdentifiersCount();
 
 
 		// setting up the data
@@ -201,7 +192,7 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				data.getBooleanConversionCount()/conjuncts,
 
 				// quantifiers
-				quantifiers-epsilon,
+				quantifiers,
 
 				data.getExistentialQuantifiersCount()/conjuncts, // exist. quant. per conjunct
 				data.getUniversalQuantifiersCount()/conjuncts, // univ. quant. per conjunct
@@ -209,16 +200,16 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 
 				quantifiers/conjuncts,
 
-				data.getExistentialQuantifiersCount()/quantifiers,
-				data.getUniversalQuantifiersCount()/quantifiers,
-				data.getQuantifierMaxDepthCount()/quantifiers,
+				data.getExistentialQuantifiersCount()/(quantifiers+epsilon),
+				data.getUniversalQuantifiersCount()/(quantifiers+epsilon),
+				data.getQuantifierMaxDepthCount()/(quantifiers+epsilon),
 
 				// equality and inequality
 				data.getEqualityCount()/conjuncts,
 				data.getInequalityCount()/conjuncts,
 
 				// identifiers
-				ids-epsilon,
+				ids,
 				data.getIdentifierRelationsCount(),
 
 				data.getIdentifierBoundedCount(),
@@ -240,17 +231,17 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				data.getIdentifierUnboundedDomainCount()/conjuncts,
 
 				// identifiers normalised over id count
-				data.getIdentifierRelationsCount()/ids,
+				data.getIdentifierRelationsCount()/(ids+epsilon),
 
-				data.getIdentifierBoundedCount()/ids,
-				data.getIdentifierSemiBoundedCount()/ids,
-				data.getIdentifierUnboundedCount()/ids,
-				data.getIdentifierBoundedDomainCount()/ids,
-				data.getIdentifierSemiBoundedDomainCount()/ids,
-				data.getIdentifierUnboundedDomainCount()/ids,
+				data.getIdentifierBoundedCount()/(ids+epsilon),
+				data.getIdentifierSemiBoundedCount()/(ids+epsilon),
+				data.getIdentifierUnboundedCount()/(ids+epsilon),
+				data.getIdentifierBoundedDomainCount()/(ids+epsilon),
+				data.getIdentifierSemiBoundedDomainCount()/(ids+epsilon),
+				data.getIdentifierUnboundedDomainCount()/(ids+epsilon),
 
 				// arithmetic
-				arithmeticOps-epsilon,
+				arithmeticOps,
 				data.getArithmeticAdditionCount(),
 				data.getArithmeticMultiplicationCount(),
 				data.getArithmeticDivisionCount(),
@@ -275,19 +266,19 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				arithmeticOps/conjuncts,
 
 				// arithmetic normalised over arithmetic
-				data.getArithmeticAdditionCount()/arithmeticOps,
-				data.getArithmeticMultiplicationCount()/arithmeticOps,
-				data.getArithmeticDivisionCount()/arithmeticOps,
-				data.getArithmeticModuloCount()/arithmeticOps,
-				data.getSizeComparisonCount()/arithmeticOps,
-				data.getArithmeticGeneralisedSumCount()/arithmeticOps,
-				data.getArithmeticGeneralisedProductCount()/arithmeticOps,
-				data.getSuccCount()/arithmeticOps,
-				data.getPredecCount()/arithmeticOps,
+				data.getArithmeticAdditionCount()/(arithmeticOps+epsilon),
+				data.getArithmeticMultiplicationCount()/(arithmeticOps+epsilon),
+				data.getArithmeticDivisionCount()/(arithmeticOps+epsilon),
+				data.getArithmeticModuloCount()/(arithmeticOps+epsilon),
+				data.getSizeComparisonCount()/(arithmeticOps+epsilon),
+				data.getArithmeticGeneralisedSumCount()/(arithmeticOps+epsilon),
+				data.getArithmeticGeneralisedProductCount()/(arithmeticOps+epsilon),
+				data.getSuccCount()/(arithmeticOps+epsilon),
+				data.getPredecCount()/(arithmeticOps+epsilon),
 
 				// set theory
-				setBelongings-epsilon,
-				setOperations-epsilon,
+				setBelongings,
+				setOperations,
 
 				data.getMemberCount(),
 				data.getNotMemberCount(),
@@ -332,21 +323,21 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				setOperations/conjuncts,
 
 				// set theory over sets
-				data.getMemberCount()/setBelongings,
-				data.getNotMemberCount()/setBelongings,
-				data.getSubsetCount()/setBelongings,
-				data.getNotSubsetCount()/setBelongings,
+				data.getMemberCount()/(setBelongings+epsilon),
+				data.getNotMemberCount()/(setBelongings+epsilon),
+				data.getSubsetCount()/(setBelongings+epsilon),
+				data.getNotSubsetCount()/(setBelongings+epsilon),
 
-				data.getSetUnionCount()/setOperations,
-				data.getSetIntersectCount()/setOperations,
-				data.getSetSubtractionCount()/setOperations,
-				data.getSetGeneralUnionCount()/setOperations,
-				data.getSetGeneralIntersectCount()/setOperations,
-				data.getSetQuantifiedUnionCount()/setOperations,
-				data.getSetQuantifiedIntersectCount()/setOperations,
+				data.getSetUnionCount()/(setOperations+epsilon),
+				data.getSetIntersectCount()/(setOperations+epsilon),
+				data.getSetSubtractionCount()/(setOperations+epsilon),
+				data.getSetGeneralUnionCount()/(setOperations+epsilon),
+				data.getSetGeneralIntersectCount()/(setOperations+epsilon),
+				data.getSetQuantifiedUnionCount()/(setOperations+epsilon),
+				data.getSetQuantifiedIntersectCount()/(setOperations+epsilon),
 
-				data.getSetComprehensionCount()/(setBelongings+data.getSetComprehensionCount()),
-				data.getSetComprehensionCount()/(setOperations+data.getSetComprehensionCount()),
+				data.getSetComprehensionCount()/((setBelongings+epsilon)+data.getSetComprehensionCount()),
+				data.getSetComprehensionCount()/((setOperations+epsilon)+data.getSetComprehensionCount()),
 
 				// power sets
 				data.getPowerSetCount(),
@@ -358,15 +349,15 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 
 				data.getPowerSetHigherOrderCounts()/(data.getPowerSetCount()+epsilon),
 
-				data.getPowerSetCount()/(setOperations+data.getPowerSetCount()),
-				data.getPowerSetHigherOrderCounts()/(setOperations+data.getPowerSetHigherOrderCounts()),
+				data.getPowerSetCount()/((setOperations+epsilon)+data.getPowerSetCount()),
+				data.getPowerSetHigherOrderCounts()/((setOperations+epsilon)+data.getPowerSetHigherOrderCounts()),
 
 				data.getMaxPowDepth()/(data.getPowerSetCount()+epsilon),
 				data.getMaxPowDepth()/(data.getPowerSetHigherOrderCounts()+epsilon),
 
 				// relations
-				relations-epsilon,
-				relationOps-epsilon,
+				relations,
+				relationOps,
 
 				data.getRelationCount(),
 				data.getRelationTotalCount(),
@@ -413,28 +404,28 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				relationOps/conjuncts,
 
 				// relations over relation theory
-				data.getRelationCount()/relations,
-				data.getRelationTotalCount()/relations,
-				data.getRelationSurjCount()/relations,
-				data.getRelationTotalSurjCount()/relations,
+				data.getRelationCount()/(relations+epsilon),
+				data.getRelationTotalCount()/(relations+epsilon),
+				data.getRelationSurjCount()/(relations+epsilon),
+				data.getRelationTotalSurjCount()/(relations+epsilon),
 
-				data.getRelationalImageCount()/relationOps,
-				data.getRelationInverseCount()/relationOps,
-				data.getRelationOverrideCount()/relationOps,
-				data.getRelationDirectProductCount()/relationOps,
-				data.getRelationParallelProductCount()/relationOps,
-				data.getDomainCount()/relationOps,
-				data.getRangeCount()/relationOps,
-				data.getProjection1Count()/relationOps,
-				data.getProjection2Count()/relationOps,
-				data.getForwardCompositionCount()/relationOps,
-				data.getDomainRestrictionCount()/relationOps,
-				data.getDomainSubtractionCount()/relationOps,
-				data.getRangeRestrictionCount()/relationOps,
-				data.getRangeSubtractionCount()/relationOps,
+				data.getRelationalImageCount()/(relationOps+epsilon),
+				data.getRelationInverseCount()/(relationOps+epsilon),
+				data.getRelationOverrideCount()/(relationOps+epsilon),
+				data.getRelationDirectProductCount()/(relationOps+epsilon),
+				data.getRelationParallelProductCount()/(relationOps+epsilon),
+				data.getDomainCount()/(relationOps+epsilon),
+				data.getRangeCount()/(relationOps+epsilon),
+				data.getProjection1Count()/(relationOps+epsilon),
+				data.getProjection2Count()/(relationOps+epsilon),
+				data.getForwardCompositionCount()/(relationOps+epsilon),
+				data.getDomainRestrictionCount()/(relationOps+epsilon),
+				data.getDomainSubtractionCount()/(relationOps+epsilon),
+				data.getRangeRestrictionCount()/(relationOps+epsilon),
+				data.getRangeSubtractionCount()/(relationOps+epsilon),
 
 				// functions
-				functions-epsilon,
+				functions,
 				data.getFunctionApplicationCount(),
 
 				data.getFunPartialCount(),
@@ -464,21 +455,21 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				(functions+data.getFunctionApplicationCount())/conjuncts,
 
 				// functions over function theory
-				data.getFunPartialCount()/functions,
-				data.getFunTotalCount()/functions,
-				data.getFunPartialInjCount()/functions,
-				data.getFunTotalInjCount()/functions,
-				data.getFunPartialSurjCount()/functions,
-				data.getFunTotalSurjCount()/functions,
-				data.getFunPartialBijCount()/functions,
-				data.getFunTotalBijCount()/functions,
-				data.getLambdaCount()/functions,
+				data.getFunPartialCount()/(functions+epsilon),
+				data.getFunTotalCount()/(functions+epsilon),
+				data.getFunPartialInjCount()/(functions+epsilon),
+				data.getFunTotalInjCount()/(functions+epsilon),
+				data.getFunPartialSurjCount()/(functions+epsilon),
+				data.getFunTotalSurjCount()/(functions+epsilon),
+				data.getFunPartialBijCount()/(functions+epsilon),
+				data.getFunTotalBijCount()/(functions+epsilon),
+				data.getLambdaCount()/(functions+epsilon),
 
-				data.getFunctionApplicationCount()/(functions+data.getFunctionApplicationCount()),
+				data.getFunctionApplicationCount()/((functions+epsilon)+data.getFunctionApplicationCount()),
 
 				// sequences
-				sequences-epsilon,
-				sequenceOps-epsilon,
+				sequences,
+				sequenceOps,
 
 				data.getSeqCount(),
 				data.getIseqCount(),
@@ -517,22 +508,22 @@ public class BASTFullFeatures implements PredicateASTFeatures {
 				sequenceOps/conjuncts,
 
 				// sequences over sequence theory
-				data.getSeqCount()/sequences,
-				data.getIseqCount()/sequences,
+				data.getSeqCount()/(sequences+epsilon),
+				data.getIseqCount()/(sequences+epsilon),
 
-				data.getSizeCount()/sequenceOps,
-				data.getFirstCount()/sequenceOps,
-				data.getTailCount()/sequenceOps,
-				data.getLastCount()/sequenceOps,
-				data.getFrontCount()/sequenceOps,
-				data.getRevCount()/sequenceOps,
-				data.getPermCount()/sequenceOps,
-				data.getConcatCount()/sequenceOps,
-				data.getFrontInsertionCount()/sequenceOps,
-				data.getTailInsertionCount()/sequenceOps,
-				data.getFrontRestrictionCount()/sequenceOps,
-				data.getTailRestrictionCount()/sequenceOps,
-				data.getGeneralConcatCount()/sequenceOps,
+				data.getSizeCount()/(sequenceOps+epsilon),
+				data.getFirstCount()/(sequenceOps+epsilon),
+				data.getTailCount()/(sequenceOps+epsilon),
+				data.getLastCount()/(sequenceOps+epsilon),
+				data.getFrontCount()/(sequenceOps+epsilon),
+				data.getRevCount()/(sequenceOps+epsilon),
+				data.getPermCount()/(sequenceOps+epsilon),
+				data.getConcatCount()/(sequenceOps+epsilon),
+				data.getFrontInsertionCount()/(sequenceOps+epsilon),
+				data.getTailInsertionCount()/(sequenceOps+epsilon),
+				data.getFrontRestrictionCount()/(sequenceOps+epsilon),
+				data.getTailRestrictionCount()/(sequenceOps+epsilon),
+				data.getGeneralConcatCount()/(sequenceOps+epsilon),
 
 				// closure and iterations
 				data.getClosureCount(),
