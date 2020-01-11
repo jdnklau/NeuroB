@@ -28,6 +28,7 @@ public class CsvFormat implements TrainingDataFormat<Features, Labelling> {
     private final int numFeatureEntries;
     private final int numLabelEntries;
     private final boolean hasHeaderLine;
+    private final boolean annotateWithPredicate;
     private final String header;
 
     private static final Logger log =
@@ -42,7 +43,7 @@ public class CsvFormat implements TrainingDataFormat<Features, Labelling> {
      * @param numLabelEntries Number of labels per training sample.
      */
     public CsvFormat(int numFeatureEntries, int numLabelEntries) {
-        this(numFeatureEntries, numLabelEntries, true);
+        this(numFeatureEntries, numLabelEntries, true, false);
     }
 
     /**
@@ -59,9 +60,28 @@ public class CsvFormat implements TrainingDataFormat<Features, Labelling> {
      * @param hasHeaderLine Whether or not a header line is to be used.
      */
     public CsvFormat(int numFeatureEntries, int numLabelEntries, boolean hasHeaderLine) {
+        this(numFeatureEntries, numLabelEntries, hasHeaderLine, false);
+    }
+
+    /**
+     * Instantiates format access with given number of feature and label entries.
+     * Whether a header line is to be used is optional.
+     * <p>
+     * If a header line is to be used,
+     * a header line is created first upon writing data to a target file
+     * and upon reading in a CSV file, the first line is expected to be said
+     * header line and thus skipped.
+     *
+     * @param numFeatureEntries Number of features per training sample.
+     * @param numLabelEntries Number of labels per training sample.
+     * @param hasHeaderLine Whether or not a header line is to be used.
+     * @param annotate If true, another column is added, containing the corresponding predicate.
+     */
+    public CsvFormat(int numFeatureEntries, int numLabelEntries, boolean hasHeaderLine, boolean annotate) {
         this.numFeatureEntries = numFeatureEntries;
         this.numLabelEntries = numLabelEntries;
         this.hasHeaderLine = hasHeaderLine;
+        this.annotateWithPredicate = annotate;
 
         // Build header
         if (!hasHeaderLine) {
@@ -220,6 +240,12 @@ public class CsvFormat implements TrainingDataFormat<Features, Labelling> {
         Features f = sample.getData();
         Labelling l = sample.getLabelling();
 
-        return f.getFeatureString() + "," + l.getLabellingString();
+        String entry = f.getFeatureString() + "," + l.getLabellingString();
+        if (annotateWithPredicate) {
+            String com = sample.getComment() != null ? sample.getComment() : "";
+            entry += ",'" + com + "'";
+        }
+
+        return entry;
     }
 }

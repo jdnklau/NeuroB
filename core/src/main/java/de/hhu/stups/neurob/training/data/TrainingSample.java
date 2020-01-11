@@ -15,15 +15,21 @@ public class TrainingSample<D, L extends Labelling> {
     private final D data;
     private final L labelling;
     private final Path sourceFile;
+    private final String comment;
 
     public TrainingSample(D features, L labelling) {
         this(features, labelling, null);
     }
 
     public TrainingSample(D features, L labelling, Path sourceFile) {
+        this(features, labelling, sourceFile, null);
+    }
+
+    public TrainingSample(D features, L labelling, Path sourceFile, String comment) {
         this.data = features;
         this.labelling = labelling;
         this.sourceFile = sourceFile;
+        this.comment = comment;
     }
 
     /**
@@ -56,6 +62,10 @@ public class TrainingSample<D, L extends Labelling> {
 
     public Path getSourceFile() {
         return sourceFile;
+    }
+
+    public String getComment() {
+        return comment;
     }
 
     @Override

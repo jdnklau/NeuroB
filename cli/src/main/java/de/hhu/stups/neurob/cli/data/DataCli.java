@@ -4,14 +4,16 @@ import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
 import de.hhu.stups.neurob.cli.formats.Formats;
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
+import de.hhu.stups.neurob.core.features.predicates.BAst275Features;
+import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
+import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
-import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
 import de.hhu.stups.neurob.training.migration.PredicateDbMigration;
+import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -51,7 +53,7 @@ public class DataCli implements CliModule {
         return
                 "\n"
                 + "       data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-e PROB_EXAMPLES_DIR] [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
                 + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n"
                 + "\n";
 
@@ -118,6 +120,13 @@ public class DataCli implements CliModule {
                 .desc("Directory and format into which the generated data is placed.")
                 .build();
 
+        Option examplesDir = Option.builder("e")
+                .longOpt("examples-dir")
+                .numberOfArgs(1)
+                .argName("PATH")
+                .desc("Path to the ProB Examples or other data source. Mandatory if translating database into features.")
+                .build();
+
         // Number of cores
         Option cores = Option.builder("c")
                 .longOpt("threats")
@@ -163,6 +172,7 @@ public class DataCli implements CliModule {
 
         options.addOptionGroup(modeGroup);
         options.addOption(target);
+        options.addOption(examplesDir);
         options.addOption(backends);
         options.addOption(noBackends);
         options.addOption(cross);
@@ -203,7 +213,10 @@ public class DataCli implements CliModule {
                     migrate(sourceDir, sourceFormat, parseTargetDirectory(line),
                             (PredicateDbFormat) targetFormat);
                 } else {
-                    System.out.println("Not yet implemented");
+                    Path targetDir = parseSourceDirectory(line, "t");
+                    Path genDir = parseSourceDirectory(line, "e");
+                    migrateFeatures(sourceDir, sourceFormat,targetDir,genDir, targetFormat, parseBackends(line).toArray(new Backend[0]));
+
                 }
 
             }
@@ -231,6 +244,24 @@ public class DataCli implements CliModule {
         try {
             new PredicateDbMigration(sourceFormat)
                     .migrate(sourceDir, targetDir, targetFormat);
+        } catch (IOException e) {
+            System.out.println("Unable to migrate data base: " + e);
+        }
+    }
+
+    private void migrateFeatures(Path sourceDir, PredicateDbFormat sourceFormat, Path targetDir, Path genSource,
+            TrainingDataFormat targetFormat,
+            Backend[] backends) {
+        try {
+
+            // TODO: Make this dynamic.
+            PredicateFeatureGenerating<BAst275Features> featgen = new BAst275Features.Generator();
+            LabelTranslation<PredDbEntry, BackendClassification> labeltrans = new BackendClassification.Translator(backends);
+
+            new PredicateDbMigration(sourceFormat)
+                    .migrate(sourceDir, targetDir, genSource,
+                             featgen,
+                             labeltrans, targetFormat);
         } catch (IOException e) {
             System.out.println("Unable to migrate data base: " + e);
         }

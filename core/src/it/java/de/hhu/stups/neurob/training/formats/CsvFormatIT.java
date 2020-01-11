@@ -120,4 +120,33 @@ public class CsvFormatIT {
         assertEquals(expected, actual,
                 "File contents do not match");
     }
+
+    @Test
+    public void shouldAnnotateEntries() throws IOException {
+        Path targetDir = Files.createTempDirectory("neurob-it");
+
+        CsvFormat format = new CsvFormat(3, 2, false, true);
+
+        List<TrainingSample<Features, Labelling>> samples = new ArrayList<>();
+        samples.add(new TrainingSample<>(
+                new Features(1., 2., 3.),
+                new Labelling(4., 5.),
+                null, "foo"));
+        samples.add(new TrainingSample<>(
+                new Features(6., 7., 8.),
+                new Labelling(9., 10.),
+                null, null));
+        TrainingData<Features, Labelling> data =
+                new TrainingData<>(Paths.get("test.mch"), samples.stream());
+
+        format.writeSamples(data, targetDir);
+
+        String expected =
+                "1.0,2.0,3.0,4.0,5.0,\'foo\'\n"
+                + "6.0,7.0,8.0,9.0,10.0,\'\'";
+        String actual = Files.lines(targetDir.resolve("test.csv")).collect(Collectors.joining("\n"));
+
+        assertEquals(expected, actual,
+                "File contents do not match");
+    }
 }

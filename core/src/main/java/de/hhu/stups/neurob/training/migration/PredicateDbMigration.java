@@ -295,7 +295,7 @@ public class PredicateDbMigration
         D features = featureGen.generate(predicate, origMachine);
         L labelling = labelTrans.translate(sample.getLabelling());
         log.trace("Migrated {} to {}/{}", predicate, features, labelling);
-        return new TrainingSample<>(features, labelling, sample.getSourceFile());
+        return new TrainingSample<>(features, labelling, sample.getSourceFile(), sample.getData().getPredicate());
     }
 
 }

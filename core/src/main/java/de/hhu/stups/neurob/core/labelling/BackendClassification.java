@@ -7,6 +7,7 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
+import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -192,5 +193,43 @@ public class BackendClassification extends PredicateLabelling {
             return new BackendClassification(predicate, backends, classification);
         }
 
+    }
+
+    public static class Translator implements LabelTranslation<PredDbEntry, BackendClassification> {
+        private final Backend[] backends;
+
+        public Translator(Backend[] backends) {
+            this.backends = backends;
+        }
+
+        @Override
+        public BackendClassification translate(PredDbEntry origLabels) {
+
+            int groundTruth = 0;
+            Long fastest = -1L;
+
+            TimedAnswer[] answerArray = origLabels.getAnswerArray(backends);
+
+            for(int i = 0; i<answerArray.length; i++) {
+                TimedAnswer timed = answerArray[i];
+                Answer a = timed.getAnswer();
+                if (a.equals(Answer.ERROR) || a.equals(Answer.TIMEOUT) || a.equals(Answer.UNKNOWN)) {
+                    continue;
+                }
+
+                if (fastest < timed.getNanoSeconds()) {
+                    fastest = timed.getNanoSeconds();
+                    groundTruth = i;
+                }
+            }
+
+            Backend fastestBackend = (groundTruth == 0)
+                    ? null
+                    : backends[groundTruth-1];
+
+            return new BackendClassification(origLabels.getPredicate(),
+                    backends,
+                    fastestBackend);
+        }
     }
 }
