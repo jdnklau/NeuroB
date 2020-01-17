@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -101,7 +102,7 @@ public abstract class TrainingSetGenerator {
                 source, fullTargetDir);
 
         DataGenerationStats stats = new DataGenerationStats();
-        try (Stream<Path> sourceFiles = Files.walk(source)) {
+        try (Stream<Path> sourceFiles = Files.walk(source, FileVisitOption.FOLLOW_LINKS)) {
             sourceFiles.collect(Collectors.toList())
                     .parallelStream()
                     .filter(file -> file.toString().endsWith(".mch")
