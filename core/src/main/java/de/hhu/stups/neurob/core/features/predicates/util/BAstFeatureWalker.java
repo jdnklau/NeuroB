@@ -219,40 +219,34 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     @Override
     public void caseASubsetPredicate(ASubsetPredicate node) {
         switchByNegation(data::incSubsetCount, data::incNotSubsetCount);
-        setSubsetType(node.getLeft(), true, node.getRight());
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.SET);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.SET);
         super.caseASubsetPredicate(node);
     }
 
     @Override
     public void caseASubsetStrictPredicate(ASubsetStrictPredicate node) {
         switchByNegation(data::incSubsetCount, data::incNotSubsetCount);
-        setSubsetType(node.getLeft(), true, node.getRight());
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.SET);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.SET);
         super.caseASubsetStrictPredicate(node);
     }
 
     @Override
     public void caseANotSubsetPredicate(ANotSubsetPredicate node) {
         switchByNegation(data::incNotSubsetCount, data::incSubsetCount);
-        setSubsetType(node.getLeft(), false, node.getRight());
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.SET);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.SET);
         super.caseANotSubsetPredicate(node);
     }
 
     @Override
     public void caseANotSubsetStrictPredicate(ANotSubsetStrictPredicate node) {
         switchByNegation(data::incNotSubsetCount, data::incSubsetCount);
-        setSubsetType(node.getLeft(), false, node.getRight());
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.SET);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.SET);
         super.caseANotSubsetStrictPredicate(node);
     }
-
-    private void setSubsetType(PExpression left, boolean isSubsetOf, PExpression right) {
-        if (!(left instanceof AIdentifierExpression))
-            return;
-
-        ((AIdentifierExpression) left).getIdentifier()
-                .stream().map(id -> id.getText())
-                .forEach(id -> data.setIdentifierType(id, AdjacencyList.AdjacencyNodeTypes.SET));
-    }
-
 
     // COMPARISONS: GREATER AND LESS
 
@@ -529,25 +523,40 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     @Override
     public void outALessEqualPredicate(ALessEqualPredicate node) {
         setLowerBoundaryWRTNegation(node.getLeft(), node.getRight());
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.INTEGER);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.INTEGER);
         super.outALessEqualPredicate(node);
     }
 
     @Override
     public void outALessPredicate(ALessPredicate node) {
         setLowerBoundaryWRTNegation(node.getLeft(), node.getRight());
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.INTEGER);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.INTEGER);
         super.outALessPredicate(node);
     }
 
     @Override
     public void outAGreaterEqualPredicate(AGreaterEqualPredicate node) {
         setLowerBoundaryWRTNegation(node.getRight(), node.getLeft());
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.INTEGER);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.INTEGER);
         super.outAGreaterEqualPredicate(node);
     }
 
     @Override
     public void outAGreaterPredicate(AGreaterPredicate node) {
         setLowerBoundaryWRTNegation(node.getRight(), node.getLeft());
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.INTEGER);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.INTEGER);
         super.outAGreaterPredicate(node);
+    }
+
+    void setNodeType(PExpression node, AdjacencyList.AdjacencyNodeTypes type) {
+        if (node instanceof AIdentifierExpression) {
+            ((AIdentifierExpression) node).getIdentifier()
+                    .forEach(id -> data.setIdentifierType(id.getText(), type));
+        }
     }
 
     @Override
@@ -814,30 +823,38 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     @Override
     public void caseAImageExpression(AImageExpression node) {
         data.incRelationalImageCount();
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseAImageExpression(node);
     }
 
     @Override
     public void caseAReverseExpression(AReverseExpression node) {
         data.incRelationInverseCount();
+        setNodeType(node.getExpression(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseAReverseExpression(node);
     }
 
     @Override
     public void caseAOverwriteExpression(AOverwriteExpression node) {
         data.incRelationOverrideCount();
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.RELATION);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseAOverwriteExpression(node);
     }
 
     @Override
     public void caseAParallelProductExpression(AParallelProductExpression node) {
         data.incRelationParallelProductCount();
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.RELATION);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseAParallelProductExpression(node);
     }
 
     @Override
     public void caseADirectProductExpression(ADirectProductExpression node) {
         data.incRelationDirectProductCount();
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.RELATION);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseADirectProductExpression(node);
     }
 
@@ -856,30 +873,36 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     @Override
     public void caseADomainRestrictionExpression(ADomainRestrictionExpression node) {
         data.incDomainRestrictionCount();
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseADomainRestrictionExpression(node);
     }
 
     @Override
     public void caseADomainSubtractionExpression(ADomainSubtractionExpression node) {
         data.incDomainSubtractionCount();
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseADomainSubtractionExpression(node);
     }
 
     @Override
     public void caseARangeRestrictionExpression(ARangeRestrictionExpression node) {
         data.incRangeRestrictionCount();
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseARangeRestrictionExpression(node);
     }
 
     @Override
     public void caseARangeSubtractionExpression(ARangeSubtractionExpression node) {
         data.incRangeSubtractionCount();
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseARangeSubtractionExpression(node);
     }
 
     @Override
     public void caseACompositionExpression(ACompositionExpression node) {
         data.incForwardCompositionCount();
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.RELATION);
+        setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseACompositionExpression(node);
     }
 
@@ -954,6 +977,7 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     @Override
     public void caseAFunctionExpression(AFunctionExpression node) {
         data.incFunctionApplicationCount();
+        setNodeType(node.getIdentifier(), AdjacencyList.AdjacencyNodeTypes.FUNCTION);
         super.caseAFunctionExpression(node);
     }
 
@@ -1068,18 +1092,21 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     @Override
     public void caseAReflexiveClosureExpression(AReflexiveClosureExpression node) {
         data.incClosureCount();
+        setNodeType(node.getExpression(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseAReflexiveClosureExpression(node);
     }
 
     @Override
     public void caseAClosureExpression(AClosureExpression node) {
         data.incClosureCount();
+        setNodeType(node.getExpression(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseAClosureExpression(node);
     }
 
     @Override
     public void caseAIterationExpression(AIterationExpression node) {
         data.incIterateCount();
+        setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.RELATION);
         super.caseAIterationExpression(node);
     }
 }

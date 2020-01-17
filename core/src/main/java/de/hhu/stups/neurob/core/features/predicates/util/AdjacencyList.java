@@ -179,7 +179,9 @@ public class AdjacencyList {
         UNKNOWN,
         INTEGER,
         BOOL,
-        SET
+        SET,
+        FUNCTION,
+        RELATION
     }
 
     public static class AdjacencyNode {
@@ -426,6 +428,10 @@ public class AdjacencyList {
 
         public void setType(AdjacencyNodeTypes type) {
             if (type != AdjacencyNodeTypes.UNKNOWN) {
+                if (this.type == AdjacencyNodeTypes.FUNCTION) {
+                    return; // Ensures that Functions are not downgraded to relations again.
+                }
+
                 this.type = type;
                 this.hasKnownType = true;
             }

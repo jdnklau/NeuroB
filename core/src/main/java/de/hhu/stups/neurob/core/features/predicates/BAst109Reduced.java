@@ -13,11 +13,11 @@ import java.util.Arrays;
 /**
  * Reduced version of F275.
  */
-public class BAst107Reduced extends PredicateFeatures {
+public class BAst109Reduced extends PredicateFeatures {
 
-    public static final int FEATURE_DIMENSION = 107;
+    public static final int FEATURE_DIMENSION = 109;
 
-    public BAst107Reduced(BPredicate predicate, Double[] features) {
+    public BAst109Reduced(BPredicate predicate, Double[] features) {
         super(predicate, features);
 
         if (features.length != FEATURE_DIMENSION) {
@@ -25,14 +25,14 @@ public class BAst107Reduced extends PredicateFeatures {
         }
     }
 
-    public static class Generator implements PredicateFeatureGenerating<BAst107Reduced> {
+    public static class Generator implements PredicateFeatureGenerating<BAst109Reduced> {
 
         @Override
-        public BAst107Reduced generate(BPredicate predicate, @Nullable MachineAccess machineAccess)
+        public BAst109Reduced generate(BPredicate predicate, @Nullable MachineAccess machineAccess)
                 throws FeatureCreationException {
 
             BAstFeatureData data = BAstFeatureCollector.collect(predicate, machineAccess);
-            return new BAst107Reduced(predicate, generateArray(data));
+            return new BAst109Reduced(predicate, generateArray(data));
 
         }
 
@@ -159,6 +159,8 @@ public class BAst107Reduced extends PredicateFeatures {
                     data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.INTEGER) / (ids + epsilon),
                     data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.BOOL) / (ids + epsilon),
                     data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.SET) / (ids + epsilon),
+                    data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.RELATION) / (ids + epsilon),
+                    data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.FUNCTION) / (ids + epsilon),
 
                     // identifiers normalised over id count
                     data.getIdentifierRelationsCount() / (ids + epsilon),
