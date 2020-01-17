@@ -1040,4 +1040,12 @@ public class BAstFeatureData {
     public void incIterateCount() {
         iterateCount++;
     }
+
+    public void setIdentifierType(String id, AdjacencyList.AdjacencyNodeTypes finalType) {
+        identifiers.addTypeKnowledge(id, finalType);
+    }
+
+    public int identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes finalType) {
+        return identifiers.getTypeCount(finalType);
+    }
 }

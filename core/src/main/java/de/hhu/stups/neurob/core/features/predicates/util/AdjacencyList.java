@@ -150,6 +150,11 @@ public class AdjacencyList {
         getIdentifier(id).setTypeKnown(isDomainTypeKnown);
     }
 
+    public void addTypeKnowledge(String id, AdjacencyNodeTypes type) {
+        addNode(id);
+        getIdentifier(id).setType(type);
+    }
+
     /**
      * @param id
      * @return Whether {@code id} has its domain type marked as being known.
@@ -170,6 +175,13 @@ public class AdjacencyList {
         return idMap.keySet().stream().map(idMap::get).collect(Collectors.toSet());
     }
 
+    public static enum AdjacencyNodeTypes {
+        UNKNOWN,
+        INTEGER,
+        BOOL,
+        SET
+    }
+
     public static class AdjacencyNode {
         private String id;
         // boundaries
@@ -186,6 +198,7 @@ public class AdjacencyList {
         private Set<AdjacencyNode> relatedIds;
         /** Whether the type of the identifier is known or not */
         private boolean hasKnownType = false;
+        private AdjacencyNodeTypes type = AdjacencyNodeTypes.UNKNOWN;
 
         public AdjacencyNode(String identifier) {
             id = identifier.trim();
@@ -411,6 +424,17 @@ public class AdjacencyList {
                     .forEach(id -> id.setTypeKnown(true));
         }
 
+        public void setType(AdjacencyNodeTypes type) {
+            if (type != AdjacencyNodeTypes.UNKNOWN) {
+                this.type = type;
+                this.hasKnownType = true;
+            }
+        }
+
+        public AdjacencyNodeTypes getType() {
+            return type;
+        }
+
         /**
          * @return Whether the domain of the identifier is of known type.
          */
@@ -440,5 +464,6 @@ public class AdjacencyList {
             }
             return false;
         }
+
     }
 }

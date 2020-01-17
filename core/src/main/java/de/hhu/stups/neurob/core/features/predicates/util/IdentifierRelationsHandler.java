@@ -105,6 +105,10 @@ public class IdentifierRelationsHandler {
         adjacencyList.addTypeKnowledge(id, isDomainTypeKnown);
     }
 
+    public void addTypeKnowledge(String id, AdjacencyList.AdjacencyNodeTypes type) {
+        adjacencyList.addTypeKnowledge(id, type);
+    }
+
     public boolean containsId(String id) {
         return adjacencyList.containsId(id);
     }
@@ -218,6 +222,12 @@ public class IdentifierRelationsHandler {
     public int getKnownTypedCount() {
         return (int) adjacencyList.getNodeSet().stream()
                 .filter(AdjacencyList.AdjacencyNode::hasKnownType)
+                .count();
+    }
+
+    public int getTypeCount(AdjacencyList.AdjacencyNodeTypes type) {
+        return (int) adjacencyList.getNodeSet().stream()
+                .filter(node -> node.getType().equals(type))
                 .count();
     }
 
