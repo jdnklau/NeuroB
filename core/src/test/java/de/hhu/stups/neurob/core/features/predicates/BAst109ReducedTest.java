@@ -20,7 +20,7 @@ class BAst109ReducedTest {
 
         BAst109Reduced features = new BAst109Reduced.Generator().generate(pred);
 
-        assertEquals(107, features.getFeatureArray().length);
+        assertEquals(BAst109Reduced.FEATURE_DIMENSION, features.getFeatureArray().length);
     }
 
 }

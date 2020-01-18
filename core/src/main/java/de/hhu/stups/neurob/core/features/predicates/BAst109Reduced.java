@@ -21,7 +21,7 @@ public class BAst109Reduced extends PredicateFeatures {
         super(predicate, features);
 
         if (features.length != FEATURE_DIMENSION) {
-            throw new IllegalArgumentException("Must have 275 features exactly.");
+            throw new IllegalArgumentException("Must have 109 features exactly.");
         }
     }
 
