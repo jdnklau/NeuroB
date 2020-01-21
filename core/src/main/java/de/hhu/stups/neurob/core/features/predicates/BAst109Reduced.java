@@ -241,15 +241,15 @@ public class BAst109Reduced extends PredicateFeatures {
                     data.getFunctionApplicationCount() / conjuncts,
 
                     // functions over function theory
-                    data.getFunPartialCount() / functions,
-                    data.getFunTotalCount() / functions,
-                    data.getFunPartialInjCount() / functions,
-                    data.getFunTotalInjCount() / functions,
-                    data.getFunPartialSurjCount() / functions,
-                    data.getFunTotalSurjCount() / functions,
-                    data.getFunPartialBijCount() / functions,
-                    data.getFunTotalBijCount() / functions,
-                    data.getLambdaCount() / functions,
+                    data.getFunPartialCount() / (functions + epsilon),
+                    data.getFunTotalCount() / (functions + epsilon),
+                    data.getFunPartialInjCount() / (functions + epsilon),
+                    data.getFunTotalInjCount() / (functions + epsilon),
+                    data.getFunPartialSurjCount() / (functions + epsilon),
+                    data.getFunTotalSurjCount() / (functions + epsilon),
+                    data.getFunPartialBijCount() / (functions + epsilon),
+                    data.getFunTotalBijCount() / (functions + epsilon),
+                    data.getLambdaCount() / (functions + epsilon),
 
                     // sequences
                     sequences / conjuncts,
