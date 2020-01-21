@@ -7,14 +7,18 @@ import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -142,6 +146,86 @@ class BackendClassificationTest {
         Backend actual = BackendClassification.classifyFastestBackend(backends, answerMap);
 
         assertNull(actual);
+    }
+
+    @Test
+    void shouldReturnZeroAsLabel() throws FormulaException {
+        BPredicate pred = BPredicate.of("foo");
+
+        Labelling expected = new Labelling(0.);
+        Labelling actual = new BackendClassification(pred, backends, (Backend) null);
+
+        assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
+    }
+
+    @Test
+    void shouldReturnOneAsLabel() throws FormulaException {
+        BPredicate pred = BPredicate.of("foo");
+
+        Labelling expected = new Labelling(1.);
+        Labelling actual = new BackendClassification(pred, backends, backends[0]);
+
+        assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
+    }
+
+    @Test
+    void shouldReturnTwoAsLabel() throws FormulaException {
+        BPredicate pred = BPredicate.of("foo");
+
+        Labelling expected = new Labelling(2.);
+        Labelling actual = new BackendClassification(pred, backends, backends[1]);
+
+        assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
+    }
+
+    @Test
+    void shouldReturnThreeAsLabel() throws FormulaException {
+        BPredicate pred = BPredicate.of("foo");
+
+        Labelling expected = new Labelling(3.);
+        Labelling actual = new BackendClassification(pred, backends, backends[2]);
+
+        assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
+    }
+
+    @Test
+    void shouldReturnFourAsLabel() throws FormulaException {
+        BPredicate pred = BPredicate.of("foo");
+
+        Labelling expected = new Labelling(4.);
+        Labelling actual = new BackendClassification(pred, backends, backends[3]);
+
+        assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
+    }
+
+    @Test
+    void shouldTranslateToZero() {
+        TimedAnswer timeout = new TimedAnswer(Answer.TIMEOUT, 400L);
+
+        PredDbEntry dbEntry = new PredDbEntry(null, null,backends, timeout, timeout, timeout, timeout);
+
+        BackendClassification.Translator translator = new BackendClassification.Translator(backends);
+
+        Labelling expected = new Labelling(0.);
+        Labelling actual = translator.translate(dbEntry);
+
+        assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
+    }
+
+    @Test
+    void shouldTranslateToTwo() {
+        TimedAnswer timeout = new TimedAnswer(Answer.TIMEOUT, 400L);
+        TimedAnswer valid = new TimedAnswer(Answer.VALID, 400L);
+        TimedAnswer slowValid = new TimedAnswer(Answer.VALID, 800L);
+
+        PredDbEntry dbEntry = new PredDbEntry(null, null,backends, slowValid, valid, timeout, timeout);
+
+        BackendClassification.Translator translator = new BackendClassification.Translator(backends);
+
+        Labelling expected = new Labelling(2.);
+        Labelling actual = translator.translate(dbEntry);
+
+        assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
     }
 
     private void setAnswer(Backend b, TimedAnswer answer) throws FormulaException {

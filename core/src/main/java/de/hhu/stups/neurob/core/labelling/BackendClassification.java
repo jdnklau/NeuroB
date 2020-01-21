@@ -206,7 +206,7 @@ public class BackendClassification extends PredicateLabelling {
         public BackendClassification translate(PredDbEntry origLabels) {
 
             int groundTruth = 0;
-            Long fastest = -1L;
+            Long fastest = Long.MAX_VALUE;
 
             TimedAnswer[] answerArray = origLabels.getAnswerArray(backends);
 
@@ -217,9 +217,9 @@ public class BackendClassification extends PredicateLabelling {
                     continue;
                 }
 
-                if (fastest < timed.getNanoSeconds()) {
+                if (fastest > timed.getNanoSeconds()) {
                     fastest = timed.getNanoSeconds();
-                    groundTruth = i;
+                    groundTruth = i + 1;
                 }
             }
 

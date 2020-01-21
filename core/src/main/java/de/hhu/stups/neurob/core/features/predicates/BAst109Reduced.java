@@ -123,7 +123,7 @@ public class BAst109Reduced extends PredicateFeatures {
             double[] features = {
                     // conjunct form
                     log2(conjuncts),
-                    data.getMaxDepth() / conjuncts, // average conjunct depth
+                    data.getMaxDepth()-1 / conjuncts, // average conjunct depth
                     data.getNegationCount() / conjuncts, // average negations
                     data.getNegationMaxDepth() / conjuncts, // average negation depth
 

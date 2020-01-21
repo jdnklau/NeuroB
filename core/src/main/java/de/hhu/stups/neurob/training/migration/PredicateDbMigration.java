@@ -100,8 +100,8 @@ public class PredicateDbMigration
      */
     public <D extends Features, L extends Labelling>
     DataGenerationStats migrate(Path sourceDir, Path targetDir, Path generationSource,
-            PredicateFeatureGenerating<D> featureGen,
-            LabelTranslation<PredDbEntry, L> labelTrans,
+            PredicateFeatureGenerating<? extends D> featureGen,
+            LabelTranslation<PredDbEntry, ? extends L> labelTrans,
             TrainingDataFormat<D, L> targetFormat) throws IOException {
 
         DataGenerationStats stats = new DataGenerationStats();
@@ -198,16 +198,16 @@ public class PredicateDbMigration
     public <D extends Features, L extends Labelling>
     DataGenerationStats migrateFile(Path sourceFile, Path commonSourceDirectory,
             Path targetDirectory,
-            PredicateFeatureGenerating<D> featureGen, LabelTranslation<PredDbEntry, L> labelTrans,
+            PredicateFeatureGenerating<? extends D> featureGen, LabelTranslation<PredDbEntry, ? extends L> labelTrans,
             TrainingDataFormat<D, L> targetFormat) throws IOException {
         return migrateFile(sourceFile, commonSourceDirectory, targetDirectory, null,
                 featureGen, labelTrans, targetFormat);
     }
 
-    public <D extends Features, L extends Labelling>
+    public <D extends Features, E extends D, L extends Labelling, M extends L>
     DataGenerationStats migrateFile(Path sourceFile, Path commonSourceDirectory,
             Path targetDirectory, @Nullable BMachine origMachine,
-            PredicateFeatureGenerating<D> featureGen, LabelTranslation<PredDbEntry, L> labelTrans,
+            PredicateFeatureGenerating<E> featureGen, LabelTranslation<PredDbEntry, M> labelTrans,
             TrainingDataFormat<D, L> targetFormat) throws IOException {
 
         DataGenerationStats stats = new DataGenerationStats();
@@ -223,7 +223,7 @@ public class PredicateDbMigration
         MachineAccess finalAccess = access;
         try (Stream<TrainingSample<BPredicate, PredDbEntry>> rawSamples =
                      sourceFormat.loadSamples(sourceFile)) {
-            Stream<TrainingSample<D, L>> samples =
+            Stream<TrainingSample<E, M>> samples =
                     rawSamples.map(sample -> {
                         try {
                             log.trace("Migrating sample {}", sample);
@@ -239,7 +239,7 @@ public class PredicateDbMigration
                            finalAccess.close();
                     });
 
-            TrainingData<D, L> data = new TrainingData<>(
+            TrainingData data = new TrainingData<E,M>(
                     stripCommonSourceDir(sourceFile, commonSourceDirectory),
                     samples);
 

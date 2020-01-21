@@ -6,13 +6,20 @@ import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+import de.hhu.stups.neurob.core.features.Features;
+import de.hhu.stups.neurob.core.features.predicates.BAst109Reduced;
+import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.predicates.TheoryFeatures;
 import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.core.labelling.Labelling;
+import de.hhu.stups.neurob.testharness.TestMachines;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
+import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
+import de.hhu.stups.neurob.training.migration.legacy.PredicateDump;
 import de.hhu.stups.neurob.training.migration.legacy.PredicateDumpFormat;
 import org.junit.jupiter.api.Test;
 
@@ -180,6 +187,77 @@ public class PredicateDbMigrationIT {
 
         assertEquals(expected, actual,
                 "CSV contents do not match");
+    }
+
+    @Test
+    void shouldTranslatePDumpTo109FeaturesWithAllBackends() throws IOException {
+        // Resource dir of pdump files for the tests
+        Path PDUMP_DIR = Paths.get(getClass().getClassLoader()
+                .getResource("db/pdump/").getFile());
+        Path MCH_DIR = Paths.get(getClass().getClassLoader()
+                .getResource("machines/").getFile());
+        // Source machine path of second pdump file
+        Path secondSrc = Paths.get("with_all_timeout.mch");
+
+        // Set up temp dir to hold Json files
+        Path tempDir = Files.createTempDirectory("neurob-it");
+        Path sourceDir = tempDir;
+        // Json files that the migration should create
+        Path secondJson = tempDir.resolve("with_all_timeout.csv");
+
+        Files.createDirectory(tempDir.resolve("pdump"));
+        Files.copy(PDUMP_DIR.resolve("with_all_timeout.pdump"), tempDir.resolve("pdump/with_all_timeout.pdump"));
+        Files.createDirectory(tempDir.resolve("machines"));
+        Files.copy(Paths.get(TestMachines.FEATURES_CHECK_MCH), sourceDir.resolve("machines").resolve(secondSrc));
+
+        CsvFormat targetFormat = new CsvFormat(109, 1);
+
+        // Expected values
+        TrainingSample<Features, ? extends Labelling> secondEntry = new TrainingSample<>(
+                new Features(
+                        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 1., 0., 0., 0.9999990000010001, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 0., 0., 0., 0., 0., 0., 0., 0.
+                ),
+                new Labelling(1.),
+                secondSrc);
+        TrainingSample<Features, ? extends Labelling> timeoutEntry = new TrainingSample<>(
+                new Features(
+                        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 1., 0., 0., 0.9999990000010001, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                        0., 0., 0., 0., 0., 0., 0., 0., 0.),
+                new Labelling(0.),
+                secondSrc);
+
+        // Migrate
+        PredicateFeatureGenerating<BAst109Reduced> featgen = new BAst109Reduced.Generator();
+        LabelTranslation<PredDbEntry, BackendClassification> labeltrans =
+                new BackendClassification.Translator(PredicateDump.BACKENDS_USED);
+        new PredicateDbMigration(new PredicateDumpFormat())
+                .migrate(tempDir.resolve("pdump"), tempDir, sourceDir, featgen, labeltrans, targetFormat);
+
+        List<TrainingSample<Features, ? extends Labelling>> expectedSecond = new ArrayList<>();
+        expectedSecond.add(secondEntry);
+        expectedSecond.add(timeoutEntry);
+
+        List<TrainingSample<Features, ? extends Labelling>> actualSecond =
+                targetFormat.loadSamples(secondJson).collect(Collectors.toList());
+
+        assertAll("Verify migration of predicate dump entries",
+                () -> assertEquals(expectedSecond.get(0).getData(), actualSecond.get(0).getData(),
+                        "Features do not match in first entry"),
+                () -> assertEquals(expectedSecond.get(0).getLabelling(), actualSecond.get(0).getLabelling(),
+                        "Labels do not match in first entry"),
+                () -> assertEquals(expectedSecond.get(1).getData(), actualSecond.get(1).getData(),
+                        "Features do not match in second entry"),
+                () -> assertEquals(expectedSecond.get(1).getLabelling(), actualSecond.get(1).getLabelling(),
+                        "Labels do not match in second entry"));
     }
 
 
