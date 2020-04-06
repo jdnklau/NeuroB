@@ -114,7 +114,7 @@ public class BAst109Reduced extends PredicateFeatures {
                     + data.getTailRestrictionCount()
                     + data.getGeneralConcatCount();
             double ids = data.getIdentifiersCount();
-            double logicOps = ((data.getConjunctionsCount() - conjuncts + 1)
+            double logicOps = ((data.getConjunctionsCount() - conjuncts)
                                + data.getDisjunctionsCount()
                                + data.getImplicationsCount()
                                + data.getEquivalencesCount());

@@ -81,7 +81,6 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
         // do not count basic boolean operations, as they do not actually provide to the depth
         if (node instanceof PPredicate
             && !(node instanceof AConjunctPredicate)
-            && !(node instanceof AConjunctPredicate)
             && !(node instanceof ANegationPredicate)) {
             depth++;
             if (depth > data.getMaxDepth()) {
@@ -94,7 +93,6 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     public void defaultOut(Node node) {
         super.defaultOut(node);
         if (node instanceof PPredicate
-            && !(node instanceof AConjunctPredicate)
             && !(node instanceof AConjunctPredicate)
             && !(node instanceof ANegationPredicate)) {
             depth--;
