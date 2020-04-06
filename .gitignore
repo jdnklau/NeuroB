@@ -1,10 +1,16 @@
 ### Project specific
-# minimal working examples to check for bugs
-src/main/java/RectifyPredicateDumps.java
 # symbolic link for NeuroB cli script
 NeuroB
+neurob-cli
 # developer's personal todo list
 mytodo.md
+# different directories
+examples/
+.vscode/
+
+# Machine files
+prob_examples/
+exclude.list
 
 # logging specific
 src/main/resources/logback.xml
@@ -22,6 +28,7 @@ probkodkod.log*
 ### Gradle specific
 .gradle
 /build/
+/*/build
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -126,6 +133,7 @@ cmake-build-debug/
 
 # IntelliJ
 /out/
+/*/out/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/

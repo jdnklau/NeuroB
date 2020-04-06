@@ -1,0 +1,13 @@
+apply plugin: 'application'
+
+mainClassName = "de.hhu.stups.neurob.cli.NeuroBCli"
+
+project.archivesBaseName = "NeuroB-cli"
+
+dependencies {
+    compile project(':core')
+
+    // https://mvnrepository.com/artifact/commons-cli/commons-cli
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
+}
+

@@ -1,0 +1,35 @@
+{
+  "machines/subdir/second.mch": {
+    "sha512": "no-hashing-implemented-yet",
+    "formalism": "CLASSICALB",
+    "gathered-predicates": [
+      {
+        "predicate": "second:PREDICATES",
+        "sha512": "CAAA1F0FD9A2D22E062967B1AF4721AC4D7FD39324F153D0F0F169528CFE2AFE5F8E9DFC63D1CDE710A5AE964E9994676814E78AEE86BE87B671D9DBFC14D108",
+        "results": {
+          "ProB[TIME_OUT=2500]": {
+            "answer": "VALID",
+            "time-in-ns": 1,
+            "timeout-in-ns": 2500000000
+          },
+          "Kodkod[TIME_OUT=2500]": {
+            "answer": "VALID",
+            "time-in-ns": 2,
+            "timeout-in-ns": 2500000000
+          },
+          "Z3[TIME_OUT=2500]": {
+            "answer": "VALID",
+            "time-in-ns": 3,
+            "timeout-in-ns": 2500000000
+          },
+          "SMT_SUPPORTED_INTERPRETER[TIME_OUT=2500]": {
+            "answer": "VALID",
+            "time-in-ns": 4,
+            "timeout-in-ns": 2500000000
+          }
+        }
+      }
+    ]
+  }
+}
+
