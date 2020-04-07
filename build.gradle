@@ -10,13 +10,10 @@ subprojects {
 
     repositories {
         mavenCentral()
+        jcenter()
         maven {
             name "sonatype snapshots"
             url "https://oss.sonatype.org/content/repositories/snapshots"
-        }
-        maven {
-            name "sonatype releases"
-            url "https://oss.sonatype.org/content/repositories/releases"
         }
     }
 
@@ -38,7 +35,7 @@ subprojects {
 
     dependencies {
         // ProB dependencies
-        compile(group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '3.2.12-SNAPSHOT')
+        compile(group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '3.10.0')
 
         // DeepLearning4J dependencies
         compile 'org.deeplearning4j:deeplearning4j-core:1.0.0-beta'
