@@ -7,6 +7,8 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
+import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -481,6 +483,20 @@ public class HealyTimings extends PredicateLabelling {
         public HealyTimings generate(BPredicate predicate, MachineAccess machineAccess)
                 throws LabelCreationException {
             return new HealyTimings(predicate, timeout, timeoutUnit, machineAccess, backends);
+        }
+    }
+
+    public static class Translator implements LabelTranslation<PredDbEntry, HealyTimings> {
+
+        @Override
+        public HealyTimings translate(PredDbEntry origLabels) {
+            Backend[] backends = origLabels.getBackendsUsed();
+
+            return new HealyTimings(origLabels.getPredicate(),
+                    backends[0].getTimeOutValue(), backends[0].getTimeOutUnit(),
+                    origLabels.getResults(),
+                    backends
+            );
         }
     }
 

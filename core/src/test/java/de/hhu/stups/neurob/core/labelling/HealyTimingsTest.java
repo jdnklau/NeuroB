@@ -7,12 +7,14 @@ import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
+import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.prob.animator.command.CbcSolveCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -421,6 +423,25 @@ class HealyTimingsTest {
 
         assertArrayEquals(expected, actual,
                 "Backends not in expected order");
+    }
+
+    @Test
+    void shouldTranslatePredDbEntry() {
+        Backend[] backends = {
+                new ProBBackend(10, TimeUnit.MILLISECONDS),
+                new KodkodBackend(10, TimeUnit.MILLISECONDS),
+                new Z3Backend(10, TimeUnit.MILLISECONDS)};
+        PredDbEntry dbEntry = new PredDbEntry(BPredicate.of("foo"),
+                null,
+                backends,
+                new TimedAnswer(Answer.VALID, 5_000L),
+                new TimedAnswer(Answer.UNKNOWN, 5_000L),
+                new TimedAnswer(Answer.TIMEOUT, 5_000L));
+
+        Double[] expected = {5_000., 10_005_000., 20_005_000.};
+        Double[] actual = new HealyTimings.Translator().translate(dbEntry).getLabellingArray();
+
+        assertArrayEquals(expected, actual);
     }
 
 }
