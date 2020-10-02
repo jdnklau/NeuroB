@@ -2,7 +2,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
 
-    project.version = '0.47.0-SNAPSHOT'
+    project.version = '0.48.0-SNAPSHOT'
     project.group = 'de.hhu.stups'
 
     project.sourceCompatibility = '1.8'
@@ -35,7 +35,7 @@ subprojects {
 
     dependencies {
         // ProB dependencies
-        compile(group: 'de.hhu.stups', name: 'de.prob2.kernel', version: '3.10.0')
+        compile 'de.hhu.stups:de.prob2.kernel:4.0.0-SNAPSHOT'
 
         // DeepLearning4J dependencies
         compile 'org.deeplearning4j:deeplearning4j-core:1.0.0-beta'
