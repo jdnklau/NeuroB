@@ -217,7 +217,7 @@ public class DataCli implements CliModule {
                 } else {
                     Path targetDir = parseSourceDirectory(line, "t");
                     Path genDir = parseSourceDirectory(line, "e");
-                    migrateFeatures(sourceDir, sourceFormat,targetDir,genDir, targetFormat, parseBackends(line).toArray(new Backend[0]));
+                    migrateFeatures(sourceDir, sourceFormat, targetDir, genDir, targetFormat, parseBackends(line).toArray(new Backend[0]));
 
                 }
 
@@ -258,12 +258,13 @@ public class DataCli implements CliModule {
 
             // TODO: Make this dynamic.
             PredicateFeatureGenerating<BAst110Features> featgen = new BAst110Features.Generator();
-            LabelTranslation<PredDbEntry, HealyTimings> labeltrans = new HealyTimings.Translator();
+            LabelTranslation<PredDbEntry, BackendClassification> labeltrans =
+                    new BackendClassification.Translator(backends);
 
             new PredicateDbMigration(sourceFormat)
                     .migrate(sourceDir, targetDir, genSource,
-                             featgen,
-                             labeltrans, targetFormat);
+                            featgen,
+                            labeltrans, targetFormat);
         } catch (IOException e) {
             System.out.println("Unable to migrate data base: " + e);
         }
