@@ -1,9 +1,11 @@
 package de.hhu.stups.neurob.cli.formats;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.formats.CsvFormat;
 import de.hhu.stups.neurob.training.formats.JsonFormat;
+import de.hhu.stups.neurob.training.formats.TfTextDirectory;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.migration.legacy.PredicateDumpFormat;
 
@@ -17,7 +19,8 @@ public enum Formats {
     JSON("Json format for training", (b) -> new JsonFormat()),
     JSONDB("Json for predicate data bases", (b) -> new JsonDbFormat(b.toArray(new Backend[0]))),
     PDUMP("(Legacy) Predicate Dump data base format", (b) -> new PredicateDumpFormat()),
-    CSV("CSV", b -> new CsvFormat(109, 1));
+    CSV("CSV", b -> new CsvFormat(109, 1)),
+    TFTXT("Tensorflow Text Data directory structure", b -> new TfTextDirectory<BackendClassification>());
 
     public final String description;
     public final FormatParser getter;
