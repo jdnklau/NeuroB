@@ -67,7 +67,7 @@ class DataCliTest {
     @Test
     void shouldParseBackendsWhenCrossCreatingMultipleBackends() {
         String[] backendIds = {"prob[FOO=BAR,FIZ=BAZ]",
-                               "z3[BRRAP=BRRAPP]"};
+                "z3[BRRAP=BRRAPP]"};
 
         BPreference foo = BPreference.set("FOO", "BAR");
         BPreference fiz = BPreference.set("FIZ", "BAZ");
@@ -78,6 +78,61 @@ class DataCliTest {
                 new ProBBackend(foo),
                 new ProBBackend(fiz),
                 new ProBBackend(foo, fiz),
+                new Z3Backend(),
+                new Z3Backend(brrap)
+        ));
+        Set<Backend> actual =
+                new HashSet<>(new DataCli().parseBackends(backendIds, true));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldNotDropTimeoutWhenCrossCreating() {
+        String[] backendIds = {"prob[FOO=BAR,FIZ=BAZ,TIME_OUT=25000]",
+                "z3[BRRAP=BRRAPP]"};
+
+        BPreference to = BPreference.set("TIME_OUT", "25000");
+        BPreference foo = BPreference.set("FOO", "BAR");
+        BPreference fiz = BPreference.set("FIZ", "BAZ");
+        BPreference brrap = BPreference.set("BRRAP", "BRRAPP");
+
+        Set<Backend> expected = new HashSet<>(backendList(
+                new ProBBackend(to),
+                new ProBBackend(foo, to),
+                new ProBBackend(fiz, to),
+                new ProBBackend(foo, fiz, to),
+                new Z3Backend(),
+                new Z3Backend(brrap)
+        ));
+        Set<Backend> actual =
+                new HashSet<>(new DataCli().parseBackends(backendIds, true));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldUseAllTimeoutsWhenCrossCreating() {
+        String[] backendIds = {
+                "prob[FOO=BAR,FIZ=BAZ,TIME_OUT=25000,TIME_OUT=300]",
+                "z3[BRRAP=BRRAPP]"
+        };
+
+        BPreference to1 = BPreference.set("TIME_OUT", "25000");
+        BPreference to2 = BPreference.set("TIME_OUT", "300");
+        BPreference foo = BPreference.set("FOO", "BAR");
+        BPreference fiz = BPreference.set("FIZ", "BAZ");
+        BPreference brrap = BPreference.set("BRRAP", "BRRAPP");
+
+        Set<Backend> expected = new HashSet<>(backendList(
+                new ProBBackend(to1),
+                new ProBBackend(foo, to1),
+                new ProBBackend(fiz, to1),
+                new ProBBackend(foo, fiz, to1),
+                new ProBBackend(to2),
+                new ProBBackend(foo, to2),
+                new ProBBackend(fiz, to2),
+                new ProBBackend(foo, fiz, to2),
                 new Z3Backend(),
                 new Z3Backend(brrap)
         ));

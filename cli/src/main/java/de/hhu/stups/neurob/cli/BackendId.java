@@ -7,6 +7,7 @@ import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
+import lombok.experimental.var;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +43,16 @@ public enum BackendId {
             + "For each Backend, an optional list of options can be given, e.g.:\n"
             + "   -b prob[TIME_OUT=3000,MAXINT=17] z3[TIME_OUT=1200]\n"
             + "\n"
-            + "If the option -x is set, any combination of options is tested.\n";
+            + "If the option -x is set, any combination of options is tested.\n"
+            + "The -x option will not consider the timeout setting if only one\n"
+            + "is provided:\n"
+            + "   -xb prob[TIME_OUT=3000,MAXINT=17]\n"
+            + "for instance would use the backend configurations\n"
+            + "   - prob[TIME_OUT=3000], and\n"
+            + "   - prob[TIME_OUT=3000,MAXINT=17]\n"
+            + "but not the configurations\n"
+            + "   - prob[], and\n"
+            + "   - prob[MAXINT=17].\n";
 
     public static Backend[] makeBackends(String parameter, boolean allPrefCombinations) {
         BackendId b = matchBackend(parameter);
@@ -93,6 +103,40 @@ public enum BackendId {
     }
 
     static Stream<Set<BPreference>> crossProducePrefs(BPreference[] prefs) {
+        // find timeout
+        List<BPreference> crossPrefs = new ArrayList<>();
+        Set<BPreference> timeouts = new HashSet<>();
+        for (int i = 0; i < prefs.length; i++) {
+            BPreference pref = prefs[i];
+            if (pref.getName().equals("TIME_OUT")
+                || pref.getName().equals("TIMEOUT")) {
+                timeouts.add(pref);
+            } else {
+                crossPrefs.add(pref);
+            }
+        }
+
+        BPreference[] prefArr =
+                crossPrefs.toArray(new BPreference[crossPrefs.size()]);
+        Stream<Set<BPreference>> result;
+
+        if (timeouts.isEmpty()) {
+            result = crossProducePrefsNoTimeouts(prefArr);
+        } else {
+            result = timeouts.stream()
+                    .flatMap(to ->
+                            crossProducePrefsNoTimeouts(prefArr).map(
+                                    l -> {
+                                        l.add(to);
+                                        return l;
+                                    }
+                            ));
+        }
+
+        return result;
+    }
+
+    static Stream<Set<BPreference>> crossProducePrefsNoTimeouts(BPreference[] prefs) {
         int length = prefs.length;
 
         if (length <= 0) {
@@ -105,11 +149,11 @@ public enum BackendId {
 
         return Stream.of(head, null)
                 .flatMap(p -> p != null
-                        ? crossProducePrefs(tail)
+                        ? crossProducePrefsNoTimeouts(tail)
                         .map(l -> {
                             l.add(p);
                             return l;
                         })
-                        : crossProducePrefs(tail));
+                        : crossProducePrefsNoTimeouts(tail));
     }
 }

@@ -81,7 +81,7 @@ class BackendIdTest {
         toAdd.add(fiz);
         expected.add(toAdd);
 
-        Set<Set<BPreference>> actual = BackendId.crossProducePrefs(prefs).collect(Collectors.toSet());
+        Set<Set<BPreference>> actual = BackendId.crossProducePrefsNoTimeouts(prefs).collect(Collectors.toSet());
 
         assertEquals(expected, actual);
     }
