@@ -7,6 +7,7 @@ import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.features.predicates.BAst109Reduced;
 import de.hhu.stups.neurob.core.features.predicates.BAst110Features;
 import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
+import de.hhu.stups.neurob.core.features.predicates.RawPredFeature;
 import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.core.labelling.HealyTimings;
 import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
@@ -257,7 +258,8 @@ public class DataCli implements CliModule {
         try {
 
             // TODO: Make this dynamic.
-            PredicateFeatureGenerating<BAst110Features> featgen = new BAst110Features.Generator();
+//            PredicateFeatureGenerating<BAst110Features> featgen = new BAst110Features.Generator();
+            PredicateFeatureGenerating<RawPredFeature> featgen = (p, mch) -> new RawPredFeature(p);
             LabelTranslation<PredDbEntry, BackendClassification> labeltrans =
                     new BackendClassification.Translator(backends);
 

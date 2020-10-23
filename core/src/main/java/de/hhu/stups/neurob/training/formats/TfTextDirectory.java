@@ -1,7 +1,7 @@
 package de.hhu.stups.neurob.training.formats;
 
 
-import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+import de.hhu.stups.neurob.core.features.predicates.RawPredFeature;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  *         </a>
  */
 public class TfTextDirectory<L extends PredicateLabelling>
-        implements TrainingDataFormat<BPredicate, L> {
+        implements TrainingDataFormat<RawPredFeature, L> {
     private static final org.slf4j.Logger log =
             org.slf4j.LoggerFactory.getLogger(TfTextDirectory.class);
 
@@ -30,7 +30,7 @@ public class TfTextDirectory<L extends PredicateLabelling>
 
     @Override
     public DataGenerationStats writeSamples(
-            TrainingData<BPredicate, L> trainingData,
+            TrainingData<RawPredFeature, L> trainingData,
             Path targetDirectory
     ) throws IOException {
         DataGenerationStats ds = new DataGenerationStats();
@@ -42,7 +42,7 @@ public class TfTextDirectory<L extends PredicateLabelling>
     }
 
     private void createTxtFile(
-            TrainingSample<BPredicate, L> sample,
+            TrainingSample<RawPredFeature, L> sample,
             Path targetDir,
             DataGenerationStats ds) {
         String label = sample.getLabelling().getLabellingString();
@@ -56,11 +56,11 @@ public class TfTextDirectory<L extends PredicateLabelling>
             return;
         }
 
-        BPredicate pred = sample.getData();
+        RawPredFeature pred = sample.getData();
         Path file = labelDir.resolve("pred_" + ds.getSamplesWritten() + "." + EXT);
         try {
             BufferedWriter writer = Files.newBufferedWriter(file);
-            writer.write(pred.getPredicate());
+            writer.write(pred.getPred().getPredicate());
             writer.close();
             ds.increaseSamplesWritten();
             ds.increaseFilesCreated();
@@ -72,7 +72,7 @@ public class TfTextDirectory<L extends PredicateLabelling>
     }
 
     @Override
-    public Stream<TrainingSample<BPredicate, L>> loadSamples(Path sourceFile) throws IOException {
+    public Stream<TrainingSample<RawPredFeature, L>> loadSamples(Path sourceFile) throws IOException {
         log.error("Not yet supported");
         return null;
     }

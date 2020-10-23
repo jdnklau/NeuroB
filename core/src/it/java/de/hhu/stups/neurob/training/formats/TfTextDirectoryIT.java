@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+import de.hhu.stups.neurob.core.features.predicates.RawPredFeature;
 import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.hhu.stups.neurob.training.data.TrainingData;
@@ -29,7 +30,7 @@ class TfTextDirectoryIT {
         Path targetDir = Files.createTempDirectory("neurob");
         TfTextDirectory<BackendClassification> format = new TfTextDirectory<>();
 
-        TrainingData<BPredicate, BackendClassification> data = new TrainingData<>(
+        TrainingData<RawPredFeature, BackendClassification> data = new TrainingData<>(
                 null,
                 Stream.of(
                         createSample("foo1", 1),
@@ -75,7 +76,7 @@ class TfTextDirectoryIT {
      * @param label 1 for ProB, 2 for Z3, 0 for none.
      * @return
      */
-    TrainingSample<BPredicate, BackendClassification>
+    TrainingSample<RawPredFeature, BackendClassification>
     createSample(String pred, int label) {
         BPredicate bpred = BPredicate.of(pred);
         Backend[] backends = new Backend[]{
@@ -88,7 +89,8 @@ class TfTextDirectoryIT {
                 backends,
                 target
         );
-        return new TrainingSample<>(bpred,classification);
+        RawPredFeature feat = new RawPredFeature(bpred);
+        return new TrainingSample<>(feat,classification);
     }
 
 }

@@ -15,13 +15,13 @@ import java.util.Arrays;
  */
 public class BAst110Features extends PredicateFeatures {
 
-    public static final int FEATURE_DIMENSION = 109;
+    public static final int FEATURE_DIMENSION = 110;
 
     public BAst110Features(BPredicate predicate, Double[] features) {
         super(predicate, features);
 
         if (features.length != FEATURE_DIMENSION) {
-            throw new IllegalArgumentException("Must have 109 features exactly.");
+            throw new IllegalArgumentException("Must have 110 features exactly.");
         }
     }
 
