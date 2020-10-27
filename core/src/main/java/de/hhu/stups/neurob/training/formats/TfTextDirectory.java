@@ -11,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 /**
@@ -27,6 +28,7 @@ public class TfTextDirectory<L extends PredicateLabelling>
             org.slf4j.LoggerFactory.getLogger(TfTextDirectory.class);
 
     public static final String EXT = "txt";
+    private static final AtomicInteger nextId = new AtomicInteger(0);
 
     @Override
     public DataGenerationStats writeSamples(
@@ -57,7 +59,7 @@ public class TfTextDirectory<L extends PredicateLabelling>
         }
 
         RawPredFeature pred = sample.getData();
-        Path file = labelDir.resolve("pred_" + ds.getSamplesWritten() + "." + EXT);
+        Path file = labelDir.resolve("pred_" + nextId.getAndIncrement() + "." + EXT);
         try {
             BufferedWriter writer = Files.newBufferedWriter(file);
             writer.write(pred.getPred().getPredicate());
