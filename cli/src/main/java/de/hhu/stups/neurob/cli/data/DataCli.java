@@ -10,6 +10,7 @@ import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.predicates.RawPredFeature;
 import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.core.labelling.HealyTimings;
+import de.hhu.stups.neurob.training.analysis.PredDbAnalysis;
 import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
@@ -26,9 +27,11 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,9 +57,9 @@ public class DataCli implements CliModule {
     @Override
     public String getUsageInfo() {
         return
-                /*use:*/" data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-e PROB_EXAMPLES_DIR] [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
-                + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n";
+                /*use:*/ "data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
+                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [OPTIONS] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
+                + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS] [-f FILE_NAME]\n";
 
     }
 
@@ -106,7 +109,7 @@ public class DataCli implements CliModule {
                 .longOpt("analyse")
                 .numberOfArgs(2)
                 .argName("PATH FORMAT")
-                .desc("Path to database to analyse and corresponding format")
+                .desc("Path to database to analyse and corresponding format.")
                 .required()
                 .build();
 
@@ -147,6 +150,15 @@ public class DataCli implements CliModule {
                       + "data generation.")
                 .build();
 
+        Option countFile = Option.builder("f")
+                .longOpt("count-file")
+                .hasArg()
+                .argName("FILE")
+                .desc("If set, analysis outputs a csv file containing the number of predicates "
+                      + "for each machine.")
+                .required()
+                .build();
+
         Option samplingSize = Option.builder("s")
                 .longOpt("sampling-size")
                 .hasArg()
@@ -175,6 +187,7 @@ public class DataCli implements CliModule {
 
         options.addOptionGroup(modeGroup);
         options.addOption(target);
+        options.addOption(countFile);
         options.addOption(examplesDir);
         options.addOption(backends);
         options.addOption(noBackends);
@@ -199,8 +212,12 @@ public class DataCli implements CliModule {
 
                 PredicateDbFormat dbFormat = (PredicateDbFormat) parseFormat(line, "a");
 
-                analyse(sourceDir, dbFormat, backends);
-
+                if (line.hasOption("f")) {
+                    Path countFile = parseSourceDirectory(line, "f");
+                    createCountFile(sourceDir, countFile, dbFormat, backends);
+                } else {
+                    analyse(sourceDir, dbFormat, backends);
+                }
             } else if (line.hasOption("g")) {
                 generate(line, parseTargetDirectory(line));
 
@@ -226,6 +243,41 @@ public class DataCli implements CliModule {
 
         } catch (ParseException e) {
             System.out.println("Unable to get command line arguments: " + e);
+        }
+    }
+
+    private void createCountFile(Path sourceDir, Path countFile, TrainingDataFormat format, List<Backend> backends) {
+        if (format instanceof PredicateDbFormat) {
+            PredicateDbFormat<PredDbEntry> dbFormat = (PredicateDbFormat<PredDbEntry>) format;
+            PredicateDbAnalyser analyser = new PredicateDbAnalyser(dbFormat);
+            try {
+                Path parent = countFile.getParent();
+                if (parent != null) {
+                    Files.createDirectories(parent);
+                }
+                BufferedWriter writer = Files.newBufferedWriter(countFile);
+                writer.write("count,path\n");
+                Files.walk(sourceDir)
+                        .filter(p -> p.toString().endsWith(format.getFileExtension()))
+                        .forEach(p -> writeFileInfo(sourceDir, p, writer, analyser));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("Analysis for non-pred-db formats not yet implemented.");
+        }
+    }
+
+    private void writeFileInfo(Path source, Path file, Writer countFile, PredicateDbAnalyser analyser) {
+        try {
+            PredDbAnalysis analysis = analyser.analyse(file);
+            countFile.write(analysis.getPredCount().toString());
+            countFile.write(',');
+            countFile.write(source.relativize(file).toString());
+            countFile.write('\n');
+            countFile.flush();
+        } catch (IOException e) {
+            System.err.println("Unable to gather info for " + file);
         }
     }
 
