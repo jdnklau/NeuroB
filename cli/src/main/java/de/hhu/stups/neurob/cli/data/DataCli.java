@@ -54,11 +54,9 @@ public class DataCli implements CliModule {
     @Override
     public String getUsageInfo() {
         return
-                "\n"
-                + "       data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
+                /*use:*/" data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
                 + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [-e PROB_EXAMPLES_DIR] [-c THREATS] [-i EXCLUDE_LIST] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
-                + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n"
-                + "\n";
+                + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS]\n";
 
     }
 
@@ -69,6 +67,8 @@ public class DataCli implements CliModule {
         HelpFormatter formatter = new HelpFormatter();
 
         formatter.printUsage(helpPrinter, 80, getUsageInfo());
+        helpPrinter.println();
+        helpPrinter.println("options:");
         formatter.printOptions(helpPrinter, 80, options, 1, 5);
         helpPrinter.println();
 
