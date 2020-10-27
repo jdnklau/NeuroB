@@ -156,7 +156,6 @@ public class DataCli implements CliModule {
                 .argName("FILE")
                 .desc("If set, analysis outputs a csv file containing the number of predicates "
                       + "for each machine.")
-                .required()
                 .build();
 
         Option samplingSize = Option.builder("s")
