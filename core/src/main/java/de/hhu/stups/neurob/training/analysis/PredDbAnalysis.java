@@ -237,6 +237,8 @@ public class PredDbAnalysis
 
         summary.append("  ").append(predicate);
         summary.append('\n');
+        summary.append("    over ").append(dbEntry.getSource());
+        summary.append('\n');
         summary.append("    VALID for ");
         valids.stream()
                 .flatMap(b -> Stream.of(", ", b.getDescriptionString()))
@@ -381,7 +383,7 @@ public class PredDbAnalysis
             if (best.equals(Answer.VALID) && answer.equals(Answer.INVALID)
                 || best.equals(Answer.INVALID) && answer.equals(Answer.VALID)) {
                 log.warn("Contradiction found: {} is classified as VALID and INVALID "
-                         + "by different backends", pred);
+                         + "by different backends over file {}", pred, dbEntry.getSource());
                 contradictions.add(dbEntry);
                 return;
             }
