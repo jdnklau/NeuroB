@@ -35,4 +35,16 @@ class Z3BackendIT {
 
     }
 
+    @Test
+    public void shouldBeValidIfCbcSolveDoesIgnoreStateSpace()
+            throws FormulaException, MachineAccessException {
+        Z3Backend z3 = new Z3Backend();
+        MachineAccess bMachine = new MachineAccess(Paths.get(TestMachines.getMachinePath("cbc_solve_test.mch")));
+
+        AnnotatedAnswer answer = z3.solvePredicateUntimed(BPredicate.of("x : 8..20"), bMachine);
+
+        assertEquals(Answer.VALID, answer.getAnswer(),
+                "Predicate is invalid but should be valid. Z3 makes use of state.");
+    }
+
 }

@@ -11,6 +11,7 @@ examples/
 # Machine files
 prob_examples/
 exclude.list
+*.prob
 
 # logging specific
 src/main/resources/logback.xml
