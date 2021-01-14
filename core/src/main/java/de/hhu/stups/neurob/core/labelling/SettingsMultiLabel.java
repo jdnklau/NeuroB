@@ -8,12 +8,11 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
+import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class SettingsMultiLabel extends PredicateLabelling {
@@ -35,10 +34,12 @@ public class SettingsMultiLabel extends PredicateLabelling {
     public static class Generator implements PredicateLabelGenerating<SettingsMultiLabel> {
         private final BPreference[] prefs;
         private final Backend[] backends;
+        private final long timeoutMS;
 
         public Generator(Long timeoutMS, BPreference[] preferences) {
             this.prefs = preferences;
-            this.backends = assembleBackends(timeoutMS, preferences);
+            this.backends = Translator.assembleBackends(timeoutMS, preferences);
+            this.timeoutMS = timeoutMS;
         }
 
         @Override
@@ -47,9 +48,32 @@ public class SettingsMultiLabel extends PredicateLabelling {
             // Generate predicate data.
             PredDbEntry dbEntry = new PredDbEntry.Generator(1, backends).generate(predicate, bMachine);
 
-            Backend fastest = BackendClassification.classifyFastestBackend(backends,dbEntry.getResults());
+            return new Translator(prefs, backends).translate(dbEntry);
+        }
+
+
+    }
+
+    public static class Translator implements LabelTranslation<PredDbEntry, SettingsMultiLabel> {
+
+        private final BPreference[] prefs;
+        private final Backend[] backends;
+
+        public Translator(long timeoutMS, BPreference[] preferences) {
+            this.prefs = preferences;
+            this.backends = assembleBackends(timeoutMS, preferences);
+        }
+
+        Translator(BPreference[] preferences, Backend[] backends) {
+            this.prefs = preferences;
+            this.backends = backends;
+        }
+
+        @Override
+        public SettingsMultiLabel translate(PredDbEntry dbEntry) {
+            Backend fastest = BackendClassification.classifyFastestBackend(backends, dbEntry.getResults());
             Double[] labels = genSettingsArray(fastest.getPreferences(), prefs);
-            return new SettingsMultiLabel(predicate, prefs, labels);
+            return new SettingsMultiLabel(dbEntry.getPredicate(), prefs, labels);
         }
 
         static Backend[] assembleBackends(Long timeoutMS, BPreference[] preferences) {
@@ -85,7 +109,7 @@ public class SettingsMultiLabel extends PredicateLabelling {
             BPreference pref = prefStack.pop();
             // Ignore Timeouts
             if (pref.getName().equals("TIME_OUT")) {
-               return crossProduceBackends(currentStack, prefStack);
+                return crossProduceBackends(currentStack, prefStack);
             }
 
             Stack<Backend> newStack = new Stack<>();
@@ -101,6 +125,5 @@ public class SettingsMultiLabel extends PredicateLabelling {
 
             return crossProduceBackends(newStack, prefStack);
         }
-
     }
 }

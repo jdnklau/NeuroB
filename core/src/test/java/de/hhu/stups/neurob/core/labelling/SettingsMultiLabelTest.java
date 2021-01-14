@@ -37,7 +37,7 @@ class SettingsMultiLabelTest {
         expected.add(new ProBBackend());
 
         Set<Backend> actual = Arrays
-                .stream(SettingsMultiLabel.Generator.assembleBackends(2500L, prefs))
+                .stream(SettingsMultiLabel.Translator.assembleBackends(2500L, prefs))
                 .collect(Collectors.toSet());
 
         assertEquals(expected, actual, "Generated backends do not match");
@@ -59,7 +59,7 @@ class SettingsMultiLabelTest {
         expected.add(new ProBBackend());
 
         Set<Backend> actual = Arrays
-                .stream(SettingsMultiLabel.Generator.assembleBackends(2500L, prefs))
+                .stream(SettingsMultiLabel.Translator.assembleBackends(2500L, prefs))
                 .collect(Collectors.toSet());
 
         assertEquals(expected, actual, "Generated backends do not match");
@@ -71,7 +71,7 @@ class SettingsMultiLabelTest {
         BPreferences used = new BPreferences(baz0, foo0);
 
         Double[] expected = {1., 0., 1.};
-        Double[] actual = SettingsMultiLabel.Generator.genSettingsArray(used, prefs);
+        Double[] actual = SettingsMultiLabel.Translator.genSettingsArray(used, prefs);
 
         assertArrayEquals(expected, actual);
     }
@@ -82,7 +82,7 @@ class SettingsMultiLabelTest {
         BPreferences used = new BPreferences(baz0, foo2);
 
         Double[] expected = {0., 0., 1., 0., 1.};
-        Double[] actual = SettingsMultiLabel.Generator.genSettingsArray(used, prefs);
+        Double[] actual = SettingsMultiLabel.Translator.genSettingsArray(used, prefs);
 
         assertArrayEquals(expected, actual);
     }
@@ -96,7 +96,7 @@ class SettingsMultiLabelTest {
         expected.add(new ProBBackend());
 
         Set<Backend> actual = Arrays
-                .stream(SettingsMultiLabel.Generator.assembleBackends(2500L, prefs))
+                .stream(SettingsMultiLabel.Translator.assembleBackends(2500L, prefs))
                 .collect(Collectors.toSet());
 
         assertEquals(expected, actual, "Generated backends do not match");
