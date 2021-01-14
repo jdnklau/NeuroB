@@ -778,6 +778,7 @@ public class JsonDbFormat implements PredicateDbFormat<PredDbEntry> {
             // Collect used backends
             Map<Backend, TimedAnswer> results = new HashMap<>();
             Map<String, TimedAnswer> sampleResults = (Map<String, TimedAnswer>) sampleData.get("results");
+            // TODO/FIXME: Here we are loosing data - backends not listed are discarded, which is not good.
             Arrays.stream(backendsUsed)
                     .forEach(b -> results.put(b, sampleResults.getOrDefault(
                             b.getDescriptionString(), null)));

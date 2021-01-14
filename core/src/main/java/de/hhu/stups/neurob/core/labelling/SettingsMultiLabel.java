@@ -48,9 +48,7 @@ public class SettingsMultiLabel extends PredicateLabelling {
             PredDbEntry dbEntry = new PredDbEntry.Generator(1, backends).generate(predicate, bMachine);
 
             Backend fastest = BackendClassification.classifyFastestBackend(backends,dbEntry.getResults());
-
             Double[] labels = genSettingsArray(fastest.getPreferences(), prefs);
-
             return new SettingsMultiLabel(predicate, prefs, labels);
         }
 
@@ -84,9 +82,13 @@ public class SettingsMultiLabel extends PredicateLabelling {
                 return currentStack;
             }
 
-            Stack<Backend> newStack = new Stack<>();
             BPreference pref = prefStack.pop();
+            // Ignore Timeouts
+            if (pref.getName().equals("TIME_OUT")) {
+               return crossProduceBackends(currentStack, prefStack);
+            }
 
+            Stack<Backend> newStack = new Stack<>();
             // For each backend, add another with the same set of preferences and an additional one.
             for (Backend b : currentStack) {
                 BPreferences origPrefs = b.getPreferences();

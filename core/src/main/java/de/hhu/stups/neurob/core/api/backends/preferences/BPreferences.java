@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 /**
  * Preference collection containing preferences for B Backends.
  * <p>
- * Easiest way for assembling a preference collection would be tu use
+ * Easiest way for assembling a preference collection would be to use
  * the builder pattern:
  * <pre>
  * BPreferences
@@ -29,7 +29,7 @@ public class BPreferences {
 
     /**
      * Constructs a preference collection from the given preferences.
-     * If the same preference is assigned mutliple values, the last value is taken.
+     * If the same preference is assigned multiple values, the last value is taken.
      *
      * @param prefs
      */
