@@ -10,7 +10,9 @@ import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -64,9 +66,29 @@ public class SettingsMultiLabel extends PredicateLabelling {
             this.backends = assembleBackends(timeoutMS, preferences);
         }
 
-        Translator(BPreference[] preferences, Backend[] backends) {
+        public Translator(BPreference[] preferences, Backend[] backends) {
             this.prefs = preferences;
             this.backends = backends;
+        }
+
+        public Translator(Backend[] backends) {
+            this.backends = backends;
+
+            Set<BPreference> preferenceSet = new HashSet<>();
+            for (Backend b : backends) {
+                preferenceSet.addAll(
+                        b.getPreferences().stream()
+                                // Note: time outs are handled differently than other settings.
+                                .filter(pref -> !pref.getName().equals("TIME_OUT"))
+                                .collect(Collectors.toSet()));
+            }
+
+            this.prefs = preferenceSet.stream().sorted((p1, p2) -> {
+                int keyCompare = p1.getName().compareTo(p2.getName());
+                return (keyCompare != 0)
+                        ? keyCompare
+                        : p1.getValue().compareTo(p2.getValue());
+            }).toArray(BPreference[]::new);
         }
 
         @Override
