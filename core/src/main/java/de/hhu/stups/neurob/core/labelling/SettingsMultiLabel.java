@@ -71,6 +71,12 @@ public class SettingsMultiLabel extends PredicateLabelling {
             this.backends = backends;
         }
 
+        /**
+         * Constructor infers selected preferences from the given list of backends.
+         * These are sorted alphabetically, first by key then by value, for the resulting
+         * labelling arrays.
+         * @param backends
+         */
         public Translator(Backend[] backends) {
             this.backends = backends;
 
