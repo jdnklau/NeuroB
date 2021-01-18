@@ -32,4 +32,8 @@ public enum Answer {
     public String toString() {
         return code;
     }
+
+    public static boolean isSolvable(Answer answer) {
+        return VALID.equals(answer) || INVALID.equals(answer) || SOLVABLE.equals(answer);
+    }
 }

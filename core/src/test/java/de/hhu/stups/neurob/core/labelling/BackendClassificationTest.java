@@ -134,18 +134,38 @@ class BackendClassificationTest {
     }
 
     @Test
-    void shouldReturnNullIfNoBackendCanFindAnser() throws FormulaException {
+    void shouldReturnFastestEvenIfNoAnswer() throws FormulaException {
         TimedAnswer timeout = new TimedAnswer(Answer.TIMEOUT, 400L);
+        TimedAnswer timeoutFast = new TimedAnswer(Answer.TIMEOUT, 200L);
 
         Map<Backend, TimedAnswer> answerMap = new HashMap<>();
         answerMap.put(backends[0], timeout);
         answerMap.put(backends[1], timeout);
-        answerMap.put(backends[2], timeout);
+        answerMap.put(backends[2], timeoutFast);
         answerMap.put(backends[3], timeout);
 
+        Backend expected = backends[2];
         Backend actual = BackendClassification.classifyFastestBackend(backends, answerMap);
 
-        assertNull(actual);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldReturnFastestWithAnswerWhenQuickerErrorExists() throws FormulaException {
+        TimedAnswer error = new TimedAnswer(Answer.ERROR, 1L);
+        TimedAnswer valid = new TimedAnswer(Answer.VALID, 200L);
+        TimedAnswer valid2 = new TimedAnswer(Answer.VALID, 500L);
+
+        Map<Backend, TimedAnswer> answerMap = new HashMap<>();
+        answerMap.put(backends[0], valid2);
+        answerMap.put(backends[1], error);
+        answerMap.put(backends[2], error);
+        answerMap.put(backends[3], valid); // Fastest with answer
+
+        Backend expected = backends[3];
+        Backend actual = BackendClassification.classifyFastestBackend(backends, answerMap);
+
+        assertEquals(expected, actual);
     }
 
     @Test

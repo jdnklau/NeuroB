@@ -80,6 +80,7 @@ public class BackendClassification extends PredicateLabelling {
             Map<Backend, TimedAnswer> answerMap) {
         Backend fastest = null;
         long fastestTime = Long.MAX_VALUE;
+        Answer fastestAnswer = Answer.ERROR;
 
         for (int i = 0; i < classificationBackends.length; i++) {
             Backend backend = classificationBackends[i];
@@ -91,12 +92,16 @@ public class BackendClassification extends PredicateLabelling {
 
             Answer answerValue = answer.getAnswer();
             Long time = answer.getNanoSeconds();
-            if ((Answer.VALID.equals(answerValue)
-                 || Answer.INVALID.equals(answerValue)
-                 || Answer.SOLVABLE.equals(answerValue))
-                && time < fastestTime) {
+            if (Answer.isSolvable(answerValue)
+                && (time < fastestTime || !Answer.isSolvable(fastestAnswer))) {
                 fastest = classificationBackends[i];
                 fastestTime = time;
+                fastestAnswer = answerValue;
+            } else if (!Answer.isSolvable(fastestAnswer)
+                       && time < fastestTime) {
+                fastest = classificationBackends[i];
+                fastestTime = time;
+                fastestAnswer = answerValue;
             }
         }
 
@@ -190,6 +195,11 @@ public class BackendClassification extends PredicateLabelling {
             PredDbEntry dbEntry = new PredDbEntry.Generator(1, backends).generate(predicate, bMachine);
 
             Backend classification = classifyFastestBackend(backends, dbEntry.getResults());
+
+            // If fastest is an error, we want to classify as index 0 (null backend).
+            classification = (Answer.isSolvable(dbEntry.getResult(classification).getAnswer()))
+                    ? classification
+                    : null;
             return new BackendClassification(predicate, backends, classification);
         }
 
