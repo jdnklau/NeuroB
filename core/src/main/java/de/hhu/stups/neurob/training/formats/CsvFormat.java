@@ -102,7 +102,8 @@ public class CsvFormat implements TrainingDataFormat<Features, Labelling> {
             // join them
             header = String.join(",", featureHeaders)
                      + "," +
-                     String.join(",", labelHeaders);
+                     String.join(",", labelHeaders)
+                     + (annotateWithPredicate ? ",Comment" : "");
         }
     }
 
