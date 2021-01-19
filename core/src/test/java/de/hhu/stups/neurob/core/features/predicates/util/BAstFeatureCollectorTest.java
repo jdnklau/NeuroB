@@ -64,6 +64,25 @@ class BAstFeatureCollectorTest {
     }
 
     @Test
+    void shouldNotHaveMoreConjunctCountThanConjunctionCount() throws FeatureCreationException {
+        String pred = "(AGENCY_USER/={}) & (AGENCY_USER<:USER) & (not((session:SESSION+->USER) & (session_response:SESSION+->RESP) & (session_card:SESSION+->CARD) & (session_state:SESSION+->SESSION_STATE) & (session_request:SESSION+->SESSION_REQUEST) & (user_hotel_bookings:USER+->HOTEL) & (user_rental_bookings:USER+->CAR_RENT) & (rooms_hotel:ROOM-->HOTEL) & (cars_rental:CAR-->CAR_RENT) & (global_room_bookings:ROOM>+>USER) & (global_car_bookings:CAR>+>USER) & (dom(session)=dom(session_response)) & (dom(session)=dom(session_card)) & (dom(session)=dom(session_state)) & (dom(session)=dom(session_request)) & (dom(user_hotel_bookings)=dom(user_rental_bookings)) & (ran(session)<:dom(user_hotel_bookings)) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)/=noHotel => user1:ran(global_room_bookings) & global_room_bookings~[{user1}]<:rooms_hotel~[{user_hotel_bookings(user1)}]) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)/=noCarRent => user1:ran(global_car_bookings) & global_car_bookings~[{user1}]<:cars_rental~[{user_rental_bookings(user1)}]) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)=noHotel => user1/:ran(global_room_bookings)) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)=noCarRent => user1/:ran(global_car_bookings)) & (sess1:dom(session) & session_card(sess1)/=valid => session_response(sess1)=undef)) => not(sid:dom(session) & session_state(sid)=s1 & session_request(sid)=none => session:SESSION+->USER & session_response:SESSION+->RESP & session_card:SESSION+->CARD & session_state<+{(sid,s4)}:SESSION+->SESSION_STATE & session_request<+{(sid,uc)}:SESSION+->SESSION_REQUEST & user_hotel_bookings:USER+->HOTEL & user_rental_bookings:USER+->CAR_RENT & rooms_hotel:ROOM-->HOTEL & cars_rental:CAR-->CAR_RENT & global_room_bookings:ROOM>+>USER & global_car_bookings:CAR>+>USER & dom(session)=dom(session_response) & dom(session)=dom(session_card) & dom(session)=dom(session_state<+{(sid,s4)}) & dom(session)=dom(session_request<+{(sid,uc)}) & dom(user_hotel_bookings)=dom(user_rental_bookings) & ran(session)<:dom(user_hotel_bookings) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)/=noHotel => user1:ran(global_room_bookings) & global_room_bookings~[{user1}]<:rooms_hotel~[{user_hotel_bookings(user1)}]) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)/=noCarRent => user1:ran(global_car_bookings) & global_car_bookings~[{user1}]<:cars_rental~[{user_rental_bookings(user1)}]) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)=noHotel => user1/:ran(global_room_bookings)) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)=noCarRent => user1/:ran(global_car_bookings)) & (sess1:dom(session) & session_card(sess1)/=valid => session_response(sess1)=undef)))";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expectedConjuncts = 3;
+        int actualConjuncts = data.getConjunctsCount();
+
+        int expectedConjunctions = 2;
+        int actualConjunctions = data.getConjunctionsCount();
+
+        assertAll(
+                () -> assertEquals(expectedConjunctions, actualConjunctions,
+                        "conjunctions count does not match"),
+                () -> assertEquals(expectedConjuncts, actualConjuncts,
+                        "top level conjuncts count does not match")
+        );
+    }
+
+    @Test
     public void disjunctionsCountTest() throws FeatureCreationException {
         String pred = "x : NATURAL & not(x> 3 => (x>2 & x > 2 or x<9 & x>5)) or x > 2";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));

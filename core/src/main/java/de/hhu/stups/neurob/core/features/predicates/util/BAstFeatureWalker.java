@@ -11,7 +11,7 @@ import java.util.LinkedList;
  * and builds a {@link BAstFeatureData} object.
  */
 public class BAstFeatureWalker extends DepthFirstAdapter {
-    private static final int DEPTH_MIN = 1; // minimal depth in predicates
+    private static final int DEPTH_MIN = 0; // minimal depth in predicates
 
     private BAstFeatureData data;
     private boolean inNegation = false;
@@ -103,7 +103,7 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     // NUMBER OF CONJUNCTS/DISJUNCTS/NEGATIONS
     @Override
     public void inAConjunctPredicate(AConjunctPredicate node) {
-        if (depth == DEPTH_MIN) {
+        if (depth == DEPTH_MIN && !inNegation) {
             // Only count the base conjuncts (not those that are part of nested conjuncts
             data.incConjunctsCount();
         }
