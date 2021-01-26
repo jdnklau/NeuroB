@@ -3,7 +3,7 @@
 An artificial deep learning framework for ProB.
 
 With NeuroB,
-one can set up neural networks an train them on problems related to
+one can set up training data for machine learning problems related to
 the B method.
 Using ProB2 to load B machines and to access their state spaces,
 one can create training sets from B predicates or whole B machines
@@ -12,7 +12,7 @@ and set up classification or regression tasks over them.
 ## Requirements
 
 - Java 1.8+
-- [Z3 Theorem Prover](https://github.com/Z3Prover/z3), version 4.6.0
+- [Z3 Theorem Prover](https://github.com/Z3Prover/z3), version 4.8.9
 
 ## Getting the development started
 
@@ -33,7 +33,7 @@ idea build.gradle
 - indentation
   - 4 spaces
   - hanging indent: 4 spaces as well
-- maximal line length: 80 characters
+- maximal line length: 100 characters
 - no wildcard imports
 - src/ layout per module:
   - src/main/java: java source code
