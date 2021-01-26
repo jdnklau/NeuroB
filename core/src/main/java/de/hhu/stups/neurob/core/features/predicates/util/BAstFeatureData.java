@@ -1,5 +1,10 @@
 package de.hhu.stups.neurob.core.features.predicates.util;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 public class BAstFeatureData {
 
     /** Number of conjuncts in predicate */
@@ -185,6 +190,20 @@ public class BAstFeatureData {
     private int iterateCount = 0;
 
     private IdentifierRelationsHandler identifiers;
+    /** Number of total identifier uses. */
+    private int idUses = 0;
+    /**
+     * Number of distinct uses of identifiers on a conjunct base.
+     * Identifiers are only counted once each conjunct.
+     */
+    private int distinctIdUses = 0;
+    private Set<String> lastDistinctIds = new HashSet<>();
+    /** Maps Identifiers to the set of Conjunct IDs they are used in. */
+    private Map<String, Set<Integer>> distinctUsesPerId = new HashMap<>();
+
+    /** Number of conjuncts not using any identifier. **/
+    private int conjunctsWithoutIdUseCount = 0;
+    private int conjunctId = 0;
 
 
     public BAstFeatureData() {
@@ -528,6 +547,22 @@ public class BAstFeatureData {
         return identifiers.getUnboundedDomainsCount();
     }
 
+    public int getIdUses() {
+        return idUses;
+    }
+
+    public int getConjunctBasedDistinctIdUses() {
+        return distinctIdUses;
+    }
+
+    public int getConjunctsWithoutIdUseCount() {
+        return conjunctsWithoutIdUseCount;
+    }
+
+    public int getDistinctUsesForId(String id) {
+        return distinctUsesPerId.get(id).size();
+    }
+
     /**
      * Add an identifier to be accounted in the feature vector
      *
@@ -535,6 +570,17 @@ public class BAstFeatureData {
      */
     public void addIdentifier(String id) {
         identifiers.addIdentifier(id);
+
+        // Add current conjunct ID to usages of id.
+        Set<Integer> usageConjuncts = distinctUsesPerId.getOrDefault(id, new HashSet<>());
+        usageConjuncts.add(conjunctId);
+        distinctUsesPerId.put(id, usageConjuncts);
+
+        if (!lastDistinctIds.contains(id)) { // New identifier.
+            lastDistinctIds.add(id);
+            distinctIdUses++;
+        }
+        idUses++;
     }
 
     /**
@@ -1048,4 +1094,16 @@ public class BAstFeatureData {
     public int identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes finalType) {
         return identifiers.getTypeCount(finalType);
     }
+
+    public void endCurrentConjunct() {
+        if (lastDistinctIds.isEmpty()) {
+            conjunctsWithoutIdUseCount++;
+        }
+
+        // reset counts of distinct IDs per conjunct.
+        lastDistinctIds = new HashSet<>();
+
+        conjunctId++;
+    }
+
 }

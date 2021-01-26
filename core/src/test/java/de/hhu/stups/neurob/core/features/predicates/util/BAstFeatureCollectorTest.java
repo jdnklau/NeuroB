@@ -83,6 +83,61 @@ class BAstFeatureCollectorTest {
     }
 
     @Test
+    void shouldCountAllIdUsages() throws FeatureCreationException {
+        String pred = "x:INT & y:INT & (x+y>2 => x>7) & 0<1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 5;
+        int actual = data.getIdUses();
+
+        assertEquals(expected, actual, "id count does not match");
+    }
+
+    @Test
+    void shouldCountDistinctIdUsagesOnPerTopLevelConjunctBasis() throws FeatureCreationException {
+        String pred = "x:INT & y:INT & (x+y>2 => x>7) & 0<1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 4;
+        int actual = data.getConjunctBasedDistinctIdUses();
+
+        assertEquals(expected, actual, "id count does not match");
+    }
+
+    @Test
+    void shouldCountConjunctsWithoutIdUses() throws FeatureCreationException {
+        String pred = "x:INT & y:INT & 4=2*2 & (x+y>2 => x>7) & 0<1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2;
+        int actual = data.getConjunctsWithoutIdUseCount();
+
+        assertEquals(expected, actual, "pure conjunct count does not match");
+    }
+
+    @Test
+    void shouldCountDistinctUsesPerId() throws FeatureCreationException {
+        String pred = "x:INT & y:INT & 4=2*2 & (x+y>2 => x>7) & 0<1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2;
+        int actual = data.getDistinctUsesForId("x");
+
+        assertEquals(expected, actual, "distinct uses count does not match");
+    }
+
+    @Test
+    void shouldCalculateAverageDistinctUsesPerId() throws FeatureCreationException {
+        String pred = "x:INT & y:INT & z:INT & (x+y>2 => x>7)";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        double expected = (2+2+1)/3.;
+        double actual = data.getConjunctBasedDistinctIdUses()/3.;
+
+        assertEquals(expected, actual, "distinct uses count does not match");
+    }
+
+    @Test
     public void disjunctionsCountTest() throws FeatureCreationException {
         String pred = "x : NATURAL & not(x> 3 => (x>2 & x > 2 or x<9 & x>5)) or x > 2";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));

@@ -112,6 +112,14 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     }
 
     @Override
+    public void outAConjunctPredicate(AConjunctPredicate node) {
+        if (depth == DEPTH_MIN && !inNegation) {
+            data.endCurrentConjunct();
+        }
+        super.outAConjunctPredicate(node);
+    }
+
+    @Override
     public void inADisjunctPredicate(ADisjunctPredicate node) {
         if (inNegation)
             data.incConjunctionsCount();
