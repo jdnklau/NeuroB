@@ -4,12 +4,16 @@ import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
 import de.hhu.stups.neurob.cli.formats.Formats;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.ProBBackend;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.features.predicates.BAst109Reduced;
 import de.hhu.stups.neurob.core.features.predicates.BAst110Features;
+import de.hhu.stups.neurob.core.features.predicates.BAst115Features;
 import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.predicates.RawPredFeature;
 import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.core.labelling.HealyTimings;
+import de.hhu.stups.neurob.core.labelling.SettingsMultiLabel;
 import de.hhu.stups.neurob.training.analysis.PredDbAnalysis;
 import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
@@ -42,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,7 +62,7 @@ public class DataCli implements CliModule {
     @Override
     public String getUsageInfo() {
         return
-                /*use:*/ "data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT\n"
+                /*use:*/ "data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT TARGET_FEATURES TARGET_LABELS\n"
                 + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [OPTIONS] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
                 + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS] [-f FILE_NAME]\n";
 
@@ -121,8 +126,8 @@ public class DataCli implements CliModule {
         // Target
         Option target = Option.builder("t")
                 .longOpt("target-dir")
-                .numberOfArgs(2)
-                .argName("PATH FORMAT")
+                .numberOfArgs(4)
+                .argName("PATH FORMAT FEATURES LABELS")
                 .desc("Directory and format into which the generated data is placed.")
                 .build();
 
@@ -221,7 +226,9 @@ public class DataCli implements CliModule {
                 generate(line, parseTargetDirectory(line));
 
             } else if (line.hasOption("m")) {
-                TrainingDataFormat targetFormat = parseFormat(line, "t");
+                Backend[] backends = parseBackends(line).toArray(new Backend[]{});
+                MigrationFormat migration = parseMigration(line, "t", backends);
+                TrainingDataFormat targetFormat = migration.getFormat();
 
                 Path sourceDir = parseSourceDirectory(line, "m");
                 PredicateDbFormat sourceFormat =
@@ -234,7 +241,8 @@ public class DataCli implements CliModule {
                 } else {
                     Path targetDir = parseSourceDirectory(line, "t");
                     Path genDir = parseSourceDirectory(line, "e");
-                    migrateFeatures(sourceDir, sourceFormat, targetDir, genDir, targetFormat, parseBackends(line).toArray(new Backend[0]));
+
+                    migrateFeatures(sourceDir, sourceFormat, targetDir, genDir, migration);
 
                 }
 
@@ -304,22 +312,16 @@ public class DataCli implements CliModule {
     }
 
     private void migrateFeatures(Path sourceDir, PredicateDbFormat sourceFormat, Path targetDir, Path genSource,
-            TrainingDataFormat targetFormat,
-            Backend[] backends) {
+            MigrationFormat migration) {
         try {
-
-            // TODO: Make this dynamic.
-//            PredicateFeatureGenerating<BAst110Features> featgen = new BAst110Features.Generator();
-            PredicateFeatureGenerating<RawPredFeature> featgen = (p, mch) -> new RawPredFeature(p);
-            LabelTranslation<PredDbEntry, BackendClassification> labeltrans =
-                    new BackendClassification.Translator(backends);
 
             new PredicateDbMigration(sourceFormat)
                     .migrate(sourceDir, targetDir, genSource,
-                            featgen,
-                            labeltrans, targetFormat);
+                            migration.getFeatures(), migration.getLabels(), migration.getFormat());
         } catch (IOException e) {
             System.out.println("Unable to migrate data base: " + e);
+        } catch (Exception e) {
+            System.out.println("Unable recognise features or labels: " + e);
         }
     }
 
@@ -389,7 +391,7 @@ public class DataCli implements CliModule {
 
         List<Backend> backends = parseBackends(line);
 
-        return Formats.parseFormat(formatId, backends);
+        return Formats.parseFormat(formatId, 0, 0, backends); // TODO: Where is this called?
     }
 
     /**
@@ -436,6 +438,18 @@ public class DataCli implements CliModule {
     Path parseSourceDirectory(CommandLine line, String fromOption) {
         if (line.hasOption(fromOption)) {
             return Paths.get(line.getOptionValues(fromOption)[0]);
+        }
+        return null;
+    }
+
+    MigrationFormat parseMigration(CommandLine line, String fromOption, Backend[] backends) {
+        if (line.hasOption(fromOption)) {
+            try {
+                String[] lineOptions = line.getOptionValues(fromOption);
+                return new MigrationFormat(lineOptions[2], lineOptions[3], lineOptions[1], backends);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }

@@ -16,11 +16,12 @@ import java.util.function.Function;
 
 public enum Formats {
 
-    JSON("Json format for training", (b) -> new JsonFormat()),
-    JSONDB("Json for predicate data bases", (b) -> new JsonDbFormat(b.toArray(new Backend[0]))),
-    PDUMP("(Legacy) Predicate Dump data base format", (b) -> new PredicateDumpFormat()),
-    CSV("CSV", b -> new CsvFormat(109, 1)),
-    TFTXT("Tensorflow Text Data directory structure", b -> new TfTextDirectory<BackendClassification>());
+    JSON("Json format for training", (f,l,b) -> new JsonFormat()),
+    JSONDB("Json for predicate data bases", (f,l,b) -> new JsonDbFormat(b.toArray(new Backend[0]))),
+    PDUMP("(Legacy) Predicate Dump data base format", (f,l,b) -> new PredicateDumpFormat()),
+    CSV("CSV", (f,l,b) -> new CsvFormat(f, l)),
+    CSVC("CSV with comment column", (f,l,b) -> new CsvFormat(f, l, true, true)),
+    TFTXT("Tensorflow Text Data directory structure", (f,l,b) -> new TfTextDirectory<BackendClassification>());
 
     public final String description;
     public final FormatParser getter;
@@ -51,11 +52,11 @@ public enum Formats {
         return info.toString();
     }
 
-    public static TrainingDataFormat parseFormat(String id) {
-        return Formats.valueOf(id.toUpperCase()).getter.get(new ArrayList<>());
+    public static TrainingDataFormat parseFormat(String id, int featureSize, int labelSize) {
+        return Formats.valueOf(id.toUpperCase()).getter.get(featureSize, labelSize, new ArrayList<>());
     }
 
-    public static TrainingDataFormat parseFormat(String id, List<Backend> backends) {
-        return Formats.valueOf(id.toUpperCase()).getter.get(backends);
+    public static TrainingDataFormat parseFormat(String id, int featureSize, int labelSize, List<Backend> backends) {
+        return Formats.valueOf(id.toUpperCase()).getter.get(featureSize, labelSize, backends);
     }
 }

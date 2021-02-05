@@ -153,5 +153,9 @@ public class SettingsMultiLabel extends PredicateLabelling {
 
             return crossProduceBackends(newStack, prefStack);
         }
+
+        public int countPreferences() {
+            return backends.length;
+        }
     }
 }

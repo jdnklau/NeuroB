@@ -19,14 +19,14 @@ class FormatsTest {
 
     @Test
     void shouldGetJsonFormat() throws Exception {
-        TrainingDataFormat format = Formats.parseFormat("json");
+        TrainingDataFormat format = Formats.parseFormat("json", 0,0);
 
         assertTrue(format instanceof JsonFormat);
     }
 
     @Test
     void shouldGetPdumpFormat() throws Exception {
-        TrainingDataFormat format = Formats.parseFormat("pdump");
+        TrainingDataFormat format = Formats.parseFormat("pdump", 0,0);
 
         assertTrue(format instanceof PredicateDumpFormat);
     }
@@ -36,7 +36,7 @@ class FormatsTest {
         Backend[] backends = {new ProBBackend(), new Z3Backend()};
 
         TrainingDataFormat format = Formats.parseFormat(
-                "jsondb",
+                "jsondb", 0,0,
                 Arrays.stream(backends).collect(Collectors.toList()));
 
         JsonDbFormat jsonDbFormat = (JsonDbFormat) format;

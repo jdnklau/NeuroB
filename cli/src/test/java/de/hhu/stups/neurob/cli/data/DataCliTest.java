@@ -163,7 +163,7 @@ class DataCliTest {
 
     @Test
     void shouldParseNoBackends() throws ParseException {
-        String cli = "-g foo -t bar jsondb -n";
+        String cli = "-g foo -t bar jsondb f115 bc -n";
         CommandLine line = parseCommandLine(cli);
 
         List<Backend> expected = new ArrayList<>();
@@ -174,7 +174,7 @@ class DataCliTest {
 
     @Test
     void shouldParseSourceDirectory() throws ParseException {
-        String cliInput = "-g foo/ -t bar/ jsondb";
+        String cliInput = "-g foo/ -t bar/ jsondb f115 bc";
         CommandLine line = parseCommandLine(cliInput);
 
         Path expected = Paths.get("foo");
@@ -185,7 +185,7 @@ class DataCliTest {
 
     @Test
     void shouldParseCores() throws ParseException {
-        String cliInput = "-g foo/ -t bar/ jsondb -c 6";
+        String cliInput = "-g foo/ -t bar/ jsondb f115 bc -c 6";
         CommandLine line = parseCommandLine(cliInput);
 
         int expected = 6;
@@ -196,7 +196,7 @@ class DataCliTest {
 
     @Test
     void shouldUseDefaultCoreValue() throws ParseException {
-        String cliInput = "-g foo/ -t bar/ jsondb";
+        String cliInput = "-g foo/ -t bar/ jsondb f115 bc";
         CommandLine line = parseCommandLine(cliInput);
 
         int expected = Runtime.getRuntime().availableProcessors() - 1; // Java default for ForkPool
@@ -207,7 +207,7 @@ class DataCliTest {
 
     @Test
     void shouldParseTargetDirectory() throws ParseException {
-        String cliInput = "-g foo/ -t bar/ jsondb";
+        String cliInput = "-g foo/ -t bar/ jsondb f115 bc";
         CommandLine line = parseCommandLine(cliInput);
 
         Path expected = Paths.get("bar");
@@ -218,7 +218,7 @@ class DataCliTest {
 
     @Test
     void shouldParseJsonFormat() throws ParseException {
-        String cliInput = "-g foo/ -t bar/ json";
+        String cliInput = "-g foo/ -t bar/ json f115 bc";
         CommandLine line = parseCommandLine(cliInput);
 
         TrainingDataFormat format = new DataCli().parseFormat(line, "t");
@@ -228,7 +228,7 @@ class DataCliTest {
 
     @Test
     void shouldParseJsonDbFormat() throws ParseException {
-        String cliInput = "-g foo/ -t bar/ jsondb -b prob z3";
+        String cliInput = "-g foo/ -t bar/ jsondb f115 bc -b prob z3";
         CommandLine line = parseCommandLine(cliInput);
 
         TrainingDataFormat format = new DataCli().parseFormat(line, "t");
@@ -243,7 +243,7 @@ class DataCliTest {
 
     @Test
     void shouldParseJsonDbFormatWithDefaultBackends() throws ParseException {
-        String cliInput = "-g foo/ -t bar/ jsondb";
+        String cliInput = "-g foo/ -t bar/ jsondb f115 bc";
         CommandLine line = parseCommandLine(cliInput);
 
         TrainingDataFormat format = new DataCli().parseFormat(line, "t");

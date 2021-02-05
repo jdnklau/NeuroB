@@ -8,9 +8,9 @@ import java.util.List;
 
 @FunctionalInterface
 public interface FormatParser {
-    TrainingDataFormat get(List<Backend> backends);
+    TrainingDataFormat get(int features, int labels, List<Backend> backends);
 
-    default TrainingDataFormat get() {
-        return get(new ArrayList<>());
+    default TrainingDataFormat get(int features, int labels) {
+        return get(features, labels, new ArrayList<>());
     }
 }
