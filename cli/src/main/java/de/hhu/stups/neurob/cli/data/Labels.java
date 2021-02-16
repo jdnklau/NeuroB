@@ -1,16 +1,18 @@
 package de.hhu.stups.neurob.cli.data;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.core.labelling.SettingsMultiLabel;
 import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 
-import java.util.concurrent.Callable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
 public enum Labels {
     BC("Classification over the given Backends", b -> new BackendClassification.Translator(b), b->1),
-    SMULT("Multi-Labelling of Settings", b -> new SettingsMultiLabel.Translator(b), b->(b.length))
+    SMULT("Multi-Labelling of Settings", b -> new SettingsMultiLabel.Translator(b), Labels::countPreferences)
     ;
 
     public final String info;
@@ -45,6 +47,17 @@ public enum Labels {
 
         return info.toString();
 
+    }
+
+    static int countPreferences(Backend[] backends) {
+        Set<BPreference> prefs = new HashSet<>();
+        for (Backend b : backends) {
+            b.getPreferences().stream()
+                    .filter(p -> !p.getName().equals("TIME_OUT"))
+                    .filter(p -> !p.getName().equals("TIMEOUT"))
+                    .forEach(prefs::add);
+        }
+        return prefs.size();
     }
 
     public Integer getLabellingSize(Backend[] backends) {
