@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.training.generation.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,8 @@ import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.model.eventb.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +41,7 @@ public class PredicateCollection {
     private Map<String, BPredicate> beforeAfterPredicates;
     private Map<String, Map<BPredicate, BPredicate>> weakestPreconditions;
     private Map<BPredicate, BPredicate> primedInvariants;
+    private Map<String, List<BPredicate>> primedPreconditions;
 
     private MachineAccess bMachine;
 
@@ -55,6 +59,7 @@ public class PredicateCollection {
         beforeAfterPredicates = new HashMap<>();
         weakestPreconditions = new HashMap<>();
         primedInvariants = new HashMap<>();
+        primedPreconditions = new HashMap<>();
 
         collectFromMachine(bMachine);
 
@@ -118,14 +123,16 @@ public class PredicateCollection {
         // set up invariants as commands for below
         Map<BPredicate, IBEvalElement> invCmds = new HashMap<>();
         for (BPredicate inv : invariants) {
-            try {
-                invCmds.put(inv,
-                        Backend.generateBFormula(inv, bMachine));
-            } catch (FormulaException e) {
-                log.warn("Could not set up EvalElement from {} for "
-                         + "weakest precondition calculation or priming",
-                        inv, e);
-            }
+//            try {
+                // FIXME: Somehow this has to be an EventB command to work
+                IBEvalElement cmd = new EventB(inv.getPredicate(), Collections.emptySet(), FormulaExpand.EXPAND);
+//                invCmds.put(inv, Backend.generateBFormula(inv, bMachine));
+                invCmds.put(inv, cmd);
+//            } catch (FormulaException e) {
+//                log.warn("Could not set up EvalElement from {} for "
+//                         + "weakest precondition calculation or priming",
+//                        inv, e);
+//            }
         }
 
         // weakest preconditions for each invariant
@@ -156,9 +163,7 @@ public class PredicateCollection {
             weakestPreconditions.put(x.getName(), wpcs);
         }
 
-        if (bMachine.getMachineType() != MachineType.EVENTB)
-            return; // FIXME: allow usage of classical B, too
-
+        boolean isClassicalB = bMachine.getMachineType() == MachineType.CLASSICALB;
         // Before/After predicates
         log.trace("Building before/after predicates");
         for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
@@ -172,12 +177,37 @@ public class PredicateCollection {
                 // FIXME: Erase comment, probably should not be returned by ProB to begin with
                 String code = bapc.getBeforeAfterPredicate().getCode()
                         .replaceAll("/\\*.*\\*/ *", "");
+                if (isClassicalB) {
+                    code = primeClassicalB(code);
+                }
                 beforeAfterPredicates.put(x.getName(), BPredicate.of(code));
             } catch (Exception e) {
                 log.warn("Could not build Before After Predicate for event {}.",
                         x.getName(), e);
             }
+        }
 
+        log.trace("Priming preconditions");
+        for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
+            if (x.getName().equals("INITIALISATION"))
+                continue; // None for initialisation
+            List<BPredicate> primedPrecs = new ArrayList<>();
+            for (BPredicate prec : preconditions.get(x.getName())) {
+                try {
+                    // FIXME: Somehow this has to be an EventB command to work
+                    IBEvalElement cmd = new EventB(prec.getPredicate(), Collections.emptySet(), FormulaExpand.EXPAND);
+//                    IBEvalElement cmd = Backend.generateBFormula(prec, bMachine);
+                    BPredicate code = FormulaGenerator.generatePrimedPredicate(bMachine, cmd);
+                    if (isClassicalB) {
+                        code = primeClassicalB(code);
+                    }
+                    primedPrecs.add(code);
+                } catch (Exception e) {
+                    log.warn("Could not prime precondition for event {}.",
+                            x.getName(), e);
+                }
+            }
+            primedPreconditions.put(x.getName(), primedPrecs);
         }
 
         // primed invariants
@@ -185,12 +215,24 @@ public class PredicateCollection {
         for (BPredicate inv : invCmds.keySet()) {
             IBEvalElement invCmd = invCmds.get(inv);
             try {
-                primedInvariants.put(inv,
-                        FormulaGenerator.generatePrimedPredicate(bMachine, invCmd));
+                BPredicate primedInv = FormulaGenerator.generatePrimedPredicate(bMachine, invCmd);
+                if (isClassicalB) {
+                    primedInv = primeClassicalB(primedInv);
+                }
+                primedInvariants.put(inv, primedInv);
             } catch (Exception e) {
                 log.warn("Could not build primed invariant from {}", inv, e);
             }
         }
+    }
+
+    String primeClassicalB(String code) {
+        return code.replaceAll("[']", "\\$0"); // FIXME: What about strings using '?
+
+    }
+
+    BPredicate primeClassicalB(BPredicate code) {
+        return BPredicate.of(primeClassicalB(code.getPredicate()));
     }
 
     private void collectFromContext(Context bcc) {
@@ -265,4 +307,15 @@ public class PredicateCollection {
         return bMachine;
     }
 
+    public List<String> getOperations() {
+        return operations;
+    }
+
+    public Map<String, Map<BPredicate, BPredicate>> getWeakestPreconditions() {
+        return weakestPreconditions;
+    }
+
+    public Map<String, List<BPredicate>> getPrimedPreconditions() {
+        return primedPreconditions;
+    }
 }

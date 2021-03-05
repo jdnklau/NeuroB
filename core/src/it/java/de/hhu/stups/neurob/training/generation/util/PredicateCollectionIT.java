@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.testharness.TestMachines;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -105,7 +106,40 @@ class PredicateCollectionIT {
                 () -> assertEquals(pres.size(), pc.getPreconditions().size(),
                         "Number of preconditions does not match"),
                 () -> assertEquals(pres, pc.getPreconditions(),
-                        "Colelcted preconditions do not match")
+                        "Collected preconditions do not match")
+        );
+    }
+
+    @Test
+    public void shouldLoadPrimedPreconditions() {
+        Map<String, List<BPredicate>> pres = new HashMap<>();
+
+        // incx
+        List<String> pre = new ArrayList<>();
+        pre.add("x$0 = y$0");
+        pre.add("z$0 < 20");
+        pres.put("incx", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
+        // incy
+        pre = new ArrayList<>();
+        pre.add("y$0 < x$0");
+        pre.add("z$0 < 20");
+        pres.put("incy", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
+        // sqrx
+        pre = new ArrayList<>();
+        pre.add("x$0 < y$0");
+        pres.put("sqrx", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
+        // reset
+        pre = new ArrayList<>();
+        pre.add("z$0 >= 20 or x$0 > 1000");
+        pre.add("z$0 >= 20");
+        pre.add("x$0 > 1000");
+        pres.put("reset", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
+
+        assertAll("Included primed preconditions",
+                () -> assertEquals(pres.size(), pc.getPrimedPreconditions().size(),
+                        "Number of preconditions does not match"),
+                () -> assertEquals(pres, pc.getPrimedPreconditions(),
+                        "Collected preconditions do not match")
         );
     }
 
@@ -244,6 +278,21 @@ class PredicateCollectionIT {
     }
 
     @Test
+    public void shouldLoadBeforeAfterPredicatesWhenClassicalB() {
+        Map<String, BPredicate> baPreds = new HashMap<>();
+        baPreds.put("sqrx", BPredicate.of("x < y & (x′ = x * x & z′ = z + 1) & y′ = y & n′ = n & m′ = m"));
+        baPreds.put("reset", BPredicate.of("(z >= 20 or x > 1000) & (x′ = 1 & y′ = 1 & z′ = 1) & n′ = n & m′ = m"));
+        baPreds.put("incy", BPredicate.of("y < x & z < 20 & (y′ = y + 2 & z′ = z + 1) & x′ = x & n′ = n & m′ = m"));
+        baPreds.put("incx", BPredicate.of("x = y & z < 20 & (x′ = x + 1 & z′ = z + 1) & y′ = y & n′ = n & m′ = m"));
+
+
+
+
+        assertEquals(baPreds, pc.getBeforeAfterPredicates(),
+                "Before After predicates do not match");
+    }
+
+    @Test
     public void shouldLoadBeforeAfterPredicatesWhenEventB() {
         Map<String, BPredicate> baPreds = new HashMap<>();
         baPreds.put("incZ",
@@ -251,6 +300,24 @@ class PredicateCollectionIT {
 
         assertEquals(baPreds, pcEventB.getBeforeAfterPredicates(),
                 "Before After predicates do not match");
+    }
+
+    @Test
+    @Disabled("Need to fix priming of classical B invariants")
+    public void shouldLoadPrimedInvariantsWhenClassicalB() {
+        Map<BPredicate, BPredicate> primedInvs = new HashMap<>();
+        primedInvs.put(BPredicate.of("x:NAT"), BPredicate.of("x' : NAT"));
+        primedInvs.put(BPredicate.of("y:NAT"), BPredicate.of("y' : NAT"));
+        primedInvs.put(BPredicate.of("x<y"), BPredicate.of("x' < y'"));
+        primedInvs.put(BPredicate.of("y=1"), BPredicate.of("y' = 1"));
+        primedInvs.put(BPredicate.of("z:NAT"), BPredicate.of("z' : NAT"));
+        primedInvs.put(BPredicate.of("z<2"), BPredicate.of("z' < 2"));
+        // concat of whole invariant
+        primedInvs.put(BPredicate.of("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)"),
+                BPredicate.of("x' : NAT & (y' : NAT & (x' < y' & (y' = 1 & (z' : NAT & z' < 2))))"));
+
+        assertEquals(primedInvs, pc.getPrimedInvariants(),
+                "Primed invariants mismatch");
     }
 
     @Test

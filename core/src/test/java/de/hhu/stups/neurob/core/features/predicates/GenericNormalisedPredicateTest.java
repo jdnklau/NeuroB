@@ -21,6 +21,7 @@ class GenericNormalisedPredicateTest {
     @Test
     void shouldNormalisePrimedIdentifiers() throws FeatureCreationException {
 //        BPredicate pred = BPredicate.of("x:NAT & x'=x+1 => x' : NAT");
+//        BPredicate pred = BPredicate.of("level : NAT & level′ = level+1 => level′:NAT");
         BPredicate pred = BPredicate.of("x:NAT & x$0=x+1 => x$0 : NAT");
 
         String expected = "id:NAT & id=id+1 => id:NAT";
