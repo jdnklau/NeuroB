@@ -7,6 +7,8 @@ import de.hhu.stups.neurob.core.features.predicates.BAst110Features;
 import de.hhu.stups.neurob.core.features.predicates.BAst115Features;
 import de.hhu.stups.neurob.core.features.predicates.BAst185Features;
 import de.hhu.stups.neurob.core.features.predicates.BAst275Features;
+import de.hhu.stups.neurob.core.features.predicates.GenericNormalisedPredicate;
+import de.hhu.stups.neurob.core.features.predicates.NormalisedPredicate;
 import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
 import de.hhu.stups.neurob.core.features.predicates.RawPredFeature;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
@@ -24,6 +26,10 @@ public enum Features {
 
     RAW("Raw predicates as features; not usable with CSV format",
             () -> new RawPredFeature.Generator(), -1),
+    NRM("Normalised predicates as features (x+y -> id1+id2); not usable with CSV format",
+            () -> new NormalisedPredicate.Generator(), -1),
+    GNRM("Generic normalised predicates as features (x+y -> id+id); not usable with CSV format",
+            () -> new GenericNormalisedPredicate.Generator(), -1),
 
     ;
 
