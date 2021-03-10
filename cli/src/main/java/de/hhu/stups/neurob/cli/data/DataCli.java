@@ -83,6 +83,12 @@ public class DataCli implements CliModule {
         helpPrinter.append(Formats.getFormatInfo());
         helpPrinter.println();
 
+        helpPrinter.append(Features.getFeatureInfo());
+        helpPrinter.println();
+
+        helpPrinter.append(Labels.getLabelInfo());
+        helpPrinter.println();
+
         helpPrinter.append(BackendId.backendInfo);
         helpPrinter.println();
 
