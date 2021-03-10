@@ -15,6 +15,7 @@ exclude.list
 
 # logging specific
 src/main/resources/logback.xml
+core/src/main/resources/logback.xml
 neurob_logs/
 
 # training data directory
