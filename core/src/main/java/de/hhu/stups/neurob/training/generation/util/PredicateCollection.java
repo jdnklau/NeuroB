@@ -124,10 +124,10 @@ public class PredicateCollection {
         Map<BPredicate, IBEvalElement> invCmds = new HashMap<>();
         for (BPredicate inv : invariants) {
 //            try {
-                // FIXME: Somehow this has to be an EventB command to work
-                IBEvalElement cmd = new EventB(inv.getPredicate(), Collections.emptySet(), FormulaExpand.EXPAND);
+            // FIXME: Somehow this has to be an EventB command to work
+            IBEvalElement cmd = new EventB(inv.getPredicate(), Collections.emptySet(), FormulaExpand.EXPAND);
 //                invCmds.put(inv, Backend.generateBFormula(inv, bMachine));
-                invCmds.put(inv, cmd);
+            invCmds.put(inv, cmd);
 //            } catch (FormulaException e) {
 //                log.warn("Could not set up EvalElement from {} for "
 //                         + "weakest precondition calculation or priming",
@@ -192,19 +192,21 @@ public class PredicateCollection {
             if (x.getName().equals("INITIALISATION"))
                 continue; // None for initialisation
             List<BPredicate> primedPrecs = new ArrayList<>();
-            for (BPredicate prec : preconditions.get(x.getName())) {
-                try {
-                    // FIXME: Somehow this has to be an EventB command to work
-                    IBEvalElement cmd = new EventB(prec.getPredicate(), Collections.emptySet(), FormulaExpand.EXPAND);
+            if (preconditions.containsKey(x.getName())) {
+                for (BPredicate prec : preconditions.get(x.getName())) {
+                    try {
+                        // FIXME: Somehow this has to be an EventB command to work
+                        IBEvalElement cmd = new EventB(prec.getPredicate(), Collections.emptySet(), FormulaExpand.EXPAND);
 //                    IBEvalElement cmd = Backend.generateBFormula(prec, bMachine);
-                    BPredicate code = FormulaGenerator.generatePrimedPredicate(bMachine, cmd);
-                    if (isClassicalB) {
-                        code = primeClassicalB(code);
+                        BPredicate code = FormulaGenerator.generatePrimedPredicate(bMachine, cmd);
+                        if (isClassicalB) {
+                            code = primeClassicalB(code);
+                        }
+                        primedPrecs.add(code);
+                    } catch (Exception e) {
+                        log.warn("Could not prime precondition for event {}.",
+                                x.getName(), e);
                     }
-                    primedPrecs.add(code);
-                } catch (Exception e) {
-                    log.warn("Could not prime precondition for event {}.",
-                            x.getName(), e);
                 }
             }
             primedPreconditions.put(x.getName(), primedPrecs);

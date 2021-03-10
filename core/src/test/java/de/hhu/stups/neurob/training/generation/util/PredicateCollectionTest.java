@@ -7,6 +7,7 @@ import de.prob.animator.command.BeforeAfterPredicateCommand;
 import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.command.WeakestPreconditionCommand;
 import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.model.classicalb.Assertion;
 import de.prob.model.classicalb.Property;
 import de.prob.model.eventb.Context;
