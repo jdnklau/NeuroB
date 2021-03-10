@@ -487,10 +487,20 @@ public class HealyTimings extends PredicateLabelling {
     }
 
     public static class Translator implements LabelTranslation<PredDbEntry, HealyTimings> {
+        private Backend[] backends;
+
+        public Translator(Backend... backends) {
+            this.backends = backends;
+        }
 
         @Override
         public HealyTimings translate(PredDbEntry origLabels) {
-            Backend[] backends = origLabels.getBackendsUsed();
+            // Shadowing is done to maintain backwards compatibility for constructor calls without
+            // a list of backends.
+            Backend[] backends = this.backends;
+            if (backends.length == 0) {
+                backends = origLabels.getBackendsUsed();
+            }
 
             return new HealyTimings(origLabels.getPredicate(),
                     backends[0].getTimeOutValue(), backends[0].getTimeOutUnit(),

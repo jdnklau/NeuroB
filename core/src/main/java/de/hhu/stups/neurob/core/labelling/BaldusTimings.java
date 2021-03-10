@@ -376,7 +376,7 @@ public class BaldusTimings extends PredicateLabelling {
             return nanoseconds;
         } else if (Answer.UNKNOWN.equals(response)
                    || Answer.ERROR.equals(response)
-                   ||Answer.TIMEOUT.equals(response)) {
+                   || Answer.TIMEOUT.equals(response)) {
             return nanoseconds + to;
         } else {
             return -1L; // TODO: -1 would serve as indicator something is missing. Keep it that way?
@@ -473,10 +473,14 @@ public class BaldusTimings extends PredicateLabelling {
 
     public static class Translator implements LabelTranslation<PredDbEntry, BaldusTimings> {
 
+        private final Backend[] backends;
+
+        public Translator(Backend[] backends) {
+            this.backends = backends;
+        }
+
         @Override
         public BaldusTimings translate(PredDbEntry origLabels) {
-            Backend[] backends = origLabels.getBackendsUsed();
-
             return new BaldusTimings(origLabels.getPredicate(),
                     backends[0].getTimeOutValue(), backends[0].getTimeOutUnit(),
                     origLabels.getResults(),
