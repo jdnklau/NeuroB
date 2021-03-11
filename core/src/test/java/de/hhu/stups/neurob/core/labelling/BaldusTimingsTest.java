@@ -438,7 +438,7 @@ class BaldusTimingsTest {
                 new TimedAnswer(Answer.TIMEOUT, 5_000L));
 
         Double[] expected = {5_000., 10_005_000., 10_005_000.};
-        Double[] actual = new BaldusTimings.Translator().translate(dbEntry).getLabellingArray();
+        Double[] actual = new BaldusTimings.Translator(backends).translate(dbEntry).getLabellingArray();
 
         assertArrayEquals(expected, actual);
     }

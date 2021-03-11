@@ -147,7 +147,7 @@ class PredDbEntryTest {
                 .thenReturn(new TimedAnswer(Answer.VALID, 80L));
 
         PredDbEntry.Generator generator =
-                new PredDbEntry.Generator(4, null, null, null);
+                new PredDbEntry.Generator(4, null, null, (Backend[]) null);
 
         TimedAnswer expected = new TimedAnswer(Answer.VALID, 35L);
         TimedAnswer actual = generator.samplePredicate(null, backend, null);

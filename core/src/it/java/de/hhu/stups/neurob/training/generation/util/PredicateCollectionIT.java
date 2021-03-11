@@ -156,7 +156,24 @@ class PredicateCollectionIT {
                 () -> assertEquals(pres.size(), pcEventB.getPreconditions().size(),
                         "Number of preconditions does not match"),
                 () -> assertEquals(pres, pcEventB.getPreconditions(),
-                        "Colelcted preconditions do not match")
+                        "Collected preconditions do not match")
+        );
+    }
+
+    @Test
+    public void shouldLoadPrimedPreconditionsWhenEventB() {
+        Map<String, List<BPredicate>> pres = new HashMap<>();
+
+        // incx
+        List<BPredicate> pre = new ArrayList<>();
+        pre.add(BPredicate.of("z' < 2"));
+        pres.put("incZ", pre);
+
+        assertAll("Included preconditions",
+                () -> assertEquals(pres.size(), pcEventB.getPrimedPreconditions().size(),
+                        "Number of preconditions does not match"),
+                () -> assertEquals(pres, pcEventB.getPrimedPreconditions(),
+                        "Collected preconditions do not match")
         );
     }
 
@@ -280,10 +297,10 @@ class PredicateCollectionIT {
     @Test
     public void shouldLoadBeforeAfterPredicatesWhenClassicalB() {
         Map<String, BPredicate> baPreds = new HashMap<>();
-        baPreds.put("sqrx", BPredicate.of("x < y & (x′ = x * x & z′ = z + 1) & y′ = y & n′ = n & m′ = m"));
-        baPreds.put("reset", BPredicate.of("(z >= 20 or x > 1000) & (x′ = 1 & y′ = 1 & z′ = 1) & n′ = n & m′ = m"));
-        baPreds.put("incy", BPredicate.of("y < x & z < 20 & (y′ = y + 2 & z′ = z + 1) & x′ = x & n′ = n & m′ = m"));
-        baPreds.put("incx", BPredicate.of("x = y & z < 20 & (x′ = x + 1 & z′ = z + 1) & y′ = y & n′ = n & m′ = m"));
+        baPreds.put("sqrx", BPredicate.of("x < y & (x$0 = x * x & z$0 = z + 1) & y$0 = y & n$0 = n & m$0 = m"));
+        baPreds.put("reset", BPredicate.of("(z >= 20 or x > 1000) & (x$0 = 1 & y$0 = 1 & z$0 = 1) & n$0 = n & m$0 = m"));
+        baPreds.put("incy", BPredicate.of("y < x & z < 20 & (y$0 = y + 2 & z$0 = z + 1) & x$0 = x & n$0 = n & m$0 = m"));
+        baPreds.put("incx", BPredicate.of("x = y & z < 20 & (x$0 = x + 1 & z$0 = z + 1) & y$0 = y & n$0 = n & m$0 = m"));
 
 
 

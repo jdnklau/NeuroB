@@ -123,16 +123,14 @@ public class PredicateCollection {
         // set up invariants as commands for below
         Map<BPredicate, IBEvalElement> invCmds = new HashMap<>();
         for (BPredicate inv : invariants) {
-//            try {
-            // FIXME: Somehow this has to be an EventB command to work
-            IBEvalElement cmd = new EventB(inv.getPredicate(), Collections.emptySet(), FormulaExpand.EXPAND);
-//                invCmds.put(inv, Backend.generateBFormula(inv, bMachine));
+            try {
+            IBEvalElement cmd = Backend.generateBFormula(inv, bMachine);
             invCmds.put(inv, cmd);
-//            } catch (FormulaException e) {
-//                log.warn("Could not set up EvalElement from {} for "
-//                         + "weakest precondition calculation or priming",
-//                        inv, e);
-//            }
+            } catch (FormulaException e) {
+                log.warn("Could not set up EvalElement from {} for "
+                         + "weakest precondition calculation or priming",
+                        inv, e);
+            }
         }
 
         // weakest preconditions for each invariant
@@ -196,7 +194,7 @@ public class PredicateCollection {
                 for (BPredicate prec : preconditions.get(x.getName())) {
                     try {
                         // FIXME: Somehow this has to be an EventB command to work
-                        IBEvalElement cmd = new EventB(prec.getPredicate(), Collections.emptySet(), FormulaExpand.EXPAND);
+                        IBEvalElement cmd = new EventB(prec.getPredicate(), Collections.emptySet(), FormulaExpand.TRUNCATE);
 //                    IBEvalElement cmd = Backend.generateBFormula(prec, bMachine);
                         BPredicate code = FormulaGenerator.generatePrimedPredicate(bMachine, cmd);
                         if (isClassicalB) {
