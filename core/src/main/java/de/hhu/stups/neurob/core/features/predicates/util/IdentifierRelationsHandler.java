@@ -8,7 +8,7 @@ import java.util.List;
  * This is mutable and relations can be expanded stepwise.
  */
 public class IdentifierRelationsHandler {
-    private AdjacencyList adjacencyList;
+    AdjacencyList adjacencyList;
 
     public IdentifierRelationsHandler() {
         adjacencyList = new AdjacencyList();
@@ -240,6 +240,16 @@ public class IdentifierRelationsHandler {
                        .sum() / 2;
         // Note division by two: the upper expression counts each relation twice
         // (once for each identifier of the relation in question)
+    }
+
+    /**
+     * @return Amount of relations of integers with themselves.
+     */
+    public int getIdSelfRelationsCount() {
+        int selfRelations = (int) adjacencyList.getNodeSet().stream()
+                .filter(AdjacencyList.AdjacencyNode::hasSelfRelation)
+                .count();
+        return selfRelations;
     }
 
     public List<String> getIds() {

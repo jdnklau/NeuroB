@@ -155,5 +155,13 @@ public class IdentifierRelationsHandlerTest {
         );
     }
 
+    @Test
+    void shouldRelateToItself() {
+        IdentifierRelationsHandler h = new IdentifierRelationsHandler();
+        h.addIdentifierRelation("a", "a");
+
+        assertEquals(1, h.getIdSelfRelationsCount());
+    }
+
 
 }

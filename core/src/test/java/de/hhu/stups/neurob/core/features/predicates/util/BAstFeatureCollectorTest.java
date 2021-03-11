@@ -54,7 +54,7 @@ class BAstFeatureCollectorTest {
 
     @Test
     public void conjunctionsCountTest() throws FeatureCreationException {
-        String pred = "x : NATURAL & not(x> 3 => (x>2 or x > 2 or x<9)) & x > 2";
+        String pred = "x : NATURAL & not(x> 3 & (x>2 or x > 2 or x<9)) & x > 2";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
 
         int expected = 4;
@@ -65,7 +65,7 @@ class BAstFeatureCollectorTest {
 
     @Test
     void shouldNotHaveMoreConjunctCountThanConjunctionCount() throws FeatureCreationException {
-        String pred = "(AGENCY_USER/={}) & (AGENCY_USER<:USER) & (not((session:SESSION+->USER) & (session_response:SESSION+->RESP) & (session_card:SESSION+->CARD) & (session_state:SESSION+->SESSION_STATE) & (session_request:SESSION+->SESSION_REQUEST) & (user_hotel_bookings:USER+->HOTEL) & (user_rental_bookings:USER+->CAR_RENT) & (rooms_hotel:ROOM-->HOTEL) & (cars_rental:CAR-->CAR_RENT) & (global_room_bookings:ROOM>+>USER) & (global_car_bookings:CAR>+>USER) & (dom(session)=dom(session_response)) & (dom(session)=dom(session_card)) & (dom(session)=dom(session_state)) & (dom(session)=dom(session_request)) & (dom(user_hotel_bookings)=dom(user_rental_bookings)) & (ran(session)<:dom(user_hotel_bookings)) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)/=noHotel => user1:ran(global_room_bookings) & global_room_bookings~[{user1}]<:rooms_hotel~[{user_hotel_bookings(user1)}]) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)/=noCarRent => user1:ran(global_car_bookings) & global_car_bookings~[{user1}]<:cars_rental~[{user_rental_bookings(user1)}]) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)=noHotel => user1/:ran(global_room_bookings)) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)=noCarRent => user1/:ran(global_car_bookings)) & (sess1:dom(session) & session_card(sess1)/=valid => session_response(sess1)=undef)) => not(sid:dom(session) & session_state(sid)=s1 & session_request(sid)=none => session:SESSION+->USER & session_response:SESSION+->RESP & session_card:SESSION+->CARD & session_state<+{(sid,s4)}:SESSION+->SESSION_STATE & session_request<+{(sid,uc)}:SESSION+->SESSION_REQUEST & user_hotel_bookings:USER+->HOTEL & user_rental_bookings:USER+->CAR_RENT & rooms_hotel:ROOM-->HOTEL & cars_rental:CAR-->CAR_RENT & global_room_bookings:ROOM>+>USER & global_car_bookings:CAR>+>USER & dom(session)=dom(session_response) & dom(session)=dom(session_card) & dom(session)=dom(session_state<+{(sid,s4)}) & dom(session)=dom(session_request<+{(sid,uc)}) & dom(user_hotel_bookings)=dom(user_rental_bookings) & ran(session)<:dom(user_hotel_bookings) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)/=noHotel => user1:ran(global_room_bookings) & global_room_bookings~[{user1}]<:rooms_hotel~[{user_hotel_bookings(user1)}]) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)/=noCarRent => user1:ran(global_car_bookings) & global_car_bookings~[{user1}]<:cars_rental~[{user_rental_bookings(user1)}]) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)=noHotel => user1/:ran(global_room_bookings)) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)=noCarRent => user1/:ran(global_car_bookings)) & (sess1:dom(session) & session_card(sess1)/=valid => session_response(sess1)=undef)))";
+        String pred = "(AGENCY_USER/={}) & (AGENCY_USER<:USER) & (not((session:SESSION+->USER) & (session_response:SESSION+->RESP) & (session_card:SESSION+->CARD) & (session_state:SESSION+->SESSION_STATE) & (session_request:SESSION+->SESSION_REQUEST) & (user_hotel_bookings:USER+->HOTEL) & (user_rental_bookings:USER+->CAR_RENT) & (rooms_hotel:ROOM-->HOTEL) & (cars_rental:CAR-->CAR_RENT) & (global_room_bookings:ROOM>+>USER) & (global_car_bookings:CAR>+>USER) & (dom(session)=dom(session_response)) & (dom(session)=dom(session_card)) & (dom(session)=dom(session_state)) & (dom(session)=dom(session_request)) & (dom(user_hotel_bookings)=dom(user_rental_bookings)) & (ran(session)<:dom(user_hotel_bookings)) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)/=noHotel => user1:ran(global_room_bookings) & global_room_bookings~[{user1}]<:rooms_hotel~[{user_hotel_bookings(user1)}]) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)/=noCarRent => user1:ran(global_car_bookings) & global_car_bookings~[{user1}]<:cars_rental~[{user_rental_bookings(user1)}]) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)=noHotel => user1/:ran(global_room_bookings)) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)=noCarRent => user1/:ran(global_car_bookings)) & (sess1:dom(session) & session_card(sess1)/=valid => session_response(sess1)=undef)) => not(sid:dom(session) & session_state(sid)=s1 & (session_request(sid)=none => session:SESSION+->USER) & session_response:SESSION+->RESP & session_card:SESSION+->CARD & session_state<+{(sid,s4)}:SESSION+->SESSION_STATE & session_request<+{(sid,uc)}:SESSION+->SESSION_REQUEST & user_hotel_bookings:USER+->HOTEL & user_rental_bookings:USER+->CAR_RENT & rooms_hotel:ROOM-->HOTEL & cars_rental:CAR-->CAR_RENT & global_room_bookings:ROOM>+>USER & global_car_bookings:CAR>+>USER & dom(session)=dom(session_response) & dom(session)=dom(session_card) & dom(session)=dom(session_state<+{(sid,s4)}) & dom(session)=dom(session_request<+{(sid,uc)}) & dom(user_hotel_bookings)=dom(user_rental_bookings) & ran(session)<:dom(user_hotel_bookings) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)/=noHotel => user1:ran(global_room_bookings) & global_room_bookings~[{user1}]<:rooms_hotel~[{user_hotel_bookings(user1)}]) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)/=noCarRent => user1:ran(global_car_bookings) & global_car_bookings~[{user1}]<:cars_rental~[{user_rental_bookings(user1)}]) & (user1:dom(user_hotel_bookings) & user_hotel_bookings(user1)=noHotel => user1/:ran(global_room_bookings)) & (user1:dom(user_rental_bookings) & user_rental_bookings(user1)=noCarRent => user1/:ran(global_car_bookings)) & (sess1:dom(session) & (session_card(sess1)/=valid => session_response(sess1)=undef))))";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
 
         int expectedConjuncts = 3;
@@ -131,15 +131,15 @@ class BAstFeatureCollectorTest {
         String pred = "x:INT & y:INT & z:INT & (x+y>2 => x>7)";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
 
-        double expected = (2+2+1)/3.;
-        double actual = data.getConjunctBasedDistinctIdUses()/3.;
+        double expected = (2 + 2 + 1) / 3.;
+        double actual = data.getConjunctBasedDistinctIdUses() / 3.;
 
         assertEquals(expected, actual, "distinct uses count does not match");
     }
 
     @Test
     public void disjunctionsCountTest() throws FeatureCreationException {
-        String pred = "x : NATURAL & not(x> 3 => (x>2 & x > 2 or x<9 & x>5)) or x > 2";
+        String pred = "x : NATURAL & not(x> 3 or (x>2 & x > 2 or x<9 & x>5)) or x > 2";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
 
         int expected = 3;
@@ -750,6 +750,81 @@ class BAstFeatureCollectorTest {
         int expected = 1;
         int actual = data.getIdentifierUnboundedDomainCount();
         assertEquals(expected, actual, "Amount of unbounded domains does not match");
+    }
+
+    @Test
+    void shouldDetectKAsBoundless() throws FeatureCreationException {
+        String pred = "(n=1000) & (n>0) & (f=%i.(i:1..1000|1500-i)) & (n:INTEGER) & (f:1..n>->NATURAL) & j:k..n & not(k/=n & j/=n & g(l)<=g(j+1) => j+1:k..n)";
+
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+        IdentifierRelationsHandler idh = data.getIdRelationHandler();
+        AdjacencyList.AdjacencyNode k = idh.adjacencyList.getIdentifier("k");
+
+        assertAll(
+                () -> assertFalse(k.hasBoundedDomain())
+        );
+    }
+
+    @Test
+    void shouldBeLowerBoundedNotUpperBounded() throws FeatureCreationException {
+        String pred = "i:1..n";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        AdjacencyList.AdjacencyNode i = data.getIdRelationHandler().adjacencyList.getIdentifier("i");
+        assertAll(
+                () -> assertEquals(2, data.getIdentifierSemiBoundedCount(), // i <= n, two ids
+                        "Expecting to count a semi bounded identifier."),
+                () -> assertTrue(i.hasLowerBoundedDomain(),
+                        "Identifier not lowerbound"),
+                () -> assertFalse(i.hasUpperBoundedDomain(),
+                        "Identifier erroneously upperbound")
+
+        );
+    }
+
+    @Test
+    void shouldBeLowerBoundedNotUpperBoundedWhenNoInterval() throws FeatureCreationException {
+        String pred = "1 <= i & i <= n";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        AdjacencyList.AdjacencyNode i = data.getIdRelationHandler().adjacencyList.getIdentifier("i");
+        assertAll(
+                () -> assertEquals(2, data.getIdentifierSemiBoundedCount(), // i <= n, two ids
+                        "Expecting to count a semi bounded identifier."),
+                () -> assertTrue(i.hasLowerBoundedDomain(),
+                        "Identifier not lowerbound"),
+                () -> assertFalse(i.hasUpperBoundedDomain(),
+                        "Identifier erroneously upperbound")
+
+        );
+    }
+
+    @Test
+    void shouldBeUpperBoundedNotLowerBounded() throws FeatureCreationException {
+        String pred = "i:n..1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        AdjacencyList.AdjacencyNode i = data.getIdRelationHandler().adjacencyList.getIdentifier("i");
+        assertAll(
+                () -> assertEquals(2, data.getIdentifierSemiBoundedCount(), // i <= n, two ids
+                        "Expecting to count a semi bounded identifier."),
+                () -> assertTrue(i.hasUpperBoundedDomain(),
+                        "Identifier not upperbound"),
+                () -> assertFalse(i.hasLowerBoundedDomain(),
+                        "Identifier erroneously lowerbound")
+
+        );
+    }
+
+    @Test
+    void shouldHaveDifferentDomainBounds() throws FeatureCreationException {
+        String pred1 = "(n=1000) & (n>0) & (f=%i.(i:1..n|n+100-i)) & (n:INTEGER) & (f:1..n>->NATURAL) & k:1..n & not(k/=n & j/=n & g(l)<=g(j+1) => k:1..n)";
+        String pred2 = "(n=1000) & (n>0) & (f=%i.(i:1..1000|1500-i)) & (n:INTEGER) & (f:1..n>->NATURAL) & j:k..n & not(k/=n & j/=n & g(l)<=g(j+1) => j+1:k..n)";
+
+        BAstFeatureData data1 = BAstFeatureCollector.collect(BPredicate.of(pred1));
+        BAstFeatureData data2 = BAstFeatureCollector.collect(BPredicate.of(pred2));
+
+        assertNotEquals(data1.getIdentifierBoundedDomainCount(), data2.getIdentifierBoundedDomainCount());
     }
 
     @Test

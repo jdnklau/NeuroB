@@ -157,6 +157,7 @@ public class AdjacencyList {
 
     /**
      * @param id
+     *
      * @return Whether {@code id} has its domain type marked as being known.
      */
     public boolean hasKnownType(String id) {
@@ -198,6 +199,8 @@ public class AdjacencyList {
         private Set<AdjacencyNode> lowerBoundaries;
         private Set<AdjacencyNode> upperBoundaries;
         private Set<AdjacencyNode> relatedIds;
+        /** Whether the identifier appears in a relation to itself **/
+        private boolean hasSelfRelation = false;
         /** Whether the type of the identifier is known or not */
         private boolean hasKnownType = false;
         private AdjacencyNodeTypes type = AdjacencyNodeTypes.UNKNOWN;
@@ -295,8 +298,11 @@ public class AdjacencyList {
          * @param node Node to be connected
          */
         public void addEdgeTo(AdjacencyNode node) {
-            if (!this.equals(node)) // never add edge to yourself
+            if (this.equals(node)) {
+                hasSelfRelation = true;
+            } else {
                 relatedIds.add(node);
+            }
         }
 
         /**
@@ -452,6 +458,9 @@ public class AdjacencyList {
             return id;
         }
 
+        public boolean hasSelfRelation() {
+            return hasSelfRelation;
+        }
 
         @Override
         public String toString() {

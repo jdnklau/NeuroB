@@ -493,6 +493,15 @@ public class BAstFeatureData {
     }
 
     /**
+     * Get the amount of relations existing of identifiers with themselves.
+     *
+     * @return self relations of identifiers
+     */
+    public int getIdentifierSelfRelationsCount() {
+        return identifiers.getIdSelfRelationsCount();
+    }
+
+    /**
      * Returns the amount of identifiers, that have other identifiers as symbolic
      * lower and upper boundaries. This does not imply that the domain of the identifier
      * is bounded as well.
@@ -1104,6 +1113,10 @@ public class BAstFeatureData {
         lastDistinctIds = new HashSet<>();
 
         conjunctId++;
+    }
+
+    IdentifierRelationsHandler getIdRelationHandler() {
+        return identifiers;
     }
 
 }

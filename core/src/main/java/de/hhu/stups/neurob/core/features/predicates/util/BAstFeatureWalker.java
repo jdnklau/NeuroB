@@ -61,17 +61,27 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
 
     @Override
     public void inANegationPredicate(final ANegationPredicate node) {
-        inNegation = !inNegation;
-        negDepth++;
-        if (negDepth > data.getNegationMaxDepth()) {
-            data.setNegationMaxDepth(negDepth);
+        // NOTE:
+        // The idea of switching through the negations is to already conduct some sort
+        // of preprocessing. However, for an implication this means to rewrite the whole
+        // node. We leave this problem henceforth up to ProB core and do not conduct
+        // the search here.
+        if (!(node.getPredicate() instanceof AImplicationPredicate)) {
+            inNegation = !inNegation;
+            negDepth++;
+            if (negDepth > data.getNegationMaxDepth()) {
+                data.setNegationMaxDepth(negDepth);
+            }
         }
     }
 
     @Override
     public void outANegationPredicate(ANegationPredicate node) {
-        inNegation = !inNegation;
-        negDepth--;
+        // NOTE: See note in #inANegationPredicate above.
+        if (!(node.getPredicate() instanceof AImplicationPredicate)) {
+            inNegation = !inNegation;
+            negDepth--;
+        }
     }
 
     @Override
@@ -600,6 +610,8 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
             return;
         }
 
+        AIdentifierExpression leftId = (AIdentifierExpression) left;
+
         // if not-member ship, domain is automatically set do be unbounded
         if (!(inNegation ^ membership)) {
             ((AIdentifierExpression) left).getIdentifier()
@@ -612,13 +624,18 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
         boolean lowerBoundary = isDomainLowerBounded(right);
         boolean upperBoundary = isDomainUpperBounded(right);
 
+        // Intervals need special treatment
+        if (right instanceof AIntervalExpression) {
+            processIntervalBounds(leftId, (AIntervalExpression) right);
+        }
+
         // set domain boundaries
-        ((AIdentifierExpression) left).getIdentifier()
+        leftId.getIdentifier()
                 .stream().map(id -> id.getText())
                 .forEach(id -> data.addIdentifierDomainBoundaries(id, lowerBoundary, upperBoundary));
         // Set Type
         AdjacencyList.AdjacencyNodeTypes finalType = getExpressionType(right);
-        ((AIdentifierExpression) left).getIdentifier()
+        leftId.getIdentifier()
                 .stream().map(id -> id.getText())
                 .forEach(id -> data.setIdentifierType(id, finalType));
 
@@ -651,20 +668,26 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
             || expression instanceof AIntSetExpression
             || expression instanceof ABoolSetExpression
             || expression instanceof ANaturalSetExpression
-            || expression instanceof ANatural1SetExpression
-            || expression instanceof AIntervalExpression) {
+            || expression instanceof ANatural1SetExpression) {
             return true;
             // todo: maybe add powerset of those above
         }
         return false;
     }
 
+    private void processIntervalBounds(AIdentifierExpression lhs, AIntervalExpression interval) {
+        PExpression leftBorder = interval.getLeftBorder();
+        PExpression rightBorder = interval.getRightBorder();
+        // lhs : leftBorder..rightBorder => leftBorder <= lhs <= rightBorder
+        setLowerBoundary(leftBorder, lhs);
+        setLowerBoundary(lhs, rightBorder);
+    }
+
     private boolean isDomainUpperBounded(PExpression expression) {
         if (expression instanceof ANatSetExpression
             || expression instanceof ANat1SetExpression
             || expression instanceof AIntSetExpression
-            || expression instanceof ABoolSetExpression
-            || expression instanceof AIntervalExpression) {
+            || expression instanceof ABoolSetExpression) {
             return true;
             // todo: maybe add powerset of those above
         }
