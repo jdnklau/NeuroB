@@ -8,11 +8,15 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import de.be4.classicalb.core.parser.node.Node;
+import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.prob.animator.command.PrettyPrintFormulaCommand;
+import de.prob.animator.domainobjects.IEvalElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +99,30 @@ public class FormulaGenerator {
         } catch (Exception e) {
             throw new FormulaException("Could not build primed predicate from "
                                        + evalElement.getCode(), e);
+        }
+    }
+
+    public static BPredicate cleanupAst(MachineAccess bMachine,
+                                        BPredicate predicate) throws FormulaException {
+        return cleanupAst(bMachine, Backend.generateBFormula(predicate, bMachine));
+    }
+    public static BPredicate cleanupAst(MachineAccess bMachine,
+                                                     IBEvalElement evalElement) throws FormulaException {
+        try {
+            PrettyPrintFormulaCommand cleanup = new PrettyPrintFormulaCommand(evalElement, PrettyPrintFormulaCommand.Mode.ASCII);
+            cleanup.setOptimize(true);
+            bMachine.execute(cleanup);
+            // NOTE: The PrettyPrintFormulaCommand sometimes returns comments as well.
+            // We pretty print again to get rid of them.
+            BPredicate result = BPredicate.of(cleanup.getPrettyPrint());
+            cleanup = new PrettyPrintFormulaCommand(bMachine.parseFormula(result), PrettyPrintFormulaCommand.Mode.ASCII);
+            cleanup.setOptimize(true);
+            bMachine.execute(cleanup);
+            return BPredicate.of(cleanup.getPrettyPrint());
+
+        } catch (Exception e) {
+            throw new FormulaException("Could not create cleaned up AST from "
+                    + evalElement.getCode(), e);
         }
     }
 

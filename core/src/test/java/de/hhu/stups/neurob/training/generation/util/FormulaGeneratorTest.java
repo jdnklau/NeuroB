@@ -1,12 +1,18 @@
 package de.hhu.stups.neurob.training.generation.util;
 
+import de.be4.classicalb.core.parser.BParser;
 import de.hhu.stups.neurob.core.api.MachineType;
 
+import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
+import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.prob.animator.command.AbstractCommand;
 import de.prob.animator.command.PrimePredicateCommand;
+import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.model.representation.AbstractModel;
 import de.prob.parser.ISimplifiedROMap;
 import de.prob.prolog.term.CompoundPrologTerm;
@@ -15,6 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -525,6 +532,32 @@ public class FormulaGeneratorTest {
         assertEquals(expected, actual,
                 "Should generate formulae for each assertion and their "
                 + "concatenation");
+    }
+
+    @Test
+    void shouldCleanupAst() throws MachineAccessException, FormulaException {
+        MachineAccess mch = new MachineAccess(Paths.get(getClass().getClassLoader().getResource("db/mch/bvm.mch").getPath()));
+        ClassicalB pred = new ClassicalB("#x.(y>2 & x=y)", FormulaExpand.EXPAND);
+
+        BPredicate cleanup = FormulaGenerator.cleanupAst(mch, pred);
+
+        String expected = "y > 2";
+        String actual = cleanup.getPredicate();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldCleanupAst2() throws MachineAccessException, FormulaException {
+        MachineAccess mch = new MachineAccess(Paths.get(getClass().getClassLoader().getResource("db/mch/bvm.mch").getPath()));
+        ClassicalB pred = new ClassicalB("x:INTEGER & x>2", FormulaExpand.EXPAND);
+
+        BPredicate cleanup = FormulaGenerator.cleanupAst(mch, pred);
+
+        String expected = "x > 2";
+        String actual = cleanup.getPredicate();
+
+        assertEquals(expected, actual);
     }
 
 }

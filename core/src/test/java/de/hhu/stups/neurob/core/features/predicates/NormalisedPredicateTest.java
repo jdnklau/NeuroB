@@ -17,4 +17,14 @@ class NormalisedPredicateTest {
 
         assertEquals(expected,actual);
     }
+
+    @Test
+    void shouldNormaliseAstCleanupWithComment() throws FeatureCreationException {
+        BPredicate pred = BPredicate.of("# /* LET */ (x).(x=y) & y>2");
+
+        String expected = "#id0.(id0=id1) & id1>2";
+        String actual = new NormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
+
+        assertEquals(expected,actual);
+    }
 }

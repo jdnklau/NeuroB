@@ -127,6 +127,7 @@ class PredicateTrainingGeneratorTest {
         doReturn(mock(MachineAccess.class)).when(bMachine).spawnMachineAccess();
         generator = spy(new PredicateTrainingGenerator(
                 featureGen, labelGen, formatMock));
+        generator.setAstCleanup(false);
         doReturn(predicates.stream().map(BPredicate::new))
                 .when(generator).streamPredicatesFromFile(any(Path.class));
         doReturn(predicates.stream().map(BPredicate::new))
@@ -164,6 +165,7 @@ class PredicateTrainingGeneratorTest {
                 },
                 null)
         );
+        generator.setAstCleanup(false);
         List<String> predicates = new ArrayList<>();
         predicates.add("predicate");
         predicates.add("featureException");
@@ -185,7 +187,7 @@ class PredicateTrainingGeneratorTest {
         expected.add("predicate");
 
         List<String> actual = generator.streamSamplesFromFile(bMachine)
-                .map(TrainingSample::getFeatures)
+                .map(TrainingSample::getData)
                 .map(f -> (PredicateFeatures) f)
                 .map(PredicateFeatures::getPredicate)
                 .map(BPredicate::toString)

@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.api.bmethod;
 
+import de.be4.classicalb.core.parser.BParser;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
