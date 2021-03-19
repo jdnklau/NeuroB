@@ -1500,5 +1500,112 @@ class BAstFeatureCollectorTest {
         assertEquals(expected, actual, "Amount of general sequence concatenations does not match");
     }
 
+    @Test
+    void shouldCoundSubsetEnumeration() throws FeatureCreationException {
+        String pred = "AGENCY_USER<:USER & user_hotel_bookings:AGENCY_USER";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 1;
+        int actual = data.getEnumerableSubsetsCount();
+        assertEquals(expected, actual, "Amount of subset enumerations does not match");
+    }
+
+    @Test
+    void shouldCoundMultipleSubsetEnumerationsWhenInFunctions() throws FeatureCreationException {
+        String pred = "a:POW(INTEGER) & b = 1..20 & c <: 1..20 & x : a-->b/\\ b+->c";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2; // a and c
+        int actual = data.getEnumerableSubsetsCount();
+        assertEquals(expected, actual, "Amount of subset enumerations does not match");
+    }
+
+    @Test
+    void shouldCountNat1Occurrences() throws FeatureCreationException {
+        String pred = "x:INTEGER & y:NAT1 & z:NAT & c:NAT1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2; // a and c
+        int actual = data.getNat1Count();
+        assertEquals(expected, actual, "Amount of NAT1 occurrences does not match");
+
+    }
+
+    @Test
+    void shouldCountNatOccurrences() throws FeatureCreationException {
+        String pred = "x:INTEGER & y:NAT1 & z:NAT & c:NAT";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2; // a and c
+        int actual = data.getNatCount();
+        assertEquals(expected, actual, "Amount of NAT occurrences does not match");
+
+    }
+
+    @Test
+    void shouldCountIntOccurrences() throws FeatureCreationException {
+        String pred = "x:INT & y:NAT1 & z:NAT & c:INT";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2; // a and c
+        int actual = data.getIntCount();
+        assertEquals(expected, actual, "Amount of INT occurrences does not match");
+
+    }
+
+    @Test
+    void shouldCountNatural1Occurrences() throws FeatureCreationException {
+        String pred = "x:INTEGER & y:NATURAL1 & z:NAT & c:NATURAL1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2; // a and c
+        int actual = data.getNatural1Count();
+        assertEquals(expected, actual, "Amount of NATURAL1 occurrences does not match");
+
+    }
+
+    @Test
+    void shouldCountNaturalOccurrences() throws FeatureCreationException {
+        String pred = "x:INTEGER & y:NAT1 & z:NATURAL & c:NATURAL";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2; // a and c
+        int actual = data.getNaturalCount();
+        assertEquals(expected, actual, "Amount of NATURAL occurrences does not match");
+
+    }
+
+    @Test
+    void shouldCountIntegerOccurrences() throws FeatureCreationException {
+        String pred = "x:INTEGER & y:NAT1 & z:NAT & c:INTEGER";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2; // a and c
+        int actual = data.getIntegerCount();
+        assertEquals(expected, actual, "Amount of INTEGER occurrences does not match");
+
+    }
+
+    @Test
+    void shouldSeeMaxIntAs20() throws FeatureCreationException {
+        String pred = "x:1..15 & y<20";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 20; // a and c
+        int actual = data.getMaxIntegerUsed();
+        assertEquals(expected, actual, "Maximum integer is wrong");
+
+    }
+
+    @Test
+    void shouldSeeMaxIntAsMinus12() throws FeatureCreationException {
+        String pred = "x:-15..-12 & y< -20";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = -12; // a and c
+        int actual = data.getMaxIntegerUsed();
+        assertEquals(expected, actual, "Maximum integer is wrong");
+
+    }
 
 }

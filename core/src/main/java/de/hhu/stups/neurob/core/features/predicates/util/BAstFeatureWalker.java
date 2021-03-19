@@ -3,7 +3,9 @@ package de.hhu.stups.neurob.core.features.predicates.util;
 import de.be4.classicalb.core.parser.analysis.DepthFirstAdapter;
 import de.be4.classicalb.core.parser.node.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Traverses the AST of a B predicate.
@@ -220,16 +222,45 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
 
     // SETS: MEMBERSHIP AND SUBSETS
 
+    private boolean inMemberEvaluation = false;
+    private List<String> enumeratedDomains;
+
     @Override
     public void caseAMemberPredicate(AMemberPredicate node) {
         switchByNegation(data::incMemberCount, data::incNotMemberCount);
-        super.caseAMemberPredicate(node);
+
+        inAMemberPredicate(node);
+        if (node.getLeft() != null) {
+            node.getLeft().apply(this);
+        }
+        if (node.getRight() != null) {
+            this.inMemberEvaluation = true;
+            enumeratedDomains = new ArrayList<>();
+            node.getRight().apply(this);
+            this.inMemberEvaluation = false;
+
+            enumeratedDomains.forEach(data::markIdAsDomainPart);
+        }
+        outAMemberPredicate(node);
     }
 
     @Override
     public void caseANotMemberPredicate(ANotMemberPredicate node) {
         switchByNegation(data::incNotMemberCount, data::incMemberCount);
-        super.caseANotMemberPredicate(node);
+
+        inANotMemberPredicate(node);
+        if (node.getLeft() != null) {
+            node.getLeft().apply(this);
+        }
+        if (node.getRight() != null) {
+            this.inMemberEvaluation = true;
+            enumeratedDomains = new ArrayList<>();
+            node.getRight().apply(this);
+            this.inMemberEvaluation = false;
+
+            enumeratedDomains.forEach(data::markIdAsDomainPart);
+        }
+        outANotMemberPredicate(node);
     }
 
     @Override
@@ -237,7 +268,14 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
         switchByNegation(data::incSubsetCount, data::incNotSubsetCount);
         setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.SET);
         setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.SET);
+        setSubset(node.getLeft());
         super.caseASubsetPredicate(node);
+    }
+
+    private void setSubset(PExpression expr) {
+        if (expr instanceof AIdentifierExpression) {
+            ((AIdentifierExpression) expr).getIdentifier().stream().map(Token::getText).forEach(data::markIdAsSubset);
+        }
     }
 
     @Override
@@ -245,6 +283,7 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
         switchByNegation(data::incSubsetCount, data::incNotSubsetCount);
         setNodeType(node.getLeft(), AdjacencyList.AdjacencyNodeTypes.SET);
         setNodeType(node.getRight(), AdjacencyList.AdjacencyNodeTypes.SET);
+        setSubset(node.getLeft());
         super.caseASubsetStrictPredicate(node);
     }
 
@@ -402,12 +441,63 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
         super.caseAPredecessorExpression(node);
     }
 
+    @Override
+    public void outANat1SetExpression(ANat1SetExpression node) {
+        super.outANat1SetExpression(node);
+        data.incNat1Count();
+    }
+
+    @Override
+    public void outANatSetExpression(ANatSetExpression node) {
+        super.outANatSetExpression(node);
+        data.incNatCount();
+    }
+
+    @Override
+    public void outANatural1SetExpression(ANatural1SetExpression node) {
+        super.outANatural1SetExpression(node);
+        data.incNatural1Count();
+    }
+
+    @Override
+    public void outANaturalSetExpression(ANaturalSetExpression node) {
+        super.outANaturalSetExpression(node);
+        data.incNaturalCount();
+    }
+
+    @Override
+    public void outAIntegerSetExpression(AIntegerSetExpression node) {
+        super.outAIntegerSetExpression(node);
+        data.incIntegerCount();
+    }
+
+    @Override
+    public void outAIntSetExpression(AIntSetExpression node) {
+        super.outAIntSetExpression(node);
+        data.incIntCount();
+    }
+
+    @Override
+    public void outAIntegerExpression(AIntegerExpression node) {
+        super.outAIntegerExpression(node);
+        int nodeValue = Integer.parseInt(node.getLiteral().getText().trim());
+        if (node.parent() instanceof AUnaryMinusExpression) {
+            nodeValue = -nodeValue;
+        }
+        data.registerIntegerUse(nodeValue);
+    }
+
     // IDENTIFIERS AND THEIR RELATIONS
 
     @Override
     public void caseAIdentifierExpression(AIdentifierExpression node) {
         node.getIdentifier().stream().map(Tid -> Tid.getText()).forEach(data::addIdentifier);
         super.caseAIdentifierExpression(node);
+
+        if (inMemberEvaluation) {
+            // We need to track all identifiers used as a domain part of a member predicate
+            node.getIdentifier().stream().map(Token::getText).forEach(enumeratedDomains::add);
+        }
     }
 
     @Override
@@ -639,6 +729,15 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
                 .stream().map(id -> id.getText())
                 .forEach(id -> data.setIdentifierType(id, finalType));
 
+
+        // Subset check
+        if (finalType.equals(AdjacencyList.AdjacencyNodeTypes.SET)
+            && (right instanceof APow1SubsetExpression
+                || right instanceof APowSubsetExpression)) {
+            leftId.getIdentifier().stream()
+                    .map(Token::getText)
+                    .forEach(data::markIdAsSubset);
+        }
     }
 
     private AdjacencyList.AdjacencyNodeTypes getExpressionType(PExpression expression) {

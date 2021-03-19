@@ -176,6 +176,16 @@ public class AdjacencyList {
         return idMap.keySet().stream().map(idMap::get).collect(Collectors.toSet());
     }
 
+    public void registerDomainUse(String id) {
+        addNode(id);
+        getIdentifier(id).setDomainUse(true);
+    }
+
+    public void registerSubset(String id) {
+        addNode(id);
+        getIdentifier(id).setSubset(true);
+    }
+
     public static enum AdjacencyNodeTypes {
         UNKNOWN,
         INTEGER,
@@ -204,6 +214,8 @@ public class AdjacencyList {
         /** Whether the type of the identifier is known or not */
         private boolean hasKnownType = false;
         private AdjacencyNodeTypes type = AdjacencyNodeTypes.UNKNOWN;
+        private boolean isUsedAsDomain = false;
+        private boolean isSubset = false;
 
         public AdjacencyNode(String identifier) {
             id = identifier.trim();
@@ -480,5 +492,20 @@ public class AdjacencyList {
             return false;
         }
 
+        public void setDomainUse(boolean isUsedAsDomain) {
+            this.isUsedAsDomain = isUsedAsDomain;
+        }
+
+        public void setSubset(boolean isSubset) {
+            this.isSubset = isSubset;
+        }
+
+        public boolean isUsedAsDomain() {
+            return isUsedAsDomain;
+        }
+
+        public boolean isSubset() {
+            return isSubset;
+        }
     }
 }

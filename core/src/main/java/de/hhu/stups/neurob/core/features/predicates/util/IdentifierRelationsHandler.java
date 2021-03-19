@@ -252,7 +252,30 @@ public class IdentifierRelationsHandler {
         return selfRelations;
     }
 
+    public int getEnumerableSubsetsCount() {
+        return (int) adjacencyList.getNodeSet().stream()
+                .filter(AdjacencyList.AdjacencyNode::isUsedAsDomain)
+                .filter(AdjacencyList.AdjacencyNode::isSubset)
+                .count();
+    }
+
     public List<String> getIds() {
         return new ArrayList<>(adjacencyList.getIdentiferSet());
+    }
+
+    /**
+     * Marks the identifier as part of a domain in a membership predicate
+     * @param id
+     */
+    public void registerAsDomainUse(String id) {
+        adjacencyList.registerDomainUse(id);
+    }
+
+    /**
+     * Marks the identifier as part of a domain in a membership predicate
+     * @param id
+     */
+    public void registerAsSubset(String id) {
+        adjacencyList.registerSubset(id);
     }
 }

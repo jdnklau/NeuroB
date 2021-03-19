@@ -204,6 +204,14 @@ public class BAstFeatureData {
     /** Number of conjuncts not using any identifier. **/
     private int conjunctsWithoutIdUseCount = 0;
     private int conjunctId = 0;
+    private int nat1Count = 0;
+    private int natCount = 0;
+    private int intCount = 0;
+    private int natural1Count = 0;
+    private int naturalCount = 0;
+    private int integerCount = 0;
+    private int maxIntegerUsed = 0;
+    private boolean hasNotSeenIntegerValues = true;
 
 
     public BAstFeatureData() {
@@ -635,6 +643,14 @@ public class BAstFeatureData {
      */
     public void addIdentifierDomainBoundaries(String id, boolean addLowerBound, boolean addUpperBound) {
         identifiers.addDomainBoundaries(id, addLowerBound, addUpperBound);
+    }
+
+
+    void markIdAsDomainPart(String id) {
+        identifiers.registerAsDomainUse(id);
+    }
+    void markIdAsSubset(String id) {
+        identifiers.registerAsSubset(id);
     }
 
     public int getPowerSetCount() {
@@ -1119,4 +1135,66 @@ public class BAstFeatureData {
         return identifiers;
     }
 
+    public int getEnumerableSubsetsCount() {
+        return identifiers.getEnumerableSubsetsCount();
+    }
+
+    public void incNat1Count() {
+        this.nat1Count++;
+    }
+
+    public int getNat1Count() {
+        return nat1Count;
+    }
+
+    public void incNatCount() {
+        this.natCount++;
+    }
+
+    public int getNatCount() {
+        return natCount;
+    }
+
+    public void incIntCount() {
+        this.intCount++;
+    }
+
+    public int getIntCount() {
+        return intCount;
+    }
+
+    public void incNatural1Count() {
+        this.natural1Count++;
+    }
+
+    public int getNatural1Count() {
+        return natural1Count;
+    }
+
+    public void incNaturalCount() {
+        this.naturalCount++;
+    }
+
+    public int getNaturalCount() {
+        return naturalCount;
+    }
+
+    public void incIntegerCount() {
+        this.integerCount++;
+    }
+
+    public int getIntegerCount() {
+        return integerCount;
+    }
+
+    public int getMaxIntegerUsed() {
+        return maxIntegerUsed;
+    }
+
+    public void registerIntegerUse(int integer) {
+        if (hasNotSeenIntegerValues || integer > maxIntegerUsed) {
+            hasNotSeenIntegerValues = false;
+            this.maxIntegerUsed = integer;
+        }
+    }
 }
