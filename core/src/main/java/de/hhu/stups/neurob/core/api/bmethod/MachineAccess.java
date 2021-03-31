@@ -163,10 +163,10 @@ public class MachineAccess {
                         "Loading state space for " + machineFile + " failed "
                         + "due to not being able to detect correct formalism");
             }
-        } catch (ModelTranslationError modelTranslationError) {
-            throw new MachineAccessException(
-                    "Unable to load state space for" + machineFile,
-                    modelTranslationError);
+//        } catch (ModelTranslationError modelTranslationError) {
+//            throw new MachineAccessException(
+//                    "Unable to load state space for" + machineFile,
+//                    modelTranslationError);
         } catch (Exception e) {
             throw new MachineAccessException(
                     "Unexpected exception encountered during loading of "
