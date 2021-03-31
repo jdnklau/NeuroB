@@ -2,6 +2,8 @@ package de.hhu.stups.neurob.core.features.predicates.util;
 
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
+import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.FormulaExpand;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -1616,7 +1618,6 @@ class BAstFeatureCollectorTest {
         int expected = 2;
         int actual = data.getIdentifiersCount();
         assertEquals(expected, actual);
-
     }
 
     @Test
@@ -1627,6 +1628,30 @@ class BAstFeatureCollectorTest {
         int expected = 1;
         int actual = data.getIdentifiersCount();
         assertEquals(expected, actual);
+    }
 
+    @Test
+    void shouldTreatPrimedIdentifiersAsIndividualIdsWhenEventB() throws FeatureCreationException {
+        String pred = "foo > 0 & foo' > 1";
+        EventB eventBPred = new EventB(pred, FormulaExpand.EXPAND);
+
+        BAstFeatureData data = BAstFeatureCollector.collect(eventBPred.getAst());
+
+        int expected = 2;
+        int actual = data.getIdentifiersCount();
+        assertEquals(expected, actual);
+    }
+
+
+    @Test
+    void shouldNotCountPrimedIdentifiersTwiceWhenEventB() throws FeatureCreationException {
+        String pred = "foo' > 1";
+        EventB eventBPred = new EventB(pred, FormulaExpand.EXPAND);
+
+        BAstFeatureData data = BAstFeatureCollector.collect(eventBPred.getAst());
+
+        int expected = 1;
+        int actual = data.getIdentifiersCount();
+        assertEquals(expected, actual);
     }
 }

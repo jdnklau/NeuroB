@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.core.features.predicates.util;
 
 import de.be4.classicalb.core.parser.BParser;
+import de.be4.classicalb.core.parser.node.Start;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
@@ -36,6 +37,10 @@ public class BAstFeatureCollector {
                     "Unable to parse predicate" + pred, e);
         }
 
+        return collect(ast);
+    }
+
+    static BAstFeatureData collect(Node ast) {
         // Walk AST, return data
         BAstFeatureWalker walker = new BAstFeatureWalker();
         ast.apply(walker);
