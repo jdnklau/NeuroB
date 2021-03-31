@@ -85,8 +85,10 @@ public class ArithmeticExpressionCheck extends DepthFirstAdapter {
 
 	@Override
 	public void caseAPrimedIdentifierExpression(APrimedIdentifierExpression node) {
-		node.getIdentifier().stream().map(n->n.getText()).forEach(ids::addIdentifier);
-		super.caseAPrimedIdentifierExpression(node);
+		String grade = node.getGrade().getText().trim();
+		node.getIdentifier().stream().map(Tid -> Tid.getText() + "$" + grade)
+				.forEach(ids::addIdentifier);
+//		super.caseAPrimedIdentifierExpression(node);
 	}
 
 	public int getIdCount(){

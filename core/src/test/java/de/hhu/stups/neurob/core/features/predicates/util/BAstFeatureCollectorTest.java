@@ -1608,4 +1608,25 @@ class BAstFeatureCollectorTest {
 
     }
 
+    @Test
+    void shouldTreatPrimedIdentifiersAsIndividualIds() throws FeatureCreationException {
+        String pred = "foo > 0 & foo$0 > 1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 2;
+        int actual = data.getIdentifiersCount();
+        assertEquals(expected, actual);
+
+    }
+
+    @Test
+    void shouldNotCountPrimedIdentifiersTwice() throws FeatureCreationException {
+        String pred = "foo$0 > 1";
+        BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
+
+        int expected = 1;
+        int actual = data.getIdentifiersCount();
+        assertEquals(expected, actual);
+
+    }
 }
