@@ -232,6 +232,8 @@ public class FormulaGenerator {
      * @param predicateCollection
      *
      * @return
+     *
+     * @deprecated Use {@link #enablingAnalysis(PredicateCollection)} instead.
      */
     public static List<BPredicate> enablingRelationships(
             PredicateCollection predicateCollection) {
@@ -310,6 +312,126 @@ public class FormulaGenerator {
         }
 
         return formulae;
+    }
+
+    /**
+     * Generates a list of predicates inspired by enabling analysis [1].
+     * <p>
+     * Paper [1] defines conditional event-feasibility (~>_e) as follows:
+     * P ~>_e Q
+     * if there exists a state s with
+     * s |= P
+     * s |= BAP & [v=v']Q
+     * with the before-after-predicate BAP. Thus, an event is feasible if P is
+     * established and after execution Q is established.
+     * <p>
+     * * [1] Dobrikov & Leuschel, 2018, "Enabling Analysis for Event-B"
+     *
+     * @param pc
+     *
+     * @return
+     */
+    public List<BPredicate> enablingAnalysis(PredicateCollection pc) {
+        List<String> formulae = new ArrayList<>();
+
+        String PropsAndInvsPre = getPropsAndInvsPre(pc);
+
+        List<String> operations = pc.getOperationNames();
+        Map<String, List<BPredicate>> preconditionLists = pc.getPreconditions();
+
+        Map<String, BPredicate> preconditions = new HashMap<>();
+        for (String operation : operations) {
+            if (preconditionLists.containsKey(operation)) {
+                BPredicate precond = getPredicateConjunction(preconditionLists.get(operation));
+                preconditions.put(operation, precond);
+            }
+        }
+
+        Map<String, BPredicate> beforeAfterPreds = pc.getBeforeAfterPredicates();
+
+        // Prime preconditions for use with before/after predicates (BAPs)
+        Map<String, BPredicate> primedPreconds = new HashMap<>();
+        for (String operation : beforeAfterPreds.keySet()) { // Only relevant if we HAVE a BAP
+            if (preconditions.containsKey(operation)) {
+                try {
+                    BPredicate primedPre = generatePrimedPredicate(
+                            pc.getBMachine(), preconditions.get(operation));
+                } catch (FormulaException e) {
+                    log.warn("Unable to prime precondition: {}", e.getMessage(), e);
+                }
+            }
+        }
+
+        for (String op1 : operations) {
+            // Get "& precondition" of operation 1
+            String g1 = "(" + preconditions.getOrDefault(op1, new BPredicate("btrue")).getPredicate() + ")";
+            String andG1 = " & " + g1;
+
+            // event feasibility
+            formulae.add(PropsAndInvsPre + andG1); // feasible: exists s.(s |= g1)
+            formulae.add(PropsAndInvsPre + " & not" + g1); // not guaranteed: not all s.(s |= g1)
+
+
+            String bap = "(" + beforeAfterPreds.get(op1).getPredicate() + ")";
+            String andBap1 = " & " + bap;
+            for (String op2 : operations) {
+                String g2 = "(" + preconditions.getOrDefault(op2, new BPredicate("btrue")).getPredicate() + ")";
+                String andG2 = " & " + g2;
+
+                // negated version
+                String ng2 = "not" + g2;
+                String andNG2 = "& " + ng2;
+
+                // primed version
+                String pg2 = "(" + primedPreconds.getOrDefault(op2, new BPredicate("btrue")).getPredicate() + ")";
+                String andPG2 = " & " + pg2;
+
+                // negated  prime version
+                String png2 = "not" + pg2;
+                String andPNG2 = " & " + png2;
+
+                // op2 possible after op1
+                formulae.add(PropsAndInvsPre + andG1 + andBap1 + andPG2);
+                // op2 not feasible after op1
+                formulae.add(PropsAndInvsPre + andG1 + andBap1 + andPG2);
+                // Note: ^ those are counter example definitions of impossible/feasible
+
+                // The four conditions from Definition 6 in the paper are as follows
+                // ("Note that [...] we do not require that [op1] is feasible")
+                // 1. can op1 enable op2
+                formulae.add(PropsAndInvsPre + andNG2 + andBap1 + andPG2);
+                // 2. can op1 disable op2
+                formulae.add(PropsAndInvsPre + andG2 + andBap1 + andPNG2);
+                // 3. can op1 keep op2 enabled
+                formulae.add(PropsAndInvsPre + andG2 + andBap1 + andPG2);
+                // 4. can op1 keep op2 disabled
+                formulae.add(PropsAndInvsPre + andNG2 + andBap1 + andPNG2);
+
+                // Extended Enabling Relation (Definition 8 [1])
+                // Basically just adds the preservation of the invariant
+                String pinv = getPredicateConjunction(
+                        new ArrayList<>(pc.getPrimedInvariants().values())).getPredicate();
+                if (!pinv.isEmpty()) {
+                    String andPInv = " & " + pinv;
+
+                    // 1. can op1 enable op2
+                    formulae.add(PropsAndInvsPre + andNG2 + andBap1 + andPInv + andPG2);
+                    // 2. can op1 disable op2
+                    formulae.add(PropsAndInvsPre + andG2 + andBap1 + andPInv + andPNG2);
+                    // 3. can op1 keep op2 enabled
+                    formulae.add(PropsAndInvsPre + andG2 + andBap1 + andPInv + andPG2);
+                    // 4. can op1 keep op2 disabled
+                    formulae.add(PropsAndInvsPre + andNG2 + andBap1 + andPInv + andPNG2);
+
+                }
+
+            }
+
+
+        }
+
+
+        return formulae.stream().map(BPredicate::new).collect(Collectors.toList());
     }
 
     /**
