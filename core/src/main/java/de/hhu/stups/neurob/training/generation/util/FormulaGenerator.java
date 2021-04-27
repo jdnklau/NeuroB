@@ -656,6 +656,16 @@ public class FormulaGenerator {
      * <li> (P & i) => ~W
      * <li> ~(P & i) & W
      * </ul>
+     * Lastly, for two weakest preconditions W1 and W2:
+     * <ul>
+     * <li> P & i & W1 & W2
+     * <li> P & i & W1 & ~W2
+     * <li> P & i & ~W1 & W2
+     * <li> (P & i & W1) => W2
+     * <li> (P & i & W2) => W1
+     * <li> (P & i & W1) => ~W2
+     * <li> (P & i & W2) => ~W1
+     * </ul>
      *
      *
      * @param pc
@@ -689,7 +699,10 @@ public class FormulaGenerator {
         String andNPInv = "& not(" + pinv + ")";
         String npinv = "not(" + pinv + ")";
 
-        for(String op : weakestPreConditions.keySet()) {
+
+
+        for(int i=0; i<operations.size(); i++) {
+            String op = operations.get(i);
             String ba = "(" + beforeAfterPreds.get(op).getPredicate() + ")";
             String andBa = "&" + ba;
 
@@ -731,6 +744,30 @@ public class FormulaGenerator {
             // weakest precondition possible with broken invariant
             formulae.add("not(" + PropsAndInvsPre + ")" + andFwpc);
 
+            // which two weakest full preconditions can be co-enabled?
+            for (int j = i+1; j<operations.size(); j++) {
+                String op2 = operations.get(j);
+
+                // weakest precondition over full invariant
+                String fwpc2 = "(" + weakestFullPreConditions.get(op2) + ")";
+                String andFwpc2 = "&" + fwpc2;
+
+                // Both
+                formulae.add(PropsAndInvsPre + andFwpc + andFwpc2);
+                // first not second
+                formulae.add(PropsAndInvsPre + andFwpc + "& not" + fwpc2);
+                // second not first
+                formulae.add(PropsAndInvsPre + "& not" + fwpc + andFwpc2);
+                // first implies second
+                formulae.add("(" + PropsAndInvsPre + andFwpc + ") => " + fwpc2);
+                // second implies first
+                formulae.add("(" + PropsAndInvsPre + andFwpc2 + ") => " + fwpc);
+                // first denies second
+                formulae.add("(" + PropsAndInvsPre + andFwpc + ") => not" + fwpc2);
+                // second denies first
+                formulae.add("(" + PropsAndInvsPre + andFwpc2 + ") => not" + fwpc);
+
+            }
         }
 
         return formulae.stream().map(BPredicate::new).collect(Collectors.toList());
