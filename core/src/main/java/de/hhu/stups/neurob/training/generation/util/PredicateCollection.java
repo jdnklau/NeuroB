@@ -40,6 +40,7 @@ public class PredicateCollection {
     private List<BPredicate> assertions; // also contains theorems of EventB
     private Map<String, BPredicate> beforeAfterPredicates;
     private Map<String, Map<BPredicate, BPredicate>> weakestPreconditions;
+    private Map<String, BPredicate> weakestFullPreconditions;
     private Map<BPredicate, BPredicate> primedInvariants;
     private Map<String, List<BPredicate>> primedPreconditions;
 
@@ -98,6 +99,8 @@ public class PredicateCollection {
                     FormulaGenerator.getPredicateConjunction(invariants);
             invariants.add(invariantConcat);
         }
+
+        BPredicate fullInv = FormulaGenerator.getPredicateConjunction(invariants);
 
         log.trace("Collecting assertions");
         for (Assertion x : comp.getChildrenOfType(Assertion.class)) {
@@ -159,6 +162,23 @@ public class PredicateCollection {
 
             }
             weakestPreconditions.put(x.getName(), wpcs);
+
+            // Full precondition
+            IBEvalElement invCmd = invCmds.get(fullInv);
+            try {
+                WeakestPreconditionCommand wpcc =
+                        new WeakestPreconditionCommand(x.getName(), invCmd);
+                bMachine.execute(wpcc);
+                // FIXME: Erase comment, probably should not be returned by ProB to begin with
+                String code = wpcc.getWeakestPrecondition().getCode()
+                        .replaceAll("/\\*.*\\*/ *", "");
+                weakestFullPreconditions.put(x.getName(), BPredicate.of(code));
+            } catch (Exception e) {
+                log.warn("Could not build weakest precondition"
+                         + "for full invariant {} by operation {}.",
+                        invCmd.getCode(), x.getName(), e);
+            }
+
         }
 
         boolean isClassicalB = bMachine.getMachineType() == MachineType.CLASSICALB;
@@ -311,11 +331,11 @@ public class PredicateCollection {
         return operations;
     }
 
-    public Map<String, Map<BPredicate, BPredicate>> getWeakestPreconditions() {
-        return weakestPreconditions;
-    }
-
     public Map<String, List<BPredicate>> getPrimedPreconditions() {
         return primedPreconditions;
+    }
+
+    public Map<String, BPredicate> getWeakestFullPreconditions() {
+        return weakestFullPreconditions;
     }
 }
