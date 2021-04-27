@@ -247,7 +247,7 @@ public class PredicateCollection {
     }
 
     String primeClassicalB(String code) {
-        return code.replaceAll("[']", "\\$0"); // FIXME: What about strings using '?
+        return code.replaceAll("[']", "′"); // FIXME: What about strings using '?
 
     }
 

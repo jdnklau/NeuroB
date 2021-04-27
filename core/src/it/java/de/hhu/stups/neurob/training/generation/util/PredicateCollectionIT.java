@@ -116,23 +116,23 @@ class PredicateCollectionIT {
 
         // incx
         List<String> pre = new ArrayList<>();
-        pre.add("x$0 = y$0");
-        pre.add("z$0 < 20");
+        pre.add("x′ = y′");
+        pre.add("z′ < 20");
         pres.put("incx", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
         // incy
         pre = new ArrayList<>();
-        pre.add("y$0 < x$0");
-        pre.add("z$0 < 20");
+        pre.add("y′ < x′");
+        pre.add("z′ < 20");
         pres.put("incy", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
         // sqrx
         pre = new ArrayList<>();
-        pre.add("x$0 < y$0");
+        pre.add("x′ < y′");
         pres.put("sqrx", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
         // reset
         pre = new ArrayList<>();
-        pre.add("z$0 >= 20 or x$0 > 1000");
-        pre.add("z$0 >= 20");
-        pre.add("x$0 > 1000");
+        pre.add("z′ >= 20 or x′ > 1000");
+        pre.add("z′ >= 20");
+        pre.add("x′ > 1000");
         pres.put("reset", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
 
         assertAll("Included primed preconditions",
@@ -297,10 +297,10 @@ class PredicateCollectionIT {
     @Test
     public void shouldLoadBeforeAfterPredicatesWhenClassicalB() {
         Map<String, BPredicate> baPreds = new HashMap<>();
-        baPreds.put("sqrx", BPredicate.of("x < y & (x$0 = x * x & z$0 = z + 1) & y$0 = y & n$0 = n & m$0 = m"));
-        baPreds.put("reset", BPredicate.of("(z >= 20 or x > 1000) & (x$0 = 1 & y$0 = 1 & z$0 = 1) & n$0 = n & m$0 = m"));
-        baPreds.put("incy", BPredicate.of("y < x & z < 20 & (y$0 = y + 2 & z$0 = z + 1) & x$0 = x & n$0 = n & m$0 = m"));
-        baPreds.put("incx", BPredicate.of("x = y & z < 20 & (x$0 = x + 1 & z$0 = z + 1) & y$0 = y & n$0 = n & m$0 = m"));
+        baPreds.put("sqrx", BPredicate.of("x < y & (x′ = x * x & z′ = z + 1) & y′ = y & n′ = n & m′ = m"));
+        baPreds.put("reset", BPredicate.of("(z >= 20 or x > 1000) & (x′ = 1 & y′ = 1 & z′ = 1) & n′ = n & m′ = m"));
+        baPreds.put("incy", BPredicate.of("y < x & z < 20 & (y′ = y + 2 & z′ = z + 1) & x′ = x & n′ = n & m′ = m"));
+        baPreds.put("incx", BPredicate.of("x = y & z < 20 & (x′ = x + 1 & z′ = z + 1) & y′ = y & n′ = n & m′ = m"));
 
 
 

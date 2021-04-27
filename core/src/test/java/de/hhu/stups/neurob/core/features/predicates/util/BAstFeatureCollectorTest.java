@@ -516,7 +516,7 @@ class BAstFeatureCollectorTest {
 
     @Test
     public void identifierPrimedCountTest() throws FeatureCreationException {
-        String pred = "x$0 : NAT & y < z";
+        String pred = "x′ : NAT & y < z";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
 
         int expected = 3;
@@ -566,7 +566,7 @@ class BAstFeatureCollectorTest {
 
     @Test
     public void identifierImplicitRelations3Count2Test() throws FeatureCreationException {
-        String pred = "x < y$0 & y$0 < z & z < x";
+        String pred = "x < y′ & y′ < z & z < x";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
 
         int expected = 3;
@@ -1612,7 +1612,7 @@ class BAstFeatureCollectorTest {
 
     @Test
     void shouldTreatPrimedIdentifiersAsIndividualIds() throws FeatureCreationException {
-        String pred = "foo > 0 & foo$0 > 1";
+        String pred = "foo > 0 & foo′ > 1";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
 
         int expected = 2;
@@ -1622,7 +1622,7 @@ class BAstFeatureCollectorTest {
 
     @Test
     void shouldNotCountPrimedIdentifiersTwice() throws FeatureCreationException {
-        String pred = "foo$0 > 1";
+        String pred = "foo′ > 1";
         BAstFeatureData data = BAstFeatureCollector.collect(BPredicate.of(pred));
 
         int expected = 1;
