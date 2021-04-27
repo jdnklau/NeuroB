@@ -176,7 +176,7 @@ public class PredicateCollection {
             } catch (Exception e) {
                 log.warn("Could not build weakest precondition"
                          + "for full invariant {} by operation {}.",
-                        invCmd.getCode(), x.getName(), e);
+                        fullInv, x.getName(), e);
             }
 
         }
