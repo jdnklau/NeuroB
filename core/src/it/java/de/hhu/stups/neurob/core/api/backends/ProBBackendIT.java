@@ -21,9 +21,6 @@ class ProBBackendIT {
 
     private MachineAccess bMachine;
     private BPreference noReals = new BPreference("ALLOW_REALS", "FALSE");
-    // Need noSmt and noClpfd for ensuring vanilla ProB settings
-    private BPreference noSmt = new BPreference("SMT", "FALSE");
-    private BPreference noClpfd = new BPreference("CLPFD", "FALSE");
 
     @BeforeEach
     public void loadBMachine() throws MachineAccessException {
@@ -89,9 +86,23 @@ class ProBBackendIT {
     public void shouldBeTimeout() throws FormulaException {
         BPredicate pred = BPredicate.of("x>y & y>x");
 
-        ProBBackend prob = new ProBBackend(noReals, noSmt, noClpfd);
+        ProBBackend prob = new ProBBackend(noReals);
 
         Answer expected = Answer.TIMEOUT;
+        Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
+
+        assertEquals(expected, actual,
+                "ProB could unexpectedly decide predicate");
+    }
+
+    @Test
+    public void shouldBeInvalidWithCLPFDOption() throws FormulaException {
+        BPredicate pred = BPredicate.of("x>y & y>x");
+
+        ProBBackend prob = new ProBBackend(noReals,
+                BPreference.set("CLPFD", "TRUE"));
+
+        Answer expected = Answer.INVALID;
         Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
 
         assertEquals(expected, actual,
@@ -101,7 +112,7 @@ class ProBBackendIT {
     @Test
     public void shouldBeUndecidable() throws FormulaException {
         String pred = "x>y & y>x";
-        ProBBackend prob = new ProBBackend(noReals, noSmt, noClpfd);
+        ProBBackend prob = new ProBBackend(noReals);
 
         Boolean isDecidable = prob.isDecidable(pred, bMachine);
 
@@ -123,7 +134,7 @@ class ProBBackendIT {
     @Test
     public void shouldBeNegativeTime() throws FormulaException {
         String pred = "x>y & y>x";
-        ProBBackend prob = new ProBBackend(noReals, noSmt, noClpfd);
+        ProBBackend prob = new ProBBackend(noReals);
 
         Long time = prob.measureEvalTime(pred, bMachine);
 

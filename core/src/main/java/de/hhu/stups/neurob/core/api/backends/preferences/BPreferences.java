@@ -82,7 +82,10 @@ public class BPreferences {
 
     @Override
     public String toString() {
-        String preferencesString = stream().map(BPreference::toString)
+        String preferencesString = stream()
+                // Settings which are false are equal to being turned off.
+                .filter(p -> !p.getValue().equals("FALSE"))
+                .map(BPreference::toString)
                 .collect(Collectors.joining(", "));
         return "[" + preferencesString + "]";
     }

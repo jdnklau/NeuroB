@@ -68,6 +68,16 @@ public abstract class Backend {
 
         SortedMap<String, BPreference> prefMap = new TreeMap<>();
         prefMap.put(timeout.getName(), timeout);
+
+        /*
+           Note: In ProB2 the CbcSolveCommand calls ProB's cbc_solve_with_opts (prob2_interface.pl)
+           which itself always assumes SMT and CLPFD options.
+           As we are interested in the backends being as pure as possible, we now assume the opposite.
+           These preferences should be overridden by any explicit values set for them.
+         */
+        prefMap.put("SMT", BPreference.set("SMT", "FALSE"));
+        prefMap.put("CLPFD", BPreference.set("CLPFD", "FALSE"));
+
         Arrays.stream(preferences)
                 .forEach(p -> prefMap.put(p.getName(), p));
 
