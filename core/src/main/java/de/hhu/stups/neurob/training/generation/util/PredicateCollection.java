@@ -59,6 +59,7 @@ public class PredicateCollection {
         assertions = new ArrayList<>();
         beforeAfterPredicates = new HashMap<>();
         weakestPreconditions = new HashMap<>();
+        weakestFullPreconditions = new HashMap<>();
         primedInvariants = new HashMap<>();
         primedPreconditions = new HashMap<>();
 
@@ -94,10 +95,11 @@ public class PredicateCollection {
                 invariants.add(BPredicate.of(x.getFormula().getCode()));
         }
         // Conjunct invariants if more then one
+        BPredicate invariantConcat = null;
         if (invariants.size() > 1) {
-            BPredicate invariantConcat =
+            invariantConcat =
                     FormulaGenerator.getPredicateConjunction(invariants);
-            invariants.add(invariantConcat);
+//            invariants.add(invariantConcat);
         }
 
         BPredicate fullInv = FormulaGenerator.getPredicateConjunction(invariants);
@@ -135,6 +137,15 @@ public class PredicateCollection {
                         inv, e);
             }
         }
+        IBEvalElement fullInvCmd = null;
+        if (invariantConcat != null) {
+            try {
+                fullInvCmd = Backend.generateBFormula(invariantConcat, bMachine);
+            } catch (FormulaException e) {
+                log.warn("Could not set up EvalElement from invariant concatenation for "
+                         + "weakest precondition calculation or priming", e);
+            }
+        }
 
         // weakest preconditions for each invariant
         log.trace("Building weakest preconditions");
@@ -164,19 +175,20 @@ public class PredicateCollection {
             weakestPreconditions.put(x.getName(), wpcs);
 
             // Full precondition
-            IBEvalElement invCmd = invCmds.get(fullInv);
-            try {
-                WeakestPreconditionCommand wpcc =
-                        new WeakestPreconditionCommand(x.getName(), invCmd);
-                bMachine.execute(wpcc);
-                // FIXME: Erase comment, probably should not be returned by ProB to begin with
-                String code = wpcc.getWeakestPrecondition().getCode()
-                        .replaceAll("/\\*.*\\*/ *", "");
-                weakestFullPreconditions.put(x.getName(), BPredicate.of(code));
-            } catch (Exception e) {
-                log.warn("Could not build weakest precondition"
-                         + "for full invariant {} by operation {}.",
-                        fullInv, x.getName(), e);
+            if (fullInvCmd != null) {
+                try {
+                    WeakestPreconditionCommand wpcc =
+                            new WeakestPreconditionCommand(x.getName(), fullInvCmd);
+                    bMachine.execute(wpcc);
+                    // FIXME: Erase comment, probably should not be returned by ProB to begin with
+                    String code = wpcc.getWeakestPrecondition().getCode()
+                            .replaceAll("/\\*.*\\*/ *", "");
+                    weakestFullPreconditions.put(x.getName(), BPredicate.of(code));
+                } catch (Exception e) {
+                    log.warn("Could not build weakest precondition"
+                             + "for full invariant {} by operation {}.",
+                            fullInv, x.getName(), e);
+                }
             }
 
         }

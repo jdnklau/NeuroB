@@ -8,6 +8,7 @@ import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.command.WeakestPreconditionCommand;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.FormulaExpand;
+import de.prob.animator.domainobjects.IBEvalElement;
 import de.prob.model.classicalb.Assertion;
 import de.prob.model.classicalb.Property;
 import de.prob.model.eventb.Context;
@@ -23,6 +24,7 @@ import de.prob.parser.ISimplifiedROMap;
 import de.prob.prolog.term.CompoundPrologTerm;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -57,6 +59,7 @@ class PredicateCollectionTest {
         // For invariant command creation
         AbstractModel model = mock(AbstractModel.class);
         when(model.parseFormula(any())).thenAnswer(invocation -> null);
+        when(model.parseFormula(any(), any())).thenAnswer(invocation -> null);
         when(ss.getModel()).thenReturn(model);
 
         // mock machine access
@@ -127,6 +130,7 @@ class PredicateCollectionTest {
     }
 
     @Test
+    @Disabled("This behaviour is now undesired.")
     public void shouldLoadInvariantWithConcatenationWhenMoreThanOne() {
         ModelElementList<Invariant> invMock =
                 generatePredicates(Invariant.class, 2);
@@ -324,17 +328,50 @@ class PredicateCollectionTest {
         opWeak = new HashMap<>();
         opWeak.put(BPredicate.of("Invariant-1"), BPredicate.of("weakest-precondition"));
         opWeak.put(BPredicate.of("Invariant-2"), BPredicate.of("weakest-precondition"));
-        opWeak.put(BPredicate.of("(Invariant-1) & (Invariant-2)"), BPredicate.of("weakest-precondition"));
         weakestPres.put("Operation-1", opWeak);
         // second operation
         opWeak = new HashMap<>();
         opWeak.put(BPredicate.of("Invariant-1"), BPredicate.of("weakest-precondition"));
         opWeak.put(BPredicate.of("Invariant-2"), BPredicate.of("weakest-precondition"));
-        opWeak.put(BPredicate.of("(Invariant-1) & (Invariant-2)"), BPredicate.of("weakest-precondition"));
         weakestPres.put("Operation-2", opWeak);
 
         assertEquals(weakestPres, pc.getWeakestPreConditions(),
                 "Weakest Preconditions do not match");
+    }
+
+    @Test
+    public void shouldLoadFullWeakestPreConditions() {
+        ModelElementList<Invariant> invariants =
+                generatePredicates(Invariant.class, 2);
+        when(ss.getMainComponent().getChildrenOfType(Invariant.class))
+                .thenReturn(invariants);
+        ModelElementList<BEvent> operations =
+                generateOperations(2, 1);
+        when(ss.getMainComponent().getChildrenOfType(BEvent.class))
+                .thenReturn(operations);
+
+        // Stub stateSpace.execute call
+        ISimplifiedROMap bindings = mock(ISimplifiedROMap.class);
+        // Weakest Preconditions
+        when(bindings.get("WeakestPrecondition"))
+                .thenReturn(new CompoundPrologTerm("weakest-full-precondition"));
+        doAnswer(invocation -> {
+            WeakestPreconditionCommand cmd =
+                    invocation.getArgument(0);
+            cmd.processResult(bindings);
+            return null;
+        }).when(bMachine).execute(any(WeakestPreconditionCommand.class));
+        IBEvalElement evalMock = mock(IBEvalElement.class);
+        when(bMachine.parseFormula(any())).thenReturn(evalMock);
+
+        PredicateCollection pc = new PredicateCollection(bMachine);
+
+        Map<String, BPredicate> weakestPres = new HashMap<>();
+        weakestPres.put("Operation-1", BPredicate.of("weakest-full-precondition"));
+        weakestPres.put("Operation-2", BPredicate.of("weakest-full-precondition"));
+
+        assertEquals(weakestPres, pc.getWeakestFullPreconditions(),
+                "Weakest Full Preconditions do not match");
     }
 
     @Test
@@ -433,7 +470,7 @@ class PredicateCollectionTest {
         Map<BPredicate, BPredicate> expected = new HashMap<>();
         expected.put(BPredicate.of("Invariant-1"), BPredicate.of("primed-invariant"));
         expected.put(BPredicate.of("Invariant-2"), BPredicate.of("primed-invariant"));
-        expected.put(BPredicate.of("(Invariant-1) & (Invariant-2)"), BPredicate.of("primed-invariant"));
+//        expected.put(BPredicate.of("(Invariant-1) & (Invariant-2)"), BPredicate.of("primed-invariant"));
 
         Map<BPredicate, BPredicate> actual = pc.getPrimedInvariants();
 

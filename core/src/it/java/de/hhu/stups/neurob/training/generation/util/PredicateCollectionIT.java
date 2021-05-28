@@ -42,7 +42,6 @@ class PredicateCollectionIT {
         invariants.add("x:NATURAL");
         invariants.add("y:NAT");
         invariants.add("z:INT");
-        invariants.add("(x:NATURAL) & (y:NAT) & (z:INT)");
 
         List<String> actual = pc.getInvariants().stream()
                 .map(BPredicate::toString)
@@ -64,7 +63,6 @@ class PredicateCollectionIT {
         invariants.add("y=1");
         invariants.add("z:NAT");
         invariants.add("z<2");
-        invariants.add("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)");
 
         List<String> actual = pcEventB.getInvariants().stream()
                 .map(BPredicate::toString)
@@ -232,36 +230,41 @@ class PredicateCollectionIT {
         opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("x=y & z<20 & y:NAT"));
         opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("x=y & z<20 & x+1:NATURAL"));
         opWeak.put(BPredicate.of("z:INT"), BPredicate.of("x=y & z<20 & z+1:INT"));
-        opWeak.put(BPredicate.of("(x:NATURAL) & (y:NAT) & (z:INT)"),
-                BPredicate.of("x=y & z<20 & (x+1:NATURAL & y:NAT & z+1:INT)"));
         weakestPres.put("incx", opWeak);
         // incy
         opWeak = new HashMap<>();
         opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("y<x & z<20 & y+2:NAT"));
         opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("y<x & z<20 & x:NATURAL"));
         opWeak.put(BPredicate.of("z:INT"), BPredicate.of("y<x & z<20 & z+1:INT"));
-        opWeak.put(BPredicate.of("(x:NATURAL) & (y:NAT) & (z:INT)"),
-                BPredicate.of("y<x & z<20 & (x:NATURAL & y+2:NAT & z+1:INT)"));
         weakestPres.put("incy", opWeak);
         // sqrx
         opWeak = new HashMap<>();
         opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("x<y & y:NAT"));
         opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("x<y & x*x:NATURAL"));
         opWeak.put(BPredicate.of("z:INT"), BPredicate.of("x<y & z+1:INT"));
-        opWeak.put(BPredicate.of("(x:NATURAL) & (y:NAT) & (z:INT)"),
-                BPredicate.of("x<y & (x*x:NATURAL & y:NAT & z+1:INT)"));
         weakestPres.put("sqrx", opWeak);
         // reset
         opWeak = new HashMap<>();
         opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("z>=20 or x>1000 & 1:NAT"));
         opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("z>=20 or x>1000 & 1:NATURAL"));
         opWeak.put(BPredicate.of("z:INT"), BPredicate.of("z>=20 or x>1000 & 1:INT"));
-        opWeak.put(BPredicate.of("(x:NATURAL) & (y:NAT) & (z:INT)"),
-                BPredicate.of("z>=20 or x>1000 & (1:NATURAL & 1:NAT & 1:INT)"));
         weakestPres.put("reset", opWeak);
 
         assertEquals(weakestPres, pc.getWeakestPreConditions(),
                 "Weakest Preconditions do not match");
+    }
+
+    @Test
+    public void shouldLoadWeakestFullPreconditions(){
+        Map<String, BPredicate> weakestPres = new HashMap<>();
+
+        weakestPres.put("incx", BPredicate.of("x=y & z<20 & (x+1:NATURAL & y:NAT & z+1:INT)"));
+        weakestPres.put("incy", BPredicate.of("y<x & z<20 & (x:NATURAL & y+2:NAT & z+1:INT)"));
+        weakestPres.put("sqrx", BPredicate.of("x<y & (x*x:NATURAL & y:NAT & z+1:INT)"));
+        weakestPres.put("reset", BPredicate.of("z>=20 or x>1000 & (1:NATURAL & 1:NAT & 1:INT)"));
+
+        assertEquals(weakestPres, pc.getWeakestFullPreconditions(),
+                "Weakest Preconditions over full invariant do not match");
     }
 
     @Test
@@ -275,9 +278,6 @@ class PredicateCollectionIT {
         opWeak.put(BPredicate.of("x<y"), BPredicate.of("z < 2 => x < y"));
         opWeak.put(BPredicate.of("x:NAT"), BPredicate.of("z < 2 => x : NAT"));
         opWeak.put(BPredicate.of("y=1"), BPredicate.of("z < 2 => y = 1"));
-        opWeak.put(BPredicate.of("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)"),
-                BPredicate.of("z < 2 => x : NAT & (y : NAT & (x < y & (y = 1 & (z + 1 : NAT "
-                              + "& z + 1 < 2))))"));
         weakestPres.put("incZ", opWeak);
 
         assertEquals(weakestPres, pcEventB.getWeakestPreConditions(),
@@ -346,9 +346,6 @@ class PredicateCollectionIT {
         primedInvs.put(BPredicate.of("y=1"), BPredicate.of("y' = 1"));
         primedInvs.put(BPredicate.of("z:NAT"), BPredicate.of("z' : NAT"));
         primedInvs.put(BPredicate.of("z<2"), BPredicate.of("z' < 2"));
-        // concat of whole invariant
-        primedInvs.put(BPredicate.of("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)"),
-                BPredicate.of("x' : NAT & (y' : NAT & (x' < y' & (y' = 1 & (z' : NAT & z' < 2))))"));
 
         assertEquals(primedInvs, pcEventB.getPrimedInvariants(),
                 "Primed invariants mismatch");

@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.training.generation.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -564,8 +565,7 @@ public class FormulaGenerator {
      * formulae inspired by those.
      * <p>
      * The following formulae are generated:
-     * <br>Let P be the properties. Let i be an invariant or the conjunction of
-     * all invariants.
+     * <br>Let P be the properties. Let i be the conjunction of all invariants.
      * Further, let g be the precondition of an operation and ba the operations
      * before/after predicate.
      * Let j be the invariant after the operation (j:=i')
@@ -586,7 +586,7 @@ public class FormulaGenerator {
             PredicateCollection pc) {
         List<String> formulae = new ArrayList<>();
 
-        String PropsAndInvsPre = getPropsAndInvsPre(pc);
+        String PropsAndInvs = getPropertyAndInvariantString(pc);
 
         List<String> operations = pc.getOperationNames();
         Map<String, List<BPredicate>> preconditionLists = pc.getPreconditions();
@@ -601,30 +601,30 @@ public class FormulaGenerator {
 
         Map<String, BPredicate> beforeAfterPreds = pc.getBeforeAfterPredicates();
 
-        String pinv = getPredicateConjunction(
-                new ArrayList<>(pc.getPrimedInvariants().values())).getPredicate();
-        String andPInv = "& (" + pinv + ")";
-        String andNPInv = "& not(" + pinv + ")";
-        String npinv = "not(" + pinv + ")";
+        String pinv = getPredicateConjunction(pc.getPrimedInvariants().values()).getPredicate();
+        pinv = "(" + pinv + ")";
+        String andPInv = " & " + pinv;
+        String npinv = "not" + pinv;
+        String andNPInv = " & not" + pinv;
 
         for (String op : beforeAfterPreds.keySet()) {
             String ba = "(" + beforeAfterPreds.get(op).getPredicate() + ")";
-            String andBa = "&" + ba;
+            String andBa = " & " + ba;
 
             String g = "(" + preconditions.getOrDefault(op, new BPredicate("btrue")).getPredicate() + ")";
             String andG = " & " + g;
 
             // Invariant preservation
-            formulae.add(PropsAndInvsPre + andG + andBa + andPInv);
-            formulae.add("(" + PropsAndInvsPre + andG + andBa + ") => " + pinv);
+            formulae.add(PropsAndInvs + andG + andBa + andPInv);
+            formulae.add("(" + PropsAndInvs + andG + andBa + ") => " + pinv);
             // Invariant breaks
-            formulae.add(PropsAndInvsPre + andG + andBa + andNPInv);
-            formulae.add("(" + PropsAndInvsPre + andG + andBa + ") => " + npinv);
+            formulae.add(PropsAndInvs + andG + andBa + andNPInv);
+            formulae.add("(" + PropsAndInvs + andG + andBa + ") => " + npinv);
 
             // Operation repairs invariant
-            formulae.add("(not(" + PropsAndInvsPre +")" + andBa + ") => " + pinv);
+            formulae.add("(not(" + PropsAndInvs +")" + andBa + ") => " + pinv);
             // Enabled operation repairs invariant
-            formulae.add("(not(" + PropsAndInvsPre +")" + andBa + andG + ") => " + pinv);
+            formulae.add("(not(" + PropsAndInvs +")" + andBa + andG + ") => " + pinv);
         }
 
         return formulae.stream().map(BPredicate::new).collect(Collectors.toList());
@@ -676,7 +676,7 @@ public class FormulaGenerator {
             PredicateCollection pc) {
         Set<String> formulae = new HashSet<>();
 
-        String PropsAndInvsPre = getPropsAndInvsPre(pc);
+        String PropsAndInvsPre = getPropertyAndInvariantString(pc);
 
         List<String> operations = pc.getOperationNames();
         Map<String, Map<BPredicate, BPredicate>> weakestPreConditions = pc.getWeakestPreConditions();
@@ -695,16 +695,14 @@ public class FormulaGenerator {
 
         String pinv = getPredicateConjunction(
                 new ArrayList<>(pc.getPrimedInvariants().values())).getPredicate();
-        String andPInv = "& (" + pinv + ")";
-        String andNPInv = "& not(" + pinv + ")";
+        String andPInv = " & (" + pinv + ")";
+        String andNPInv = " & not(" + pinv + ")";
         String npinv = "not(" + pinv + ")";
-
-
 
         for(int i=0; i<operations.size(); i++) {
             String op = operations.get(i);
             String ba = "(" + beforeAfterPreds.get(op).getPredicate() + ")";
-            String andBa = "&" + ba;
+            String andBa = " & " + ba;
 
             String g = "(" + preconditions.getOrDefault(op, new BPredicate("btrue")).getPredicate() + ")";
             String andG = " & " + g;
@@ -712,7 +710,7 @@ public class FormulaGenerator {
             // Weakest preconditions for each invariant part
             for (BPredicate wp : weakestPreConditions.get(op).values()) {
                 String wpc = "(" + wp.getPredicate() + ")";
-                String andWpc = "&" + wpc;
+                String andWpc = " & " + wpc;
 
                 // Event enabled and part of WPC holds
                 formulae.add(PropsAndInvsPre + andG + andWpc + andBa + andPInv);
@@ -724,14 +722,14 @@ public class FormulaGenerator {
                 // invariant implies weakest precondition
                 formulae.add("(" + PropsAndInvsPre + andG + ") => " + wpc);
                 // invariant forbids weakest precondition
-                formulae.add("(" + PropsAndInvsPre + andG + ") => not" + andWpc);
+                formulae.add("(" + PropsAndInvsPre + andG + ") => not" + wpc);
                 // weakest precondition possible with broken invariant
                 formulae.add("not(" + PropsAndInvsPre + ")" + andG + andWpc);
             }
 
             // weakest precondition over full invariant
             String fwpc = "(" + weakestFullPreConditions.get(op) + ")";
-            String andFwpc = "&" + fwpc;
+            String andFwpc = " & " + fwpc;
 
             // weakest precondition holds and preserves invariant
             formulae.add(PropsAndInvsPre + andFwpc + andBa + andPInv);
@@ -750,14 +748,14 @@ public class FormulaGenerator {
 
                 // weakest precondition over full invariant
                 String fwpc2 = "(" + weakestFullPreConditions.get(op2) + ")";
-                String andFwpc2 = "&" + fwpc2;
+                String andFwpc2 = " & " + fwpc2;
 
                 // Both
                 formulae.add(PropsAndInvsPre + andFwpc + andFwpc2);
                 // first not second
-                formulae.add(PropsAndInvsPre + andFwpc + "& not" + fwpc2);
+                formulae.add(PropsAndInvsPre + andFwpc + " & not" + fwpc2);
                 // second not first
-                formulae.add(PropsAndInvsPre + "& not" + fwpc + andFwpc2);
+                formulae.add(PropsAndInvsPre + " & not" + fwpc + andFwpc2);
                 // first implies second
                 formulae.add("(" + PropsAndInvsPre + andFwpc + ") => " + fwpc2);
                 // second implies first
@@ -836,7 +834,7 @@ public class FormulaGenerator {
         return (conj.isEmpty()) ? "" : "(" + conj + ")";
     }
 
-    public static BPredicate getPredicateConjunction(List<BPredicate> conjuncts) {
+    public static BPredicate getPredicateConjunction(Collection<BPredicate> conjuncts) {
         if (conjuncts.size() == 0) {
             return BPredicate.of("");
         }
