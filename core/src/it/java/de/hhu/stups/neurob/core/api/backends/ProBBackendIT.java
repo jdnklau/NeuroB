@@ -20,6 +20,10 @@ import static org.mockito.Mockito.when;
 class ProBBackendIT {
 
     private MachineAccess bMachine;
+    private BPreference noReals = new BPreference("ALLOW_REALS", "FALSE");
+    // Need noSmt and noClpfd for ensuring vanilla ProB settings
+    private BPreference noSmt = new BPreference("SMT", "FALSE");
+    private BPreference noClpfd = new BPreference("CLPFD", "FALSE");
 
     @BeforeEach
     public void loadBMachine() throws MachineAccessException {
@@ -85,7 +89,7 @@ class ProBBackendIT {
     public void shouldBeTimeout() throws FormulaException {
         BPredicate pred = BPredicate.of("x>y & y>x");
 
-        ProBBackend prob = new ProBBackend();
+        ProBBackend prob = new ProBBackend(noReals, noSmt, noClpfd);
 
         Answer expected = Answer.TIMEOUT;
         Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
@@ -97,7 +101,7 @@ class ProBBackendIT {
     @Test
     public void shouldBeUndecidable() throws FormulaException {
         String pred = "x>y & y>x";
-        ProBBackend prob = new ProBBackend();
+        ProBBackend prob = new ProBBackend(noReals, noSmt, noClpfd);
 
         Boolean isDecidable = prob.isDecidable(pred, bMachine);
 
@@ -119,12 +123,12 @@ class ProBBackendIT {
     @Test
     public void shouldBeNegativeTime() throws FormulaException {
         String pred = "x>y & y>x";
-        ProBBackend prob = new ProBBackend();
+        ProBBackend prob = new ProBBackend(noReals, noSmt, noClpfd);
 
         Long time = prob.measureEvalTime(pred, bMachine);
 
         assertTrue(time < 0,
-                "ProB was unexpectedly able to decide " + pred);
+                "ProB was unexpectedly able to decide " + pred + "; measured time: " + time);
     }
 
     @Test

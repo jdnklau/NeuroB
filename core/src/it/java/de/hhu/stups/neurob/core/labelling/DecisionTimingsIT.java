@@ -3,6 +3,7 @@ package de.hhu.stups.neurob.core.labelling;
 import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
@@ -17,6 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class DecisionTimingsIT {
 
     private MachineAccess bMachine;
+    // Need noSmt and noClpfd for ensuring vanilla ProB settings
+    private BPreference noSmt = new BPreference("SMT", "FALSE");
+    private BPreference noClpfd = new BPreference("CLPFD", "FALSE");
 
     @BeforeEach
     public void loadBMachine() throws MachineAccessException {
@@ -27,7 +31,7 @@ class DecisionTimingsIT {
     public void shouldBeNonDecidableWhenProB() throws LabelCreationException {
         String pred = "x>y & y>x"; // most basic example that fails for ProB
 
-        ProBBackend prob = new ProBBackend();
+        ProBBackend prob = new ProBBackend(noSmt, noClpfd);
 
         DecisionTimings timings = new DecisionTimings(pred, bMachine, prob);
 
@@ -52,7 +56,7 @@ class DecisionTimingsIT {
     public void shouldBeNondecidableForProBAndKodKodButDecidableForZ3() throws LabelCreationException {
         String pred = "x>y & y>x"; // most basic example that fails for ProB
 
-        ProBBackend prob = new ProBBackend();
+        ProBBackend prob = new ProBBackend(noSmt, noClpfd);
         Z3Backend z3 = new Z3Backend();
         KodkodBackend kodkod = new KodkodBackend();
 
