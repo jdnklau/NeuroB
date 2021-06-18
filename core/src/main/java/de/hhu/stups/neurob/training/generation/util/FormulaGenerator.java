@@ -584,6 +584,11 @@ public class FormulaGenerator {
      */
     public static List<BPredicate> invariantPreservationFormulae(
             PredicateCollection pc) {
+        if (pc.getInvariants().size() == 0 || pc.getPrimedInvariants().size() == 0) {
+            // We don't have any sensible constraints to generate.
+            return  new ArrayList<>();
+        }
+
         List<String> formulae = new ArrayList<>();
 
         String PropsAndInvs = getPropertyAndInvariantString(pc);
@@ -674,9 +679,17 @@ public class FormulaGenerator {
      */
     public static List<BPredicate> weakestPreconditionFormulae(
             PredicateCollection pc) {
+
+        if (pc.getWeakestPreConditions().size() == 0) {
+            // we cannot generate any sensible constraints
+            return new ArrayList<>();
+        }
+
+
         Set<String> formulae = new HashSet<>();
 
-        String PropsAndInvsPre = getPropertyAndInvariantString(pc);
+        String PropsAndInvs = getPropertyAndInvariantString(pc);
+        String PropsAndInvsAnd = (PropsAndInvs.isEmpty() ? "" : PropsAndInvs + " & ");
 
         List<String> operations = pc.getOperationNames();
         Map<String, Map<BPredicate, BPredicate>> weakestPreConditions = pc.getWeakestPreConditions();
@@ -699,48 +712,74 @@ public class FormulaGenerator {
         String andNPInv = " & not(" + pinv + ")";
         String npinv = "not(" + pinv + ")";
 
+        final String and = " & ";
+
         for(int i=0; i<operations.size(); i++) {
             String op = operations.get(i);
             String ba = "(" + beforeAfterPreds.get(op).getPredicate() + ")";
-            String andBa = " & " + ba;
 
             String g = "(" + preconditions.getOrDefault(op, new BPredicate("btrue")).getPredicate() + ")";
-            String andG = " & " + g;
 
             // Weakest preconditions for each invariant part
             for (BPredicate wp : weakestPreConditions.get(op).values()) {
                 String wpc = "(" + wp.getPredicate() + ")";
-                String andWpc = " & " + wpc;
+                String nWpc = "not" + wpc;
 
-                // Event enabled and part of WPC holds
-                formulae.add(PropsAndInvsPre + andG + andWpc + andBa + andPInv);
-                // Event undefined and part of WPC holds - might result in WD problems
-                formulae.add(PropsAndInvsPre + andWpc + andBa + andPInv);
+                // WPC constraint itself
+                formulae.add(PropsAndInvsAnd + wpc);
+                // WPC constraint itself with precondition
+                formulae.add(PropsAndInvsAnd + g + and + wpc);
+                // WPC constraint itself negated
+                formulae.add(PropsAndInvsAnd + nWpc);
+                // WPC constraint itself negated with precondition
+                formulae.add(PropsAndInvsAnd + g + and + nWpc);
 
-                // weakest precondition holds and kills invariant
-                formulae.add(PropsAndInvsPre + andG + andWpc + andBa + andNPInv);
                 // invariant implies weakest precondition
-                formulae.add("(" + PropsAndInvsPre + andG + ") => " + wpc);
+                formulae.add("(" + PropsAndInvsAnd + g + ") => " + wpc);
                 // invariant forbids weakest precondition
-                formulae.add("(" + PropsAndInvsPre + andG + ") => not" + wpc);
-                // weakest precondition possible with broken invariant
-                formulae.add("not(" + PropsAndInvsPre + ")" + andG + andWpc);
+                formulae.add("(" + PropsAndInvsAnd + g + ") => not" + wpc);
+
+                if (!PropsAndInvs.isEmpty()) {
+                    // weakest precondition possible with broken invariant
+                    formulae.add("not(" + PropsAndInvs + ") & " + g + and + wpc);
+                }
+
+                if (pc.getInvariants().size() > 0) {
+                    // following formulae only make sense if we have a non-empty invariant
+
+                    // weakest precondition holds and kills invariant
+                    formulae.add(PropsAndInvsAnd + g + and + wpc + and + ba + andNPInv);
+                    // Event enabled and part of WPC holds
+                    formulae.add(PropsAndInvsAnd + g + and + wpc + and + ba + andPInv);
+                    // Event undefined and part of WPC holds - might result in WD problems
+                    formulae.add(PropsAndInvsAnd + wpc + and + ba + andPInv);
+                }
+
             }
 
             // weakest precondition over full invariant
             String fwpc = "(" + weakestFullPreConditions.get(op) + ")";
-            String andFwpc = " & " + fwpc;
 
-            // weakest precondition holds and preserves invariant
-            formulae.add(PropsAndInvsPre + andFwpc + andBa + andPInv);
-            // weakest precondition holds and kills invariant
-            formulae.add(PropsAndInvsPre + andFwpc + andBa + andNPInv);
-            // invariant implies weakest precondition
-            formulae.add("(" + PropsAndInvsPre + ") => " + fwpc);
-            // invariant forbids weakest precondition
-            formulae.add("(" + PropsAndInvsPre + ") => not" + fwpc);
-            // weakest precondition possible with broken invariant
-            formulae.add("not(" + PropsAndInvsPre + ")" + andFwpc);
+            // weakest precondition constraint itself
+            formulae.add(PropsAndInvsAnd + fwpc);
+            // weakest precondition constraint itself
+            formulae.add(PropsAndInvsAnd + "not" + fwpc);
+
+            if (!PropsAndInvs.isEmpty()) {
+                // invariant implies weakest precondition
+                formulae.add("(" + PropsAndInvs + ") => " + fwpc);
+                // invariant forbids weakest precondition
+                formulae.add("(" + PropsAndInvs + ") => not" + fwpc);
+                // weakest precondition possible with broken invariant
+                formulae.add("not(" + PropsAndInvs + ")" + and + fwpc);
+            }
+
+            if (pc.getInvariants().size() > 0) {
+                // weakest precondition holds and preserves invariant
+                formulae.add(PropsAndInvsAnd + fwpc + and + ba + andPInv);
+                // weakest precondition holds and kills invariant
+                formulae.add(PropsAndInvsAnd + fwpc + and + ba + andNPInv);
+            }
 
             // which two weakest full preconditions can be co-enabled?
             for (int j = i+1; j<operations.size(); j++) {
@@ -748,22 +787,21 @@ public class FormulaGenerator {
 
                 // weakest precondition over full invariant
                 String fwpc2 = "(" + weakestFullPreConditions.get(op2) + ")";
-                String andFwpc2 = " & " + fwpc2;
 
                 // Both
-                formulae.add(PropsAndInvsPre + andFwpc + andFwpc2);
+                formulae.add(PropsAndInvsAnd + fwpc + and + fwpc2);
                 // first not second
-                formulae.add(PropsAndInvsPre + andFwpc + " & not" + fwpc2);
+                formulae.add(PropsAndInvsAnd + fwpc + " & not" + fwpc2);
                 // second not first
-                formulae.add(PropsAndInvsPre + " & not" + fwpc + andFwpc2);
+                formulae.add(PropsAndInvsAnd + "not" + fwpc + and + fwpc2);
                 // first implies second
-                formulae.add("(" + PropsAndInvsPre + andFwpc + ") => " + fwpc2);
+                formulae.add("(" + PropsAndInvsAnd + fwpc + ") => " + fwpc2);
                 // second implies first
-                formulae.add("(" + PropsAndInvsPre + andFwpc2 + ") => " + fwpc);
+                formulae.add("(" + PropsAndInvsAnd + fwpc2 + ") => " + fwpc);
                 // first denies second
-                formulae.add("(" + PropsAndInvsPre + andFwpc + ") => not" + fwpc2);
+                formulae.add("(" + PropsAndInvsAnd + fwpc + ") => not" + fwpc2);
                 // second denies first
-                formulae.add("(" + PropsAndInvsPre + andFwpc2 + ") => not" + fwpc);
+                formulae.add("(" + PropsAndInvsAnd + fwpc2 + ") => not" + fwpc);
 
             }
         }
@@ -887,6 +925,17 @@ public class FormulaGenerator {
 
 
         return getPropertyPre(predicateCollection) + inv;
+    }
+
+    private static String getPropertyAndNegatedInvariantString(
+            PredicateCollection predicateCollection) {
+        String inv = getInvariantString(predicateCollection);
+
+        if (inv.isEmpty())
+            return getPropertyString(predicateCollection);
+
+
+        return getPropertyPre(predicateCollection) + "not(" + inv + ")";
     }
 
 

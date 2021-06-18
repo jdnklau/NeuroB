@@ -413,6 +413,63 @@ public class FormulaGeneratorTest {
         );
     }
 
+    @Test
+    void shouldHaveEmptyInvariantPreservationFormulaeWhenNoInvariantsExist() {
+        when(pc.getInvariants()).thenReturn(new ArrayList<>());
+        pc.getInvariants(); // Use up the initial call
+        when(pc.getPrimedInvariants()).thenReturn(new HashMap<>());
+        pc.getPrimedInvariants(); // Use up the initial call
+        List<String> formulae = FormulaGenerator.invariantPreservationFormulae(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGenerateEmptyInvariantPreservationFormulaeWhenNoPrimedInvariants() {
+        when(pc.getPrimedInvariants()).thenReturn(new HashMap<>());
+        pc.getPrimedInvariants(); // Use up the initial call
+        List<String> formulae = FormulaGenerator.invariantPreservationFormulae(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGenerateEmptyInvariantPreservationFormulaeWhenNoBeforeAfter() {
+        when(pc.getBeforeAfterPredicates()).thenReturn(new HashMap<>());
+        pc.getBeforeAfterPredicates(); // Use up the initial call
+        List<String> formulae = FormulaGenerator.invariantPreservationFormulae(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
+    }
 
     @Test
     void shouldGenerateWeakestPreFormulae() {
@@ -429,6 +486,10 @@ public class FormulaGeneratorTest {
         String op2ba = "(operation2-beforeafter)";
         String pinv = "((invariant1') & (invariant2'))";
         // operation1 - invariant 1
+        expected.add(commonPre + " & (operation1-invariant1-weakestpre)");
+        expected.add(commonPre + " & " + op1precondition + " & (operation1-invariant1-weakestpre)");
+        expected.add(commonPre + " & not(operation1-invariant1-weakestpre)");
+        expected.add(commonPre + " & " + op1precondition + " & not(operation1-invariant1-weakestpre)");
         expected.add(commonPre + " & " + op1precondition + " & (operation1-invariant1-weakestpre) & "
                      + op1ba + " & " + pinv);
         expected.add(commonPre + " & (operation1-invariant1-weakestpre) & "
@@ -439,6 +500,10 @@ public class FormulaGeneratorTest {
         expected.add("(" + commonPre + " & " + op1precondition + ") => not(operation1-invariant1-weakestpre)");
         expected.add("not(" + commonPre + ") & " + op1precondition + " & (operation1-invariant1-weakestpre)");
         // operation1 - invariant 2
+        expected.add(commonPre + " & (operation1-invariant2-weakestpre)");
+        expected.add(commonPre + " & " + op1precondition + " & (operation1-invariant2-weakestpre)");
+        expected.add(commonPre + " & not(operation1-invariant2-weakestpre)");
+        expected.add(commonPre + " & " + op1precondition + " & not(operation1-invariant2-weakestpre)");
         expected.add(commonPre + " & " + op1precondition + " & (operation1-invariant2-weakestpre) & "
                      + op1ba + " & " + pinv);
         expected.add(commonPre + " & (operation1-invariant2-weakestpre) & "
@@ -450,6 +515,8 @@ public class FormulaGeneratorTest {
         expected.add("not(" + commonPre + ") & " + op1precondition + " & (operation1-invariant2-weakestpre)");
         // operation1 - full invariant
         String fwpc1 = "(operation1-((invariant1) & (invariant2))-weakestpre)";
+        expected.add(commonPre + " & " + fwpc1);
+        expected.add(commonPre + " & not" + fwpc1);
         expected.add(commonPre + " & " + fwpc1 + " & " + op1ba + " & " + pinv);
         expected.add(commonPre + " & " + fwpc1 + " & " + op1ba + " & not" + pinv);
         expected.add("(" + commonPre + ") => " + fwpc1);
@@ -467,6 +534,10 @@ public class FormulaGeneratorTest {
 
 
         // operation2 - invariant 1
+        expected.add(commonPre + " & (operation2-invariant1-weakestpre)");
+        expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant1-weakestpre)");
+        expected.add(commonPre + " & not(operation2-invariant1-weakestpre)");
+        expected.add(commonPre + " & " + op2precondition + " & not(operation2-invariant1-weakestpre)");
         expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant1-weakestpre) & "
                      + op2ba + " & " + pinv);
         expected.add(commonPre + " & (operation2-invariant1-weakestpre) & "
@@ -477,6 +548,10 @@ public class FormulaGeneratorTest {
         expected.add("(" + commonPre + " & " + op2precondition + ") => not(operation2-invariant1-weakestpre)");
         expected.add("not(" + commonPre + ") & " + op2precondition + " & (operation2-invariant1-weakestpre)");
         // operation2 - invariant 2
+        expected.add(commonPre + " & (operation2-invariant2-weakestpre)");
+        expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant2-weakestpre)");
+        expected.add(commonPre + " & not(operation2-invariant2-weakestpre)");
+        expected.add(commonPre + " & " + op2precondition + " & not(operation2-invariant2-weakestpre)");
         expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant2-weakestpre) & "
                      + op2ba + " & " + pinv);
         expected.add(commonPre + " & (operation2-invariant2-weakestpre) & "
@@ -487,6 +562,8 @@ public class FormulaGeneratorTest {
         expected.add("(" + commonPre + " & " + op2precondition + ") => not(operation2-invariant2-weakestpre)");
         expected.add("not(" + commonPre + ") & " + op2precondition + " & (operation2-invariant2-weakestpre)");
         // operation2 - full invariant
+        expected.add(commonPre + " & " + fwpc2);
+        expected.add(commonPre + " & not" + fwpc2);
         expected.add(commonPre + " & " + fwpc2 + " & " + op2ba + " & " + pinv);
         expected.add(commonPre + " & " + fwpc2 + " & " + op2ba + " & not" + pinv);
         expected.add("(" + commonPre + ") => " + fwpc2);
@@ -504,6 +581,99 @@ public class FormulaGeneratorTest {
         );
     }
 
+    @Test
+    void shouldGenerateEmptyWeakestPreFormulaeIfNoWeakestPre() {
+        when(pc.getWeakestPreConditions()).thenReturn(new HashMap<>());
+        pc.getWeakestPreConditions(); // Use up the initial call
+        List<String> formulae = FormulaGenerator.weakestPreconditionFormulae(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+        assertAll("Weakest preconditions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of weakest preconditions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Weakest precondition predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGenerateWeakestPreFormulaeWhenNoInvariantNorProperties() {
+        when(pc.getInvariants()).thenReturn(new ArrayList<>());
+        pc.getInvariants(); // Use up the initial call
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        pc.getProperties(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.weakestPreconditionFormulae(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+        String op1precondition = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2precondition = "((operation2-precondition1) & (operation2-precondition2))";
+        String op1ba = "(operation1-beforeafter)";
+        String op2ba = "(operation2-beforeafter)";
+        String pinv = "((invariant1') & (invariant2'))";
+        // operation1 - invariant 1
+        expected.add("(operation1-invariant1-weakestpre)");
+        expected.add(op1precondition + " & (operation1-invariant1-weakestpre)");
+        expected.add("not(operation1-invariant1-weakestpre)");
+        expected.add(op1precondition + " & not(operation1-invariant1-weakestpre)");
+        expected.add("(" + op1precondition + ") => (operation1-invariant1-weakestpre)");
+        expected.add("(" + op1precondition + ") => not(operation1-invariant1-weakestpre)");
+        // operation1 - invariant 2
+        expected.add("(operation1-invariant2-weakestpre)");
+        expected.add(op1precondition + " & (operation1-invariant2-weakestpre)");
+        expected.add("not(operation1-invariant2-weakestpre)");
+        expected.add(op1precondition + " & not(operation1-invariant2-weakestpre)");
+        expected.add("(" + op1precondition + ") => (operation1-invariant2-weakestpre)");
+        expected.add("(" + op1precondition + ") => not(operation1-invariant2-weakestpre)");
+        // operation1 - full invariant
+        String fwpc1 = "(operation1-((invariant1) & (invariant2))-weakestpre)";
+        expected.add(fwpc1);
+        expected.add("not" + fwpc1);
+        // operation1 - co-enabledness
+        String fwpc2 = "(operation2-((invariant1) & (invariant2))-weakestpre)";
+        expected.add(fwpc1 + " & " + fwpc2);
+        expected.add(fwpc1 + " & not" + fwpc2 + "");
+        expected.add("not" + fwpc1 + " & " + fwpc2);
+        expected.add("(" + fwpc1 + ") => " + fwpc2);
+        expected.add("(" + fwpc2 + ") => " + fwpc1);
+        expected.add("(" + fwpc1 + ") => not" + fwpc2);
+        expected.add("(" + fwpc2 + ") => not" + fwpc1);
+
+
+        // operation2 - invariant 1
+        expected.add("(operation2-invariant1-weakestpre)");
+        expected.add(op2precondition + " & (operation2-invariant1-weakestpre)");
+        expected.add("not(operation2-invariant1-weakestpre)");
+        expected.add(op2precondition + " & not(operation2-invariant1-weakestpre)");
+        expected.add("(" + op2precondition + ") => (operation2-invariant1-weakestpre)");
+        expected.add("(" + op2precondition + ") => not(operation2-invariant1-weakestpre)");
+        // operation2 - invariant 2
+        expected.add("(operation2-invariant2-weakestpre)");
+        expected.add(op2precondition + " & (operation2-invariant2-weakestpre)");
+        expected.add("not(operation2-invariant2-weakestpre)");
+        expected.add(op2precondition + " & not(operation2-invariant2-weakestpre)");
+        expected.add("(" + op2precondition + ") => (operation2-invariant2-weakestpre)");
+        expected.add("(" + op2precondition + ") => not(operation2-invariant2-weakestpre)");
+        // operation2 - full invariant
+        expected.add(fwpc2);
+        expected.add("not" + fwpc2);
+
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Weakest preconditions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of weakest preconditions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Weakest precondition predicates are not correct")
+        );
+    }
 
     @Test
     public void shouldPrependAssertionsWithPropertiesAndInvariants() {
