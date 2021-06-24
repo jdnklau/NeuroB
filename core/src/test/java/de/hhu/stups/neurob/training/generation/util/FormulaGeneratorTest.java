@@ -676,6 +676,168 @@ public class FormulaGeneratorTest {
     }
 
     @Test
+    void shouldGeneratePreconditionFormulae() {
+        List<String> formulae = FormulaGenerator.preconditionConstraints(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String commonPre = "(properties) & (invariant1) & (invariant2)";
+        String negativePre = "(properties) & not((invariant1) & (invariant2))";
+        String op1precondition = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2precondition = "((operation2-precondition1) & (operation2-precondition2))";
+
+        // Operation 1
+        expected.add(commonPre + " & " + op1precondition);
+        expected.add(commonPre + " & not" + op1precondition);
+        expected.add("(" + commonPre + ") => " + op1precondition);
+        expected.add("(" + commonPre + ") => not" + op1precondition);
+        expected.add(negativePre + " & " + op1precondition);
+        expected.add(negativePre + " & not" + op1precondition);
+        expected.add("(" + negativePre + ") => " + op1precondition);
+        expected.add("(" + negativePre + ") => not" + op1precondition);
+        // Operation 2
+        expected.add(commonPre + " & " + op2precondition);
+        expected.add(commonPre + " & not" + op2precondition);
+        expected.add("(" + commonPre + ") => " + op2precondition);
+        expected.add("(" + commonPre + ") => not" + op2precondition);
+        expected.add(negativePre + " & " + op2precondition);
+        expected.add(negativePre + " & not" + op2precondition);
+        expected.add("(" + negativePre + ") => " + op2precondition);
+        expected.add("(" + negativePre + ") => not" + op2precondition);
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Preconditions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of preconditions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Precondition predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGeneratePreconditionFormulaeWhenNoInvariantOnlyProperties() {
+        when(pc.getInvariants()).thenReturn(new ArrayList<>());
+        pc.getInvariants(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.preconditionConstraints(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String commonPre = "(properties)";
+        String op1precondition = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2precondition = "((operation2-precondition1) & (operation2-precondition2))";
+
+        // Operation 1
+        expected.add(commonPre + " & " + op1precondition);
+        expected.add(commonPre + " & not" + op1precondition);
+        expected.add("(" + commonPre + ") => " + op1precondition);
+        expected.add("(" + commonPre + ") => not" + op1precondition);
+        // Operation 2
+        expected.add(commonPre + " & " + op2precondition);
+        expected.add(commonPre + " & not" + op2precondition);
+        expected.add("(" + commonPre + ") => " + op2precondition);
+        expected.add("(" + commonPre + ") => not" + op2precondition);
+
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Preconditions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of preconditions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Precondition predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGeneratePreconditionFormulaeWhenNoPropertiesNoInvariant() {
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        pc.getProperties(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.preconditionConstraints(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String commonPre = "(invariant1) & (invariant2)";
+        String negativePre = "not((invariant1) & (invariant2))";
+        String op1precondition = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2precondition = "((operation2-precondition1) & (operation2-precondition2))";
+
+        // Operation 1
+        expected.add(commonPre + " & " + op1precondition);
+        expected.add(commonPre + " & not" + op1precondition);
+        expected.add("(" + commonPre + ") => " + op1precondition);
+        expected.add("(" + commonPre + ") => not" + op1precondition);
+        expected.add(negativePre + " & " + op1precondition);
+        expected.add(negativePre + " & not" + op1precondition);
+        expected.add("(" + negativePre + ") => " + op1precondition);
+        expected.add("(" + negativePre + ") => not" + op1precondition);
+        // Operation 2
+        expected.add(commonPre + " & " + op2precondition);
+        expected.add(commonPre + " & not" + op2precondition);
+        expected.add("(" + commonPre + ") => " + op2precondition);
+        expected.add("(" + commonPre + ") => not" + op2precondition);
+        expected.add(negativePre + " & " + op2precondition);
+        expected.add(negativePre + " & not" + op2precondition);
+        expected.add("(" + negativePre + ") => " + op2precondition);
+        expected.add("(" + negativePre + ") => not" + op2precondition);
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Preconditions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of preconditions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Precondition predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGeneratePreconditionFormulaeWhenNoInvariantNorProperties() {
+        when(pc.getInvariants()).thenReturn(new ArrayList<>());
+        pc.getInvariants(); // Use up the initial call
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        pc.getProperties(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.preconditionConstraints(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String op1precondition = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2precondition = "((operation2-precondition1) & (operation2-precondition2))";
+
+        // Operation 1
+        expected.add(op1precondition);
+        expected.add("not" + op1precondition);
+        // Operation 2
+        expected.add(op2precondition);
+        expected.add("not" + op2precondition);
+
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Preconditions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of preconditions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Precondition predicates are not correct")
+        );
+    }
+
+    @Test
     public void shouldPrependAssertionsWithPropertiesAndInvariants() {
         List<String> formulae = FormulaGenerator.assertions(pc)
                 .stream()

@@ -560,6 +560,65 @@ public class FormulaGenerator {
         return formulae;
     }
 
+    public static List<BPredicate> preconditionConstraints(PredicateCollection pc) {
+        List<String> formulae = new ArrayList<>();
+
+        String PropsAndInvs = getPropertyAndInvariantString(pc);
+        String PropsAndNInvs = getPropertyAndNegatedInvariantString(pc);
+        boolean hasInvariant = pc.getInvariants().size() > 0;
+
+        List<String> operations = pc.getOperationNames();
+        Map<String, List<BPredicate>> preconditionLists = pc.getPreconditions();
+
+        Map<String, BPredicate> preconditions = new HashMap<>();
+        for (String operation : operations) {
+            if (preconditionLists.containsKey(operation)) {
+                BPredicate precond = getPredicateConjunction(preconditionLists.get(operation));
+                preconditions.put(operation, precond);
+            }
+        }
+
+        String PropsAndInvsPre = (PropsAndInvs.isEmpty())
+                        ? ""
+                        : PropsAndInvs + " & ";
+        String PropsAndNInvsPre = (PropsAndInvs.isEmpty())
+                        ? ""
+                        : PropsAndNInvs + " & ";
+
+        for (String op : preconditions.keySet()) {
+            String g = "(" + preconditions.getOrDefault(op, new BPredicate("btrue")).getPredicate() + ")";
+            String notG = "not" + g;
+            String andG = " & " + g;
+            String andNG = " & not" + g;
+
+            // Preconditions that are satisfiable given the invariant is satisfied
+            formulae.add(PropsAndInvsPre + g);
+            // Preconditions that can be disabled given the invariant is satisfied
+            formulae.add(PropsAndInvsPre + notG);
+
+            if (!PropsAndInvs.isEmpty()) {
+                // Precondition is always satisfied if invariant is satisfied
+                formulae.add("(" + PropsAndInvs + ") => " + g);
+                // Precondition can never be satisfied if invariant is satisfied
+                formulae.add("(" + PropsAndInvs + ") => " + notG);
+            }
+
+            if (hasInvariant) {
+                // Preconditions that are satisfiable given the invariant is violated
+                formulae.add(PropsAndNInvsPre + g);
+                // Preconditions that can be disabled given the invariant is violated
+                formulae.add(PropsAndNInvsPre + notG);
+                // Precondition is always satisfied if invariant is violated
+                formulae.add("(" + PropsAndNInvs  + ") => " + g);
+                // Precondition can never be satisfied if invariant is violated
+                formulae.add("(" + PropsAndNInvs  + ") => " + notG);
+            }
+        }
+
+        return formulae.stream().map(BPredicate::new).collect(Collectors.toList());
+
+    }
+
     /**
      * Returns a list of invariant preservation proof obligations and other
      * formulae inspired by those.
