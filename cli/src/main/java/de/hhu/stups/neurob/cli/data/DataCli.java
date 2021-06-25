@@ -20,6 +20,7 @@ import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
+import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
 import de.hhu.stups.neurob.training.migration.PredicateDbMigration;
 import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 import org.apache.commons.cli.CommandLine;
@@ -355,6 +356,16 @@ public class DataCli implements CliModule {
                 new PredDbEntry.Generator(samplingSize, backends.toArray(new Backend[0])),
                 samplingSize,
                 dbFormat);
+
+        generator.setGenerationRules(
+                FormulaGenerator::assertions,
+                FormulaGenerator::enablingAnalysis,
+                FormulaGenerator::extendedPreconditionFormulae,
+                FormulaGenerator::invariantConstrains,
+                FormulaGenerator::invariantPreservationFormulae,
+                FormulaGenerator::multiPreconditionFormulae,
+                FormulaGenerator::weakestPreconditionFormulae
+        );
 
         int numThreads = (line.hasOption("c"))
                 ? Integer.parseInt(line.getOptionValue("c"))

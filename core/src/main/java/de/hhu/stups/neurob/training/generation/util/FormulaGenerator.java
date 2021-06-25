@@ -335,7 +335,7 @@ public class FormulaGenerator {
      *
      * @return
      */
-    public List<BPredicate> enablingAnalysis(PredicateCollection pc) {
+    public static List<BPredicate> enablingAnalysis(PredicateCollection pc) {
         List<String> formulae = new ArrayList<>();
 
         String PropsAndInvsPre = getPropsAndInvsPre(pc);

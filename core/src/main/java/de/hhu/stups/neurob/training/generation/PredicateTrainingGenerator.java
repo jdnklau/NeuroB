@@ -26,6 +26,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -37,6 +39,8 @@ public class PredicateTrainingGenerator
     private static Logger log =
             LoggerFactory.getLogger(PredicateFeatureGenerating.class);
     private final int labellingSamples;
+
+    protected List<Function<PredicateCollection, List<BPredicate>>> generationRules;
 
     private boolean isAstCleanup = false;
 
@@ -89,6 +93,14 @@ public class PredicateTrainingGenerator
             TrainingDataFormat<? super F, ? super L> format) {
         super(featureGenerator, labelGenerator, format);
         this.labellingSamples = labellingSamples;
+
+        generationRules = new ArrayList<>();
+        generationRules.add(FormulaGenerator::assertions);
+        generationRules.add(FormulaGenerator::enablingRelationships);
+        generationRules.add(FormulaGenerator::invariantPreservations);
+        generationRules.add(FormulaGenerator::multiPreconditionFormulae);
+        generationRules.add(FormulaGenerator::extendedPreconditionFormulae);
+
     }
 
     /**
@@ -292,10 +304,14 @@ public class PredicateTrainingGenerator
                 .onClose(access::close);
     }
 
+    public void setGenerationRules(Function<PredicateCollection, List<BPredicate>>... rules) {
+        this.generationRules = Arrays.asList(rules);
+    }
+
     /**
      * Streams generated predicates from a given {@link PredicateCollection}.
      * <p>
-     * The predicates are generated with the following functions:
+     * The predicates are generated with the following default functions:
      * <ul>
      * <li>{@link FormulaGenerator#assertions(PredicateCollection)}</li>
      * <li>{@link FormulaGenerator#enablingRelationships(PredicateCollection)}</li>
@@ -304,22 +320,15 @@ public class PredicateTrainingGenerator
      * <li>{@link FormulaGenerator#extendedPreconditionFormulae(PredicateCollection)}</li>
      * </ul>
      *
+     * To alter the generation procedure use {@link #setGenerationRules(Function[])}.
+     *
      * @param collection
      *
      * @return
      */
     public Stream<BPredicate> streamPredicatesFromCollection(
             PredicateCollection collection) {
-        // stream different predicates created with FeatureGenerator
-        List<Function<PredicateCollection, List<BPredicate>>> generations =
-                new ArrayList<>();
-        generations.add(FormulaGenerator::assertions);
-        generations.add(FormulaGenerator::enablingRelationships);
-        generations.add(FormulaGenerator::invariantPreservations);
-        generations.add(FormulaGenerator::multiPreconditionFormulae);
-        generations.add(FormulaGenerator::extendedPreconditionFormulae);
-
-        return generations.stream()
+        return generationRules.stream()
                 .flatMap(gen -> gen.apply(collection).stream());
     }
 
