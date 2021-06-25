@@ -15,7 +15,9 @@ import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.model.representation.AbstractModel;
 import de.prob.parser.ISimplifiedROMap;
+import de.prob.prolog.output.PrologTermStringOutput;
 import de.prob.prolog.term.CompoundPrologTerm;
+import de.prob.prolog.term.PrologTerm;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +31,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,6 +56,9 @@ public class FormulaGeneratorTest {
     private Map<String, Map<BPredicate, BPredicate>> weakestPreconditions;
     private Map<String, BPredicate> weakestFullPreconditions;
     private Map<BPredicate, BPredicate> primedInvariants;
+    private StateSpace ss;
+    private AbstractModel model;
+    private MachineAccess bMachine;
 
     @BeforeEach
     public void stubPredicateCollection() {
@@ -134,18 +140,34 @@ public class FormulaGeneratorTest {
          * ss.execute, where we feed mocked Prolog Bindings into, as we do not
          * want to query a real state space here.
          */
-        StateSpace ss = mock(StateSpace.class);
-        // Model queried for parsing
-        AbstractModel model = mock(AbstractModel.class);
+
+        ss = mock(StateSpace.class);
+        model = mock(AbstractModel.class);
+        bMachine = mock(MachineAccess.class);
+
         when(model.parseFormula(
                 "(operation1-precondition1) & (operation1-precondition2)"))
                 .thenReturn(new EventB("primedop1"));
         when(model.parseFormula(
                 "(operation2-precondition1) & (operation2-precondition2)"))
                 .thenReturn(new EventB("primedop2"));
+        when(model.parseFormula(
+                "(operation1-precondition1) & (operation1-precondition2)",
+                FormulaExpand.EXPAND))
+                .thenReturn(new EventB("primedop1", FormulaExpand.EXPAND));
+        when(model.parseFormula(
+                "(operation2-precondition1) & (operation2-precondition2)",
+                FormulaExpand.EXPAND))
+                .thenReturn(new EventB("primedop2", FormulaExpand.EXPAND));
         when(ss.getModel()).thenReturn(model); // Stub returned model
 
-        MachineAccess bMachine = mock(MachineAccess.class);
+        when(bMachine.parseFormula(
+                BPredicate.of("(operation1-precondition1) & (operation1-precondition2)")))
+                .thenReturn(new EventB("primedop1"));
+        when(bMachine.parseFormula(
+                BPredicate.of("(operation2-precondition1) & (operation2-precondition2)")))
+                .thenReturn(new EventB("primedop2"));
+
         when(bMachine.getStateSpace()).thenReturn(ss);
         doAnswer(invocation -> {
             ss.execute((AbstractCommand) invocation.getArgument(0));
@@ -162,13 +184,26 @@ public class FormulaGeneratorTest {
          * ss.execute, where we feed mocked Prolog Bindings into, as we do not
          * want to query a real state space here.
          */
-        ISimplifiedROMap bindings = mock(ISimplifiedROMap.class);
-        when(bindings.get(any()))
-                .thenReturn(new CompoundPrologTerm("primed-operation"));
         doAnswer(invocation -> {
             PrimePredicateCommand ppc =
                     invocation.getArgument(0);
+
+            PrologTermStringOutput pout = new PrologTermStringOutput();
+            ppc.writeCommand(pout);
+            // -> get_primed_predicate(identifier(none,PARSEDFORMULAFROMABOVE),PrimedPredicate)
+
+            String code = pout.toString().substring(37);
+            String answer = code.substring(0, code.indexOf(')'));
+
+            ISimplifiedROMap bindings = new ISimplifiedROMap() {
+                @Override
+                public Object get(Object key) {
+                    return new CompoundPrologTerm(answer);
+                }
+            };
+
             ppc.processResult(bindings);
+
             return null;
         }).when(ss).execute(any(PrimePredicateCommand.class));
 
@@ -234,6 +269,7 @@ public class FormulaGeneratorTest {
     }
 
     @Test
+    @Disabled("outdated")
     public void shouldModelEnablingrelationShipsBetweenTwoOperations() {
         List<String> formulae = FormulaGenerator.enablingRelationships(pc)
                 .stream()
@@ -373,6 +409,352 @@ public class FormulaGeneratorTest {
                         "invariant preservation predicates are not correct")
         );
 
+    }
+
+    @Test
+    void shouldGenerateEnablingAnalysis() {
+        List<String> formulae = FormulaGenerator.enablingAnalysis(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String pre = "(properties) & (invariant1) & (invariant2)";
+
+        String op1prec = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2prec = "((operation2-precondition1) & (operation2-precondition2))";
+        String bap1 = "(operation1-beforeafter)";
+        String bap2 = "(operation2-beforeafter)";
+        String op1primed = "(primedop1)";
+        String op2primed = "(primedop2)";
+        String pinv = "(invariant1') & (invariant2')";
+
+        // operation 1
+        expected.add(pre + " & " + op1prec);
+        expected.add(pre + " & " + "not" + op1prec);
+        // operation 1 + operation 1
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & not" + op1primed);
+
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + pinv + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + pinv + " & not" + op1primed);
+        // operation 1 + operation 2
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + op2primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & not" + op2primed);
+
+        expected.add(pre + " & not" + op2prec + " & " + bap1 + " & " + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap1 + " & not" + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap1 + " & " + op2primed);
+        expected.add(pre + " & not" + op2prec + " & " + bap1 + " & not" + op2primed);
+
+        expected.add(pre + " & not" + op2prec + " & " + bap1 + " & " + pinv + " & " + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap1 + " & " + pinv + " & not" + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap1 + " & " + pinv + " & " + op2primed);
+        expected.add(pre + " & not" + op2prec + " & " + bap1 + " & " + pinv + " & not" + op2primed);
+
+        // operation 2
+        expected.add(pre + " & " + op2prec);
+        expected.add(pre + " & " + "not" + op2prec);
+        // operation 2 + operation 1
+        expected.add(pre + " & " + op2prec + " & " + bap2 + " & " + op1primed);
+        expected.add(pre + " & " + op2prec + " & " + bap2 + " & not" + op1primed);
+
+        expected.add(pre + " & not" + op1prec + " & " + bap2 + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap2 + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap2 + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap2 + " & not" + op1primed);
+
+        expected.add(pre + " & not" + op1prec + " & " + bap2 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap2 + " & " + pinv + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap2 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap2 + " & " + pinv + " & not" + op1primed);
+        // operation 2 + operation 2
+        expected.add(pre + " & not" + op2prec + " & " + bap2 + " & " + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap2 + " & not" + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap2 + " & " + op2primed);
+        expected.add(pre + " & not" + op2prec + " & " + bap2 + " & not" + op2primed);
+
+        expected.add(pre + " & not" + op2prec + " & " + bap2 + " & " + pinv + " & " + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap2 + " & " + pinv + " & not" + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap2 + " & " + pinv + " & " + op2primed);
+        expected.add(pre + " & not" + op2prec + " & " + bap2 + " & " + pinv + " & not" + op2primed);
+
+
+        // Sort for equality comparison
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGenerateEnablingAnalysisWhenOnlyOneBAP() {
+        Map<String, BPredicate> baps = new HashMap<>();
+        baps.put("operation1", new BPredicate("operation1-beforeafter"));
+        when(pc.getBeforeAfterPredicates()).thenReturn(baps);
+        pc.getBeforeAfterPredicates(); // Use up old value.
+
+        List<String> formulae = FormulaGenerator.enablingAnalysis(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String pre = "(properties) & (invariant1) & (invariant2)";
+
+
+        String op1prec = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2prec = "((operation2-precondition1) & (operation2-precondition2))";
+        String bap1 = "(operation1-beforeafter)";
+        String op1primed = "(primedop1)";
+        String op2primed = "(primedop2)";
+        String pinv = "(invariant1') & (invariant2')";
+
+        // operation 1
+        expected.add(pre + " & " + op1prec);
+        expected.add(pre + " & " + "not" + op1prec);
+        // operation 1 + operation 1
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & not" + op1primed);
+
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + pinv + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + pinv + " & not" + op1primed);
+        // operation 1 + operation 2
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + op2primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & not" + op2primed);
+
+        expected.add(pre + " & not" + op2prec + " & " + bap1 + " & " + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap1 + " & not" + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap1 + " & " + op2primed);
+        expected.add(pre + " & not" + op2prec + " & " + bap1 + " & not" + op2primed);
+
+        expected.add(pre + " & not" + op2prec + " & " + bap1 + " & " + pinv + " & " + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap1 + " & " + pinv + " & not" + op2primed);
+        expected.add(pre + " & " + op2prec + " & " + bap1 + " & " + pinv + " & " + op2primed);
+        expected.add(pre + " & not" + op2prec + " & " + bap1 + " & " + pinv + " & not" + op2primed);
+
+        // operation 2
+        expected.add(pre + " & " + op2prec);
+        expected.add(pre + " & " + "not" + op2prec);
+
+
+        // Sort for equality comparison
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGenerateEnablingAnalysisWhenNoPropsNorInvs() {
+        when(pc.getInvariants()).thenReturn(new ArrayList<>());
+        pc.getInvariants(); // Use up the initial call
+        when(pc.getPrimedInvariants()).thenReturn(new HashMap<>());
+        pc.getPrimedInvariants(); // Use up the initial call
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        pc.getProperties(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.enablingAnalysis(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String op1prec = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2prec = "((operation2-precondition1) & (operation2-precondition2))";
+        String bap1 = "(operation1-beforeafter)";
+        String bap2 = "(operation2-beforeafter)";
+        String op1primed = "(primedop1)";
+        String op2primed = "(primedop2)";
+
+        // operation 1
+        expected.add(op1prec);
+        expected.add("not" + op1prec);
+        // operation 1 + operation 1
+        expected.add("not" + op1prec + " & " + bap1 + " & " + op1primed);
+        expected.add(op1prec + " & " + bap1 + " & not" + op1primed);
+        expected.add(op1prec + " & " + bap1 + " & " + op1primed);
+        expected.add("not" + op1prec + " & " + bap1 + " & not" + op1primed);
+
+        // operation 1 + operation 2
+        expected.add(op1prec + " & " + bap1 + " & " + op2primed);
+        expected.add(op1prec + " & " + bap1 + " & not" + op2primed);
+
+        expected.add("not" + op2prec + " & " + bap1 + " & " + op2primed);
+        expected.add(op2prec + " & " + bap1 + " & not" + op2primed);
+        expected.add(op2prec + " & " + bap1 + " & " + op2primed);
+        expected.add("not" + op2prec + " & " + bap1 + " & not" + op2primed);
+
+
+        // operation 2
+        expected.add(op2prec);
+        expected.add("not" + op2prec);
+        // operation 2 + operation 1
+        expected.add(op2prec + " & " + bap2 + " & " + op1primed);
+        expected.add(op2prec + " & " + bap2 + " & not" + op1primed);
+
+        expected.add("not" + op1prec + " & " + bap2 + " & " + op1primed);
+        expected.add(op1prec + " & " + bap2 + " & not" + op1primed);
+        expected.add(op1prec + " & " + bap2 + " & " + op1primed);
+        expected.add("not" + op1prec + " & " + bap2 + " & not" + op1primed);
+
+        // operation 2 + operation 2
+        expected.add("not" + op2prec + " & " + bap2 + " & " + op2primed);
+        expected.add(op2prec + " & " + bap2 + " & not" + op2primed);
+        expected.add(op2prec + " & " + bap2 + " & " + op2primed);
+        expected.add("not" + op2prec + " & " + bap2 + " & not" + op2primed);
+
+
+        // Sort for equality comparison
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldIgnoreOperationsWithoutPreconditonWhenGeneratingEnablingAnalysis() {
+        preconditions.remove("operation2");
+
+        List<String> formulae = FormulaGenerator.enablingAnalysis(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String pre = "(properties) & (invariant1) & (invariant2)";
+
+        String op1prec = "((operation1-precondition1) & (operation1-precondition2))";
+        String bap1 = "(operation1-beforeafter)";
+        String bap2 = "(operation2-beforeafter)";
+        String op1primed = "(primedop1)";
+        String pinv = "(invariant1') & (invariant2')";
+
+        // operation 1
+        expected.add(pre + " & " + op1prec);
+        expected.add(pre + " & " + "not" + op1prec);
+        // operation 1 + operation 1
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & not" + op1primed);
+
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + pinv + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap1 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap1 + " & " + pinv + " & not" + op1primed);
+
+        expected.add(pre + " & not" + op1prec + " & " + bap2 + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap2 + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap2 + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap2 + " & not" + op1primed);
+
+        expected.add(pre + " & not" + op1prec + " & " + bap2 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap2 + " & " + pinv + " & not" + op1primed);
+        expected.add(pre + " & " + op1prec + " & " + bap2 + " & " + pinv + " & " + op1primed);
+        expected.add(pre + " & not" + op1prec + " & " + bap2 + " & " + pinv + " & not" + op1primed);
+
+        // Sort for equality comparison
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldReturnEmptyWhenNoPreconditions() {
+        preconditions.remove("operation1");
+        preconditions.remove("operation2");
+
+        List<String> formulae = FormulaGenerator.enablingAnalysis(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGenerateEnablingAnalysisWhenNoPrimedPreconditions() {
+        doAnswer(invocation -> {
+            throw new Exception("Not generating any primed preconditions");
+        }).when(ss).execute(any(PrimePredicateCommand.class));
+        try {
+            ss.execute((AbstractCommand) null);
+        } catch (Exception e) {}
+
+        List<String> formulae = FormulaGenerator.enablingAnalysis(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        String pre = "(properties) & (invariant1) & (invariant2)";
+
+        String op1prec = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2prec = "((operation2-precondition1) & (operation2-precondition2))";
+        String bap1 = "(operation1-beforeafter)";
+        String bap2 = "(operation2-beforeafter)";
+        String pinv = "((invariant1') & (invariant2'))";
+
+        // operation 1
+        expected.add(pre + " & " + op1prec);
+        expected.add(pre + " & " + "not" + op1prec);
+
+        // operation 2
+        expected.add(pre + " & " + op2prec);
+        expected.add(pre + " & " + "not" + op2prec);
+
+        // Sort for equality comparison
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+
+        assertAll("Assertions",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of assertions does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Assertion predicates are not correct")
+        );
     }
 
     @Test
@@ -839,7 +1221,7 @@ public class FormulaGeneratorTest {
 
     @Test
     void shouldGenerateInvariantConstraintsWithFourInvariants() {
-        List<BPredicate>  invsToReturn = new ArrayList<>();
+        List<BPredicate> invsToReturn = new ArrayList<>();
         invsToReturn.add(BPredicate.of("invariant1"));
         invsToReturn.add(BPredicate.of("invariant2"));
         invsToReturn.add(BPredicate.of("invariant3"));
@@ -875,7 +1257,7 @@ public class FormulaGeneratorTest {
 
     @Test
     public void shouldGenerateInvariantConstraintsWhenOnlyOneInvariant() {
-        List<BPredicate>  invsToReturn = new ArrayList<>();
+        List<BPredicate> invsToReturn = new ArrayList<>();
         invsToReturn.add(BPredicate.of("invariant1"));
 
         when(pc.getInvariants()).thenReturn(invsToReturn);
@@ -904,7 +1286,7 @@ public class FormulaGeneratorTest {
 
     @Test
     public void shouldGenerateEmptyInvariantConstraintsWhenNoInvariants() {
-        List<BPredicate>  invsToReturn = new ArrayList<>();
+        List<BPredicate> invsToReturn = new ArrayList<>();
         when(pc.getInvariants()).thenReturn(invsToReturn);
         pc.getInvariants(); // Use up the initial call
 
@@ -927,7 +1309,7 @@ public class FormulaGeneratorTest {
 
     @Test
     public void shouldGenerateInvariantConstraintsWhenNoProperties() {
-        List<BPredicate>  invsToReturn = new ArrayList<>();
+        List<BPredicate> invsToReturn = new ArrayList<>();
         invsToReturn.add(BPredicate.of("invariant1"));
         invsToReturn.add(BPredicate.of("invariant2"));
         invsToReturn.add(BPredicate.of("invariant3"));

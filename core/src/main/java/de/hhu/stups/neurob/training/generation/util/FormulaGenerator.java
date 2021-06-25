@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.qos.logback.core.util.ContextUtil;
 import de.be4.classicalb.core.parser.node.Node;
 import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.neurob.core.api.MachineType;
@@ -358,11 +359,12 @@ public class FormulaGenerator {
 
         // Prime preconditions for use with before/after predicates (BAPs)
         Map<String, BPredicate> primedPreconds = new HashMap<>();
-        for (String operation : beforeAfterPreds.keySet()) { // Only relevant if we HAVE a BAP
+        for (String operation : operations) {
             if (preconditions.containsKey(operation)) {
                 try {
                     BPredicate primedPre = generatePrimedPredicate(
                             pc.getBMachine(), preconditions.get(operation));
+                    primedPreconds.put(operation, primedPre);
                 } catch (FormulaException e) {
                     log.warn("Unable to prime precondition: {}", e.getMessage(), e);
                 }
@@ -370,26 +372,40 @@ public class FormulaGenerator {
         }
 
         for (String op1 : operations) {
+            boolean hasP1 = preconditions.containsKey(op1);
             // Get "& precondition" of operation 1
             String g1 = "(" + preconditions.getOrDefault(op1, new BPredicate("btrue")).getPredicate() + ")";
             String andG1 = " & " + g1;
 
             // event feasibility
-            formulae.add(PropsAndInvsPre + andG1); // feasible: exists s.(s |= g1)
-            formulae.add(PropsAndInvsPre + " & not" + g1); // not guaranteed: not all s.(s |= g1)
+            if (hasP1) {
+                formulae.add(PropsAndInvsPre + g1); // feasible: exists s.(s |= g1)
+                formulae.add(PropsAndInvsPre + "not" + g1); // not guaranteed: not all s.(s |= g1)
+            }
 
 
+
+            boolean hasBA = beforeAfterPreds.containsKey(op1);
+            if (!hasBA) {
+                continue; // We need a bap for the set of upcoming data.
+            }
             String bap = "(" + beforeAfterPreds.get(op1).getPredicate() + ")";
             String andBap1 = " & " + bap;
             for (String op2 : operations) {
+                boolean hasP2 = preconditions.containsKey(op2);
+
                 String g2 = "(" + preconditions.getOrDefault(op2, new BPredicate("btrue")).getPredicate() + ")";
                 String andG2 = " & " + g2;
 
                 // negated version
                 String ng2 = "not" + g2;
-                String andNG2 = "& " + ng2;
+                String andNG2 = " & " + ng2;
+
 
                 // primed version
+                if (!primedPreconds.containsKey(op2)) {
+                    continue;
+                }
                 String pg2 = "(" + primedPreconds.getOrDefault(op2, new BPredicate("btrue")).getPredicate() + ")";
                 String andPG2 = " & " + pg2;
 
@@ -397,22 +413,25 @@ public class FormulaGenerator {
                 String png2 = "not" + pg2;
                 String andPNG2 = " & " + png2;
 
-                // op2 possible after op1
-                formulae.add(PropsAndInvsPre + andG1 + andBap1 + andPG2);
-                // op2 not feasible after op1
-                formulae.add(PropsAndInvsPre + andG1 + andBap1 + andPG2);
-                // Note: ^ those are counter example definitions of impossible/feasible
+                if (!op2.equals(op1) && hasP1) { // Else it'd be generated twice (below, 2. and 3.)
+                    // op2 possible after op1
+                    formulae.add(PropsAndInvsPre + g1 + andBap1 + andPG2);
+                    // op2 not feasible after op1
+                    formulae.add(PropsAndInvsPre + g1 + andBap1 + andPNG2);
+                    // Note: ^ those are counter example definitions of impossible/feasible
+                }
 
                 // The four conditions from Definition 6 in the paper are as follows
                 // ("Note that [...] we do not require that [op1] is feasible")
                 // 1. can op1 enable op2
-                formulae.add(PropsAndInvsPre + andNG2 + andBap1 + andPG2);
+                formulae.add(PropsAndInvsPre + ng2 + andBap1 + andPG2);
+                //                             ^ disabl ^ op1     ^ enabl
                 // 2. can op1 disable op2
-                formulae.add(PropsAndInvsPre + andG2 + andBap1 + andPNG2);
+                formulae.add(PropsAndInvsPre + g2 + andBap1 + andPNG2);
                 // 3. can op1 keep op2 enabled
-                formulae.add(PropsAndInvsPre + andG2 + andBap1 + andPG2);
+                formulae.add(PropsAndInvsPre + g2 + andBap1 + andPG2);
                 // 4. can op1 keep op2 disabled
-                formulae.add(PropsAndInvsPre + andNG2 + andBap1 + andPNG2);
+                formulae.add(PropsAndInvsPre + ng2 + andBap1 + andPNG2);
 
                 // Extended Enabling Relation (Definition 8 [1])
                 // Basically just adds the preservation of the invariant
@@ -420,13 +439,13 @@ public class FormulaGenerator {
                     String andPInv = " & " + pinv;
 
                     // 1. can op1 enable op2
-                    formulae.add(PropsAndInvsPre + andNG2 + andBap1 + andPInv + andPG2);
+                    formulae.add(PropsAndInvsPre + ng2 + andBap1 + andPInv + andPG2);
                     // 2. can op1 disable op2
-                    formulae.add(PropsAndInvsPre + andG2 + andBap1 + andPInv + andPNG2);
+                    formulae.add(PropsAndInvsPre + g2 + andBap1 + andPInv + andPNG2);
                     // 3. can op1 keep op2 enabled
-                    formulae.add(PropsAndInvsPre + andG2 + andBap1 + andPInv + andPG2);
+                    formulae.add(PropsAndInvsPre + g2 + andBap1 + andPInv + andPG2);
                     // 4. can op1 keep op2 disabled
-                    formulae.add(PropsAndInvsPre + andNG2 + andBap1 + andPInv + andPNG2);
+                    formulae.add(PropsAndInvsPre + ng2 + andBap1 + andPInv + andPNG2);
 
                 }
 
