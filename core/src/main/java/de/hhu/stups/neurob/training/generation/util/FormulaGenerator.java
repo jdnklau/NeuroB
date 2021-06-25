@@ -619,6 +619,55 @@ public class FormulaGenerator {
 
     }
 
+    public static List<BPredicate> invariantConstrains(PredicateCollection pc) {
+        List<String> invariants = pc.getInvariants().stream()
+                .map(BPredicate::toString).collect(Collectors.toList());
+        boolean hasInvariant = invariants.size() > 0;
+
+        if (!hasInvariant) {
+            // No sensible constraints to generate anymore.
+            return new ArrayList<>();
+        }
+
+        List<String> formulae = new ArrayList<>();
+
+        String PropertyPre = getPropertyPre(pc);
+        String PropsAndInvs = getPropertyAndInvariantString(pc);
+        String PropsAndNInvs = getPropertyAndNegatedInvariantString(pc);
+
+
+        formulae.add(PropsAndInvs); // Satisfy invariant?
+        formulae.add(PropsAndNInvs); // Violate invariant?
+
+        if (invariants.size() == 1) {
+            // No sensible constraints to generate anymore.
+            return formulae.stream().map(BPredicate::new)
+                    .collect(Collectors.toList());
+        }
+
+        for (int i = 0; i<invariants.size(); i++) {
+            // we want to negate the ith conjunct
+            String invWithNegation = "not(" + invariants.get(i) + ")";
+
+            if (i > 0) {
+                // Has a pre
+                String pre = getStringConjunction(invariants.subList(0, i));
+                invWithNegation = pre + " & " + invWithNegation;
+            }
+            if (i+1 < invariants.size()) {
+                // Has a post
+                String post = getStringConjunction(
+                        invariants.subList(i+1, invariants.size()));
+                invWithNegation += " & " + post;
+            }
+
+            formulae.add(PropertyPre + invWithNegation);
+        }
+
+        return formulae.stream().map(BPredicate::new).collect(Collectors.toList());
+
+    }
+
     /**
      * Returns a list of invariant preservation proof obligations and other
      * formulae inspired by those.

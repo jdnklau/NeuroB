@@ -18,6 +18,7 @@ import de.prob.parser.ISimplifiedROMap;
 import de.prob.prolog.term.CompoundPrologTerm;
 import de.prob.statespace.StateSpace;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -36,7 +37,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class FormulaGeneratorTest {
     private PredicateCollection pc;
 
@@ -54,7 +54,7 @@ public class FormulaGeneratorTest {
     private Map<String, BPredicate> weakestFullPreconditions;
     private Map<BPredicate, BPredicate> primedInvariants;
 
-    @BeforeAll
+    @BeforeEach
     public void stubPredicateCollection() {
         pc = mock(PredicateCollection.class);
 
@@ -834,6 +834,131 @@ public class FormulaGeneratorTest {
                         "Number of preconditions does not match"),
                 () -> assertEquals(expected, formulae,
                         "Precondition predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldGenerateInvariantConstraintsWithFourInvariants() {
+        List<BPredicate>  invsToReturn = new ArrayList<>();
+        invsToReturn.add(BPredicate.of("invariant1"));
+        invsToReturn.add(BPredicate.of("invariant2"));
+        invsToReturn.add(BPredicate.of("invariant3"));
+        invsToReturn.add(BPredicate.of("invariant4"));
+
+        when(pc.getInvariants()).thenReturn(invsToReturn);
+        pc.getInvariants(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.invariantConstrains(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+        String pre = "(properties) & ";
+        expected.add(pre + "(invariant1) & (invariant2) & (invariant3) & (invariant4)");
+        expected.add(pre + "not((invariant1) & (invariant2) & (invariant3) & (invariant4))");
+
+        expected.add(pre + "not(invariant1) & (invariant2) & (invariant3) & (invariant4)");
+        expected.add(pre + "(invariant1) & not(invariant2) & (invariant3) & (invariant4)");
+        expected.add(pre + "(invariant1) & (invariant2) & not(invariant3) & (invariant4)");
+        expected.add(pre + "(invariant1) & (invariant2) & (invariant3) & not(invariant4)");
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Invariants",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of invariant constrains does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Invariant predicates are not correct")
+        );
+    }
+
+    @Test
+    public void shouldGenerateInvariantConstraintsWhenOnlyOneInvariant() {
+        List<BPredicate>  invsToReturn = new ArrayList<>();
+        invsToReturn.add(BPredicate.of("invariant1"));
+
+        when(pc.getInvariants()).thenReturn(invsToReturn);
+        pc.getInvariants(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.invariantConstrains(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+        String pre = "(properties) & ";
+        expected.add(pre + "(invariant1)");
+        expected.add(pre + "not((invariant1))");
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Invariants",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of invariant constrains does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Invariant predicates are not correct")
+        );
+    }
+
+
+    @Test
+    public void shouldGenerateEmptyInvariantConstraintsWhenNoInvariants() {
+        List<BPredicate>  invsToReturn = new ArrayList<>();
+        when(pc.getInvariants()).thenReturn(invsToReturn);
+        pc.getInvariants(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.invariantConstrains(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Invariants",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of invariant constrains does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Invariant predicates are not correct")
+        );
+    }
+
+    @Test
+    public void shouldGenerateInvariantConstraintsWhenNoProperties() {
+        List<BPredicate>  invsToReturn = new ArrayList<>();
+        invsToReturn.add(BPredicate.of("invariant1"));
+        invsToReturn.add(BPredicate.of("invariant2"));
+        invsToReturn.add(BPredicate.of("invariant3"));
+        invsToReturn.add(BPredicate.of("invariant4"));
+
+        when(pc.getInvariants()).thenReturn(invsToReturn);
+        pc.getInvariants(); // Use up the initial call
+        when(pc.getProperties()).thenReturn(new ArrayList<>());
+        pc.getProperties(); // Use up the initial call
+
+        List<String> formulae = FormulaGenerator.invariantConstrains(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+        expected.add("(invariant1) & (invariant2) & (invariant3) & (invariant4)");
+        expected.add("not((invariant1) & (invariant2) & (invariant3) & (invariant4))");
+
+        expected.add("not(invariant1) & (invariant2) & (invariant3) & (invariant4)");
+        expected.add("(invariant1) & not(invariant2) & (invariant3) & (invariant4)");
+        expected.add("(invariant1) & (invariant2) & not(invariant3) & (invariant4)");
+        expected.add("(invariant1) & (invariant2) & (invariant3) & not(invariant4)");
+
+        expected.sort(Comparator.naturalOrder());
+        formulae.sort(Comparator.naturalOrder());
+        assertAll("Invariants",
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of invariant constrains does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Invariant predicates are not correct")
         );
     }
 
