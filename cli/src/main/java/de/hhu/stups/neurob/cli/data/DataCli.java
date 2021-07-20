@@ -16,6 +16,7 @@ import de.hhu.stups.neurob.core.labelling.HealyTimings;
 import de.hhu.stups.neurob.core.labelling.SettingsMultiLabel;
 import de.hhu.stups.neurob.training.analysis.PredDbAnalysis;
 import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
+import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
@@ -65,7 +66,8 @@ public class DataCli implements CliModule {
         return
                 /*use:*/ "data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT TARGET_FEATURES TARGET_LABELS\n"
                 + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [OPTIONS] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
-                + "       data -a SOURCE_DIR FORMAT [-c THREATS] [-[x]b BACKENDS] [-f FILE_NAME]\n";
+                + "       data -a SOURCE_DIR FORMAT [-c THREADS] [-[x]b BACKENDS] [-f FILE_NAME]\n"
+                + "       data -p SOURCE_DIR -o TARGET_PATH [- THREADS]\n";
 
     }
 
@@ -125,10 +127,20 @@ public class DataCli implements CliModule {
                 .required()
                 .build();
 
+        // Analysis
+        Option predsOnly = Option.builder("p")
+                .longOpt("predicates")
+                .hasArg()
+                .argName("PATH")
+                .desc("Source directory from which the predicates are generated/extracted.")
+                .required()
+                .build();
+
         OptionGroup modeGroup = new OptionGroup();
         modeGroup.addOption(migrate);
         modeGroup.addOption(generate);
         modeGroup.addOption(analyse);
+        modeGroup.addOption(predsOnly);
 
         // Target
         Option target = Option.builder("t")
@@ -136,6 +148,13 @@ public class DataCli implements CliModule {
                 .numberOfArgs(4)
                 .argName("PATH FORMAT FEATURES LABELS")
                 .desc("Directory and format into which the generated data is placed.")
+                .build();
+
+        Option output = Option.builder("o")
+                .longOpt("output-file")
+                .hasArg()
+                .argName("PATH")
+                .desc("Path to the output file.")
                 .build();
 
         Option examplesDir = Option.builder("e")
@@ -207,6 +226,7 @@ public class DataCli implements CliModule {
         options.addOption(cores);
         options.addOption(exclude);
         options.addOption(samplingSize);
+        options.addOption(output);
     }
 
     @Override
@@ -253,6 +273,11 @@ public class DataCli implements CliModule {
 
                 }
 
+            } else if (line.hasOption("p")) {
+                Path sourceDir = parseSourceDirectory(line, "p");
+                Path targetDir = parseSourceDirectory(line, "o");
+
+                createPredicateList(line, sourceDir, targetDir);
             }
 
         } catch (ParseException e) {
@@ -332,6 +357,46 @@ public class DataCli implements CliModule {
         }
     }
 
+    private void createPredicateList(CommandLine line, Path sourceDir, Path targetDir) {
+        PredicateTrainingGenerator generator = new PredicateTrainingGenerator(
+                (p, ss) -> p,
+                new PredDbEntry.Generator(1),
+                new JsonDbFormat(new Backend[]{}));
+
+        setGenerationRules(generator);
+
+        int numThreads = parseCores(line);
+
+        Collection<Path> excludes = getExcludes(line);
+
+        ForkJoinPool threadPool = new ForkJoinPool(numThreads);
+        try {
+            threadPool.submit(
+                    () -> generator.generateTrainingData(
+                            sourceDir,
+                            targetDir,
+                            line.hasOption('z'),
+                            excludes))
+                    .get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        } finally {
+            threadPool.shutdown();
+        }
+    }
+
+    private void setGenerationRules(PredicateTrainingGenerator generator) {
+        generator.setGenerationRules(
+                FormulaGenerator::assertions,
+                FormulaGenerator::enablingAnalysis,
+                FormulaGenerator::extendedPreconditionFormulae,
+                FormulaGenerator::invariantConstrains,
+                FormulaGenerator::invariantPreservationFormulae,
+                FormulaGenerator::multiPreconditionFormulae,
+                FormulaGenerator::weakestPreconditionFormulae
+        );
+    }
+
     private void generate(CommandLine line, Path targetDir) throws IOException {
         List<Backend> backends = parseBackends(line);
 
@@ -357,15 +422,7 @@ public class DataCli implements CliModule {
                 samplingSize,
                 dbFormat);
 
-        generator.setGenerationRules(
-                FormulaGenerator::assertions,
-                FormulaGenerator::enablingAnalysis,
-                FormulaGenerator::extendedPreconditionFormulae,
-                FormulaGenerator::invariantConstrains,
-                FormulaGenerator::invariantPreservationFormulae,
-                FormulaGenerator::multiPreconditionFormulae,
-                FormulaGenerator::weakestPreconditionFormulae
-        );
+        setGenerationRules(generator);
 
         int numThreads = (line.hasOption("c"))
                 ? Integer.parseInt(line.getOptionValue("c"))
