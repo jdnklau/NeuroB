@@ -19,6 +19,7 @@ import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
+import de.hhu.stups.neurob.training.db.PredicateList;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
 import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
@@ -361,9 +362,10 @@ public class DataCli implements CliModule {
         PredicateTrainingGenerator generator = new PredicateTrainingGenerator(
                 (p, ss) -> p,
                 new PredDbEntry.Generator(1),
-                new JsonDbFormat(new Backend[]{}));
+                new PredicateList());
 
         setGenerationRules(generator);
+        generator.setAstCleanup(true);
 
         int numThreads = parseCores(line);
 
