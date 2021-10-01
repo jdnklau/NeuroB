@@ -225,9 +225,7 @@ public class PredicateCollection {
             if (preconditions.containsKey(x.getName())) {
                 for (BPredicate prec : preconditions.get(x.getName())) {
                     try {
-                        // FIXME: Somehow this has to be an EventB command to work
-                        IBEvalElement cmd = new EventB(prec.getPredicate(), Collections.emptySet(), FormulaExpand.TRUNCATE);
-//                    IBEvalElement cmd = Backend.generateBFormula(prec, bMachine);
+                        IBEvalElement cmd = Backend.generateBFormula(prec, bMachine);
                         BPredicate code = FormulaGenerator.generatePrimedPredicate(bMachine, cmd);
                         primedPrecs.add(code);
                     } catch (Exception e) {
