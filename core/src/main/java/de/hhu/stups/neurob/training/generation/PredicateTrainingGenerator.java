@@ -156,7 +156,7 @@ public class PredicateTrainingGenerator
                         } catch (LabelCreationException e) {
                             log.warn("Could not create labelling for {}", predicate, e);
                         } catch (FormulaException e) {
-                            log.warn("Could cleanup predicate {}", predicate, e);
+                            log.warn("Could not cleanup predicate {}", predicate, e);
                         }
                         // If any exceptions occur, return nothing
                         return Stream.empty();

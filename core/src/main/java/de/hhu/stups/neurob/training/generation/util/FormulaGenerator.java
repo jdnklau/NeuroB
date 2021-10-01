@@ -19,6 +19,7 @@ import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.prob.animator.command.NQPrimePredicateCommand;
 import de.prob.animator.command.PrettyPrintFormulaCommand;
 import de.prob.animator.domainobjects.IEvalElement;
 import org.slf4j.Logger;
@@ -97,14 +98,29 @@ public class FormulaGenerator {
     public static BPredicate generatePrimedPredicate(MachineAccess bMachine,
             IBEvalElement evalElement) throws FormulaException {
         try {
-            PrimePredicateCommand ppc = new PrimePredicateCommand(evalElement);
+            NQPrimePredicateCommand ppc = new NQPrimePredicateCommand(evalElement);
             bMachine.execute(ppc);
-            return BPredicate.of(ppc.getPrimedPredicate().getCode());
+
+            String primed = ppc.getPrimedPredicate();
+            if (MachineType.CLASSICALB.equals(bMachine.getMachineType())) {
+                primed = primeClassicalB(primed);
+            }
+
+            return BPredicate.of(primed);
         } catch (Exception e) {
             throw new FormulaException("Could not build primed predicate from "
                                        + evalElement.getCode(), e);
         }
     }
+
+    static String primeClassicalB(String code) {
+        return code.replaceAll("[']", "′"); // FIXME: What about strings using '?
+    }
+
+    static BPredicate primeClassicalB(BPredicate code) {
+        return BPredicate.of(primeClassicalB(code.getPredicate()));
+    }
+
 
     public static BPredicate cleanupAst(MachineAccess bMachine,
             BPredicate predicate) throws FormulaException {

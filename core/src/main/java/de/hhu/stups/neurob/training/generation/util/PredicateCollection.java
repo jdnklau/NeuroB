@@ -208,7 +208,7 @@ public class PredicateCollection {
                 String code = bapc.getBeforeAfterPredicate().getCode()
                         .replaceAll("/\\*.*\\*/ *", "");
                 if (isClassicalB) {
-                    code = primeClassicalB(code);
+                    code = FormulaGenerator.primeClassicalB(code);
                 }
                 beforeAfterPredicates.put(x.getName(), BPredicate.of(code));
             } catch (Exception e) {
@@ -229,9 +229,6 @@ public class PredicateCollection {
                         IBEvalElement cmd = new EventB(prec.getPredicate(), Collections.emptySet(), FormulaExpand.TRUNCATE);
 //                    IBEvalElement cmd = Backend.generateBFormula(prec, bMachine);
                         BPredicate code = FormulaGenerator.generatePrimedPredicate(bMachine, cmd);
-                        if (isClassicalB) {
-                            code = primeClassicalB(code);
-                        }
                         primedPrecs.add(code);
                     } catch (Exception e) {
                         log.warn("Could not prime precondition for event {}.",
@@ -248,23 +245,20 @@ public class PredicateCollection {
             IBEvalElement invCmd = invCmds.get(inv);
             try {
                 BPredicate primedInv = FormulaGenerator.generatePrimedPredicate(bMachine, invCmd);
-                if (isClassicalB) {
-                    primedInv = primeClassicalB(primedInv);
-                }
                 primedInvariants.put(inv, primedInv);
             } catch (Exception e) {
                 log.warn("Could not build primed invariant from {}", inv, e);
             }
         }
-    }
 
-    String primeClassicalB(String code) {
-        return code.replaceAll("[']", "′"); // FIXME: What about strings using '?
+        // One fully primed invariant, please
+        try {
+            BPredicate primedInv = FormulaGenerator.generatePrimedPredicate(bMachine, fullInvCmd);
+            primedInvariants.put(fullInv, primedInv);
+        } catch (Exception e) {
+            log.warn("Could not build primed invariant from {}", fullInv, e);
+        }
 
-    }
-
-    BPredicate primeClassicalB(BPredicate code) {
-        return BPredicate.of(primeClassicalB(code.getPredicate()));
     }
 
     private void collectFromContext(Context bcc) {
