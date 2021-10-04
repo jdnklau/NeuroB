@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.prob.animator.command.BeforeAfterPredicateCommand;
+import de.prob.animator.command.NQPrimePredicateCommand;
 import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.command.WeakestPreconditionCommand;
 import de.prob.animator.domainobjects.ClassicalB;
@@ -456,14 +457,14 @@ class PredicateCollectionTest {
         // Stub stateSpace.execute call
         ISimplifiedROMap bindings = mock(ISimplifiedROMap.class);
         // Weakest Preconditions
-        when(bindings.get("PrimedPredicate"))
+        when(bindings.get("PrimedPredOut"))
                 .thenReturn(new CompoundPrologTerm("primed-invariant"));
         doAnswer(invocation -> {
-            PrimePredicateCommand cmd =
+            NQPrimePredicateCommand cmd =
                     invocation.getArgument(0);
             cmd.processResult(bindings);
             return null;
-        }).when(bMachine).execute(any(PrimePredicateCommand.class));
+        }).when(bMachine).execute(any(NQPrimePredicateCommand.class));
 
         PredicateCollection pc = new PredicateCollection(bMachine);
 

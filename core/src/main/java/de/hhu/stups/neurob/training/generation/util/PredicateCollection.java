@@ -249,13 +249,13 @@ public class PredicateCollection {
             }
         }
 
-        // One fully primed invariant, please
-        try {
-            BPredicate primedInv = FormulaGenerator.generatePrimedPredicate(bMachine, fullInvCmd);
-            primedInvariants.put(fullInv, primedInv);
-        } catch (Exception e) {
-            log.warn("Could not build primed invariant from {}", fullInv, e);
-        }
+//        // One fully primed invariant, please
+//        try {
+//            BPredicate primedInv = FormulaGenerator.generatePrimedPredicate(bMachine, fullInvCmd);
+//            primedInvariants.put(fullInv, primedInv);
+//        } catch (Exception e) {
+//            log.warn("Could not build primed invariant from {}", fullInv, e);
+//        }
 
     }
 

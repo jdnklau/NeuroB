@@ -9,6 +9,7 @@ import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.prob.animator.command.AbstractCommand;
+import de.prob.animator.command.NQPrimePredicateCommand;
 import de.prob.animator.command.PrimePredicateCommand;
 import de.prob.animator.domainobjects.ClassicalB;
 import de.prob.animator.domainobjects.EventB;
@@ -146,11 +147,11 @@ public class FormulaGeneratorTest {
         bMachine = mock(MachineAccess.class);
 
         when(model.parseFormula(
-                "(operation1-precondition1) & (operation1-precondition2)"))
-                .thenReturn(new EventB("primedop1"));
+                "(operation1-precondition1) & (operation1-precondition2)", FormulaExpand.EXPAND))
+                .thenReturn(new EventB("primedop1", FormulaExpand.EXPAND));
         when(model.parseFormula(
-                "(operation2-precondition1) & (operation2-precondition2)"))
-                .thenReturn(new EventB("primedop2"));
+                "(operation2-precondition1) & (operation2-precondition2)", FormulaExpand.EXPAND))
+                .thenReturn(new EventB("primedop2", FormulaExpand.EXPAND));
         when(model.parseFormula(
                 "(operation1-precondition1) & (operation1-precondition2)",
                 FormulaExpand.EXPAND))
@@ -163,10 +164,10 @@ public class FormulaGeneratorTest {
 
         when(bMachine.parseFormula(
                 BPredicate.of("(operation1-precondition1) & (operation1-precondition2)")))
-                .thenReturn(new EventB("primedop1"));
+                .thenReturn(new EventB("primedop1", FormulaExpand.EXPAND));
         when(bMachine.parseFormula(
                 BPredicate.of("(operation2-precondition1) & (operation2-precondition2)")))
-                .thenReturn(new EventB("primedop2"));
+                .thenReturn(new EventB("primedop2", FormulaExpand.EXPAND));
 
         when(bMachine.getStateSpace()).thenReturn(ss);
         doAnswer(invocation -> {
@@ -178,21 +179,21 @@ public class FormulaGeneratorTest {
         /*
          * Okay this is a bit tricky.
          * Calling FeatureGenerator.getPrimedPredicate(StateSpace, IBEvalElement)
-         * executes a PrimePredicateCommand over the state space.
+         * executes a NQPrimePredicateCommand over the state space.
          *
          * For this to work properly, we need to mock the call to
          * ss.execute, where we feed mocked Prolog Bindings into, as we do not
          * want to query a real state space here.
          */
         doAnswer(invocation -> {
-            PrimePredicateCommand ppc =
+            NQPrimePredicateCommand ppc =
                     invocation.getArgument(0);
 
             PrologTermStringOutput pout = new PrologTermStringOutput();
             ppc.writeCommand(pout);
-            // -> get_primed_predicate(identifier(none,PARSEDFORMULAFROMABOVE),PrimedPredicate)
+            // -> get_nonquantifing_primed_predicate(identifier(none,PARSEDFORMULAFROMABOVE),PrimedPredicate)
 
-            String code = pout.toString().substring(37);
+            String code = pout.toString().substring(52);
             String answer = code.substring(0, code.indexOf(')'));
 
             ISimplifiedROMap bindings = new ISimplifiedROMap() {
@@ -205,7 +206,7 @@ public class FormulaGeneratorTest {
             ppc.processResult(bindings);
 
             return null;
-        }).when(ss).execute(any(PrimePredicateCommand.class));
+        }).when(ss).execute(any(NQPrimePredicateCommand.class));
 
     }
 
@@ -717,7 +718,7 @@ public class FormulaGeneratorTest {
     void shouldGenerateEnablingAnalysisWhenNoPrimedPreconditions() {
         doAnswer(invocation -> {
             throw new Exception("Not generating any primed preconditions");
-        }).when(ss).execute(any(PrimePredicateCommand.class));
+        }).when(ss).execute(any(NQPrimePredicateCommand.class));
         try {
             ss.execute((AbstractCommand) null);
         } catch (Exception e) {}
