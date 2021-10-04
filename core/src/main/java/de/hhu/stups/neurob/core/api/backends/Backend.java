@@ -42,6 +42,8 @@ public abstract class Backend {
 
     private static final Logger log =
             LoggerFactory.getLogger(Backend.class);
+    boolean isClpfdSetExplicity;
+    boolean isSmtSetExplicity;
 
     /**
      * Sets the time out to the defaults if no TIME_OUT preference is present.
@@ -78,8 +80,19 @@ public abstract class Backend {
         prefMap.put("SMT", BPreference.set("SMT", "FALSE"));
         prefMap.put("CLPFD", BPreference.set("CLPFD", "FALSE"));
 
+        this.isSmtSetExplicity = false;
+        this.isClpfdSetExplicity = false;
+
         Arrays.stream(preferences)
-                .forEach(p -> prefMap.put(p.getName(), p));
+                .forEach(p -> {
+                    if ("SMT".equals(p.getName())) {
+                        this.isSmtSetExplicity = true;
+                    }
+                    if ("CLPFD".equals(p.getName())) {
+                        this.isClpfdSetExplicity = true;
+                    }
+                    prefMap.put(p.getName(), p);
+                });
 
         this.preferences = new BPreferences(prefMap);
 
@@ -132,7 +145,17 @@ public abstract class Backend {
     }
 
     public BPreferences getPreferences() {
-        return preferences;
+        String[] without;
+        if (!isSmtSetExplicity && !isClpfdSetExplicity) {
+            without = new String[]{"SMT", "CLPFD"};
+        } else if (!isSmtSetExplicity) {
+            without = new String[]{"SMT"};
+        } else if (!isClpfdSetExplicity) {
+            without = new String[]{"CLPFD"};
+        } else {
+            without = new String[0];
+        }
+        return preferences.without(without);
     }
 
     /**

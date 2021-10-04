@@ -80,6 +80,27 @@ public class BPreferences {
         return preferences.keySet().stream().map(preferences::get);
     }
 
+    public BPreferences without(String... blacklistedPreference) {
+        if (blacklistedPreference.length == 0)
+            return this;
+
+        SortedMap<String, BPreference> reducedPreferences = new TreeMap<>();
+
+        preferences.forEach((key, value) -> {
+            boolean keep = true;
+            for (String blocked : blacklistedPreference) {
+                if (key.equals(blocked)) {
+                    keep = false;
+                }
+            }
+            if (keep) {
+                reducedPreferences.put(key, value);
+            }
+        });
+
+        return new BPreferences(reducedPreferences);
+    }
+
     @Override
     public String toString() {
         String preferencesString = stream()
