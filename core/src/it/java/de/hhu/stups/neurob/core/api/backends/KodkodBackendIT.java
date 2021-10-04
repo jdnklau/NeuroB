@@ -1,6 +1,5 @@
 package de.hhu.stups.neurob.core.api.backends;
 
-import checkers.units.quals.K;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
