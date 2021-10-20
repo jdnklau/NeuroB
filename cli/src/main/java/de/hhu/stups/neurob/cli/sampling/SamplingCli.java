@@ -21,6 +21,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -169,13 +170,9 @@ public class SamplingCli implements CliModule {
                             .collect(Collectors.toList());
 
                     double mean = timings.stream().mapToLong(l -> l).sum() * 1. / sampSize;
-                    double unbiased_stdev = (sampSize > 1)
-                            ? timings.stream().mapToDouble(l -> l)
-                                      .map(l -> (Math.pow(l - mean, 2)))
-                                      .sum() / (sampSize - 1)
-                            : 0;
-
-                    double stdev = Math.sqrt(unbiased_stdev);
+                    StandardDeviation standardDeviation = new StandardDeviation(true);
+                    double stdev = standardDeviation.evaluate(timings.stream()
+                            .mapToDouble(Long::doubleValue).toArray());
 
                     stats.get(pred).put(b, new Double[]{mean, stdev});
                 }
@@ -210,7 +207,7 @@ public class SamplingCli implements CliModule {
             System.out.println("t-Value: " + tValue);
             for (Backend b : backends) {
                 System.out.println("- " + b.getName() + ": "
-                    + minSamples.get(b) + " samples");
+                                   + minSamples.get(b) + " samples");
             }
             System.out.println();
 
