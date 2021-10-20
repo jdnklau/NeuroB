@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.cli;
 
 import de.hhu.stups.neurob.cli.data.DataCli;
+import de.hhu.stups.neurob.cli.sampling.SamplingCli;
 import org.apache.commons.cli.HelpFormatter;
 
 public class NeuroBCli {
@@ -16,6 +17,11 @@ public class NeuroBCli {
             switch (key) {
                 case "data":
                     data.eval(args);
+                    break;
+
+                case "sampling":
+                    SamplingCli sampling = new SamplingCli();
+                    sampling.eval(args);
                     break;
 
                 case "help":
