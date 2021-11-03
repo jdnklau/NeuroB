@@ -1,12 +1,22 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import de.prob.animator.command.CbcSolveCommand;
+
+import java.util.Objects;
+
 public class AnnotatedAnswer {
     private final Answer answer;
     private final String message;
+    private final CbcSolveCommand command;
 
     public AnnotatedAnswer(Answer answer, String message) {
+        this(answer, message, null);
+    }
+
+    public AnnotatedAnswer(Answer answer, String message, CbcSolveCommand usedCommand) {
         this.answer = answer;
         this.message = message;
+        this.command = usedCommand;
     }
 
     public Answer getAnswer() {
@@ -15,6 +25,10 @@ public class AnnotatedAnswer {
 
     public String getMessage() {
         return message;
+    }
+
+    public CbcSolveCommand getUsedCommand() {
+        return command;
     }
 
     /**
@@ -39,9 +53,7 @@ public class AnnotatedAnswer {
             AnnotatedAnswer other = (AnnotatedAnswer) o;
 
             // Messages, like in TimedAnswer, are not the main focus here
-            return this.answer != null
-                            ? this.answer.equals(other.answer)
-                            : other.answer == null;
+            return Objects.equals(this.answer, other.answer);
         } else if(o instanceof Answer) {
             Answer other = (Answer) o;
             return other.equals(this.answer);

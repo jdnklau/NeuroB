@@ -396,6 +396,12 @@ public abstract class Backend {
         }
         duration = System.nanoTime() - start; // stop measuring
 
+        if (answer.getUsedCommand() != null) {
+            CbcSolveCommand cmd = answer.getUsedCommand();
+            // Note: Conversion to Long and nano seconds should not be a problem.
+            // A long with 64 bits can store 584 years worth of nano seconds
+            duration = cmd.getMilliSeconds().longValue() * 1_000_000; // Translate nano seconds.
+        }
         return answer.getTimedAnswer(duration);
     }
 
