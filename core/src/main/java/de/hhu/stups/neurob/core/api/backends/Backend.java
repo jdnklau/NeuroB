@@ -373,8 +373,10 @@ public abstract class Backend {
         Long start, duration;
         log.trace("{}: Deciding predicate {}", this.toString(), predicate);
         start = System.nanoTime(); // start measuring time
+        Boolean gotAnswer = false;
         try {
             answer = futureRes.get(timeout, timeUnit);
+            gotAnswer = true;
         } catch (IllegalStateException e) {
             access.sendInterrupt();
             // Forward the Illegal State, we really want to know when this happens.
@@ -385,7 +387,9 @@ public abstract class Backend {
         } catch (TimeoutException e) {
             access.sendInterrupt();
             answer = new AnnotatedAnswer(Answer.TIMEOUT, "Timeout");
-            log.warn("Timeout after {} {} for predicate {}",
+            duration = System.nanoTime() - start;
+            log.warn("Timeout after {} {} (configured: {} {}) for predicate {}",
+                    getTimeOutUnit().convert(duration, TimeUnit.NANOSECONDS), getTimeOutUnit(),
                     getTimeOutValue(), getTimeOutUnit(), predicate);
         } catch (InterruptedException | ExecutionException e) {
             access.sendInterrupt();
@@ -396,7 +400,7 @@ public abstract class Backend {
         }
         duration = System.nanoTime() - start; // stop measuring
 
-        if (answer.getUsedCommand() != null) {
+        if (gotAnswer & answer.getUsedCommand() != null) {
             CbcSolveCommand cmd = answer.getUsedCommand();
             // Note: Conversion to Long and nano seconds should not be a problem.
             // A long with 64 bits can store 584 years worth of nano seconds

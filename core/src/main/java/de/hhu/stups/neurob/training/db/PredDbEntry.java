@@ -411,7 +411,7 @@ public class PredDbEntry extends PredicateLabelling {
             for (int i = 0; i < samplingSize; i++) {
                 try {
                     TimedAnswer timing = backend.solvePredicate(pred, bMachine,
-                            timeout, timeUnit);
+                            backend.getTimeOutValue(), backend.getTimeOutUnit());
                     // stop if already error or timeout
                     Answer answer = timing.getAnswer();
                     if (answer.equals(Answer.ERROR) || answer.equals(Answer.TIMEOUT)) {

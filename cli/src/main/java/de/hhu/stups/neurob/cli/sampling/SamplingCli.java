@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.cli.sampling;
 
 import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
+import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
@@ -136,8 +137,7 @@ public class SamplingCli implements CliModule {
 
             List<BPredicate> preds = new ArrayList<>();
 //            preds.addAll(FormulaGenerator.enablingAnalysis(pc));
-//            preds.addAll(FormulaGenerator.invariantConstrains(pc));
-            preds.add(FormulaGenerator.invariantPreservationFormulae(pc).stream().findFirst().get());
+            preds.addAll(FormulaGenerator.invariantConstrains(pc));
 
             System.out.println("Gathered " + preds.size() + " predicates.");
 
@@ -148,8 +148,12 @@ public class SamplingCli implements CliModule {
             preds.forEach(p -> {
                 try {
                     dbEntries.put(p, new ArrayList<>());
-                    for (int i = 0; i < sampSize; i++) {
-                        dbEntries.get(p).add(gen.generate(p, mch));
+                    for (int i = 0; i <= sampSize; i++) {
+                        // skip first measurement, as it takes longer than all the others.
+                        PredDbEntry result = gen.generate(p, mch);
+                        if (i > 0){
+                            dbEntries.get(p).add(result);
+                        }
                     }
                 } catch (LabelCreationException e) {
                     e.printStackTrace();
@@ -160,8 +164,10 @@ public class SamplingCli implements CliModule {
 
             // mean/stdev
             Map<BPredicate, Map<Backend, Double[]>> stats = new HashMap<>();
+            Map<BPredicate, Map<Backend, Double[]>> nonErrStats = new HashMap<>();
             for (BPredicate pred : preds) {
                 stats.put(pred, new HashMap<>());
+                nonErrStats.put(pred, new HashMap<>());
                 List<PredDbEntry> measures = dbEntries.get(pred);
                 for (Backend b : backends) {
                     List<Long> timings = measures.stream()
@@ -169,12 +175,25 @@ public class SamplingCli implements CliModule {
                             .map(a -> a.getTime(TimeUnit.MILLISECONDS))
                             .collect(Collectors.toList());
 
+                    List<Long> nonErrTimings = measures.stream()
+                            .map(e -> e.getAnswerArray(b)[0])
+                            .filter(a -> Answer.isSolvable(a.getAnswer()) || a.getAnswer().equals(Answer.UNKNOWN))
+                            .map(a -> a.getTime(TimeUnit.MILLISECONDS))
+                            .collect(Collectors.toList());
+
                     double mean = timings.stream().mapToLong(l -> l).sum() * 1. / sampSize;
                     StandardDeviation standardDeviation = new StandardDeviation(true);
                     double stdev = standardDeviation.evaluate(timings.stream()
                             .mapToDouble(Long::doubleValue).toArray());
+                    System.out.println("");
 
                     stats.get(pred).put(b, new Double[]{mean, stdev});
+
+                    mean = nonErrTimings.stream().mapToLong(l -> l).sum() * 1. / nonErrTimings.size();
+                    standardDeviation = new StandardDeviation(true);
+                    stdev = standardDeviation.evaluate(nonErrTimings.stream()
+                            .mapToDouble(Long::doubleValue).toArray());
+                    nonErrStats.get(pred).put(b, new Double[]{mean, stdev});
                 }
             }
 
@@ -183,21 +202,35 @@ public class SamplingCli implements CliModule {
 
             // Per backend/predicate: calculate number of needed samples.
             Map<Backend, Double> minSamples = new HashMap<>();
+            Map<Backend, Double> nonErrMinSamples = new HashMap<>();
             for (Backend b : backends) {
                 List<Double> sampleValues = new ArrayList<>();
+                List<Double> nonErrSampleValues = new ArrayList<>();
                 for (BPredicate p : preds) {
                     double mean = stats.get(p).get(b)[0];
                     double stdev = stats.get(p).get(b)[1];
-
                     double minSamplesNeeded = Math.pow(
                             tValue * stdev / ((error / 200.) * mean),
                             2.
                     );
-
                     sampleValues.add(minSamplesNeeded);
+
+                    mean = nonErrStats.get(p).get(b)[0];
+                    stdev = nonErrStats.get(p).get(b)[1];
+                    minSamplesNeeded = Math.pow(
+                            tValue * stdev / ((error / 200.) * mean),
+                            2.
+                    );
+                    nonErrSampleValues.add(minSamplesNeeded);
+
                 }
                 minSamples.put(
                         b, sampleValues.stream()
+                                .max(Double::compareTo)
+                                .orElse(-1.));
+                nonErrMinSamples.put(
+                        b, nonErrSampleValues.stream()
+                                .filter(d -> !Double.isNaN(d))
                                 .max(Double::compareTo)
                                 .orElse(-1.));
             }
@@ -207,7 +240,8 @@ public class SamplingCli implements CliModule {
             System.out.println("t-Value: " + tValue);
             for (Backend b : backends) {
                 System.out.println("- " + b.getName() + ": "
-                                   + minSamples.get(b) + " samples");
+                                   + minSamples.get(b) + " samples ("
+                                   + nonErrMinSamples.get(b) + " samples for non-error)");
             }
             System.out.println();
 
@@ -218,7 +252,7 @@ public class SamplingCli implements CliModule {
                 for (Backend b : backends) {
                     double mean = stats.get(p).get(b)[0];
                     double stdev = stats.get(p).get(b)[1];
-                    System.out.print(b.getName() + ": " + mean + " " + stdev + "; ");
+                    System.out.print(b.getName() + ": mean " + mean + ", stdev " + stdev + "; ");
                 }
                 System.out.println();
             }
