@@ -185,7 +185,6 @@ public class SamplingCli implements CliModule {
                     StandardDeviation standardDeviation = new StandardDeviation(true);
                     double stdev = standardDeviation.evaluate(timings.stream()
                             .mapToDouble(Long::doubleValue).toArray());
-                    System.out.println("");
 
                     stats.get(pred).put(b, new Double[]{mean, stdev});
 

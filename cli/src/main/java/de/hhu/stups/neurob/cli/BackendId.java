@@ -1,6 +1,7 @@
 package de.hhu.stups.neurob.cli;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.DplltBackend;
 import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
@@ -22,7 +23,8 @@ public enum BackendId {
     PROB("prob", ProBBackend::new),
     KODKOD("kodkod", KodkodBackend::new),
     Z3("z3", Z3Backend::new),
-    SMT("smt", SmtBackend::new);
+    SMT("smt", SmtBackend::new),
+    DPLLT("dpllt", DplltBackend::new);
 
 
     private final String id;
@@ -39,6 +41,7 @@ public enum BackendId {
             + " - kodkod:                    The Kodkod binding\n"
             + " - z3:                        The Z3 binding\n"
             + " - smt:                       The SMT_SUPPORTED_INTERPRETERS option\n"
+            + " - dpllt:                     The DPLLT backend\n"
             + "\n"
             + "For each Backend, an optional list of options can be given, e.g.:\n"
             + "   -b prob[TIME_OUT=3000,MAXINT=17] z3[TIME_OUT=1200]\n"

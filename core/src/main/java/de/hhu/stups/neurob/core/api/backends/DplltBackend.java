@@ -7,9 +7,9 @@ import de.prob.animator.command.CbcSolveCommand;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The ProB constraint-based checker, a disprover.
+ * The DPLLT based backend of ProB itself.
  */
-public class ProBBackend extends Backend {
+public class DplltBackend extends Backend {
 
     /**
      * Sets default time out to {@link #defaultTimeOut}
@@ -17,7 +17,7 @@ public class ProBBackend extends Backend {
      *
      * @param preferences Preferences to be set.
      */
-    public ProBBackend(BPreference... preferences) {
+    public DplltBackend(BPreference... preferences) {
         super(preferences);
     }
 
@@ -26,7 +26,7 @@ public class ProBBackend extends Backend {
      * @param timeOutUnit
      * @param preferences Preferences to be set.
      */
-    public ProBBackend(long timeOutValue, TimeUnit timeOutUnit, BPreference... preferences) {
+    public DplltBackend(long timeOutValue, TimeUnit timeOutUnit, BPreference... preferences) {
         super(timeOutValue, timeOutUnit, preferences);
     }
 
@@ -36,7 +36,7 @@ public class ProBBackend extends Backend {
      *
      * @param preferences Preferences to be set
      */
-    public ProBBackend(BPreferences preferences) {
+    public DplltBackend(BPreferences preferences) {
         super(preferences);
     }
 
@@ -45,17 +45,17 @@ public class ProBBackend extends Backend {
      * @param timeOutUnit
      * @param preferences Preferences to be set.
      */
-    public ProBBackend(long timeOutValue, TimeUnit timeOutUnit, BPreferences preferences) {
+    public DplltBackend(long timeOutValue, TimeUnit timeOutUnit, BPreferences preferences) {
         super(timeOutValue, timeOutUnit, preferences);
     }
 
     @Override
     public CbcSolveCommand.Solvers toCbcEnum() {
-        return CbcSolveCommand.Solvers.PROB;
+        return CbcSolveCommand.Solvers.DPLLT;
     }
 
     @Override
     public String getName() {
-        return "ProB";
+        return "DPLLT";
     }
 }
