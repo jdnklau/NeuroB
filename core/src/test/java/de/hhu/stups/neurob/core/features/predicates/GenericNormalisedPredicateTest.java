@@ -12,7 +12,7 @@ class GenericNormalisedPredicateTest {
     void shouldNormaliseAllIdentifiers() throws FeatureCreationException {
         BPredicate pred = BPredicate.of("x>y & y>x");
 
-        String expected = "id>id & id>id";
+        String expected = "idn>idn & idn>idn";
         String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
 
         assertEquals(expected,actual);
@@ -24,7 +24,17 @@ class GenericNormalisedPredicateTest {
 //        BPredicate pred = BPredicate.of("level : NAT & level′ = level+1 => level′:NAT");
         BPredicate pred = BPredicate.of("x:NAT & x$0=x+1 => x$0 : NAT");
 
-        String expected = "id:NAT & id=id+1 => id:NAT";
+        String expected = "idn:NAT & idn=idn+1 => idn:NAT";
+        String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
+
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    void shouldNormalisePrimedIdentifiers2() throws FeatureCreationException {
+        BPredicate pred = BPredicate.of("level : NAT & level′ = level+1 => level′:NAT");
+
+        String expected = "idn:NAT & idn=idn+1 => idn:NAT";
         String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
 
         assertEquals(expected,actual);

@@ -19,7 +19,7 @@ import javax.annotation.Nullable;
  *
  * Normalisation routine:
  * <ul>
- *     <li>Each identifier is mapped to "id"</li>
+ *     <li>Each identifier is mapped to "idn"</li>
  * </ul>
  */
 public class GenericNormalisedPredicate extends PredicateFeatures {

@@ -102,23 +102,12 @@ public class FormulaGenerator {
             bMachine.execute(ppc);
 
             String primed = ppc.getPrimedPredicate();
-            if (MachineType.CLASSICALB.equals(bMachine.getMachineType())) {
-                primed = primeClassicalB(primed);
-            }
 
             return BPredicate.of(primed);
         } catch (Exception e) {
             throw new FormulaException("Could not build primed predicate from "
                                        + evalElement.getCode(), e);
         }
-    }
-
-    static String primeClassicalB(String code) {
-        return code.replaceAll("[']", "′"); // FIXME: What about strings using '?
-    }
-
-    static BPredicate primeClassicalB(BPredicate code) {
-        return BPredicate.of(primeClassicalB(code.getPredicate()));
     }
 
 

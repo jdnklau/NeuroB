@@ -207,9 +207,6 @@ public class PredicateCollection {
                 // FIXME: Erase comment, probably should not be returned by ProB to begin with
                 String code = bapc.getBeforeAfterPredicate().getCode()
                         .replaceAll("/\\*.*\\*/ *", "");
-                if (isClassicalB) {
-                    code = FormulaGenerator.primeClassicalB(code);
-                }
                 beforeAfterPredicates.put(x.getName(), BPredicate.of(code));
             } catch (Exception e) {
                 log.warn("Could not build Before After Predicate for event {}.",

@@ -26,7 +26,7 @@ public class GenericNormaliser extends DepthFirstAdapter {
         int count = ids.size();
         List<TIdentifierLiteral> normIds = new LinkedList<>();
 
-        TIdentifierLiteral normalisedId = new TIdentifierLiteral("id");
+        TIdentifierLiteral normalisedId = new TIdentifierLiteral("idn");
 
         for (int i=0; i<count; i++) {
             normIds.add(normalisedId);

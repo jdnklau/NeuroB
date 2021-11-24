@@ -35,7 +35,7 @@ public enum MachineType {
             return null; // TODO: If UNKNOWN type is implemented, use that instead
         }
 
-        if (location.toString().endsWith(".bcm")) {
+        if (location.toString().endsWith(".bcm") || location.toString().endsWith(".bum")) {
             return MachineType.EVENTB;
         }
         return MachineType.CLASSICALB;
