@@ -148,14 +148,16 @@ public class SamplingCli implements CliModule {
             preds.forEach(p -> {
                 try {
                     dbEntries.put(p, new ArrayList<>());
-                    for (int i = 0; i <= sampSize; i++) {
-                        // skip first measurement, as it takes longer than all the others.
+                    for (int i = 0; i < sampSize; i++) {
+                        // restart mch for consistent timings.
+                        mch.close();
+                        mch.load();
                         PredDbEntry result = gen.generate(p, mch);
-                        if (i > 0){
-                            dbEntries.get(p).add(result);
-                        }
+                        dbEntries.get(p).add(result);
                     }
                 } catch (LabelCreationException e) {
+                    e.printStackTrace();
+                } catch (MachineAccessException e) {
                     e.printStackTrace();
                 }
             });
