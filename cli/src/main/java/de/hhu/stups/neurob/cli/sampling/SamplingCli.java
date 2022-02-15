@@ -68,10 +68,10 @@ public class SamplingCli implements CliModule {
                 .build();
 
         Option error = Option.builder("e")
-                .longOpt("error")
+                .longOpt("")
                 .hasArg()
                 .argName("ERROR")
-                .desc("Allowed degrees of freedom; results in an allowed error of +/- 0.5*e %.")
+                .desc("Allowed error; results in an allowed error of +/- ERROR %.")
                 .required()
                 .build();
 
@@ -198,12 +198,15 @@ public class SamplingCli implements CliModule {
                 }
             }
 
-            TDistribution dist = new TDistribution(error);
+            int degreesOfFreedom = sampSize - 1;
+            TDistribution dist = new TDistribution(degreesOfFreedom);
             double tValue = dist.inverseCumulativeProbability(alpha);
 
             // Per backend/predicate: calculate number of needed samples.
             Map<Backend, Double> minSamples = new HashMap<>();
             Map<Backend, Double> nonErrMinSamples = new HashMap<>();
+            Map<Backend, List<Double>> samples = new HashMap<>();
+            Map<Backend, List<Double>> nonErrSamples = new HashMap<>();
             for (Backend b : backends) {
                 List<Double> sampleValues = new ArrayList<>();
                 List<Double> nonErrSampleValues = new ArrayList<>();
@@ -211,7 +214,7 @@ public class SamplingCli implements CliModule {
                     double mean = stats.get(p).get(b)[0];
                     double stdev = stats.get(p).get(b)[1];
                     double minSamplesNeeded = Math.pow(
-                            tValue * stdev / ((error / 200.) * mean),
+                            tValue * stdev / ((error / 100.) * mean),
                             2.
                     );
                     sampleValues.add(minSamplesNeeded);
@@ -219,7 +222,7 @@ public class SamplingCli implements CliModule {
                     mean = nonErrStats.get(p).get(b)[0];
                     stdev = nonErrStats.get(p).get(b)[1];
                     minSamplesNeeded = Math.pow(
-                            tValue * stdev / ((error / 200.) * mean),
+                            tValue * stdev / ((error / 100.) * mean),
                             2.
                     );
                     nonErrSampleValues.add(minSamplesNeeded);
@@ -237,7 +240,7 @@ public class SamplingCli implements CliModule {
             }
 
             System.out.println("Alpha: " + alpha);
-            System.out.println("Degrees of Freedom: " + error);
+            System.out.println("Allowed error: +/- " + error + " %");
             System.out.println("t-Value: " + tValue);
             for (Backend b : backends) {
                 System.out.println("- " + b.getName() + ": "
@@ -249,11 +252,11 @@ public class SamplingCli implements CliModule {
             int counter = 0;
             for (BPredicate p : preds) {
                 counter++;
-                System.out.print(counter + ". pred: ");
+                System.out.println(counter + ". pred: ");
                 for (Backend b : backends) {
                     double mean = stats.get(p).get(b)[0];
                     double stdev = stats.get(p).get(b)[1];
-                    System.out.print(b.getName() + ": mean " + mean + ", stdev " + stdev + "; ");
+                    System.out.println("    " + b.getName() + ": mean " + mean + ", stdev " + stdev + ", samples:");
                 }
                 System.out.println();
             }
