@@ -14,6 +14,7 @@ import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.prob.animator.domainobjects.EventB;
 import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.model.eventb.Context;
+import de.prob.statespace.OperationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,16 +194,17 @@ public class PredicateCollection {
 
         }
 
-        boolean isClassicalB = bMachine.getMachineType() == MachineType.CLASSICALB;
         // Before/After predicates
+        OperationInfo.Type operationType = bMachine.getMachineType() == MachineType.CLASSICALB
+                ? OperationInfo.Type.CLASSICAL_B
+                : OperationInfo.Type.EVENTB;
         log.trace("Building before/after predicates");
         for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
             if (x.getName().equals("INITIALISATION"))
                 continue; // None for initialisation
-
             try {
                 BeforeAfterPredicateCommand bapc =
-                        new BeforeAfterPredicateCommand(x.getName());
+                        new BeforeAfterPredicateCommand(x.getName(), operationType);
                 bMachine.execute(bapc);
                 // FIXME: Erase comment, probably should not be returned by ProB to begin with
                 String code = bapc.getBeforeAfterPredicate().getCode()

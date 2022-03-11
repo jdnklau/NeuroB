@@ -96,8 +96,8 @@ class PredicateCollectionIT {
         // reset
         pre = new ArrayList<>();
         pre.add("z>=20 or x>1000");
-        pre.add("z>=20");
-        pre.add("x>1000");
+//        pre.add("z>=20");
+//        pre.add("x>1000");
         pres.put("reset", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
 
         assertAll("Included preconditions",
@@ -129,8 +129,8 @@ class PredicateCollectionIT {
         // reset
         pre = new ArrayList<>();
         pre.add("z′ >= 20 or x′ > 1000");
-        pre.add("z′ >= 20");
-        pre.add("x′ > 1000");
+//        pre.add("z′ >= 20");
+//        pre.add("x′ > 1000");
         pres.put("reset", pre.stream().map(BPredicate::new).collect(Collectors.toList()));
 
         assertAll("Included primed preconditions",
@@ -212,8 +212,8 @@ class PredicateCollectionIT {
     public void shouldLoadAssertions() {
         List<String> asserts = new ArrayList<>();
         asserts.add("y>z or x>z");
-        asserts.add("y>z");
-        asserts.add("x>z");
+//        asserts.add("y>z");
+//        asserts.add("x>z");
 
         List<BPredicate> expected = asserts.stream().map(BPredicate::new).collect(Collectors.toList());
         assertEquals(expected, pc.getAssertions(),
@@ -227,27 +227,27 @@ class PredicateCollectionIT {
         Map<BPredicate, BPredicate> opWeak;
         // incx
         opWeak = new HashMap<>();
-        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("x=y & z<20 & y:NAT"));
-        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("x=y & z<20 & x+1:NATURAL"));
-        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("x=y & z<20 & z+1:INT"));
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("x = y & z < 20 & y : NAT"));
+        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("x = y & z < 20 & x + 1 : NATURAL"));
+        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("x = y & z < 20 & z + 1 : INT"));
         weakestPres.put("incx", opWeak);
         // incy
         opWeak = new HashMap<>();
-        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("y<x & z<20 & y+2:NAT"));
-        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("y<x & z<20 & x:NATURAL"));
-        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("y<x & z<20 & z+1:INT"));
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("y < x & z < 20 & y + 2 : NAT"));
+        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("y < x & z < 20 & x : NATURAL"));
+        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("y < x & z < 20 & z + 1 : INT"));
         weakestPres.put("incy", opWeak);
         // sqrx
         opWeak = new HashMap<>();
-        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("x<y & y:NAT"));
-        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("x<y & x*x:NATURAL"));
-        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("x<y & z+1:INT"));
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("x < y & y : NAT"));
+        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("x < y & x * x : NATURAL"));
+        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("x < y & z + 1 : INT"));
         weakestPres.put("sqrx", opWeak);
         // reset
         opWeak = new HashMap<>();
-        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("z>=20 or x>1000 & 1:NAT"));
-        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("z>=20 or x>1000 & 1:NATURAL"));
-        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("z>=20 or x>1000 & 1:INT"));
+        opWeak.put(BPredicate.of("y:NAT"), BPredicate.of("(z >= 20 or x > 1000) & 1 : NAT"));
+        opWeak.put(BPredicate.of("x:NATURAL"), BPredicate.of("(z >= 20 or x > 1000) & 1 : NATURAL"));
+        opWeak.put(BPredicate.of("z:INT"), BPredicate.of("(z >= 20 or x > 1000) & 1 : INT"));
         weakestPres.put("reset", opWeak);
 
         assertEquals(weakestPres, pc.getWeakestPreConditions(),
@@ -258,10 +258,10 @@ class PredicateCollectionIT {
     public void shouldLoadWeakestFullPreconditions(){
         Map<String, BPredicate> weakestPres = new HashMap<>();
 
-        weakestPres.put("incx", BPredicate.of("x=y & z<20 & (x+1:NATURAL & y:NAT & z+1:INT)"));
-        weakestPres.put("incy", BPredicate.of("y<x & z<20 & (x:NATURAL & y+2:NAT & z+1:INT)"));
-        weakestPres.put("sqrx", BPredicate.of("x<y & (x*x:NATURAL & y:NAT & z+1:INT)"));
-        weakestPres.put("reset", BPredicate.of("z>=20 or x>1000 & (1:NATURAL & 1:NAT & 1:INT)"));
+        weakestPres.put("incx", BPredicate.of("x = y & z < 20 & (x + 1 : NATURAL & y : NAT & z + 1 : INT)"));
+        weakestPres.put("incy", BPredicate.of("y < x & z < 20 & (x : NATURAL & y + 2 : NAT & z + 1 : INT)"));
+        weakestPres.put("sqrx", BPredicate.of("x < y & (x * x : NATURAL & y : NAT & z + 1 : INT)"));
+        weakestPres.put("reset", BPredicate.of("(z >= 20 or x > 1000) & (1 : NATURAL & 1 : NAT & 1 : INT)"));
 
         assertEquals(weakestPres, pc.getWeakestFullPreconditions(),
                 "Weakest Preconditions over full invariant do not match");
@@ -320,18 +320,11 @@ class PredicateCollectionIT {
     }
 
     @Test
-    @Disabled("Need to fix priming of classical B invariants")
     public void shouldLoadPrimedInvariantsWhenClassicalB() {
         Map<BPredicate, BPredicate> primedInvs = new HashMap<>();
-        primedInvs.put(BPredicate.of("x:NAT"), BPredicate.of("x' : NAT"));
-        primedInvs.put(BPredicate.of("y:NAT"), BPredicate.of("y' : NAT"));
-        primedInvs.put(BPredicate.of("x<y"), BPredicate.of("x' < y'"));
-        primedInvs.put(BPredicate.of("y=1"), BPredicate.of("y' = 1"));
-        primedInvs.put(BPredicate.of("z:NAT"), BPredicate.of("z' : NAT"));
-        primedInvs.put(BPredicate.of("z<2"), BPredicate.of("z' < 2"));
-        // concat of whole invariant
-        primedInvs.put(BPredicate.of("(x:NAT) & (y:NAT) & (x<y) & (y=1) & (z:NAT) & (z<2)"),
-                BPredicate.of("x' : NAT & (y' : NAT & (x' < y' & (y' = 1 & (z' : NAT & z' < 2))))"));
+        primedInvs.put(BPredicate.of("x:NATURAL"), BPredicate.of("x′ : NATURAL"));
+        primedInvs.put(BPredicate.of("y:NAT"), BPredicate.of("y′ : NAT"));
+        primedInvs.put(BPredicate.of("z:INT"), BPredicate.of("z′ : INT"));
 
         assertEquals(primedInvs, pc.getPrimedInvariants(),
                 "Primed invariants mismatch");
