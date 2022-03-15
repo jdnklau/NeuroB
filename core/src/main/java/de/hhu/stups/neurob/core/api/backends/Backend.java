@@ -431,8 +431,13 @@ public abstract class Backend {
             msg = ((EvalResult) cmdres).getValue();
         } else if (cmdres instanceof ComputationNotCompletedResult) {
             // Could neither solve nor disprove the predicate in question
-            res = Answer.UNKNOWN;
-            msg = ((ComputationNotCompletedResult) cmdres).getReason();
+            ComputationNotCompletedResult notCompletedResult = (ComputationNotCompletedResult) cmdres;
+            msg = notCompletedResult.getReason();
+            if (msg.equals("time out")) {
+                res = Answer.TIMEOUT;
+            } else {
+                res = Answer.UNKNOWN;
+            }
         } else {
             // Technically, this branch should be unreachable.
             throw new IllegalStateException(
