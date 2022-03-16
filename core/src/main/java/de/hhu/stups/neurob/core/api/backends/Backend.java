@@ -433,7 +433,7 @@ public abstract class Backend {
             // Could neither solve nor disprove the predicate in question
             ComputationNotCompletedResult notCompletedResult = (ComputationNotCompletedResult) cmdres;
             msg = notCompletedResult.getReason();
-            if (msg.equals("time out")) {
+            if (msg != null && msg.equals("time out")) {
                 res = Answer.TIMEOUT;
             } else {
                 res = Answer.UNKNOWN;
