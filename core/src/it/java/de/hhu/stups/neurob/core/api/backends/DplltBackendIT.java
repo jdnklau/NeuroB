@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.core.api.backends;
 
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -22,17 +24,14 @@ class DplltBackendIT {
     }
 
     @Test
-    public void shouldBeDecidableForDpllt()
+    public void shouldBeDecidableForDplltWithCLPFD()
             throws FormulaException {
-        DplltBackend dpllt = new DplltBackend();
+        DplltBackend dpllt = new DplltBackend(BPreferences.set("CLPFD", "TRUE").assemble());
 
-        final BPredicate pred = BPredicate.of("x:INTEGER & y:INTEGER & x>y & y>x");
+        final BPredicate pred = BPredicate.of("a:INTEGER & b:INTEGER & a>b & b>a");
         AnnotatedAnswer answer = dpllt.solvePredicateUntimed(pred, bMachine);
 
-        assertEquals(Answer.INVALID, answer.getAnswer(),
-                "Could not decide trivial predicate with Z3; "
-                + "might indicate that  Z3 is not available "
-                + "in executing system.");
+        assertEquals(Answer.INVALID, answer.getAnswer());
 
     }
 

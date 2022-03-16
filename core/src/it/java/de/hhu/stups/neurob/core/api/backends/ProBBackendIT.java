@@ -6,6 +6,11 @@ import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.testharness.TestMachines;
+import de.prob.animator.domainobjects.ClassicalB;
+import de.prob.animator.domainobjects.EventB;
+import de.prob.animator.domainobjects.FormulaExpand;
+import de.prob.animator.domainobjects.IBEvalElement;
+import de.prob.animator.domainobjects.IEvalElement;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -211,5 +216,42 @@ class ProBBackendIT {
         Answer actual = prob.solvePredicate(pred, bMachine).getAnswer();
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldGenerateClassicalBFormula() throws FormulaException {
+        BPredicate pred = BPredicate.of("x:INT & x>3");
+
+        IEvalElement actual = Backend.generateBFormula(pred, bMachine);
+
+        assertAll(
+                () -> assertTrue(actual instanceof  ClassicalB),
+                () -> assertEquals(pred.getPredicate(), actual.getCode())
+        );
+    }
+
+    @Test
+    void shouldGenerateClassicalBFormulaWhenPrimed() throws FormulaException {
+        BPredicate pred = BPredicate.of("x′>y′ & y′>x′");
+
+        IEvalElement actual = Backend.generateBFormula(pred, bMachine);
+
+        assertAll(
+                () -> assertTrue(actual instanceof  ClassicalB),
+                () -> assertEquals(pred.getPredicate(), actual.getCode())
+        );
+    }
+
+    @Test
+    void shouldGenerateEventBFormulaWhenPrimed() throws FormulaException, MachineAccessException {
+        BPredicate pred = BPredicate.of("x'>y′ & y′>x'"); // Uses mixed priming symbols.
+
+        bMachine = new MachineAccess(Paths.get(TestMachines.EXAMPLE_BCM));
+        IEvalElement actual = Backend.generateBFormula(pred, bMachine);
+
+        assertAll(
+                () -> assertTrue(actual instanceof EventB),
+                () -> assertEquals(pred.getPredicate(), actual.getCode())
+        );
     }
 }
