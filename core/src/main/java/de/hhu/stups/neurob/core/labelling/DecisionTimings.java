@@ -31,9 +31,9 @@ public class DecisionTimings extends PredicateLabelling {
     private final TimeUnit timeUnit;
 
     /** Default time out set for predicate evaluation. */
-    public final static Long defaultTimeout = 20L;
+    public final static Long defaultTimeout = Backend.defaultTimeOut;
     /** Unit of defaultTimeout */
-    public final static TimeUnit defaultTimeoutUnit = TimeUnit.SECONDS;
+    public final static TimeUnit defaultTimeoutUnit = Backend.defaultTimeUnit;
 
     private final Backend[] usedBackends;
     private Map<Backend, Double> timings;
