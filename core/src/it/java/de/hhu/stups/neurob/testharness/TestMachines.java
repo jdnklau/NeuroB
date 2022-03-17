@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.testharness;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,7 @@ public class TestMachines {
     public static String EXAMPLE_BCM =
             getMachinePath("event-b/example/example.bcm");
 
-    private static Map<String, List<String>> expectedPredicates = new HashMap<>();
+    private static final Map<String, List<String>> expectedPredicates = new HashMap<>();
 
     /**
      * Generates the path to the src/it/resources/machines/machineName file.
@@ -42,9 +43,9 @@ public class TestMachines {
      * @return Correct path to machine resource at runtime.
      */
     public static String getMachinePath(String machineName) {
-        String machineSubPath = "machines/" + machineName;
-        return TestMachines.class.getClassLoader()
-                .getResource(machineSubPath).getFile();
+        Path directoryPath = TestResourceLoader.getResourcePath("machines");
+        Path fullPath = directoryPath.resolve(machineName);
+        return fullPath.toString();
     }
     /**
      * Generates the path to the src/it/resources/db/dbName file.
@@ -55,9 +56,9 @@ public class TestMachines {
      * @return Correct path to machine resource at runtime.
      */
     public static String getDbPath(String dbName) {
-        String machineSubPath = "db/" + dbName;
-        return TestMachines.class.getClassLoader()
-                .getResource(machineSubPath).getFile();
+        Path directoryPath = TestResourceLoader.getResourcePath("db");
+        Path fullPath = directoryPath.resolve(dbName);
+        return fullPath.toString();
     }
 
     /**
@@ -77,11 +78,10 @@ public class TestMachines {
             return expectedPredicates.get(listName);
         }
 
-        String fullPath = TestMachines.class.getClassLoader()
-                .getResource("expected_predicates/" + listName)
-                .getFile();
+        Path directoryPath = TestResourceLoader.getResourcePath("expected_predicates");
+        Path fullPath = directoryPath.resolve(listName);
 
-        Stream<String> lines = Files.lines(Paths.get(fullPath));
+        Stream<String> lines = Files.lines(fullPath);
         List<String> predicates = lines.collect(Collectors.toList());
         expectedPredicates.put(listName, predicates);
 

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class PredDbEntry extends PredicateLabelling {
@@ -256,17 +257,12 @@ public class PredDbEntry extends PredicateLabelling {
         if (o instanceof PredDbEntry) {
             PredDbEntry other = (PredDbEntry) o;
 
-            boolean predsEqual = this.pred == null
-                    ? other.pred == null
-                    : this.pred.equals(other.pred);
-            boolean resultsEqual = this.results == null
-                    ? other.results == null
-                    : this.results.equals(other.results);
-            boolean probRevisionsEqual = this.probRevision == null
-                    ? other.probRevision == null
-                    : this.probRevision.equals(other.probRevision);
+            boolean sourceEqual = Objects.equals(this.source, other.source);
+            boolean predEqual = Objects.equals(this.pred, other.pred);
+            boolean resultsEqual = Objects.equals(this.results, other.results);
+            boolean probRevisionEqual = Objects.equals(this.probRevision, other.probRevision);
 
-            return predsEqual && resultsEqual && probRevisionsEqual;
+            return predEqual && resultsEqual && probRevisionEqual && sourceEqual;
         }
 
 

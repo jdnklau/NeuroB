@@ -149,7 +149,7 @@ public class PredicateList implements PredicateDbFormat<PredDbEntry> {
         return reader.lines()
                 .map(s -> {
                     s = s.trim();
-                    if (s.startsWith(":: file")) {
+                    if (s.startsWith(":: source")) {
                         int fileNameStart = s.indexOf(' ', 3);
                         String fileName = s.substring(fileNameStart + 1);
                         source[0] = Paths.get(fileName);
