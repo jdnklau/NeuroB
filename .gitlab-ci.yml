@@ -4,9 +4,9 @@ image: $CI_REGISTRY_IMAGE
 variables:
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
-# Make the gradle wrapper executable.
 before_script:
-    - chmod +x gradlew
+    - chmod +x gradlew # Make the gradle wrapper executable.
+    - export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8 # Ensure UF8 encoding.
 
 build:
   stage: build
