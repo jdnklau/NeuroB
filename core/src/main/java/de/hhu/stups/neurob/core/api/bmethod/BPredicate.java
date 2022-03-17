@@ -1,6 +1,8 @@
 package de.hhu.stups.neurob.core.api.bmethod;
 
-public class BPredicate implements BElement {
+import org.jetbrains.annotations.NotNull;
+
+public class BPredicate implements BElement, Comparable<BPredicate> {
 
     private final String predicate;
 
@@ -46,5 +48,10 @@ public class BPredicate implements BElement {
             return o.equals(predicate);
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@NotNull BPredicate other) {
+        return predicate.compareTo(other.predicate);
     }
 }

@@ -329,7 +329,9 @@ public class PredicateTrainingGenerator
     public Stream<BPredicate> streamPredicatesFromCollection(
             PredicateCollection collection) {
         return generationRules.stream()
-                .flatMap(gen -> gen.apply(collection).stream());
+                .flatMap(gen -> gen.apply(collection).stream())
+                .sorted()
+                .distinct();
     }
 
     public void setAstCleanup(boolean cleanupActive) {
