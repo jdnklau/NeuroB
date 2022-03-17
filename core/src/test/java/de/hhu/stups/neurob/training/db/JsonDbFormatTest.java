@@ -8,6 +8,7 @@ import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.training.data.TrainingData;
 import de.hhu.stups.neurob.training.data.TrainingSample;
@@ -79,6 +80,26 @@ class JsonDbFormatTest {
      * format used by {@link JsonDbFormat}.
      *
      * @param pred
+     * @param source
+     * @param probLabel
+     * @param kodkodLabel
+     * @param z3Label
+     * @param smtLabel
+     *
+     * @return
+     */
+    private PredDbEntry getLabelling(String pred, Path source,
+            Answer probLabel, Answer kodkodLabel, Answer z3Label, Answer smtLabel) {
+        return getLabelling(pred, source, probLabel, kodkodLabel, z3Label, smtLabel,
+                new CliVersionNumber("0", "1", "2", "neurob",
+                        "revision-hash"));
+    }
+
+    /**
+     * Returns a {@link PredDbEntry} instance that conforms the labelling
+     * format used by {@link JsonDbFormat}.
+     *
+     * @param pred
      * @param probLabel
      * @param kodkodLabel
      * @param z3Label
@@ -89,6 +110,14 @@ class JsonDbFormatTest {
     private PredDbEntry getLabelling(String pred,
             Answer probLabel, Answer kodkodLabel, Answer z3Label, Answer smtLabel,
             CliVersionNumber cliVersion) {
+        return getLabelling(pred, null,
+                probLabel, kodkodLabel, z3Label, smtLabel,
+                cliVersion);
+    }
+
+    private PredDbEntry getLabelling(String pred, Path source,
+            Answer probLabel, Answer kodkodLabel, Answer z3Label, Answer smtLabel,
+            CliVersionNumber cliVersion) {
         // Prepare timing map
         Map<Backend, TimedAnswer> timings = new HashMap<>();
         timings.put(BACKENDS_USED[0], new TimedAnswer(probLabel, 100L));
@@ -96,7 +125,8 @@ class JsonDbFormatTest {
         timings.put(BACKENDS_USED[2], new TimedAnswer(z3Label, 300L));
         timings.put(BACKENDS_USED[3], new TimedAnswer(smtLabel, 400L));
 
-        return new PredDbEntry(BPredicate.of(pred), null, BACKENDS_USED, timings, cliVersion);
+        BMachine sourceMch = (source != null) ? new BMachine(source) : null;
+        return new PredDbEntry(BPredicate.of(pred), sourceMch, BACKENDS_USED, timings, cliVersion);
     }
 
     private PredDbEntry getLabelling(String pred) {
@@ -119,19 +149,21 @@ class JsonDbFormatTest {
         String fileUrl = JsonDbFormatTest.class.getClassLoader()
                 .getResource("db/predicates/example.json").getFile();
         Path dbFile = Paths.get(fileUrl);
+        Path src = Paths.get("non/existent.mch");
+        Path src2 = Paths.get("other/non/existent.mch");
 
         TrainingSample<BPredicate, PredDbEntry> sample1 = new TrainingSample<>(
                 new BPredicate("pred1"),
-                getLabelling("pred1", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
-                Paths.get("non/existent.mch"));
+                getLabelling("pred1", src, Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
+                src);
         TrainingSample<BPredicate, PredDbEntry> sample2 = new TrainingSample<>(
                 new BPredicate("pred1"),
-                getLabelling("pred1", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
-                Paths.get("non/existent.mch"));
+                getLabelling("pred1", src, Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
+                src);
         TrainingSample<BPredicate, PredDbEntry> sample3 = new TrainingSample<>(
                 new BPredicate("pred1"),
-                getLabelling("pred1", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
-                Paths.get("other/non/existent.mch"));
+                getLabelling("pred1", src2, Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
+                src2);
 
         List<TrainingSample> expected = new ArrayList<>();
         expected.add(sample1);
@@ -159,7 +191,9 @@ class JsonDbFormatTest {
 
         TrainingSample<BPredicate, PredDbEntry> expected = new TrainingSample<>(
                 new BPredicate("pred"),
-                getLabelling("pred", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
+                getLabelling("pred",
+                        BEVERAGE_VENDING_MACHINE,
+                        Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN),
                 BEVERAGE_VENDING_MACHINE);
         TrainingSample<BPredicate, PredDbEntry> actual = iter.next();
 
@@ -693,7 +727,7 @@ class JsonDbFormatTest {
 
     private TrainingSample<BPredicate, PredDbEntry> getSample(Path source) {
         BPredicate pred = new BPredicate("pred");
-        PredDbEntry labels = getLabelling("pred", Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN);
+        PredDbEntry labels = getLabelling("pred", source, Answer.VALID, Answer.VALID, Answer.VALID, Answer.UNKNOWN);
 
         return new TrainingSample<>(pred, labels, source);
     }

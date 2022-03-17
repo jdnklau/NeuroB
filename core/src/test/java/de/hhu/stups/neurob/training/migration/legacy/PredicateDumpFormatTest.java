@@ -54,7 +54,10 @@ class PredicateDumpFormatTest {
         Backend[] backends = PredicateDump.BACKENDS_USED; // shortcut
         sample0 = new TrainingSample<>(
                 new BPredicate("null:PREDICATES"),
-                new PredDbEntry(new BPredicate("null:PREDICATES"), null, backends, timings));
+                new PredDbEntry(
+                        new BPredicate("null:PREDICATES"),
+                        new BMachine((Path) null),
+                        backends, timings));
         sample1 = new TrainingSample<>(
                 new BPredicate("first:PREDICATES"),
                 new PredDbEntry(
