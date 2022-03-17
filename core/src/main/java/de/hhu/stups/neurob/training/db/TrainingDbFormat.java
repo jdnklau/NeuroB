@@ -34,28 +34,40 @@ public interface TrainingDbFormat<D, L extends Labelling>
      * @throws IOException
      */
     default Stream<TrainingData<D, L>> loadTrainingData(Path source) throws IOException {
-        final Logger log = LoggerFactory.getLogger(TrainingDbFormat.class);
         return Files.walk(source)
                 .filter(Files::isRegularFile)
                 .filter(p -> p.toString().endsWith(getFileExtension())) // only account for matching files
-                .map(dbFile ->
-                {
-                    try {
-                        // Check whether file is valid
-                        if (!this.isValidFile(dbFile)) {
-                            log.warn("Found invalid file {}", dbFile);
-                            return null;
-                        }
-                        return new TrainingData<>(
-                                this.getDataSource(dbFile),
-                                this.loadSamples(dbFile)); // FIXME: Is this getting properly closed?
-                    } catch (IOException e) {
-                        log.error("Unable to access {}", dbFile, e);
-                        return null;
-                    }
-                })
+                .map(this::loadTrainingDataFromFile)
                 .filter(Objects::nonNull);
     }
+
+    /**
+     * Streams Training Data from the source file.
+     * <p>
+     * As this is an IO access to the given source, the stream needs to be closed
+     * after use.
+     *
+     * @param dbFile
+     *
+     * @return
+     */
+    default TrainingData<D, L> loadTrainingDataFromFile(Path dbFile) {
+        final Logger log = LoggerFactory.getLogger(TrainingDbFormat.class);
+        try {
+            // Check whether file is valid
+            if (!this.isValidFile(dbFile)) {
+                log.warn("Found invalid file {}", dbFile);
+                return null;
+            }
+            return new TrainingData<>(
+                    this.getDataSource(dbFile),
+                    this.loadSamples(dbFile)); // FIXME: Is this getting properly closed?
+        } catch (IOException e) {
+            log.error("Unable to access {}", dbFile, e);
+            return null;
+        }
+    }
+
 
     /**
      * Retrieves the original path of the B machine from which the dbFile was created.

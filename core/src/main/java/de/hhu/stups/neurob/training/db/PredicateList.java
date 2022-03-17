@@ -38,6 +38,8 @@ import java.util.stream.Stream;
  */
 public class PredicateList implements PredicateDbFormat<PredDbEntry> {
 
+    public static String EXT = "predlist.txt";
+
     private static final Logger log =
             LoggerFactory.getLogger(PredicateList.class);
 
@@ -168,6 +170,6 @@ public class PredicateList implements PredicateDbFormat<PredDbEntry> {
 
     @Override
     public String getFileExtension() {
-        return "predlist.txt";
+        return EXT;
     }
 }
