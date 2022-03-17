@@ -21,8 +21,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -98,9 +101,15 @@ public class PredicateList implements PredicateDbFormat<PredDbEntry> {
         writer.write(getMachineHash(trainingData.getAbsoluteSourcePath()));
         writer.write("\n");
 
-        trainingData.getSamples().forEach(s -> {
+        // Sort data and make them unique.
+        Stream<String> samplePredicates = trainingData.getSamples()
+                .map(TrainingSample::getData)
+                .map(BPredicate::getPredicate)
+                .sorted().distinct();
+
+        samplePredicates.forEach(s -> {
             try {
-                writer.write(s.getData().getPredicate());
+                writer.write(s);
                 writer.write("\n");
                 stats.increaseSamplesWritten();
             } catch (IOException e) {
