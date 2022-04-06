@@ -8,6 +8,7 @@ import java.util.Map;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
@@ -47,11 +48,19 @@ public class PredicateCollection {
 
     private MachineAccess bMachine;
 
+    private final boolean cleanAst;
+
     private static final Logger log =
             LoggerFactory.getLogger(PredicateCollection.class);
 
     public PredicateCollection(MachineAccess bMachine) {
+        this(bMachine, false);
+    }
+
+    public PredicateCollection(MachineAccess bMachine, boolean cleanAst) {
         this.bMachine = bMachine;
+
+        this.cleanAst = cleanAst;
 
         invariants = new ArrayList<>();
         operations = new ArrayList<>();
@@ -95,7 +104,9 @@ public class PredicateCollection {
             else
                 invariants.add(BPredicate.of(x.getFormula().getCode()));
         }
-        // Conjunct invariants if more then one
+        invariants = cleanUpPredicates(bMachine, invariants);
+
+        // Conjunct invariants if more than one
         BPredicate invariantConcat = null;
         if (invariants.size() > 1) {
             invariantConcat =
@@ -109,6 +120,7 @@ public class PredicateCollection {
         for (Assertion x : comp.getChildrenOfType(Assertion.class)) {
             assertions.add(BPredicate.of(x.getFormula().getCode()));
         }
+        assertions = cleanUpPredicates(bMachine, assertions);
 
         // for each event collect preconditions
         log.trace("Collecting operations and preconditions");
@@ -265,6 +277,31 @@ public class PredicateCollection {
             properties.add(BPredicate.of(x.getFormula().getCode()));
         }
 
+    }
+
+    /**
+     * Cleans the AST of the given Predicates.
+     *
+     * @param mch
+     * @param predicates
+     * @return
+     */
+    private List<BPredicate> cleanUpPredicates(MachineAccess mch, List<BPredicate> predicates) {
+        if (!cleanAst) {
+            return predicates;
+        }
+
+        List<BPredicate> cleaned = new ArrayList<>();
+
+        for (BPredicate p : predicates) {
+            try {
+                cleaned.add(FormulaGenerator.cleanupAst(bMachine, p));
+            } catch (FormulaException e) {
+                log.warn("Unable to cleanup ast of {}", p, e);
+            }
+        }
+
+        return cleaned;
     }
 
     /**

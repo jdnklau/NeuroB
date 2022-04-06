@@ -1,7 +1,9 @@
 package de.hhu.stups.neurob.training.generation.util;
 
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
+import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.testharness.TestMachines;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -351,5 +353,22 @@ class PredicateCollectionIT {
 
         assertEquals(properties, pcEventB.getProperties(),
                 "Axioms not correctly loaded as properties");
+    }
+
+    @Test
+    void shouldLoadAndInlineDefinitions() throws MachineAccessException {
+        BMachine mch = new BMachine(TestMachines.DEFINITION_MCH);
+        PredicateCollection pc = new PredicateCollection(mch.spawnMachineAccess(), true);
+
+        String expectedInv = "x < y * 314";
+        String expectedBA = "x′ = 314 * (y * y) + x * x & y′ = y";
+
+        String actualInv = pc.getInvariants().get(2).toString();
+        String actualBA = pc.getBeforeAfterPredicates().get("foo").toString();
+
+        assertAll(
+                () -> assertEquals(expectedInv, actualInv),
+                () -> assertEquals(expectedBA, actualBA)
+        );
     }
 }

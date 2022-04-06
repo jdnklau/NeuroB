@@ -32,6 +32,9 @@ public class TestMachines {
     public static String EXAMPLE_BCM =
             getMachinePath("event-b/example/example.bcm");
 
+    public static String DEFINITION_MCH =
+            getMachinePath("definitions.mch");
+
     private static final Map<String, List<String>> expectedPredicates = new HashMap<>();
 
     /**

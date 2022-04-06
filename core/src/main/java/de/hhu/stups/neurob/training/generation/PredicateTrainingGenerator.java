@@ -270,7 +270,7 @@ public class PredicateTrainingGenerator
         MachineAccess bMachine;
         try {
             bMachine = new MachineAccess(file);
-            pc = new PredicateCollection(bMachine);
+            pc = new PredicateCollection(bMachine, isAstCleanup);
         } catch (MachineAccessException e) {
             log.warn("Could not load {}; no predicates generated", file, e);
             return Stream.empty();
