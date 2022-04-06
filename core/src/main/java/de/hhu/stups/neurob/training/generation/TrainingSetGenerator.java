@@ -90,7 +90,8 @@ public abstract class TrainingSetGenerator {
      * @param targetDir path to target directory
      * @param lazy whether existing training data should be kept
      *         (<code>true</code>) or freshly generated.
-     * @param excluded Collection of excluded paths (either files or directories) relative to source
+     * @param excluded Collection of excluded paths (either files or directories) relative
+     *         to source
      */
     public <F extends Features, L extends Labelling>
     DataGenerationStats generateTrainingData(
@@ -106,10 +107,12 @@ public abstract class TrainingSetGenerator {
             sourceFiles.collect(Collectors.toList())
                     .parallelStream()
                     .filter(file -> file.toString().endsWith(".mch")
+                                    || file.toString().endsWith(".imp")
+                                    || file.toString().endsWith(".ref")
                                     || file.toString().endsWith(".bcm"))
                     // Skip excluded files
                     .filter(path -> !excluded.stream().anyMatch(
-                                    ex -> stripCommonSourceDir(path, source).startsWith(ex)))
+                            ex -> stripCommonSourceDir(path, source).startsWith(ex)))
                     // Only create if non-lazy or non-existent
                     .filter(file -> {
                         boolean nonexistent = !lazy || !dataAlreadyExists(file,
