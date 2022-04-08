@@ -299,6 +299,7 @@ public class PredicateTrainingGenerator
      */
     public Stream<BPredicate> streamPredicatesFromFile(BMachine bMachine) throws MachineAccessException {
         MachineAccess access = bMachine.spawnMachineAccess();
+        log.info("Collecting predicate stream from {}", bMachine);
         PredicateCollection pc = new PredicateCollection(access);
         return streamPredicatesFromCollection(pc)
                 .onClose(access::close);

@@ -91,13 +91,13 @@ public class PredicateCollection {
     private void collectFromMachine(MachineAccess bMachine) {
         AbstractElement comp = bMachine.getStateSpace().getMainComponent();
         // properties
-        log.trace("Collecting properties");
+        log.trace("Collecting properties from {}", bMachine.getSource());
         for (Property x : comp.getChildrenOfType(Property.class)) {
             properties.add(BPredicate.of(x.getFormula().getCode()));
         }
 
         // add invariants
-        log.trace("Collecting invariants");
+        log.trace("Collecting invariants from {}", bMachine.getSource());
         for (Invariant x : comp.getChildrenOfType(Invariant.class)) {
             if (x.isTheorem())
                 assertions.add(BPredicate.of(x.getFormula().getCode()));
@@ -116,20 +116,20 @@ public class PredicateCollection {
 
         BPredicate fullInv = FormulaGenerator.getPredicateConjunction(invariants);
 
-        log.trace("Collecting assertions");
+        log.trace("Collecting assertions from {}", bMachine.getSource());
         for (Assertion x : comp.getChildrenOfType(Assertion.class)) {
             assertions.add(BPredicate.of(x.getFormula().getCode()));
         }
         assertions = cleanUpPredicates(bMachine, assertions);
 
         // for each event collect preconditions
-        log.trace("Collecting operations and preconditions");
+        log.trace("Collecting operations and preconditions from {}", bMachine.getSource());
         for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
             if (x.getName().equals("INITIALISATION"))
                 continue; // None for initialisation
             operations.add(x.getName());
 
-            log.trace("Collecting preconditions for {}", x.getName());
+            log.trace("Collecting preconditions for {} in {}", x.getName(), bMachine.getSource());
             ArrayList<BPredicate> event = new ArrayList<>();
             for (Guard g : x.getChildrenOfType(Guard.class)) {
                 event.add(BPredicate.of(g.getFormula().getCode()));
@@ -142,12 +142,12 @@ public class PredicateCollection {
         Map<BPredicate, IBEvalElement> invCmds = new HashMap<>();
         for (BPredicate inv : invariants) {
             try {
-            IBEvalElement cmd = Backend.generateBFormula(inv, bMachine);
-            invCmds.put(inv, cmd);
+                IBEvalElement cmd = Backend.generateBFormula(inv, bMachine);
+                invCmds.put(inv, cmd);
             } catch (FormulaException e) {
-                log.warn("Could not set up EvalElement from {} for "
+                log.warn("Could not set up EvalElement from {} in {} for "
                          + "weakest precondition calculation or priming",
-                        inv, e);
+                        inv, bMachine.getSource(), e);
             }
         }
         IBEvalElement fullInvCmd = null;
@@ -156,12 +156,13 @@ public class PredicateCollection {
                 fullInvCmd = Backend.generateBFormula(invariantConcat, bMachine);
             } catch (FormulaException e) {
                 log.warn("Could not set up EvalElement from invariant concatenation for "
-                         + "weakest precondition calculation or priming", e);
+                         + "weakest precondition calculation or priming in {}",
+                        bMachine.getSource(), e);
             }
         }
 
         // weakest preconditions for each invariant
-        log.trace("Building weakest preconditions");
+        log.trace("Building weakest preconditions for {}", bMachine.getSource());
         for (BEvent x : comp.getChildrenOfType(BEvent.class)) {
             if (x.getName().equals("INITIALISATION"))
                 continue; // None for initialisation
@@ -179,9 +180,9 @@ public class PredicateCollection {
                             .replaceAll("/\\*.*\\*/ *", "");
                     wpcs.put(inv, BPredicate.of(code));
                 } catch (Exception e) {
-                    log.warn("Could not build weakest precondition"
-                             + "for {} by operation {}.",
-                            invCmd.getCode(), x.getName(), e);
+                    log.warn("Could not build weakest precondition "
+                             + "for {} by operation {} in {}.",
+                            invCmd.getCode(), x.getName(), bMachine.getSource(), e);
                 }
 
             }
@@ -199,8 +200,8 @@ public class PredicateCollection {
                     weakestFullPreconditions.put(x.getName(), BPredicate.of(code));
                 } catch (Exception e) {
                     log.warn("Could not build weakest precondition"
-                             + "for full invariant {} by operation {}.",
-                            fullInv, x.getName(), e);
+                             + "for full invariant {} by operation {} in {}.",
+                            fullInv, x.getName(), bMachine.getSource(), e);
                 }
             }
 
@@ -223,8 +224,8 @@ public class PredicateCollection {
                         .replaceAll("/\\*.*\\*/ *", "");
                 beforeAfterPredicates.put(x.getName(), BPredicate.of(code));
             } catch (Exception e) {
-                log.warn("Could not build Before After Predicate for event {}.",
-                        x.getName(), e);
+                log.warn("Could not build Before After Predicate for event {} in {}",
+                        x.getName(), bMachine.getSource(), e);
             }
         }
 
@@ -240,8 +241,8 @@ public class PredicateCollection {
                         BPredicate code = FormulaGenerator.generatePrimedPredicate(bMachine, cmd);
                         primedPrecs.add(code);
                     } catch (Exception e) {
-                        log.warn("Could not prime precondition for event {}.",
-                                x.getName(), e);
+                        log.warn("Could not prime precondition for event {} in {}",
+                                x.getName(), bMachine.getSource(), e);
                     }
                 }
             }
@@ -249,14 +250,14 @@ public class PredicateCollection {
         }
 
         // primed invariants
-        log.trace("Building primed invariants");
+        log.trace("Building primed invariants for {}", bMachine.getMachineType());
         for (BPredicate inv : invCmds.keySet()) {
             IBEvalElement invCmd = invCmds.get(inv);
             try {
                 BPredicate primedInv = FormulaGenerator.generatePrimedPredicate(bMachine, invCmd);
                 primedInvariants.put(inv, primedInv);
             } catch (Exception e) {
-                log.warn("Could not build primed invariant from {}", inv, e);
+                log.warn("Could not build primed invariant for {} from {}", inv, bMachine.getSource(), e);
             }
         }
 
@@ -284,6 +285,7 @@ public class PredicateCollection {
      *
      * @param mch
      * @param predicates
+     *
      * @return
      */
     private List<BPredicate> cleanUpPredicates(MachineAccess mch, List<BPredicate> predicates) {
