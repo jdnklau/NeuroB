@@ -28,6 +28,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -1533,6 +1534,190 @@ public class FormulaGeneratorTest {
         String actual = cleanup.getPredicate();
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldNotFailIfBeforeAfterPredicatesAreNotPresent() throws MachineAccessException {
+        // This is a regression test to mark a bug.
+
+        when(pc.getBeforeAfterPredicates()).thenReturn(new HashMap<>());
+        pc.getBeforeAfterPredicates(); // Use up the initial call
+        List<String> formulae = FormulaGenerator.weakestPreconditionFormulae(pc)
+                .stream()
+                .map(BPredicate::toString)
+                .collect(Collectors.toList());
+
+        List<String> expected = new ArrayList<>();
+        String commonPre = "(properties) & (invariant1) & (invariant2)";
+        String op1precondition = "((operation1-precondition1) & (operation1-precondition2))";
+        String op2precondition = "((operation2-precondition1) & (operation2-precondition2))";
+        String pinv = "((invariant1') & (invariant2'))";
+        // operation1 - invariant 1
+        expected.add(commonPre + " & (operation1-invariant1-weakestpre)");
+        expected.add(commonPre + " & " + op1precondition + " & (operation1-invariant1-weakestpre)");
+        expected.add(commonPre + " & not(operation1-invariant1-weakestpre)");
+        expected.add(commonPre + " & " + op1precondition + " & not(operation1-invariant1-weakestpre)");
+        expected.add("(" + commonPre + " & " + op1precondition + ") => (operation1-invariant1-weakestpre)");
+        expected.add("(" + commonPre + " & " + op1precondition + ") => not(operation1-invariant1-weakestpre)");
+        expected.add("not(" + commonPre + ") & " + op1precondition + " & (operation1-invariant1-weakestpre)");
+        // operation1 - invariant 2
+        expected.add(commonPre + " & (operation1-invariant2-weakestpre)");
+        expected.add(commonPre + " & " + op1precondition + " & (operation1-invariant2-weakestpre)");
+        expected.add(commonPre + " & not(operation1-invariant2-weakestpre)");
+        expected.add(commonPre + " & " + op1precondition + " & not(operation1-invariant2-weakestpre)");
+        expected.add("(" + commonPre + " & " + op1precondition + ") => (operation1-invariant2-weakestpre)");
+        expected.add("(" + commonPre + " & " + op1precondition + ") => not(operation1-invariant2-weakestpre)");
+        expected.add("not(" + commonPre + ") & " + op1precondition + " & (operation1-invariant2-weakestpre)");
+        // operation1 - full invariant
+        String fwpc1 = "(operation1-((invariant1) & (invariant2))-weakestpre)";
+        expected.add(commonPre + " & " + fwpc1);
+        expected.add(commonPre + " & not" + fwpc1);
+        expected.add("(" + commonPre + ") => " + fwpc1);
+        expected.add("(" + commonPre + ") => not" + fwpc1);
+        expected.add("not(" + commonPre + ") & " + fwpc1);
+        // operation1 - co-enabledness
+        String fwpc2 = "(operation2-((invariant1) & (invariant2))-weakestpre)";
+        expected.add(commonPre + " & " + fwpc1 + " & " + fwpc2);
+        expected.add(commonPre + " & " + fwpc1 + " & not" + fwpc2 + "");
+        expected.add(commonPre + " & not" + fwpc1 + " & " + fwpc2);
+        expected.add("(" + commonPre + " & " + fwpc1 + ") => " + fwpc2);
+        expected.add("(" + commonPre + " & " + fwpc2 + ") => " + fwpc1);
+        expected.add("(" + commonPre + " & " + fwpc1 + ") => not" + fwpc2);
+        expected.add("(" + commonPre + " & " + fwpc2 + ") => not" + fwpc1);
+
+
+        // operation2 - invariant 1
+        expected.add(commonPre + " & (operation2-invariant1-weakestpre)");
+        expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant1-weakestpre)");
+        expected.add(commonPre + " & not(operation2-invariant1-weakestpre)");
+        expected.add(commonPre + " & " + op2precondition + " & not(operation2-invariant1-weakestpre)");
+        expected.add("(" + commonPre + " & " + op2precondition + ") => (operation2-invariant1-weakestpre)");
+        expected.add("(" + commonPre + " & " + op2precondition + ") => not(operation2-invariant1-weakestpre)");
+        expected.add("not(" + commonPre + ") & " + op2precondition + " & (operation2-invariant1-weakestpre)");
+        // operation2 - invariant 2
+        expected.add(commonPre + " & (operation2-invariant2-weakestpre)");
+        expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant2-weakestpre)");
+        expected.add(commonPre + " & not(operation2-invariant2-weakestpre)");
+        expected.add(commonPre + " & " + op2precondition + " & not(operation2-invariant2-weakestpre)");
+        expected.add("(" + commonPre + " & " + op2precondition + ") => (operation2-invariant2-weakestpre)");
+        expected.add("(" + commonPre + " & " + op2precondition + ") => not(operation2-invariant2-weakestpre)");
+        expected.add("not(" + commonPre + ") & " + op2precondition + " & (operation2-invariant2-weakestpre)");
+        // operation2 - full invariant
+        expected.add(commonPre + " & " + fwpc2);
+        expected.add(commonPre + " & not" + fwpc2);
+        expected.add("(" + commonPre + ") => " + fwpc2);
+        expected.add("(" + commonPre + ") => not" + fwpc2);
+        expected.add("not(" + commonPre + ") & " + fwpc2);
+
+        Collections.sort(expected);
+        Collections.sort(formulae);
+
+        assertAll(
+                () -> assertEquals(expected.size(), formulae.size(),
+                        "Number of formulae does not match"),
+                () -> assertEquals(expected, formulae,
+                        "Generated predicates are not correct")
+        );
+    }
+
+    @Test
+    void shouldNotFailIfNotAllBeforeAfterPredicatesArePresent() throws MachineAccessException {
+        {
+            // This is a regression test to mark a bug.
+            beforeAfterPredicates.remove("operation1"); // Pretend this was not generated.
+
+            List<String> formulae = FormulaGenerator.weakestPreconditionFormulae(pc)
+                    .stream()
+                    .map(BPredicate::toString)
+                    .collect(Collectors.toList());
+
+            List<String> expected = new ArrayList<>();
+            String commonPre = "(properties) & (invariant1) & (invariant2)";
+            String op1precondition = "((operation1-precondition1) & (operation1-precondition2))";
+            String op2precondition = "((operation2-precondition1) & (operation2-precondition2))";
+            String op2ba = "(operation2-beforeafter)";
+            String pinv = "((invariant1') & (invariant2'))";
+            // operation1 - invariant 1
+            expected.add(commonPre + " & (operation1-invariant1-weakestpre)");
+            expected.add(commonPre + " & " + op1precondition + " & (operation1-invariant1-weakestpre)");
+            expected.add(commonPre + " & not(operation1-invariant1-weakestpre)");
+            expected.add(commonPre + " & " + op1precondition + " & not(operation1-invariant1-weakestpre)");
+            expected.add("(" + commonPre + " & " + op1precondition + ") => (operation1-invariant1-weakestpre)");
+            expected.add("(" + commonPre + " & " + op1precondition + ") => not(operation1-invariant1-weakestpre)");
+            expected.add("not(" + commonPre + ") & " + op1precondition + " & (operation1-invariant1-weakestpre)");
+            // operation1 - invariant 2
+            expected.add(commonPre + " & (operation1-invariant2-weakestpre)");
+            expected.add(commonPre + " & " + op1precondition + " & (operation1-invariant2-weakestpre)");
+            expected.add(commonPre + " & not(operation1-invariant2-weakestpre)");
+            expected.add(commonPre + " & " + op1precondition + " & not(operation1-invariant2-weakestpre)");
+            expected.add("(" + commonPre + " & " + op1precondition + ") => (operation1-invariant2-weakestpre)");
+            expected.add("(" + commonPre + " & " + op1precondition + ") => not(operation1-invariant2-weakestpre)");
+            expected.add("not(" + commonPre + ") & " + op1precondition + " & (operation1-invariant2-weakestpre)");
+            // operation1 - full invariant
+            String fwpc1 = "(operation1-((invariant1) & (invariant2))-weakestpre)";
+            expected.add(commonPre + " & " + fwpc1);
+            expected.add(commonPre + " & not" + fwpc1);
+            expected.add("(" + commonPre + ") => " + fwpc1);
+            expected.add("(" + commonPre + ") => not" + fwpc1);
+            expected.add("not(" + commonPre + ") & " + fwpc1);
+            // operation1 - co-enabledness
+            String fwpc2 = "(operation2-((invariant1) & (invariant2))-weakestpre)";
+            expected.add(commonPre + " & " + fwpc1 + " & " + fwpc2);
+            expected.add(commonPre + " & " + fwpc1 + " & not" + fwpc2 + "");
+            expected.add(commonPre + " & not" + fwpc1 + " & " + fwpc2);
+            expected.add("(" + commonPre + " & " + fwpc1 + ") => " + fwpc2);
+            expected.add("(" + commonPre + " & " + fwpc2 + ") => " + fwpc1);
+            expected.add("(" + commonPre + " & " + fwpc1 + ") => not" + fwpc2);
+            expected.add("(" + commonPre + " & " + fwpc2 + ") => not" + fwpc1);
+
+
+            // operation2 - invariant 1
+            expected.add(commonPre + " & (operation2-invariant1-weakestpre)");
+            expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant1-weakestpre)");
+            expected.add(commonPre + " & not(operation2-invariant1-weakestpre)");
+            expected.add(commonPre + " & " + op2precondition + " & not(operation2-invariant1-weakestpre)");
+            expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant1-weakestpre) & "
+                         + op2ba + " & " + pinv);
+            expected.add(commonPre + " & (operation2-invariant1-weakestpre) & "
+                         + op2ba + " & " + pinv);
+            expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant1-weakestpre) & "
+                         + op2ba + " & not" + pinv);
+            expected.add("(" + commonPre + " & " + op2precondition + ") => (operation2-invariant1-weakestpre)");
+            expected.add("(" + commonPre + " & " + op2precondition + ") => not(operation2-invariant1-weakestpre)");
+            expected.add("not(" + commonPre + ") & " + op2precondition + " & (operation2-invariant1-weakestpre)");
+            // operation2 - invariant 2
+            expected.add(commonPre + " & (operation2-invariant2-weakestpre)");
+            expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant2-weakestpre)");
+            expected.add(commonPre + " & not(operation2-invariant2-weakestpre)");
+            expected.add(commonPre + " & " + op2precondition + " & not(operation2-invariant2-weakestpre)");
+            expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant2-weakestpre) & "
+                         + op2ba + " & " + pinv);
+            expected.add(commonPre + " & (operation2-invariant2-weakestpre) & "
+                         + op2ba + " & " + pinv);
+            expected.add(commonPre + " & " + op2precondition + " & (operation2-invariant2-weakestpre) & "
+                         + op2ba + " & not" + pinv + "");
+            expected.add("(" + commonPre + " & " + op2precondition + ") => (operation2-invariant2-weakestpre)");
+            expected.add("(" + commonPre + " & " + op2precondition + ") => not(operation2-invariant2-weakestpre)");
+            expected.add("not(" + commonPre + ") & " + op2precondition + " & (operation2-invariant2-weakestpre)");
+            // operation2 - full invariant
+            expected.add(commonPre + " & " + fwpc2);
+            expected.add(commonPre + " & not" + fwpc2);
+            expected.add(commonPre + " & " + fwpc2 + " & " + op2ba + " & " + pinv);
+            expected.add(commonPre + " & " + fwpc2 + " & " + op2ba + " & not" + pinv);
+            expected.add("(" + commonPre + ") => " + fwpc2);
+            expected.add("(" + commonPre + ") => not" + fwpc2);
+            expected.add("not(" + commonPre + ") & " + fwpc2);
+
+            Collections.sort(expected);
+            Collections.sort(formulae);
+
+            assertAll(
+                    () -> assertEquals(expected.size(), formulae.size(),
+                            "Number of formulae does not match"),
+                    () -> assertEquals(expected, formulae,
+                            "Generated predicates are not correct")
+            );
+        }
     }
 
 }

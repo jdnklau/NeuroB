@@ -848,7 +848,12 @@ public class FormulaGenerator {
 
         for(int i=0; i<operations.size(); i++) {
             String op = operations.get(i);
-            String ba = "(" + beforeAfterPreds.get(op).getPredicate() + ")";
+
+            // Need to check whether we could generate the before/after predicate for the operation
+            String ba = null;
+            if (beforeAfterPreds.containsKey(op)) {
+                ba = "(" + beforeAfterPreds.get(op).getPredicate() + ")";
+            }
 
             String g = "(" + preconditions.getOrDefault(op, new BPredicate("btrue")).getPredicate() + ")";
 
@@ -876,7 +881,7 @@ public class FormulaGenerator {
                     formulae.add("not(" + PropsAndInvs + ") & " + g + and + wpc);
                 }
 
-                if (pc.getInvariants().size() > 0) {
+                if (pc.getInvariants().size() > 0 && ba != null) {
                     // following formulae only make sense if we have a non-empty invariant
 
                     // weakest precondition holds and kills invariant
@@ -906,7 +911,7 @@ public class FormulaGenerator {
                 formulae.add("not(" + PropsAndInvs + ")" + and + fwpc);
             }
 
-            if (pc.getInvariants().size() > 0) {
+            if (pc.getInvariants().size() > 0 && ba != null) {
                 // weakest precondition holds and preserves invariant
                 formulae.add(PropsAndInvsAnd + fwpc + and + ba + andPInv);
                 // weakest precondition holds and kills invariant
