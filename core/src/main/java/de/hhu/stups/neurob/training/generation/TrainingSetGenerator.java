@@ -107,8 +107,8 @@ public abstract class TrainingSetGenerator {
             sourceFiles.collect(Collectors.toList())
                     .parallelStream()
                     .filter(file -> file.toString().endsWith(".mch")
-                                    || file.toString().endsWith(".imp")
-                                    || file.toString().endsWith(".ref")
+//                                    || file.toString().endsWith(".imp")
+//                                    || file.toString().endsWith(".ref")
                                     || file.toString().endsWith(".bcm"))
                     // Skip excluded files
                     .filter(path -> !excluded.stream().anyMatch(
