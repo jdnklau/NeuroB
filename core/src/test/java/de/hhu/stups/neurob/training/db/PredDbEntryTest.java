@@ -7,6 +7,7 @@ import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
@@ -142,6 +143,26 @@ class PredDbEntryTest {
         Backend backend = mock(Backend.class);
         when(backend.solvePredicate(any(), any(), any(), any()))
                 .thenReturn(new TimedAnswer(Answer.VALID, 10L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 10L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 20L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 30L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 80L));
+
+        PredDbEntry.Generator generator =
+                new PredDbEntry.Generator(4, null, null, (Backend[]) null);
+
+        TimedAnswer expected = new TimedAnswer(Answer.VALID, 35L);
+        TimedAnswer actual = generator.samplePredicate(null, backend, null);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldIgnoreFirstValueDuringSampling() throws FormulaException, LabelCreationException {
+        Backend backend = mock(Backend.class);
+        when(backend.solvePredicate(any(), any(), any(), any()))
+                .thenReturn(new TimedAnswer(Answer.VALID, 100000000L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 10L))
                 .thenReturn(new TimedAnswer(Answer.VALID, 20L))
                 .thenReturn(new TimedAnswer(Answer.VALID, 30L))
                 .thenReturn(new TimedAnswer(Answer.VALID, 80L));
@@ -160,22 +181,26 @@ class PredDbEntryTest {
         // Set up two backends to call
         Backend back1 = mock(Backend.class);
         when(back1.solvePredicate(any(), any(), any(), any()))
+                .thenReturn(new TimedAnswer(Answer.VALID, 10_000L)) // Skipped in sampling.
                 .thenReturn(new TimedAnswer(Answer.VALID, 10L))
                 .thenReturn(new TimedAnswer(Answer.VALID, 20L));
+        when(back1.getPreferences()).thenReturn(new BPreferences());
         Backend back2 = mock(Backend.class);
         when(back2.solvePredicate(any(), any(), any(), any()))
+                .thenReturn(new TimedAnswer(Answer.VALID, 10_000L)) // Skipped in sampling.
                 .thenReturn(new TimedAnswer(Answer.INVALID, 30L))
                 .thenReturn(new TimedAnswer(Answer.INVALID, 40L));
+        when(back2.getPreferences()).thenReturn(new BPreferences());
         Backend[] backends = {back1, back2};
 
         PredDbEntry.Generator generator =
                 new PredDbEntry.Generator(2, null, null, null, backends);
 
         PredDbEntry expected = new PredDbEntry(BPredicate.of("pred"),
-                null, backends,
+                BMachine.EMPTY, backends,
                 new TimedAnswer(Answer.VALID, 15L),
                 new TimedAnswer(Answer.INVALID, 35L));
-        PredDbEntry actual = generator.generate(BPredicate.of("pred"), (BMachine) null);
+        PredDbEntry actual = generator.generate(BPredicate.of("pred"), BMachine.EMPTY);
 
         assertEquals(expected, actual);
     }
@@ -185,21 +210,24 @@ class PredDbEntryTest {
         // Set up two backends to call
         Backend back1 = mock(Backend.class);
         when(back1.solvePredicate(any(), any(), any(), any()))
+                .thenReturn(new TimedAnswer(Answer.VALID, 10_000L)) // Skipped in sampling.
                 .thenReturn(new TimedAnswer(Answer.VALID, 10L))
                 .thenReturn(new TimedAnswer(Answer.VALID, 20L));
+        when(back1.getPreferences()).thenReturn(new BPreferences());
         Backend back2 = mock(Backend.class);
         when(back2.solvePredicate(any(), any(), any(), any()))
                 .thenThrow(new FormulaException("This exception is hard coded for a unit test"));
+        when(back2.getPreferences()).thenReturn(new BPreferences());
         Backend[] backends = {back1, back2};
 
         PredDbEntry.Generator generator =
                 new PredDbEntry.Generator(2, null, null, null, backends);
 
         PredDbEntry expected = new PredDbEntry(BPredicate.of("pred"),
-                null, backends,
+                BMachine.EMPTY, backends,
                 new TimedAnswer(Answer.VALID, 15L),
                 null);
-        PredDbEntry actual = generator.generate(BPredicate.of("pred"), (BMachine) null);
+        PredDbEntry actual = generator.generate(BPredicate.of("pred"), BMachine.EMPTY);
 
         assertEquals(expected, actual);
     }
