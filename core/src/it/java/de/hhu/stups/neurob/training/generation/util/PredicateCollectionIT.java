@@ -299,10 +299,10 @@ class PredicateCollectionIT {
     @Test
     public void shouldLoadBeforeAfterPredicatesWhenClassicalB() {
         Map<String, BPredicate> baPreds = new HashMap<>();
-        baPreds.put("sqrx", BPredicate.of("x < y & (x′ = x * x & z′ = z + 1) & y′ = y & n′ = n & m′ = m"));
-        baPreds.put("reset", BPredicate.of("(z >= 20 or x > 1000) & (x′ = 1 & y′ = 1 & z′ = 1) & n′ = n & m′ = m"));
-        baPreds.put("incy", BPredicate.of("y < x & z < 20 & (y′ = y + 2 & z′ = z + 1) & x′ = x & n′ = n & m′ = m"));
-        baPreds.put("incx", BPredicate.of("x = y & z < 20 & (x′ = x + 1 & z′ = z + 1) & y′ = y & n′ = n & m′ = m"));
+        baPreds.put("sqrx", BPredicate.of("x < y & (x′ = x * x & z′ = z + 1) & y′ = y"));
+        baPreds.put("reset", BPredicate.of("(z >= 20 or x > 1000) & (x′ = 1 & y′ = 1 & z′ = 1)"));
+        baPreds.put("incy", BPredicate.of("y < x & z < 20 & (y′ = y + 2 & z′ = z + 1) & x′ = x"));
+        baPreds.put("incx", BPredicate.of("x = y & z < 20 & (x′ = x + 1 & z′ = z + 1) & y′ = y"));
 
 
 
@@ -315,7 +315,7 @@ class PredicateCollectionIT {
     public void shouldLoadBeforeAfterPredicatesWhenEventB() {
         Map<String, BPredicate> baPreds = new HashMap<>();
         baPreds.put("incZ",
-                BPredicate.of("z < 2 & z' = z + 1 & x' = x & y' = y & a' = a"));
+                BPredicate.of("z < 2 & z' = z + 1 & x' = x & y' = y"));
 
         assertEquals(baPreds, pcEventB.getBeforeAfterPredicates(),
                 "Before After predicates do not match");
