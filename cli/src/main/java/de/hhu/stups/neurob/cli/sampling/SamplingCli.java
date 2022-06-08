@@ -164,8 +164,6 @@ public class SamplingCli implements CliModule {
                     }
                 } catch (LabelCreationException e) {
                     e.printStackTrace();
-                } catch (MachineAccessException e) {
-                    e.printStackTrace();
                 }
             });
 
