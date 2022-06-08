@@ -1,35 +1,13 @@
 <configuration>
   <timestamp key="timeStamp" datePattern="yyyy-MM-dd"/>
   
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <target>System.out</target>
-    <encoder>
-      <pattern>%d{"HH:mm:ss,SSS"} [%thread] %5level %logger{0} - %msg%n</pattern>
-    </encoder>
-  </appender>
-
   <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
     <target>System.err</target>
     <encoder>
       <pattern>%d{"HH:mm:ss,SSS"} [%thread] %5level %logger{0} - %msg%n</pattern>
     </encoder>
   </appender>
-
-  <appender name="LOGFILE" class="ch.qos.logback.core.FileAppender">
-    <file>neurob-logs/NeuroB-${timeStamp}.log</file>
-    <append>true</append>
-    <encoder>
-      <pattern>%d{"HH:mm:ss,SSS"} [%thread] %5level %logger{0} - %msg%n</pattern>
-    </encoder>
-    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>DEBUG</level>
-    </filter>
-  </appender>
   
-  <logger name="de.hhu.stups.neurob" level="INFO">
-    <appender-ref ref="STDOUT" />
-  </logger>
-
   <logger name="de.hhu.stups.neurob" level="WARN">
     <appender-ref ref="STDERR" />
   </logger>

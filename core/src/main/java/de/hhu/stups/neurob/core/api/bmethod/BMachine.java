@@ -2,7 +2,12 @@ package de.hhu.stups.neurob.core.api.bmethod;
 
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -16,6 +21,25 @@ public class BMachine implements BElement {
 
     private final Path location;
     private final MachineType machineType;
+    private static final Logger log =
+            LoggerFactory.getLogger(BMachine.class);
+
+    public static final BMachine EMPTY;
+    static {
+        BMachine emptyMch;
+        try {
+            InputStream resourceAsStream = BMachine.class.getClassLoader().getResourceAsStream("empty.mch");
+            Path tempDirectory = Files.createTempDirectory("neurob-runtime");
+
+            Path tmpMch = tempDirectory.resolve("emtpy.mch");
+            Files.copy(resourceAsStream, tmpMch);
+            emptyMch = new BMachine(tmpMch);
+        } catch (IOException | NullPointerException e) {
+            log.error("Unable to create temp dir for empty.mch - empty machine not available.", e);
+            emptyMch = null;
+        }
+        EMPTY = emptyMch;
+    }
 
     public BMachine(Path location) {
         this.location = location;

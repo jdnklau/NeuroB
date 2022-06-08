@@ -148,11 +148,18 @@ public class SamplingCli implements CliModule {
             preds.forEach(p -> {
                 try {
                     dbEntries.put(p, new ArrayList<>());
-                    for (int i = 0; i < sampSize; i++) {
-                        // restart mch for consistent timings.
-                        mch.close();
-                        mch.load();
+                    for (int i = 0; i <= sampSize; i++) {
+//                        // restart mch for consistent timings.
+//                        mch.close();
+//                        mch.load();
                         PredDbEntry result = gen.generate(p, mch);
+
+                        // As the first timing is magnitudes off but the  remaining ones yield
+                        // consistent results (stdev 99 % smaller), we do an initial measurement
+                        // we further will discard.
+                        if (i==0) {
+                            continue;
+                        }
                         dbEntries.get(p).add(result);
                     }
                 } catch (LabelCreationException e) {
@@ -184,7 +191,7 @@ public class SamplingCli implements CliModule {
                             .collect(Collectors.toList());
 
                     double mean = timings.stream().mapToLong(l -> l).sum() * 1. / sampSize;
-                    StandardDeviation standardDeviation = new StandardDeviation(true);
+                    StandardDeviation standardDeviation = new StandardDeviation(true); // Uses population variance.
                     double stdev = standardDeviation.evaluate(timings.stream()
                             .mapToDouble(Long::doubleValue).toArray());
 

@@ -22,7 +22,11 @@ public interface PredicateLabelGenerating<L extends PredicateLabelling>
 
     @Override
     default L generate(BPredicate predicate) throws LabelCreationException {
-        return generate(predicate, (MachineAccess) null);
+        try {
+            return generate(predicate, BMachine.EMPTY.spawnMachineAccess());
+        } catch (MachineAccessException e) {
+            throw new LabelCreationException("Unable to access empty machine", e);
+        }
     }
 
     default L generate(String predicate) throws LabelCreationException {
@@ -36,7 +40,9 @@ public interface PredicateLabelGenerating<L extends PredicateLabelling>
     default L generate(BPredicate predicate, BMachine bMachine) throws LabelCreationException {
         L labelling;
         try {
-            MachineAccess access = (bMachine != null) ? bMachine.spawnMachineAccess() : null;
+            MachineAccess access = (bMachine != null)
+                    ? bMachine.spawnMachineAccess()
+                    : BMachine.EMPTY.spawnMachineAccess();
             labelling = generate(predicate, access);
             if (access != null) {
                 access.close();
@@ -109,7 +115,7 @@ public interface PredicateLabelGenerating<L extends PredicateLabelling>
         Logger log = LoggerFactory.getLogger(PredicateLabelGenerating.class);
         List<L> results = new ArrayList<>();
 
-        for (int i = 1; i < sampleSize+1; i++) {
+        for (int i = 1; i < sampleSize + 1; i++) {
             log.info("Generating labelling sample {}/{} for {}", i, sampleSize, predicate);
             results.add(generate(predicate, access));
         }

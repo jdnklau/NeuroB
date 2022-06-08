@@ -404,7 +404,7 @@ public class PredDbEntry extends PredicateLabelling {
 
             Long sampled = 0L; // sum of all run times
             TimedAnswer lastAnswer = null;
-            for (int i = 0; i < samplingSize; i++) {
+            for (int i = 0; i <= samplingSize; i++) {
                 try {
                     TimedAnswer timing = backend.solvePredicate(pred, bMachine,
                             backend.getTimeOutValue(), backend.getTimeOutUnit());
@@ -413,7 +413,17 @@ public class PredDbEntry extends PredicateLabelling {
                     if (answer.equals(Answer.ERROR) || answer.equals(Answer.TIMEOUT)) {
                         return timing;
                     }
+
+                    // NOTE: There seems to be a sampling inconsistency where the first sampling increases
+                    // the stdev over 10 runs by up to 185 %; discarding the very first sampled time reduces
+                    // the stdev hence by around 99 %.
+                    // Hence, we skip the first one.
+                    if (i==0) {
+                        continue;
+                    }
+
                     sampled += timing.getNanoSeconds();
+                    System.out.println("Sampling "+i+" for "+backend + ": " + timing.getNanoSeconds());
                     lastAnswer = timing;
                 } catch (FormulaException e) {
                     throw new LabelCreationException(

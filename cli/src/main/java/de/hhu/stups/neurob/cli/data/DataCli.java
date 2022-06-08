@@ -4,19 +4,11 @@ import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
 import de.hhu.stups.neurob.cli.formats.Formats;
 import de.hhu.stups.neurob.core.api.backends.Backend;
-import de.hhu.stups.neurob.core.api.backends.ProBBackend;
-import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
-import de.hhu.stups.neurob.core.features.predicates.BAst109Reduced;
-import de.hhu.stups.neurob.core.features.predicates.BAst110Features;
-import de.hhu.stups.neurob.core.features.predicates.BAst115Features;
-import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
-import de.hhu.stups.neurob.core.features.predicates.RawPredFeature;
-import de.hhu.stups.neurob.core.labelling.BackendClassification;
-import de.hhu.stups.neurob.core.labelling.HealyTimings;
-import de.hhu.stups.neurob.core.labelling.SettingsMultiLabel;
+import de.hhu.stups.neurob.core.api.bmethod.BMachine;
+import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
+import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.training.analysis.PredDbAnalysis;
 import de.hhu.stups.neurob.training.analysis.PredicateDbAnalyser;
-import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateDbFormat;
 import de.hhu.stups.neurob.training.db.PredicateList;
@@ -24,7 +16,6 @@ import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 import de.hhu.stups.neurob.training.generation.PredicateTrainingGenerator;
 import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
 import de.hhu.stups.neurob.training.migration.PredicateDbMigration;
-import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -49,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,9 +56,10 @@ public class DataCli implements CliModule {
     public String getUsageInfo() {
         return
                 /*use:*/ "data -m SOURCE_DIR FORMAT -t TARGET_DIR TARGET_FORMAT TARGET_FEATURES TARGET_LABELS\n"
-                + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [OPTIONS] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
-                + "       data -a SOURCE_DIR FORMAT [-c THREADS] [-[x]b BACKENDS] [-f FILE_NAME]\n"
-                + "       data -p SOURCE_DIR -o TARGET_PATH [- THREADS]\n";
+                         + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [OPTIONS] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
+                         + "       data -a SOURCE_DIR FORMAT [-c THREADS] [-[x]b BACKENDS] [-f FILE_NAME]\n"
+                         + "       data -p SOURCE_DIR -o TARGET_PATH [-c THREADS]\n"
+                         + "       data -e PREDICATE_SAMPLE [-f SOURCE_FILE] [-s SAMPLING_SIZE] -o TARGET_FILE [-[x]b BACKENDS]\n";
 
     }
 
@@ -134,6 +125,15 @@ public class DataCli implements CliModule {
                 .hasArg()
                 .argName("PATH")
                 .desc("Source directory from which the predicates are generated/extracted.")
+                .required()
+                .build();
+
+        // Analysis
+        Option evalPred = Option.builder("e")
+                .longOpt("eval")
+                .hasArg()
+                .argName("PREDICATE")
+                .desc("Single predicate to evaluate")
                 .required()
                 .build();
 
@@ -279,6 +279,37 @@ public class DataCli implements CliModule {
                 Path targetDir = parseSourceDirectory(line, "o");
 
                 createPredicateList(line, sourceDir, targetDir);
+            } else if (line.hasOption("e")) {
+                BPredicate pred = BPredicate.of(line.getOptionValues("e")[0]);
+                List<Backend> backends = parseBackends(line);
+
+                BMachine sourceMachine;
+                if (line.hasOption("f")) {
+                    sourceMachine = new BMachine(parsePathFromOption(line, "f"));
+                } else {
+                    sourceMachine = BMachine.EMPTY;
+                }
+                Path targetFile = parsePathFromOption(line, "o");
+
+                int samplingSize = 1;
+                if (line.hasOption("s")) {
+                    samplingSize = Integer.parseInt(line.getOptionValue("s"));
+                }
+
+                PredDbEntry.Generator generator =
+                        new PredDbEntry.Generator(samplingSize, backends.toArray(new Backend[0]));
+
+                final MachineAccess access = sourceMachine.spawnMachineAccess();
+                PredDbEntry result = generator.generate(pred, access);
+
+                access.close();
+
+                System.out.println(result.getPredicate());
+                System.out.println(result.getSource());
+                for (Backend b : backends) {
+                    System.out.println(b + "=" + result.getResult(b));
+                }
+
             }
 
         } catch (ParseException e) {
@@ -374,11 +405,11 @@ public class DataCli implements CliModule {
         ForkJoinPool threadPool = new ForkJoinPool(numThreads);
         try {
             threadPool.submit(
-                    () -> generator.generateTrainingData(
-                            sourceDir,
-                            targetDir,
-                            line.hasOption('z'),
-                            excludes))
+                            () -> generator.generateTrainingData(
+                                    sourceDir,
+                                    targetDir,
+                                    line.hasOption('z'),
+                                    excludes))
                     .get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -435,11 +466,11 @@ public class DataCli implements CliModule {
         ForkJoinPool threadPool = new ForkJoinPool(numThreads);
         try {
             threadPool.submit(
-                    () -> generator.generateTrainingData(
-                            sourceDir,
-                            targetDir,
-                            line.hasOption('z'),
-                            excludes))
+                            () -> generator.generateTrainingData(
+                                    sourceDir,
+                                    targetDir,
+                                    line.hasOption('z'),
+                                    excludes))
                     .get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -511,11 +542,15 @@ public class DataCli implements CliModule {
         return backends;
     }
 
-    Path parseSourceDirectory(CommandLine line, String fromOption) {
+    Path parsePathFromOption(CommandLine line, String fromOption) {
         if (line.hasOption(fromOption)) {
             return Paths.get(line.getOptionValues(fromOption)[0]);
         }
         return null;
+    }
+
+    Path parseSourceDirectory(CommandLine line, String fromOption) {
+        return parsePathFromOption(line, fromOption);
     }
 
     MigrationFormat parseMigration(CommandLine line, String fromOption, Backend[] backends) {
