@@ -4,6 +4,7 @@ import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
+import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
@@ -212,9 +213,13 @@ public class SamplingCli implements CliModule {
             Map<Backend, Double> nonErrMinSamples = new HashMap<>();
             Map<Backend, List<Double>> samples = new HashMap<>();
             Map<Backend, List<Double>> nonErrSamples = new HashMap<>();
+            Map<Backend, Map<BPredicate, Double>> predSamplesNeeded = new HashMap<>();
             for (Backend b : backends) {
                 List<Double> sampleValues = new ArrayList<>();
                 List<Double> nonErrSampleValues = new ArrayList<>();
+                Map<BPredicate, Double> backendSamplesNeeded = new HashMap<>();
+                predSamplesNeeded.put(b, backendSamplesNeeded);
+
                 for (BPredicate p : preds) {
                     double mean = stats.get(p).get(b)[0];
                     double stdev = stats.get(p).get(b)[1];
@@ -223,6 +228,7 @@ public class SamplingCli implements CliModule {
                             2.
                     );
                     sampleValues.add(minSamplesNeeded);
+                    backendSamplesNeeded.put(p, minSamplesNeeded);
 
                     mean = nonErrStats.get(p).get(b)[0];
                     stdev = nonErrStats.get(p).get(b)[1];
@@ -257,12 +263,52 @@ public class SamplingCli implements CliModule {
             int counter = 0;
             for (BPredicate p : preds) {
                 counter++;
-                System.out.println(counter + ". pred: ");
+                System.out.println(counter + ". pred: " + p);
+
+                /* Print out table for comprehensive overview */
+                // Table header
+                StringBuilder tableHeader = new StringBuilder("measure no.");
+                for (Backend b : backends) {
+                    tableHeader.append("\t").append(b);
+                }
+                System.out.println(tableHeader);
+
+                // Rows with samples
+                List<PredDbEntry> measures = dbEntries.get(p);
+                for (int s=0; s<sampSize; s++) {
+                    PredDbEntry sample = measures.get(s);
+                    StringBuilder sampleRow = new StringBuilder(Integer.toString(s+1));
+                    for (Backend b : backends) {
+                        sampleRow.append("\t");
+                        TimedAnswer backendResult = sample.getResult(b);
+                        sampleRow.append(backendResult.getTime(TimeUnit.MILLISECONDS));
+                    }
+                    System.out.println(sampleRow);
+                }
+
+                // Statistics
+                StringBuilder means = new StringBuilder("mean");
+                StringBuilder stdevs = new StringBuilder("stdev");
+                StringBuilder stderrs = new StringBuilder("stderr");
+                StringBuilder samplesNeed = new StringBuilder("samples needed");
                 for (Backend b : backends) {
                     double mean = stats.get(p).get(b)[0];
+                    means.append('\t');
+                    means.append(mean);
                     double stdev = stats.get(p).get(b)[1];
-                    System.out.println("    " + b.getName() + ": mean " + mean + ", stdev " + stdev + ", samples:");
+                    stdevs.append('\t');
+                    stdevs.append(stdev);
+                    double stderr = stdev / (sampSize*sampSize);
+                    stderrs.append('\t');
+                    stderrs.append(stderr);
+                    double need = predSamplesNeeded.get(b).get(p);
+                    samplesNeed.append('\t');
+                    samplesNeed.append(need);
                 }
+                System.out.println(means);
+                System.out.println(stdevs);
+                System.out.println(stderrs);
+                System.out.println(samplesNeed);
                 System.out.println();
             }
 
