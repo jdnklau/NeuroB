@@ -423,7 +423,7 @@ public class PredDbEntry extends PredicateLabelling {
                     }
 
                     sampled += timing.getNanoSeconds();
-                    System.out.println("Sampling "+i+" for "+backend + ": " + timing.getNanoSeconds());
+                    log.debug("Sampling no. {} over {} took {} ns", i+1, backend, timing.getNanoSeconds());
                     lastAnswer = timing;
                 } catch (FormulaException e) {
                     throw new LabelCreationException(
