@@ -30,8 +30,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -150,9 +152,6 @@ public class SamplingCli implements CliModule {
                 try {
                     dbEntries.put(p, new ArrayList<>());
                     for (int i = 0; i <= sampSize; i++) {
-//                        // restart mch for consistent timings.
-//                        mch.close();
-//                        mch.load();
                         PredDbEntry result = gen.generate(p, mch);
 
                         // As the first timing is magnitudes off but the  remaining ones yield
@@ -170,22 +169,30 @@ public class SamplingCli implements CliModule {
 
             mch.close();
 
+            // Remove preds for which backends run into timeouts or errors
+            Set<BPredicate> toBeRemoved = new HashSet<>();
+            for (BPredicate p: preds) {
+                for (PredDbEntry measurement : dbEntries.get(p)) {
+                    for (TimedAnswer tanswer : measurement.getResults().values()) {
+                        Answer answer = tanswer.getAnswer();
+                        if (answer.equals(Answer.TIMEOUT) || answer.equals(Answer.ERROR)) {
+                            toBeRemoved.add(p);
+                        }
+                    }
+                }
+            }
+            for (BPredicate p : toBeRemoved) {
+                preds.remove(p);
+            }
+
             // mean/stdev
             Map<BPredicate, Map<Backend, Double[]>> stats = new HashMap<>();
-            Map<BPredicate, Map<Backend, Double[]>> nonErrStats = new HashMap<>();
             for (BPredicate pred : preds) {
                 stats.put(pred, new HashMap<>());
-                nonErrStats.put(pred, new HashMap<>());
                 List<PredDbEntry> measures = dbEntries.get(pred);
                 for (Backend b : backends) {
                     List<Long> timings = measures.stream()
                             .map(e -> e.getAnswerArray(b)[0])
-                            .map(a -> a.getTime(TimeUnit.MILLISECONDS))
-                            .collect(Collectors.toList());
-
-                    List<Long> nonErrTimings = measures.stream()
-                            .map(e -> e.getAnswerArray(b)[0])
-                            .filter(a -> Answer.isSolvable(a.getAnswer()) || a.getAnswer().equals(Answer.UNKNOWN))
                             .map(a -> a.getTime(TimeUnit.MILLISECONDS))
                             .collect(Collectors.toList());
 
@@ -195,18 +202,12 @@ public class SamplingCli implements CliModule {
                             .mapToDouble(Long::doubleValue).toArray());
 
                     stats.get(pred).put(b, new Double[]{mean, stdev});
-
-                    mean = nonErrTimings.stream().mapToLong(l -> l).sum() * 1. / nonErrTimings.size();
-                    standardDeviation = new StandardDeviation(true);
-                    stdev = standardDeviation.evaluate(nonErrTimings.stream()
-                            .mapToDouble(Long::doubleValue).toArray());
-                    nonErrStats.get(pred).put(b, new Double[]{mean, stdev});
                 }
             }
 
             int degreesOfFreedom = sampSize - 1;
             TDistribution dist = new TDistribution(degreesOfFreedom);
-            double tValue = dist.inverseCumulativeProbability(alpha);
+            double tValue = dist.inverseCumulativeProbability(1-alpha/2.);
 
             // Per backend/predicate: calculate number of needed samples.
             Map<Backend, Double> minSamples = new HashMap<>();
@@ -216,7 +217,6 @@ public class SamplingCli implements CliModule {
             Map<Backend, Map<BPredicate, Double>> predSamplesNeeded = new HashMap<>();
             for (Backend b : backends) {
                 List<Double> sampleValues = new ArrayList<>();
-                List<Double> nonErrSampleValues = new ArrayList<>();
                 Map<BPredicate, Double> backendSamplesNeeded = new HashMap<>();
                 predSamplesNeeded.put(b, backendSamplesNeeded);
 
@@ -224,35 +224,22 @@ public class SamplingCli implements CliModule {
                     double mean = stats.get(p).get(b)[0];
                     double stdev = stats.get(p).get(b)[1];
                     double minSamplesNeeded = Math.pow(
-                            tValue * stdev / ((error / 100.) * mean),
+                            tValue * stdev / error,
                             2.
                     );
                     sampleValues.add(minSamplesNeeded);
                     backendSamplesNeeded.put(p, minSamplesNeeded);
-
-                    mean = nonErrStats.get(p).get(b)[0];
-                    stdev = nonErrStats.get(p).get(b)[1];
-                    minSamplesNeeded = Math.pow(
-                            tValue * stdev / ((error / 100.) * mean),
-                            2.
-                    );
-                    nonErrSampleValues.add(minSamplesNeeded);
-
                 }
                 minSamples.put(
                         b, sampleValues.stream()
                                 .max(Double::compareTo)
                                 .orElse(-1.));
-                nonErrMinSamples.put(
-                        b, nonErrSampleValues.stream()
-                                .filter(d -> !Double.isNaN(d))
-                                .max(Double::compareTo)
-                                .orElse(-1.));
             }
 
-            System.out.println("Alpha: " + alpha);
-            System.out.println("Allowed error: +/- " + error + " %");
-            System.out.println("t-Value: " + tValue);
+            System.out.println("Significance level (alpha): " + alpha);
+            System.out.println("Allowed error: +/- " + error + " ms");
+            System.out.println("Degrees of freedom (sample size minus one): " + degreesOfFreedom);
+            System.out.println("Critical t-Value: " + tValue);
             for (Backend b : backends) {
                 System.out.println("- " + b.getName() + ": "
                                    + minSamples.get(b) + " samples ("
@@ -298,7 +285,7 @@ public class SamplingCli implements CliModule {
                     double stdev = stats.get(p).get(b)[1];
                     stdevs.append('\t');
                     stdevs.append(stdev);
-                    double stderr = stdev / (sampSize*sampSize);
+                    double stderr = stdev / (Math.sqrt(sampSize));
                     stderrs.append('\t');
                     stderrs.append(stderr);
                     double need = predSamplesNeeded.get(b).get(p);
