@@ -22,17 +22,21 @@ import de.prob.scripting.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class PredDbEntry extends PredicateLabelling {
 
     private final BPredicate pred;
     private final BMachine source;
     private final Map<Backend, TimedAnswer> results;
+    private final Map<Backend, SamplingStatistic> statistics;
     public static final Long DEFAULT_TIMEOUT = 2500L;
     public static final TimeUnit DEFAULT_TIMEUNIT = TimeUnit.MILLISECONDS;
     private final Backend[] backendsUsed;
@@ -124,6 +128,22 @@ public class PredDbEntry extends PredicateLabelling {
         this.results = results;
         this.backendsUsed = orderedBackends;
         this.probRevision = probRevision;
+
+        // Build statistics map.
+        this.statistics = new HashMap<>();
+        for (Backend b : results.keySet()) {
+            TimedAnswer answer = results.get(b);
+            SamplingStatistic stats;
+            if (answer  == null) {
+                continue;
+            } else if (answer instanceof SampledTimedAnswer) {
+                stats = ((SampledTimedAnswer) answer).getStats();
+            } else {
+                stats = SampledTimedAnswer.from(answer).getStats();
+            }
+
+            statistics.put(b, stats);
+        }
     }
 
     /**
@@ -198,6 +218,10 @@ public class PredDbEntry extends PredicateLabelling {
      */
     public TimedAnswer[] getAnswerArray() {
         return getAnswerArray(DEFAULT_BACKENDS);
+    }
+
+    public SamplingStatistic getStatistics(Backend backend) {
+        return statistics.getOrDefault(backend, null);
     }
 
     /**
@@ -348,7 +372,7 @@ public class PredDbEntry extends PredicateLabelling {
             // Gather results
             Map<Backend, TimedAnswer> results = new HashMap<>();
             Arrays.stream(backends).forEach(b -> {
-                TimedAnswer answer;
+                SampledTimedAnswer answer;
                 MachineAccess backendAccess = multiAccess != null
                         ? multiAccess.getAccess(b)
                         : null;
@@ -393,7 +417,7 @@ public class PredDbEntry extends PredicateLabelling {
             return ma;
         }
 
-        public TimedAnswer samplePredicate(BPredicate pred, Backend backend, MachineAccess bMachine)
+        public SampledTimedAnswer samplePredicate(BPredicate pred, Backend backend, MachineAccess bMachine)
                 throws LabelCreationException {
             log.trace("Sampling timings over backend {}; {} times",
                     backend, samplingSize);
@@ -402,7 +426,7 @@ public class PredDbEntry extends PredicateLabelling {
                 return null;
             }
 
-            Long sampled = 0L; // sum of all run times
+            List<Long> measurements = new ArrayList<>();
             TimedAnswer lastAnswer = null;
             for (int i = 0; i <= samplingSize; i++) {
                 try {
@@ -411,19 +435,19 @@ public class PredDbEntry extends PredicateLabelling {
                     // stop if already error or timeout
                     Answer answer = timing.getAnswer();
                     if (answer.equals(Answer.ERROR) || answer.equals(Answer.TIMEOUT)) {
-                        return timing;
+                        return SampledTimedAnswer.from(timing);
                     }
 
                     // NOTE: There seems to be a sampling inconsistency where the first sampling increases
                     // the stdev over 10 runs by up to 185 %; discarding the very first sampled time reduces
                     // the stdev hence by around 99 %.
                     // Hence, we skip the first one.
-                    if (i==0) {
+                    if (i == 0) {
                         continue;
                     }
 
-                    sampled += timing.getNanoSeconds();
-                    log.debug("Sampling no. {} over {} took {} ns", i+1, backend, timing.getNanoSeconds());
+                    measurements.add(timing.getNanoSeconds());
+                    log.debug("Sampling no. {} over {} took {} ns", i + 1, backend, timing.getNanoSeconds());
                     lastAnswer = timing;
                 } catch (FormulaException e) {
                     throw new LabelCreationException(
@@ -434,8 +458,16 @@ public class PredDbEntry extends PredicateLabelling {
                 }
             }
 
-            return new TimedAnswer(
-                    lastAnswer.getAnswer(), sampled / samplingSize, lastAnswer.getMessage());
+            // generate statistics
+            long mean = measurements.stream().reduce(0L, Long::sum) / samplingSize;
+            SamplingStatistic stats = new SamplingStatistic(
+                    measurements.stream()
+                            .map(Long::doubleValue)
+                            .collect(Collectors.toList()),
+                    false);
+
+            return new SampledTimedAnswer(
+                    lastAnswer.getAnswer(), mean, stats, lastAnswer.getMessage());
         }
     }
 }

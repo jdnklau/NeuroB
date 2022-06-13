@@ -233,6 +233,37 @@ class PredDbEntryTest {
     }
 
     @Test
+    void shouldGenerateSamplingStatistics() throws FormulaException, LabelCreationException {
+        // Set up two backends to call
+        Backend back1 = mock(Backend.class);
+        when(back1.solvePredicate(any(), any(), any(), any()))
+                .thenReturn(new TimedAnswer(Answer.VALID, 10_000L)) // Skipped in sampling.
+                .thenReturn(new TimedAnswer(Answer.VALID, 52L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 60L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 55L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 65L))
+                .thenReturn(new TimedAnswer(Answer.VALID, 10_000L)); // Should not be sampled anymore.
+        when(back1.getPreferences()).thenReturn(new BPreferences());
+        Backend[] backends = {back1};
+
+        PredDbEntry.Generator generator =
+                new PredDbEntry.Generator(4, null, null, null, backends);
+
+
+        double expectedMean = 58.;
+        double expectedVariance = 98. / 3.;
+        double expectedStdev = Math.sqrt(expectedVariance);
+        double expectedSem = expectedStdev / Math.sqrt(4);
+        SamplingStatistic expected = new SamplingStatistic(4, expectedMean, expectedStdev, expectedSem);
+
+
+        SamplingStatistic actual = generator.generate(BPredicate.of("pred"), BMachine.EMPTY).getStatistics(back1);
+
+        assertEquals(expected, actual);
+    }
+
+
+    @Test
     void shouldCollectResultMapToArray() {
         Backend[] backendOrder = {new ProBBackend(), new KodkodBackend(), new Z3Backend()};
 
