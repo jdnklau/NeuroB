@@ -3,6 +3,8 @@ package de.hhu.stups.neurob.training.db;
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 
+import java.text.DecimalFormat;
+
 public class SampledTimedAnswer extends TimedAnswer {
 
     protected SamplingStatistic stats;
@@ -34,13 +36,14 @@ public class SampledTimedAnswer extends TimedAnswer {
 
     @Override
     public String toString() {
+        DecimalFormat df = new DecimalFormat("0.000");
         return "["
                + "answer=" + this.answer + ", "
                + "nanoSeconds=" + this.nanoSeconds
                + ", sample-size=" + this.stats.getSampleSize()
-               + ", mean=" + this.stats.getMean()
-               + ", stdev=" + this.stats.getStdev()
-               + ", sem=" + this.stats.getSem()
+//               + ", mean=" + this.stats.getMean()  // this.nanoSeconds supposed to be mean already.
+               + ", stdev=" + df.format(this.stats.getStdev())
+               + ", sem=" + df.format(this.stats.getSem())
                + (this.message != null ? ", message=" + this.message : "")
                + "]";
     }
