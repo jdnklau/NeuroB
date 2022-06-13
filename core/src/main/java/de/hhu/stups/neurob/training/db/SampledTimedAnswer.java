@@ -4,6 +4,8 @@ import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
 
 import java.text.DecimalFormat;
+import java.util.Objects;
+import java.util.Optional;
 
 public class SampledTimedAnswer extends TimedAnswer {
 
@@ -24,8 +26,14 @@ public class SampledTimedAnswer extends TimedAnswer {
     }
 
     public static SampledTimedAnswer from(TimedAnswer answer) {
+        // As #getNanoSeconds returns a long but can be Null, we need an
+        // optional. Otherwise, we will get null pointer exceptions due to
+        // unboxing reasons.
+        Optional<Long> nanos = Optional.ofNullable(answer.getNanoSeconds());
+        double mean = nanos.map(Long::doubleValue).orElse(Double.NaN);
+
         SamplingStatistic stats = new SamplingStatistic(
-                1, answer.getNanoSeconds(), 0, 0);
+                1, mean, 0, 0);
 
         return new SampledTimedAnswer(
                 answer.getAnswer(),
@@ -40,7 +48,7 @@ public class SampledTimedAnswer extends TimedAnswer {
         return "["
                + "answer=" + this.answer + ", "
                + "nanoSeconds=" + this.nanoSeconds
-               + ", sample-size=" + this.stats.getSampleSize()
+               + ", sampleSize=" + this.stats.getSampleSize()
 //               + ", mean=" + this.stats.getMean()  // this.nanoSeconds supposed to be mean already.
                + ", stdev=" + df.format(this.stats.getStdev())
                + ", sem=" + df.format(this.stats.getSem())
