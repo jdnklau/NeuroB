@@ -31,4 +31,17 @@ public class SampledTimedAnswer extends TimedAnswer {
                 stats,
                 answer.getMessage());
     }
+
+    @Override
+    public String toString() {
+        return "["
+               + "answer=" + this.answer + ", "
+               + "nanoSeconds=" + this.nanoSeconds
+               + ", sample-size=" + this.stats.getSampleSize()
+               + ", mean=" + this.stats.getMean()
+               + ", stdev=" + this.stats.getStdev()
+               + ", sem=" + this.stats.getSem()
+               + (this.message != null ? ", message=" + this.message : "")
+               + "]";
+    }
 }

@@ -7,9 +7,9 @@ import java.util.concurrent.TimeUnit;
  * it took to determine it.
  */
 public class TimedAnswer {
-    private final Answer answer;
-    private final Long nanoSeconds;
-    private final String message;
+    protected final Answer answer;
+    protected final Long nanoSeconds;
+    protected final String message;
 
     public TimedAnswer(Answer answer, Long nanoseconds) {
         this(answer, nanoseconds, "empty message received");
