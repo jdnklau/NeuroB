@@ -23,18 +23,28 @@ public class SamplingStatistic {
     }
 
     public SamplingStatistic(List<Double> measurements, boolean isPopulation) {
-        int biasCorrection = isPopulation ? 0 : 1;
+        if (measurements.size() == 0) {
+            throw new IllegalArgumentException("List of measurements cannot be empty");
+        } else if (measurements.size() == 1) {
+            this.mean = measurements.get(0);
+            this.stdev = 0.;
+            this.sem = 0.;
+            this.sampleSize = 1;
+        } else {
 
-        this.sampleSize = measurements.size();
-        int biasCorrectedSize = sampleSize - biasCorrection;
+            int biasCorrection = isPopulation ? 0 : 1;
 
-        double sumOfMeasures = measurements.stream().reduce(0., Double::sum);
-        this.mean = sumOfMeasures / sampleSize;
-        double variance = measurements.stream()
-                                  .map(m -> Math.pow(m - mean, 2))
-                                  .reduce(0., Double::sum) / biasCorrectedSize; // Sample variance, not population
-        this.stdev = Math.sqrt(variance);
-        this.sem = stdev / Math.sqrt(sampleSize);
+            this.sampleSize = measurements.size();
+            int biasCorrectedSize = sampleSize - biasCorrection;
+
+            double sumOfMeasures = measurements.stream().reduce(0., Double::sum);
+            this.mean = sumOfMeasures / sampleSize;
+            double variance = measurements.stream()
+                                      .map(m -> Math.pow(m - mean, 2))
+                                      .reduce(0., Double::sum) / biasCorrectedSize; // Sample variance, not population
+            this.stdev = Math.sqrt(variance);
+            this.sem = stdev / Math.sqrt(sampleSize);
+        }
     }
 
     public double getMean() {
