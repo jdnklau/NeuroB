@@ -50,7 +50,7 @@ public class SamplingCli implements CliModule {
 
     @Override
     public String getUsageInfo() {
-        return "sampling -f MACHINE_FILE -a ALPHA -e ERROR -s SAMPLING_SIZE\n";
+        return "sampling -f MACHINE_FILE -a ALPHA -e ERROR -s SAMPLING_SIZE [-[x]b BACKENDS]\n";
     }
 
     private void initOptions() {
@@ -91,12 +91,17 @@ public class SamplingCli implements CliModule {
                 .hasArgs()
                 .desc("BackendId to be accounted for.")
                 .build();
+        Option cross = Option.builder("x")
+                .longOpt("cross-options")
+                .desc("If set, enumerates any combination of options per backend.")
+                .build();
 
         options.addOption(mchFile);
         options.addOption(alpha);
         options.addOption(error);
         options.addOption(samplingSize);
         options.addOption(backends);
+        options.addOption(cross);
     }
 
     @Override
