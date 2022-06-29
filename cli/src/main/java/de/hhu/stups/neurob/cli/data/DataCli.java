@@ -59,7 +59,7 @@ public class DataCli implements CliModule {
                          + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [OPTIONS] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
                          + "       data -a SOURCE_DIR FORMAT [-c THREADS] [-[x]b BACKENDS] [-f FILE_NAME]\n"
                          + "       data -p SOURCE_DIR -o TARGET_PATH [-c THREADS]\n"
-                         + "       data -e PREDICATE_SAMPLE [-f SOURCE_FILE] [-s SAMPLING_SIZE] -o TARGET_FILE [-[x]b BACKENDS]\n";
+                         + "       data -e PREDICATE_SAMPLE [-f SOURCE_FILE] [-s SAMPLING_SIZE] [-[x]b BACKENDS]\n";
 
     }
 
@@ -289,7 +289,7 @@ public class DataCli implements CliModule {
                 } else {
                     sourceMachine = BMachine.EMPTY;
                 }
-                Path targetFile = parsePathFromOption(line, "o");
+//                Path targetFile = parsePathFromOption(line, "o");
 
                 int samplingSize = 1;
                 if (line.hasOption("s")) {
