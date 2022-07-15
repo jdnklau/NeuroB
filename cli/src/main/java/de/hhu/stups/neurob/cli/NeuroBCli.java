@@ -29,7 +29,7 @@ public class NeuroBCli {
                     System.out.println(data.getHelpText());
             }
         } catch (Exception e) {
-            System.err.println("Unable to interpret command line arguments: ");
+            System.err.println("Exception found during NeuroB cli call");
             e.printStackTrace(System.err);
         }
     }
