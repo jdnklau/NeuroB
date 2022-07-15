@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.db;
 
+import com.google.inject.Guice;
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
@@ -17,6 +18,7 @@ import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelGenerating;
 import de.hhu.stups.neurob.core.labelling.PredicateLabelling;
 import de.prob.Main;
+import de.prob.MainModule;
 import de.prob.cli.CliVersionNumber;
 import de.prob.scripting.Api;
 import org.slf4j.Logger;
@@ -318,7 +320,7 @@ public class PredDbEntry extends PredicateLabelling {
          * @param timeUnit
          */
         public Generator(int samplingSize, Long timeout, TimeUnit timeUnit, Backend... backends) {
-            this(samplingSize, Main.getInjector().getInstance(Api.class).getVersion(),
+            this(samplingSize, Guice.createInjector(new MainModule()).getInstance(Api.class).getVersion(),
                     timeout, timeUnit, backends);
         }
 

@@ -1,10 +1,12 @@
 package de.hhu.stups.neurob.core.api.bmethod;
 
+import com.google.inject.Guice;
 import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.prob.Main;
+import de.prob.MainModule;
 import de.prob.animator.command.AbstractCommand;
 import de.prob.animator.command.SetPreferenceCommand;
 import de.prob.animator.domainobjects.FormulaExpand;
@@ -50,7 +52,7 @@ public class MachineAccess {
 
         this.preferences = new BPreferences(); // empty preferences
 
-        api = Main.getInjector().getInstance(Api.class);
+        api = Guice.createInjector(new MainModule()).getInstance(Api.class);
         if (initialise) {
             load();
         }
