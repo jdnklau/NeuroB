@@ -216,6 +216,14 @@ public class DataCli implements CliModule {
                 .longOpt("lazy")
                 .desc("Data is generated lazily, i.e. already existent data is ignored.").build();
 
+        Option probHome = Option.builder("h")
+                .longOpt("prob-home")
+                .hasArg()
+                .argName("PATH")
+                .desc("If set, uses the ProB cli located at the given path.")
+                .optionalArg(true)
+                .build();
+
         options.addOptionGroup(modeGroup);
         options.addOption(target);
         options.addOption(countFile);
@@ -235,6 +243,12 @@ public class DataCli implements CliModule {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine line = parser.parse(options, args);
+
+            // Check for ProB home
+            if (line.hasOption("h")) {
+                // Fix problems with concurrency on cluster.
+                System.setProperty("prob.home", line.getOptionValue("h"));
+            }
 
             // Check for analysis
             if (line.hasOption("a")) {
@@ -280,9 +294,6 @@ public class DataCli implements CliModule {
 
                 createPredicateList(line, sourceDir, targetDir);
             } else if (line.hasOption("e")) {
-                // Fix problems with concurrency on cluster.
-                System.setProperty("prob.home", "~/.prob/prob2-4.0.0-SNAPSHOT");
-
                 BPredicate pred = BPredicate.of(line.getOptionValues("e")[0]);
                 List<Backend> backends = parseBackends(line);
 
