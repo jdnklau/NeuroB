@@ -256,6 +256,19 @@ class DataCliTest {
         assertArrayEquals(expected, actual);
     }
 
+    @Test
+    void shouldParseProBHome() throws ParseException {
+        String cliInput = "-g foo/ -t bar/ jsondb f115 bc -h path/to/cli";
+        CommandLine line = parseCommandLine(cliInput);
+
+        DataCli.setProBHomeFromOption(line, "h");
+
+        String expected = "path/to/cli";
+        String actual = System.getProperty("prob.home");
+
+        assertEquals(expected, actual);
+    }
+
     private List<Backend> backendList(Backend... backends) {
         return Arrays.stream(backends).collect(Collectors.toList());
     }
