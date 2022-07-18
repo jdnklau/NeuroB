@@ -280,6 +280,9 @@ public class DataCli implements CliModule {
 
                 createPredicateList(line, sourceDir, targetDir);
             } else if (line.hasOption("e")) {
+                // Fix problems with concurrency on cluster.
+                System.setProperty("prob.home", "~/.prob/prob2-4.0.0-SNAPSHOT");
+
                 BPredicate pred = BPredicate.of(line.getOptionValues("e")[0]);
                 List<Backend> backends = parseBackends(line);
 
