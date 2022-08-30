@@ -403,8 +403,10 @@ public class DataCli implements CliModule {
                             migration.getFeatures(), migration.getLabels(), migration.getFormat());
         } catch (IOException e) {
             System.out.println("Unable to migrate data base: " + e);
+            e.printStackTrace();
         } catch (Exception e) {
-            System.out.println("Unable recognise features or labels: " + e);
+            System.out.println("Unable to recognise features or labels: " + e);
+            e.printStackTrace();
         }
     }
 
