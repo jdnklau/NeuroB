@@ -3,6 +3,7 @@ package de.hhu.stups.neurob.core.features.predicates.util;
 import de.be4.classicalb.core.parser.analysis.DepthFirstAdapter;
 import de.be4.classicalb.core.parser.node.*;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -480,11 +481,23 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
     @Override
     public void outAIntegerExpression(AIntegerExpression node) {
         super.outAIntegerExpression(node);
-        int nodeValue = Integer.parseInt(node.getLiteral().getText().trim());
+
+        BigInteger nodeVal = new BigInteger(node.getLiteral().getText().trim());
+
         if (node.parent() instanceof AUnaryMinusExpression) {
-            nodeValue = -nodeValue;
+            nodeVal = nodeVal.multiply(new BigInteger("-1"));
         }
-        data.registerIntegerUse(nodeValue);
+
+        int intValue;
+        if (nodeVal.compareTo(BigInteger.valueOf((long) Integer.MAX_VALUE)) > 0) {
+            intValue = Integer.MAX_VALUE;
+        } else if (nodeVal.compareTo(BigInteger.valueOf((long) Integer.MIN_VALUE)) < 0) {
+            intValue = Integer.MIN_VALUE;
+        } else {
+            intValue = nodeVal.intValueExact();
+        }
+
+        data.registerIntegerUse(intValue);
     }
 
     // IDENTIFIERS AND THEIR RELATIONS
