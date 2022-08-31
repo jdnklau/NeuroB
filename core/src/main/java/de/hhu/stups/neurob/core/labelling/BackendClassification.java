@@ -215,13 +215,18 @@ public class BackendClassification extends PredicateLabelling {
         @Override
         public BackendClassification translate(PredDbEntry origLabels) {
 
-            int groundTruth = 0;
+            int groundTruth = 0; // 0 value stands for no fastest backend available; fastest will be null.
             Long fastest = Long.MAX_VALUE;
 
             TimedAnswer[] answerArray = origLabels.getAnswerArray(backends);
 
             for(int i = 0; i<answerArray.length; i++) {
                 TimedAnswer timed = answerArray[i];
+
+                if (timed == null) {
+                    continue;
+                }
+
                 Answer a = timed.getAnswer();
                 if (a.equals(Answer.ERROR) || a.equals(Answer.TIMEOUT) || a.equals(Answer.UNKNOWN)) {
                     continue;

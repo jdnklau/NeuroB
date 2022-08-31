@@ -248,6 +248,22 @@ class BackendClassificationTest {
         assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
     }
 
+    @Test
+    void shouldIgnoreNullEntries() {
+        TimedAnswer timeout = new TimedAnswer(Answer.TIMEOUT, 400L);
+        TimedAnswer valid = new TimedAnswer(Answer.VALID, 400L);
+        TimedAnswer slowValid = new TimedAnswer(Answer.VALID, 800L);
+
+        PredDbEntry dbEntry = new PredDbEntry(null, null,backends, slowValid, null, timeout, timeout);
+
+        BackendClassification.Translator translator = new BackendClassification.Translator(backends);
+
+        Labelling expected = new Labelling(1.);
+        Labelling actual = translator.translate(dbEntry);
+
+        assertArrayEquals(expected.getLabellingArray(), actual.getLabellingArray());
+    }
+
     private void setAnswer(Backend b, TimedAnswer answer) throws FormulaException {
         when(b.solvePredicate(any(), any())).thenReturn(answer);
         when(b.solvePredicate(any(), any(), any(), any())).thenReturn(answer);
