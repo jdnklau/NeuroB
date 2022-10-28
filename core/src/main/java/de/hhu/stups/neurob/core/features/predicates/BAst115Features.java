@@ -229,7 +229,10 @@ public class BAst115Features extends PredicateFeatures {
                     // power sets
                     data.getPowerSetCount() / conjuncts,
                     data.getPowerSetHigherOrderCounts() / (data.getPowerSetCount() + epsilon),
-                    data.getPowerSetCount() / (setOperations ),
+                    // Note: amount of PowerSets and Set Operations to not relate at all.
+                    // If we have no set operations but a power set in use, feature value would be
+                    // Infinity, which is problematic. Hence, we set it to zero here.
+                    (setOperations >= 1) ? data.getPowerSetCount() / (setOperations ) : 0.0,
                     data.getMaxPowDepth() / (data.getPowerSetCount() + epsilon),
 
                     // relations

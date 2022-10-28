@@ -5,8 +5,8 @@ subprojects {
     project.version = '0.49.0-SNAPSHOT'
     project.group = 'de.hhu.stups'
 
-    project.sourceCompatibility = '1.8'
-    project.targetCompatibility = '1.8'
+    project.sourceCompatibility = '1.11'
+    project.targetCompatibility = '1.11'
 
     repositories {
         mavenCentral()

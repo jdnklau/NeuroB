@@ -8,7 +8,6 @@ import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
-import lombok.experimental.var;
 
 import java.util.ArrayList;
 import java.util.Arrays;
