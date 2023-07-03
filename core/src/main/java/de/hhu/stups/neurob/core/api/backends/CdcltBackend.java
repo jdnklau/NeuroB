@@ -7,9 +7,9 @@ import de.prob.animator.command.CbcSolveCommand;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The DPLLT based backend of ProB itself.
+ * The CDCLT based backend of ProB itself.
  */
-public class DplltBackend extends Backend {
+public class CdcltBackend extends Backend {
 
     /**
      * Sets default time out to {@link #defaultTimeOut}
@@ -17,7 +17,7 @@ public class DplltBackend extends Backend {
      *
      * @param preferences Preferences to be set.
      */
-    public DplltBackend(BPreference... preferences) {
+    public CdcltBackend(BPreference... preferences) {
         super(preferences);
     }
 
@@ -26,7 +26,7 @@ public class DplltBackend extends Backend {
      * @param timeOutUnit
      * @param preferences Preferences to be set.
      */
-    public DplltBackend(long timeOutValue, TimeUnit timeOutUnit, BPreference... preferences) {
+    public CdcltBackend(long timeOutValue, TimeUnit timeOutUnit, BPreference... preferences) {
         super(timeOutValue, timeOutUnit, preferences);
     }
 
@@ -36,7 +36,7 @@ public class DplltBackend extends Backend {
      *
      * @param preferences Preferences to be set
      */
-    public DplltBackend(BPreferences preferences) {
+    public CdcltBackend(BPreferences preferences) {
         super(preferences);
     }
 
@@ -45,7 +45,7 @@ public class DplltBackend extends Backend {
      * @param timeOutUnit
      * @param preferences Preferences to be set.
      */
-    public DplltBackend(long timeOutValue, TimeUnit timeOutUnit, BPreferences preferences) {
+    public CdcltBackend(long timeOutValue, TimeUnit timeOutUnit, BPreferences preferences) {
         super(timeOutValue, timeOutUnit, preferences);
     }
 
@@ -56,6 +56,6 @@ public class DplltBackend extends Backend {
 
     @Override
     public String getName() {
-        return "DPLLT";
+        return "CDCLT";
     }
 }

@@ -10,11 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class DplltBackendIT {
+class CdcltBackendIT {
 
     private MachineAccess bMachine;
 
@@ -24,12 +23,12 @@ class DplltBackendIT {
     }
 
     @Test
-    public void shouldBeDecidableForDplltWithCLPFD()
+    public void shouldBeDecidableForCdcltWithCLPFD()
             throws FormulaException {
-        DplltBackend dpllt = new DplltBackend(BPreferences.set("CLPFD", "TRUE").assemble());
+        CdcltBackend cdclt = new CdcltBackend(BPreferences.set("CLPFD", "TRUE").assemble());
 
         final BPredicate pred = BPredicate.of("a:INTEGER & b:INTEGER & a>b & b>a");
-        AnnotatedAnswer answer = dpllt.solvePredicateUntimed(pred, bMachine);
+        AnnotatedAnswer answer = cdclt.solvePredicateUntimed(pred, bMachine);
 
         assertEquals(Answer.INVALID, answer.getAnswer());
 
@@ -39,26 +38,26 @@ class DplltBackendIT {
     public void shouldBeInvalid() throws FormulaException {
         BPredicate pred = BPredicate.of("1 < 0");
 
-        DplltBackend dpllt = new DplltBackend();
+        CdcltBackend cdclt = new CdcltBackend();
 
         Answer expected = Answer.INVALID;
-        Answer actual = dpllt.solvePredicate(pred, bMachine).getAnswer();
+        Answer actual = cdclt.solvePredicate(pred, bMachine).getAnswer();
 
         assertEquals(expected, actual,
-                "DPLLT could not decide trivial predicate");
+                "CDCLT could not decide trivial predicate");
     }
 
     @Test
     public void shouldBeValid() throws FormulaException {
         BPredicate pred = BPredicate.of("1 > 0");
 
-        DplltBackend dpllt = new DplltBackend();
+        CdcltBackend cdclt = new CdcltBackend();
 
         Answer expected = Answer.VALID;
-        Answer actual = dpllt.solvePredicate(pred, bMachine).getAnswer();
+        Answer actual = cdclt.solvePredicate(pred, bMachine).getAnswer();
 
         assertEquals(expected, actual,
-                "DPLLT could not decide trivial predicate");
+                "CDCLT could not decide trivial predicate");
     }
 
 }
