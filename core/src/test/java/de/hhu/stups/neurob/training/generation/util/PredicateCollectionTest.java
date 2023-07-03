@@ -76,7 +76,6 @@ class PredicateCollectionTest {
      * {@code m} preconditions will be generated.
      *
      * @param amountPreconditions
-     *
      * @return
      */
     private ModelElementList<BEvent>
@@ -108,7 +107,6 @@ class PredicateCollectionTest {
      * @param type
      * @param amount
      * @param <T>
-     *
      * @return
      */
     private <T extends AbstractFormulaElement>
@@ -130,28 +128,6 @@ class PredicateCollectionTest {
         return elements;
     }
 
-    @Test
-    @Disabled("This behaviour is now undesired.")
-    public void shouldLoadInvariantWithConcatenationWhenMoreThanOne() {
-        ModelElementList<Invariant> invMock =
-                generatePredicates(Invariant.class, 2);
-        when(ss.getMainComponent().getChildrenOfType(Invariant.class))
-                .thenReturn(invMock);
-
-        PredicateCollection pc = new PredicateCollection(bMachine);
-
-        List<String> invariants = new ArrayList<>();
-        invariants.add("Invariant-1");
-        invariants.add("Invariant-2");
-        invariants.add("(Invariant-1) & (Invariant-2)");
-
-        List<BPredicate> expected = invariants.stream()
-                .map(BPredicate::new)
-                .collect(Collectors.toList());
-
-        assertEquals(expected, pc.getInvariants());
-
-    }
 
     @Test
     public void shouldNotCreateConcatenationWhenOnlyOneInvariant() {

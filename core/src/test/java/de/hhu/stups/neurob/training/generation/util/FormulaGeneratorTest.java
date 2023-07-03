@@ -271,51 +271,6 @@ public class FormulaGeneratorTest {
     }
 
     @Test
-    @Disabled("outdated")
-    public void shouldModelEnablingrelationShipsBetweenTwoOperations() {
-        List<String> formulae = FormulaGenerator.enablingRelationships(pc)
-                .stream()
-                .map(BPredicate::toString)
-                .collect(Collectors.toList());
-
-        String P = propertyInvariantPre.toString(); // for readability reasons shortened
-        String op1 = "(operation1-precondition1) & (operation1-precondition2)"
-                     + " & " + beforeAfterPredicates.get("operation1");
-        String op2 = "(operation2-precondition1) & (operation2-precondition2)"
-                     + " & " + beforeAfterPredicates.get("operation2");
-        String primed1 =
-                "primed-operation";
-        String primed2 =
-                "primed-operation";
-
-        List<String> expected = new ArrayList<>();
-
-        for (String op : new String[]{op1, op2}) {
-            for (String primed : new String[]{primed1, primed2}) {
-                expected.add(P + "(" + op + " & " + primed + ")");
-                expected.add(P + "(" + op + " & not(" + primed + "))");
-
-                expected.add(P + "not(" + op + ") & " + primed + "");
-                expected.add(P + "not(" + op + ") & not(" + primed + ")");
-                expected.add(P + "(not(" + op + ") => (" + primed + "))");
-                expected.add(P + "(not(" + op + ") => not(" + primed + "))");
-            }
-        }
-
-        // Sort for equality comparison
-        expected.sort(Comparator.naturalOrder());
-        formulae.sort(Comparator.naturalOrder());
-
-        assertAll("Enabeling relationships",
-                () -> assertEquals(expected.size(), formulae.size(),
-                        "Number of generated enabeling relations "
-                        + "does not match"),
-                () -> assertEquals(expected, formulae,
-                        "Enabling relations not correct")
-        );
-    }
-
-    @Test
     public void shouldNotGenerateEnablingRelationsWhenNoPreconditionsExist() {
         // need to mock personalised PredicateCollection
         PredicateCollection pc = mock(PredicateCollection.class);
@@ -345,73 +300,6 @@ public class FormulaGeneratorTest {
                 "Created predicates but should not have done so");
     }
 
-    @Test
-    @Disabled("Outdated")
-    public void shouldGenerateInvariantPreservationPredicates() {
-        List<String> formulae = FormulaGenerator.invariantPreservations(pc)
-                .stream()
-                .map(BPredicate::toString)
-                .collect(Collectors.toList());
-
-        String P = "(" + propertyConcatenation + ")"; // shortened for readability
-
-        // As it is expected to generate formulae for each invariant
-        // individually and for the concatenation,
-        // we shadow this.invariants with a version, that contains the
-        // concatenation of invariants as well.
-        List<BPredicate> invariants = new ArrayList<>();
-        invariants.add(invariantConcatenation); // concatenation
-        invariants.addAll(this.invariants); // each individually
-
-        List<String> expected = new ArrayList<>();
-        for (BPredicate inv : invariants) {
-            for (String op : operations) {
-                // Weakest preconditions of the operation
-                Map<BPredicate, BPredicate> wps = weakestPreconditions.get(op);
-
-                // For all B machines
-                expected.add(P + " & " + inv + " & " + wps.get(inv));
-                expected.add(P + " & " + inv + " & "
-                             + "not(" + wps.get(inv) + ")");
-                expected.add(P + " & (not(" + inv + ") => ("
-                             + wps.get(inv) + "))");
-                expected.add(P + " & (not(" + inv + ") => "
-                             + "not(" + wps.get(inv) + "))");
-
-                // For EventB only
-                String precond = FormulaGenerator.getPredicateConjunction(
-                        preconditions.get(op)).toString();
-
-                // Shorthand for concatenation of invariant, precond, and
-                // before/after predicate
-                String invAndBA = inv + " & " + precond
-                                  + " & " + beforeAfterPredicates.get(op);
-
-                expected.add(P + " & " + invAndBA + " & "
-                             + primedInvariants.get(inv));
-                expected.add(P + " & " + invAndBA + " & "
-                             + "not(" + primedInvariants.get(inv) + ")");
-                expected.add(P + " & (not(" + invAndBA + ") => ("
-                             + primedInvariants.get(inv) + "))");
-                expected.add(P + " & (not(" + invAndBA + ") => "
-                             + "not(" + primedInvariants.get(inv) + "))");
-
-            }
-        }
-
-        // Sort for equality comparison
-        expected.sort(Comparator.naturalOrder());
-        formulae.sort(Comparator.naturalOrder());
-
-        assertAll("Invariant preservations",
-                () -> assertEquals(expected.size(), formulae.size(),
-                        "Number of generated preservation predicates "
-                        + "does not match"),
-                () -> assertEquals(expected, formulae,
-                        "invariant preservation predicates are not correct")
-        );
-
-    }
 
     @Test
     void shouldGenerateEnablingAnalysis() {
