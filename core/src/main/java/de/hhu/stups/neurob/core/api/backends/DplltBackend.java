@@ -51,7 +51,7 @@ public class DplltBackend extends Backend {
 
     @Override
     public CbcSolveCommand.Solvers toCbcEnum() {
-        return CbcSolveCommand.Solvers.DPLLT;
+        return CbcSolveCommand.Solvers.CDCLT;
     }
 
     @Override

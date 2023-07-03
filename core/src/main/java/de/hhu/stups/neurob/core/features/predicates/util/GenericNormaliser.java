@@ -19,7 +19,7 @@ public class GenericNormaliser extends DepthFirstAdapter {
     @Override
     public void inAPrimedIdentifierExpression(APrimedIdentifierExpression node) {
         super.inAPrimedIdentifierExpression(node);
-        node.setIdentifier(generaliseIds(node.getIdentifier()));
+        node.replaceBy(new AIdentifierExpression(generaliseIds(node.getIdentifier())));
     }
 
     List<TIdentifierLiteral> generaliseIds(List<TIdentifierLiteral> ids) {

@@ -16,7 +16,7 @@ class DplltBackendTest {
     void shouldReturnDplltEnum() {
         Backend dpllt = new DplltBackend();
 
-        assertEquals(CbcSolveCommand.Solvers.DPLLT, dpllt.toCbcEnum());
+        assertEquals(CbcSolveCommand.Solvers.CDCLT, dpllt.toCbcEnum());
     }
 
 }
