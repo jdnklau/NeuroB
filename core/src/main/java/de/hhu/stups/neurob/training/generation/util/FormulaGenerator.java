@@ -19,6 +19,7 @@ import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FormulaException;
+import de.prob.animator.command.EnsureWdCommand;
 import de.prob.animator.command.NQPrimePredicateCommand;
 import de.prob.animator.command.PrettyPrintFormulaCommand;
 import de.prob.animator.domainobjects.IEvalElement;
@@ -119,13 +120,12 @@ public class FormulaGenerator {
     public static BPredicate cleanupAst(MachineAccess bMachine,
             IBEvalElement evalElement) throws FormulaException {
         try {
-            PrettyPrintFormulaCommand cleanup = new PrettyPrintFormulaCommand(evalElement, PrettyPrintFormulaCommand.Mode.ASCII);
-            cleanup.setOptimize(true);
-            bMachine.execute(cleanup);
+            EnsureWdCommand wd = new EnsureWdCommand(evalElement);
+            bMachine.execute(wd);
             // NOTE: The PrettyPrintFormulaCommand sometimes returns comments as well.
             // We pretty print again to get rid of them.
-            BPredicate result = BPredicate.of(cleanup.getPrettyPrint());
-            cleanup = new PrettyPrintFormulaCommand(bMachine.parseFormula(result), PrettyPrintFormulaCommand.Mode.ASCII);
+            BPredicate result = BPredicate.of(wd.getWdPred());
+            PrettyPrintFormulaCommand cleanup = new PrettyPrintFormulaCommand(bMachine.parseFormula(result), PrettyPrintFormulaCommand.Mode.ASCII);
             cleanup.setOptimize(true);
             bMachine.execute(cleanup);
             return BPredicate.of(cleanup.getPrettyPrint());
