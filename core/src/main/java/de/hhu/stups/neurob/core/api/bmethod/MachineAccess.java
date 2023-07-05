@@ -1,16 +1,14 @@
 package de.hhu.stups.neurob.core.api.bmethod;
 
-import com.google.inject.Guice;
 import de.hhu.stups.neurob.core.api.MachineType;
+import de.hhu.stups.neurob.core.api.ProB2;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
-import de.prob.MainModule;
 import de.prob.animator.command.AbstractCommand;
 import de.prob.animator.command.SetPreferenceCommand;
 import de.prob.animator.domainobjects.FormulaExpand;
 import de.prob.animator.domainobjects.IEvalElement;
-import de.prob.scripting.Api;
 import de.prob.statespace.StateSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +24,6 @@ public class MachineAccess {
     private final Path source;
     private final MachineType machineType;
 
-    private final Api api;
     protected boolean isLoaded = false;
     protected StateSpace stateSpace = null;
 
@@ -50,7 +47,6 @@ public class MachineAccess {
 
         this.preferences = new BPreferences(); // empty preferences
 
-        api = Guice.createInjector(new MainModule()).getInstance(Api.class);
         if (initialise) {
             load();
         }
@@ -69,7 +65,6 @@ public class MachineAccess {
      * Returns a reference to this instance for method chaining.
      *
      * @return Reference to this instance for method chaining.
-     *
      * @throws MachineAccessException
      */
     public MachineAccess load() throws MachineAccessException {
@@ -143,9 +138,7 @@ public class MachineAccess {
      * Only supports *.mch (Classical B) and *.bcm (EventB) files.
      *
      * @param file Path to the machine file to load.
-     *
      * @return
-     *
      * @throws MachineAccessException
      */
     protected StateSpace loadStateSpace(Path file) throws MachineAccessException {
@@ -154,14 +147,14 @@ public class MachineAccess {
             // TODO: Make use of machine type
             if (machineFile.endsWith(".mch")) {
                 log.info("Load State Space for Classical B machine {}", file);
-                return api.b_load(machineFile);
+                return ProB2.api.b_load(machineFile);
             } else if (machineFile.endsWith(".bcm")) {
                 log.info("Load State Space for EventB machine {}", file);
-                return api.eventb_load(machineFile);
+                return ProB2.api.eventb_load(machineFile);
             } else {
                 throw new MachineAccessException(
                         "Loading state space for " + machineFile + " failed "
-                        + "due to not being able to detect correct formalism");
+                                + "due to not being able to detect correct formalism");
             }
 //        } catch (ModelTranslationError modelTranslationError) {
 //            throw new MachineAccessException(
@@ -170,7 +163,7 @@ public class MachineAccess {
         } catch (Exception e) {
             throw new MachineAccessException(
                     "Unexpected exception encountered during loading of "
-                    + "state space for " + machineFile, e);
+                            + "state space for " + machineFile, e);
         }
 
     }
@@ -184,7 +177,6 @@ public class MachineAccess {
      * does not contain any {@link BPreference B preferences} yet.
      *
      * @return Second access to this machine
-     *
      * @throws MachineAccessException
      */
     public MachineAccess spawnFreshAccess() throws MachineAccessException {
@@ -218,9 +210,9 @@ public class MachineAccess {
     @Override
     public String toString() {
         return source + "{"
-               + "machine type=" + machineType + ", "
-               + "loaded=" + isLoaded + ", "
-               + "preferences=" + preferences + "}";
+                + "machine type=" + machineType + ", "
+                + "loaded=" + isLoaded + ", "
+                + "preferences=" + preferences + "}";
     }
 
     @Override
@@ -229,8 +221,8 @@ public class MachineAccess {
             MachineAccess other = (MachineAccess) o;
 
             return this.source.equals(other.source)
-                   && this.machineType.equals(other.machineType)
-                   && this.preferences.equals(other.preferences);
+                    && this.machineType.equals(other.machineType)
+                    && this.preferences.equals(other.preferences);
         }
 
         return false;
