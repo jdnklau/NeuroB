@@ -1,5 +1,6 @@
 package de.hhu.stups.neurob.training.generation;
 
+import de.hhu.stups.neurob.core.api.ProB2;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.bmethod.BMachine;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
@@ -157,6 +158,8 @@ public class PredicateTrainingGenerator
                             log.warn("Could not create labelling for {}", predicate, e);
                         } catch (FormulaException e) {
                             log.warn("Could not cleanup predicate {}", predicate, e);
+                            log.info("Reloading ProB2 API in case ProB Cli shut down.", predicate, e);
+                            ProB2.reloadApi();
                         }
                         // If any exceptions occur, return nothing
                         return Stream.empty();
