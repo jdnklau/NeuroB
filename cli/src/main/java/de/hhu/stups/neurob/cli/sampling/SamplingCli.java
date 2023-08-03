@@ -202,7 +202,7 @@ public class SamplingCli implements CliModule {
                             .collect(Collectors.toList());
 
                     double mean = timings.stream().mapToLong(l -> l).sum() * 1. / sampSize;
-                    StandardDeviation standardDeviation = new StandardDeviation(true); // Uses population variance.
+                    StandardDeviation standardDeviation = new StandardDeviation(true); // Uses sample variance.
                     double stdev = standardDeviation.evaluate(timings.stream()
                             .mapToDouble(Long::doubleValue).toArray());
 
