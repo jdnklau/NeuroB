@@ -74,7 +74,7 @@ public class SamplingCli implements CliModule {
                 .longOpt("")
                 .hasArg()
                 .argName("ERROR")
-                .desc("Allowed error; results in an allowed error of +/- ERROR %.")
+                .desc("Allowed error; results in an allowed error of +/- ERROR ms.")
                 .required()
                 .build();
 
@@ -216,7 +216,6 @@ public class SamplingCli implements CliModule {
 
             // Per backend/predicate: calculate number of needed samples.
             Map<Backend, Double> minSamples = new HashMap<>();
-            Map<Backend, Double> nonErrMinSamples = new HashMap<>();
             Map<Backend, List<Double>> samples = new HashMap<>();
             Map<Backend, List<Double>> nonErrSamples = new HashMap<>();
             Map<Backend, Map<BPredicate, Double>> predSamplesNeeded = new HashMap<>();
@@ -246,9 +245,8 @@ public class SamplingCli implements CliModule {
             System.out.println("Degrees of freedom (sample size minus one): " + degreesOfFreedom);
             System.out.println("Critical t-Value: " + tValue);
             for (Backend b : backends) {
-                System.out.println("- " + b.getName() + ": "
-                                   + minSamples.get(b) + " samples ("
-                                   + nonErrMinSamples.get(b) + " samples for non-error)");
+                System.out.println("- " + b.toString() + ": "
+                                   + minSamples.get(b) + " samples");
             }
             System.out.println();
 
