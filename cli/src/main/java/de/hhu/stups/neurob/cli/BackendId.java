@@ -6,6 +6,8 @@ import de.hhu.stups.neurob.core.api.backends.KodkodBackend;
 import de.hhu.stups.neurob.core.api.backends.ProBBackend;
 import de.hhu.stups.neurob.core.api.backends.SmtBackend;
 import de.hhu.stups.neurob.core.api.backends.Z3Backend;
+import de.hhu.stups.neurob.core.api.backends.Z3AxmBackend;
+import de.hhu.stups.neurob.core.api.backends.Z3CnsBackend;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreferences;
 
@@ -21,7 +23,10 @@ public enum BackendId {
 
     PROB("prob", ProBBackend::new),
     KODKOD("kodkod", KodkodBackend::new),
+
     Z3("z3", Z3Backend::new),
+    Z3Axm("z3axm", Z3AxmBackend::new),
+    Z3Cns("z3cns", Z3CnsBackend::new),
     SMT("smt", SmtBackend::new),
     CDCLT("cdclt", CdcltBackend::new);
 
@@ -39,6 +44,8 @@ public enum BackendId {
             + " - prob:                      Native Prolog backend\n"
             + " - kodkod:                    The Kodkod binding\n"
             + " - z3:                        The Z3 binding\n"
+            + " - z3axm:                     The Z3 binding with axiomatic translation (Krings and Leuschel, 2016)\n"
+            + " - z3cns:                     The Z3 binding with constructive translation (Schmidt and Leuschel, 2022)\n"
             + " - smt:                       The SMT_SUPPORTED_INTERPRETERS option\n"
             + " - cdclt:                     The CDCLT backend\n"
             + "\n"
@@ -84,8 +91,11 @@ public enum BackendId {
     }
 
     static BackendId matchBackend(String parameter) {
+        int bracketPos = parameter.indexOf('[');
+        String matchParam = (bracketPos == -1) ? parameter : parameter.substring(0, bracketPos);
+
         for (BackendId b : BackendId.values()) {
-            if (parameter.startsWith(b.id)) {
+            if (matchParam.equals(b.id)) {
                 return b;
             }
         }

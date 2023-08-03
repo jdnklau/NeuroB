@@ -37,6 +37,38 @@ class BackendIdTest {
     }
 
     @Test
+    void shouldMatchZ3Axm() {
+        String line = "z3axm[...]";
+        BackendId expected = BackendId.Z3Axm;
+        BackendId actual = BackendId.matchBackend(line);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldMatchZ3Cns() {
+        String line = "z3cns[...]";
+        BackendId expected = BackendId.Z3Cns;
+        BackendId actual = BackendId.matchBackend(line);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldMatchZ3CnsWithNoOptions() {
+        String line = "z3cns";
+        BackendId expected = BackendId.Z3Cns;
+        BackendId actual = BackendId.matchBackend(line);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldMatchZ3WithNoOptions() {
+        String line = "z3";
+        BackendId expected = BackendId.Z3;
+        BackendId actual = BackendId.matchBackend(line);
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void shouldMatchSmt() {
         String line = "smt[...]";
         BackendId expected = BackendId.SMT;
