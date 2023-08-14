@@ -144,8 +144,14 @@ public class SamplingCli implements CliModule {
             PredicateCollection pc = new PredicateCollection(mch);
 
             List<BPredicate> preds = new ArrayList<>();
-//            preds.addAll(FormulaGenerator.enablingAnalysis(pc));
+            preds.addAll(FormulaGenerator.assertions(pc));
+            preds.addAll(FormulaGenerator.enablingAnalysis(pc));
+            preds.addAll(FormulaGenerator.extendedPreconditionFormulae(pc));
             preds.addAll(FormulaGenerator.invariantConstrains(pc));
+            preds.addAll(FormulaGenerator.invariantPreservationFormulae(pc));
+            preds.addAll(FormulaGenerator.multiPreconditionFormulae(pc));
+            preds.addAll(FormulaGenerator.weakestPreconditionFormulae(pc));
+
 
             System.out.println("Gathered " + preds.size() + " predicates.");
 
@@ -159,7 +165,7 @@ public class SamplingCli implements CliModule {
                     for (int i = 0; i <= sampSize; i++) {
                         PredDbEntry result = gen.generate(p, mch);
 
-                        // As the first timing is magnitudes off but the  remaining ones yield
+                        // As the first timing is magnitudes off but the remaining ones yield
                         // consistent results (stdev 99 % smaller), we do an initial measurement
                         // we further will discard.
                         if (i==0) {
@@ -174,21 +180,6 @@ public class SamplingCli implements CliModule {
 
             mch.close();
 
-            // Remove preds for which backends run into timeouts or errors
-            Set<BPredicate> toBeRemoved = new HashSet<>();
-            for (BPredicate p: preds) {
-                for (PredDbEntry measurement : dbEntries.get(p)) {
-                    for (TimedAnswer tanswer : measurement.getResults().values()) {
-                        Answer answer = tanswer.getAnswer();
-                        if (answer.equals(Answer.TIMEOUT) || answer.equals(Answer.ERROR)) {
-                            toBeRemoved.add(p);
-                        }
-                    }
-                }
-            }
-            for (BPredicate p : toBeRemoved) {
-                preds.remove(p);
-            }
 
             // mean/stdev
             Map<BPredicate, Map<Backend, Double[]>> stats = new HashMap<>();
@@ -198,15 +189,20 @@ public class SamplingCli implements CliModule {
                 for (Backend b : backends) {
                     List<Long> timings = measures.stream()
                             .map(e -> e.getAnswerArray(b)[0])
+                            .filter(a -> ! (a.getAnswer().equals(Answer.ERROR)))
                             .map(a -> a.getTime(TimeUnit.MILLISECONDS))
                             .collect(Collectors.toList());
 
-                    double mean = timings.stream().mapToLong(l -> l).sum() * 1. / sampSize;
-                    StandardDeviation standardDeviation = new StandardDeviation(true); // Uses sample variance.
-                    double stdev = standardDeviation.evaluate(timings.stream()
-                            .mapToDouble(Long::doubleValue).toArray());
+                    if (!timings.isEmpty()) {
+                        int numMeasures = timings.size();
+                        assert numMeasures == sampSize;  // If this fails it means we need to prepare variable degrees of freedom.
+                        double mean = timings.stream().mapToLong(l -> l).sum() * 1. / numMeasures;
+                        StandardDeviation standardDeviation = new StandardDeviation(true); // Uses sample variance.
+                        double stdev = standardDeviation.evaluate(timings.stream()
+                                .mapToDouble(Long::doubleValue).toArray());
 
-                    stats.get(pred).put(b, new Double[]{mean, stdev});
+                        stats.get(pred).put(b, new Double[]{mean, stdev});
+                    }
                 }
             }
 
@@ -225,14 +221,16 @@ public class SamplingCli implements CliModule {
                 predSamplesNeeded.put(b, backendSamplesNeeded);
 
                 for (BPredicate p : preds) {
-                    double mean = stats.get(p).get(b)[0];
-                    double stdev = stats.get(p).get(b)[1];
-                    double minSamplesNeeded = Math.pow(
-                            tValue * stdev / error,
-                            2.
-                    );
-                    sampleValues.add(minSamplesNeeded);
-                    backendSamplesNeeded.put(p, minSamplesNeeded);
+                    if (stats.get(p).containsKey(b)) {
+                        double mean = stats.get(p).get(b)[0];
+                        double stdev = stats.get(p).get(b)[1];
+                        double minSamplesNeeded = Math.pow(
+                                tValue * stdev / error,
+                                2.
+                        );
+                        sampleValues.add(minSamplesNeeded);
+                        backendSamplesNeeded.put(p, minSamplesNeeded);
+                    }
                 }
                 minSamples.put(
                         b, sampleValues.stream()
@@ -265,12 +263,18 @@ public class SamplingCli implements CliModule {
 
                 // Rows with samples
                 List<PredDbEntry> measures = dbEntries.get(p);
-                for (int s=0; s<sampSize; s++) {
+                for (int s=0; s<measures.size(); s++) {
                     PredDbEntry sample = measures.get(s);
                     StringBuilder sampleRow = new StringBuilder(Integer.toString(s+1));
                     for (Backend b : backends) {
                         sampleRow.append("\t");
                         TimedAnswer backendResult = sample.getResult(b);
+                        Answer ans = backendResult.getAnswer();
+                        if (ans.equals(Answer.TIMEOUT)) {
+                            sampleRow.append('*');
+                        } else if (ans.equals(Answer.ERROR)) {
+                            sampleRow.append("**");
+                        }
                         sampleRow.append(backendResult.getTime(TimeUnit.MILLISECONDS));
                     }
                     System.out.println(sampleRow);
