@@ -27,13 +27,7 @@ import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -154,6 +148,13 @@ public class SamplingCli implements CliModule {
 
 
             System.out.println("Gathered " + preds.size() + " predicates.");
+
+            int max = 20;
+            if (preds.size() > max) {
+                Collections.shuffle(preds);
+                preds = preds.subList(0, max);
+                System.out.println("Using random selection of " + preds.size() + " predicates.");
+            }
 
             // Gather runtimes
             Map<BPredicate, List<PredDbEntry>> dbEntries = new HashMap<>();
