@@ -151,7 +151,7 @@ public class SamplingCli implements CliModule {
 
             int max = 20;
             if (preds.size() > max) {
-                Collections.shuffle(preds);
+                Collections.shuffle(preds, new Random(20230821L));
                 preds = preds.subList(0, max);
                 System.out.println("Using random selection of " + preds.size() + " predicates.");
             }
