@@ -23,6 +23,8 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
+import java.io.BufferedReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -54,6 +56,14 @@ public class SamplingCli implements CliModule {
                 .build();
 
         Option lstFile = Option.builder("p")
+                .longOpt("predlist")
+                .hasArgs()
+                .numberOfArgs(2)
+                .argName("PRED_LIST_FILE")
+                .desc("Calculate confidence interval over the first predicates in the given predicate file.")
+                .build();
+
+        Option lstFile2 = Option.builder("l")
                 .longOpt("predlist")
                 .hasArgs()
                 .numberOfArgs(2)
@@ -97,6 +107,7 @@ public class SamplingCli implements CliModule {
 
         options.addOption(mchFile);
         options.addOption(lstFile);
+        options.addOption(lstFile2);
         options.addOption(alpha);
         options.addOption(error);
         options.addOption(samplingSize);
@@ -146,7 +157,7 @@ public class SamplingCli implements CliModule {
 
                 preds = bpreds.stream()
                         .map(p -> new MchPredPair(listFile, p))
-                        .limit(20)
+                        .limit(maxPreds)
                         .collect(Collectors.toList());
             } else if (line.hasOption('p')) {
                 Path file = Paths.get(line.getOptionValues('p')[0]);
@@ -158,7 +169,20 @@ public class SamplingCli implements CliModule {
                         .map(entry -> new MchPredPair(
                                 dir.resolve(entry.getSource().getLocation()),
                                 entry.getPredicate()))
-                        .limit(20)
+                        .limit(maxPreds)
+                        .collect(Collectors.toList());
+            } else if (line.hasOption('l')) {
+                Path file = Paths.get(line.getOptionValues('l')[0]);
+                Path dir = Paths.get(line.getOptionValues('l')[1]);
+
+                preds = Files.lines(file)
+                        .map(s -> {
+                            int idx = s.indexOf(':');
+                            Path f = Paths.get(s.substring(0,idx));
+                            BPredicate b = BPredicate.of(s.substring(idx+1));
+                            return new MchPredPair(f,b);
+                        })
+                        .limit(maxPreds)
                         .collect(Collectors.toList());
             } else {
                 System.out.println("Missing either -f or -p option.");
