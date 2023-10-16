@@ -178,7 +178,7 @@ public class SamplingCli implements CliModule {
                 preds = Files.lines(file)
                         .map(s -> {
                             int idx = s.indexOf(':');
-                            Path f = Paths.get(s.substring(0,idx));
+                            Path f = dir.resolve(Paths.get(s.substring(0,idx)));
                             BPredicate b = BPredicate.of(s.substring(idx+1));
                             return new MchPredPair(f,b);
                         })
