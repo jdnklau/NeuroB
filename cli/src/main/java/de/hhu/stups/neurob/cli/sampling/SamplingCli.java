@@ -9,8 +9,6 @@ import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
-import de.hhu.stups.neurob.core.labelling.DecisionTimings;
-import de.hhu.stups.neurob.core.labelling.LabelGenerating;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
 import de.hhu.stups.neurob.training.db.PredicateList;
@@ -30,7 +28,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 public class SamplingCli implements CliModule {
@@ -44,7 +41,8 @@ public class SamplingCli implements CliModule {
 
     @Override
     public String getUsageInfo() {
-        return "sampling -f MACHINE_FILE -a ALPHA -e ERROR -s SAMPLING_SIZE [-[x]b BACKENDS]\n";
+        return "sampling -f MACHINE_FILE -a ALPHA -e ERROR -s SAMPLING_SIZE [-[x]b BACKENDS]\n"
+        + "       sampling -p PRED_LIST_FILE MCH_DIR -a ALPHA -e ERROR -s SAMPLING_SIZE [-[x]b BACKENDS]\n";
     }
 
     private void initOptions() {
@@ -53,7 +51,14 @@ public class SamplingCli implements CliModule {
                 .hasArg()
                 .argName("MACHINE_FILE")
                 .desc("Calculate confidence interval over generated predicates from the given machine file.")
-                .required()
+                .build();
+
+        Option lstFile = Option.builder("p")
+                .longOpt("predlist")
+                .hasArgs()
+                .numberOfArgs(2)
+                .argName("PRED_LIST_FILE")
+                .desc("Calculate confidence interval over the first predicates in the given predicate file.")
                 .build();
 
         Option alpha = Option.builder("a")
@@ -91,6 +96,7 @@ public class SamplingCli implements CliModule {
                 .build();
 
         options.addOption(mchFile);
+        options.addOption(lstFile);
         options.addOption(alpha);
         options.addOption(error);
         options.addOption(samplingSize);
@@ -110,17 +116,62 @@ public class SamplingCli implements CliModule {
 
     @Override
     public void eval(String[] args) throws Exception {
+        int maxPreds = 20;
+
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine line = parser.parse(options, args);
 
-            Path listFile = Paths.get(line.getOptionValue('f'));
+            List<MchPredPair> preds;
+            if (line.hasOption('f')) {
+                Path listFile = Paths.get(line.getOptionValue('f'));
+
+                MachineAccess mch = new MachineAccess(listFile);
+                PredicateCollection pc = new PredicateCollection(mch);
+
+                List<BPredicate> bpreds = new ArrayList<>();
+
+                bpreds.addAll(FormulaGenerator.assertions(pc));
+                bpreds.addAll(FormulaGenerator.enablingAnalysis(pc));
+                bpreds.addAll(FormulaGenerator.extendedPreconditionFormulae(pc));
+                bpreds.addAll(FormulaGenerator.invariantConstrains(pc));
+                bpreds.addAll(FormulaGenerator.invariantPreservationFormulae(pc));
+                bpreds.addAll(FormulaGenerator.multiPreconditionFormulae(pc));
+                bpreds.addAll(FormulaGenerator.weakestPreconditionFormulae(pc));
+
+                if (bpreds.size() > maxPreds) {
+                    Collections.shuffle(bpreds, new Random(20230821L));
+                    System.out.println("Using random selection of " + maxPreds + " predicates.");
+                }
+
+                preds = bpreds.stream()
+                        .map(p -> new MchPredPair(listFile, p))
+                        .limit(20)
+                        .collect(Collectors.toList());
+            } else if (line.hasOption('p')) {
+                Path file = Paths.get(line.getOptionValues('p')[0]);
+                Path dir = Paths.get(line.getOptionValues('p')[1]);
+
+                PredicateList pl = new PredicateList();
+                preds = pl.loadSamples(file)
+                        .map(TrainingSample::getLabelling)
+                        .map(entry -> new MchPredPair(
+                                dir.resolve(entry.getSource().getLocation()),
+                                entry.getPredicate()))
+                        .limit(20)
+                        .collect(Collectors.toList());
+            } else {
+                System.out.println("Missing either -f or -p option.");
+                System.exit(1);
+                return;
+            }
+
             double alpha = Double.parseDouble(line.getOptionValue('a'));
             double error = Double.parseDouble(line.getOptionValue('e'));
             int sampSize = Integer.parseInt(line.getOptionValue('s'));
             List<Backend> backends = parseBackends(line);
 
-            calculateConfidence(listFile, alpha, error, sampSize, backends);
+            calculateConfidence(preds, alpha, error, sampSize, backends);
 
         } catch (ParseException e) {
             System.out.println("Unable to get command line arguments: " + e);
@@ -128,187 +179,176 @@ public class SamplingCli implements CliModule {
     }
 
     void calculateConfidence(
-            Path file,
+            List<MchPredPair> pairs,
             double alpha, double error, int sampSize,
             List<Backend> backends) {
 
-        try {
-            // Generate samples first.
-            MachineAccess mch = new MachineAccess(file);
-            PredicateCollection pc = new PredicateCollection(mch);
+        List<BPredicate> preds = pairs.stream().map(MchPredPair::getPred).collect(Collectors.toList());
+        // Generate samples first.
+        System.out.println("Gathered " + preds.size() + " predicates.");
 
-            List<BPredicate> preds = new ArrayList<>();
-            preds.addAll(FormulaGenerator.assertions(pc));
-            preds.addAll(FormulaGenerator.enablingAnalysis(pc));
-            preds.addAll(FormulaGenerator.extendedPreconditionFormulae(pc));
-            preds.addAll(FormulaGenerator.invariantConstrains(pc));
-            preds.addAll(FormulaGenerator.invariantPreservationFormulae(pc));
-            preds.addAll(FormulaGenerator.multiPreconditionFormulae(pc));
-            preds.addAll(FormulaGenerator.weakestPreconditionFormulae(pc));
+        int max = 20;
+        if (preds.size() > max) {
+            Collections.shuffle(preds, new Random(20230821L));
+            preds = preds.subList(0, max);
+            System.out.println("Using random selection of " + preds.size() + " predicates.");
+        }
 
+        // Gather runtimes
+        Map<BPredicate, List<PredDbEntry>> dbEntries = new HashMap<>();
+        PredDbEntry.Generator gen =
+                new PredDbEntry.Generator(1, backends.toArray(new Backend[0]));
+        pairs.forEach(line -> {
+            try {
+                BPredicate p = line.getPred();
+                MachineAccess mch = new MachineAccess(line.getMch());
 
-            System.out.println("Gathered " + preds.size() + " predicates.");
+                dbEntries.put(p, new ArrayList<>());
+                for (int i = 0; i <= sampSize; i++) {
 
-            int max = 20;
-            if (preds.size() > max) {
-                Collections.shuffle(preds, new Random(20230821L));
-                preds = preds.subList(0, max);
-                System.out.println("Using random selection of " + preds.size() + " predicates.");
-            }
+                    PredDbEntry result = gen.generate(p, mch);
 
-            // Gather runtimes
-            Map<BPredicate, List<PredDbEntry>> dbEntries = new HashMap<>();
-            PredDbEntry.Generator gen =
-                    new PredDbEntry.Generator(1, backends.toArray(new Backend[0]));
-            preds.forEach(p -> {
-                try {
-                    dbEntries.put(p, new ArrayList<>());
-                    for (int i = 0; i <= sampSize; i++) {
-                        PredDbEntry result = gen.generate(p, mch);
-
-                        // As the first timing is magnitudes off but the remaining ones yield
-                        // consistent results (stdev 99 % smaller), we do an initial measurement
-                        // we further will discard.
-                        if (i==0) {
-                            continue;
-                        }
-                        dbEntries.get(p).add(result);
+                    // As the first timing is magnitudes off but the remaining ones yield
+                    // consistent results (stdev 99 % smaller), we do an initial measurement
+                    // we further will discard.
+                    if (i==0) {
+                        continue;
                     }
-                } catch (LabelCreationException e) {
-                    e.printStackTrace();
+                    dbEntries.get(p).add(result);
                 }
-            });
 
-            mch.close();
-
-
-            // mean/stdev
-            Map<BPredicate, Map<Backend, Double[]>> stats = new HashMap<>();
-            for (BPredicate pred : preds) {
-                stats.put(pred, new HashMap<>());
-                List<PredDbEntry> measures = dbEntries.get(pred);
-                for (Backend b : backends) {
-                    List<Long> timings = measures.stream()
-                            .map(e -> e.getAnswerArray(b)[0])
-                            .filter(a -> ! (a.getAnswer().equals(Answer.ERROR)))
-                            .map(a -> a.getTime(TimeUnit.MILLISECONDS))
-                            .collect(Collectors.toList());
-
-                    if (!timings.isEmpty()) {
-                        int numMeasures = timings.size();
-                        assert numMeasures == sampSize;  // If this fails it means we need to prepare variable degrees of freedom.
-                        double mean = timings.stream().mapToLong(l -> l).sum() * 1. / numMeasures;
-                        StandardDeviation standardDeviation = new StandardDeviation(true); // Uses sample variance.
-                        double stdev = standardDeviation.evaluate(timings.stream()
-                                .mapToDouble(Long::doubleValue).toArray());
-
-                        stats.get(pred).put(b, new Double[]{mean, stdev});
-                    }
-                }
+                mch.close();
+            } catch (LabelCreationException e) {
+                e.printStackTrace();
+            } catch (MachineAccessException e) {
+                throw new RuntimeException(e);
             }
+        });
 
-            int degreesOfFreedom = sampSize - 1;
-            TDistribution dist = new TDistribution(degreesOfFreedom);
-            double tValue = dist.inverseCumulativeProbability(1-alpha/2.);
 
-            // Per backend/predicate: calculate number of needed samples.
-            Map<Backend, Double> minSamples = new HashMap<>();
-            Map<Backend, List<Double>> samples = new HashMap<>();
-            Map<Backend, List<Double>> nonErrSamples = new HashMap<>();
-            Map<Backend, Map<BPredicate, Double>> predSamplesNeeded = new HashMap<>();
+        // mean/stdev
+        Map<BPredicate, Map<Backend, Double[]>> stats = new HashMap<>();
+        for (BPredicate pred : preds) {
+            stats.put(pred, new HashMap<>());
+            List<PredDbEntry> measures = dbEntries.get(pred);
             for (Backend b : backends) {
-                List<Double> sampleValues = new ArrayList<>();
-                Map<BPredicate, Double> backendSamplesNeeded = new HashMap<>();
-                predSamplesNeeded.put(b, backendSamplesNeeded);
+                List<Long> timings = measures.stream()
+                        .map(e -> e.getAnswerArray(b)[0])
+                        .filter(a -> ! (a.getAnswer().equals(Answer.ERROR)))
+                        .map(a -> a.getTime(TimeUnit.MILLISECONDS))
+                        .collect(Collectors.toList());
 
-                for (BPredicate p : preds) {
-                    if (stats.get(p).containsKey(b)) {
-                        double mean = stats.get(p).get(b)[0];
-                        double stdev = stats.get(p).get(b)[1];
-                        double minSamplesNeeded = Math.pow(
-                                tValue * stdev / error,
-                                2.
-                        );
-                        sampleValues.add(minSamplesNeeded);
-                        backendSamplesNeeded.put(p, minSamplesNeeded);
-                    }
+                if (!timings.isEmpty()) {
+                    int numMeasures = timings.size();
+                    assert numMeasures == sampSize;  // If this fails it means we need to prepare variable degrees of freedom.
+                    double mean = timings.stream().mapToLong(l -> l).sum() * 1. / numMeasures;
+                    StandardDeviation standardDeviation = new StandardDeviation(true); // Uses sample variance.
+                    double stdev = standardDeviation.evaluate(timings.stream()
+                            .mapToDouble(Long::doubleValue).toArray());
+
+                    stats.get(pred).put(b, new Double[]{mean, stdev});
                 }
-                minSamples.put(
-                        b, sampleValues.stream()
-                                .max(Double::compareTo)
-                                .orElse(-1.));
             }
+        }
 
-            System.out.println("Significance level (alpha): " + alpha);
-            System.out.println("Allowed error: +/- " + error + " ms");
-            System.out.println("Degrees of freedom (sample size minus one): " + degreesOfFreedom);
-            System.out.println("Critical t-Value: " + tValue);
-            for (Backend b : backends) {
-                System.out.println("- " + b.toString() + ": "
-                                   + minSamples.get(b) + " samples");
-            }
-            System.out.println();
+        int degreesOfFreedom = sampSize - 1;
+        TDistribution dist = new TDistribution(degreesOfFreedom);
+        double tValue = dist.inverseCumulativeProbability(1-alpha/2.);
 
-            int counter = 0;
+        // Per backend/predicate: calculate number of needed samples.
+        Map<Backend, Double> minSamples = new HashMap<>();
+        Map<Backend, List<Double>> samples = new HashMap<>();
+        Map<Backend, List<Double>> nonErrSamples = new HashMap<>();
+        Map<Backend, Map<BPredicate, Double>> predSamplesNeeded = new HashMap<>();
+        for (Backend b : backends) {
+            List<Double> sampleValues = new ArrayList<>();
+            Map<BPredicate, Double> backendSamplesNeeded = new HashMap<>();
+            predSamplesNeeded.put(b, backendSamplesNeeded);
+
             for (BPredicate p : preds) {
-                counter++;
-                System.out.println(counter + ". pred: " + p);
-
-                /* Print out table for comprehensive overview */
-                // Table header
-                StringBuilder tableHeader = new StringBuilder("measure no.");
-                for (Backend b : backends) {
-                    tableHeader.append("\t").append(b);
-                }
-                System.out.println(tableHeader);
-
-                // Rows with samples
-                List<PredDbEntry> measures = dbEntries.get(p);
-                for (int s=0; s<measures.size(); s++) {
-                    PredDbEntry sample = measures.get(s);
-                    StringBuilder sampleRow = new StringBuilder(Integer.toString(s+1));
-                    for (Backend b : backends) {
-                        sampleRow.append("\t");
-                        TimedAnswer backendResult = sample.getResult(b);
-                        Answer ans = backendResult.getAnswer();
-                        if (ans.equals(Answer.TIMEOUT)) {
-                            sampleRow.append('*');
-                        } else if (ans.equals(Answer.ERROR)) {
-                            sampleRow.append("**");
-                        }
-                        sampleRow.append(backendResult.getTime(TimeUnit.MILLISECONDS));
-                    }
-                    System.out.println(sampleRow);
-                }
-
-                // Statistics
-                StringBuilder means = new StringBuilder("mean");
-                StringBuilder stdevs = new StringBuilder("stdev");
-                StringBuilder stderrs = new StringBuilder("stderr");
-                StringBuilder samplesNeed = new StringBuilder("samples needed");
-                for (Backend b : backends) {
+                if (stats.get(p).containsKey(b)) {
                     double mean = stats.get(p).get(b)[0];
-                    means.append('\t');
-                    means.append(mean);
                     double stdev = stats.get(p).get(b)[1];
-                    stdevs.append('\t');
-                    stdevs.append(stdev);
-                    double stderr = stdev / (Math.sqrt(sampSize));
-                    stderrs.append('\t');
-                    stderrs.append(stderr);
-                    double need = predSamplesNeeded.get(b).get(p);
-                    samplesNeed.append('\t');
-                    samplesNeed.append(need);
+                    double minSamplesNeeded = Math.pow(
+                            tValue * stdev / error,
+                            2.
+                    );
+                    sampleValues.add(minSamplesNeeded);
+                    backendSamplesNeeded.put(p, minSamplesNeeded);
                 }
-                System.out.println(means);
-                System.out.println(stdevs);
-                System.out.println(stderrs);
-                System.out.println(samplesNeed);
-                System.out.println();
+            }
+            minSamples.put(
+                    b, sampleValues.stream()
+                            .max(Double::compareTo)
+                            .orElse(-1.));
+        }
+
+        System.out.println("Significance level (alpha): " + alpha);
+        System.out.println("Allowed error: +/- " + error + " ms");
+        System.out.println("Degrees of freedom (sample size minus one): " + degreesOfFreedom);
+        System.out.println("Critical t-Value: " + tValue);
+        for (Backend b : backends) {
+            System.out.println("- " + b.toString() + ": "
+                               + minSamples.get(b) + " samples");
+        }
+        System.out.println();
+
+        int counter = 0;
+        for (BPredicate p : preds) {
+            counter++;
+            System.out.println(counter + ". pred: " + p);
+
+            /* Print out table for comprehensive overview */
+            // Table header
+            StringBuilder tableHeader = new StringBuilder("measure no.");
+            for (Backend b : backends) {
+                tableHeader.append("\t").append(b);
+            }
+            System.out.println(tableHeader);
+
+            // Rows with samples
+            List<PredDbEntry> measures = dbEntries.get(p);
+            for (int s=0; s<measures.size(); s++) {
+                PredDbEntry sample = measures.get(s);
+                StringBuilder sampleRow = new StringBuilder(Integer.toString(s+1));
+                for (Backend b : backends) {
+                    sampleRow.append("\t");
+                    TimedAnswer backendResult = sample.getResult(b);
+                    Answer ans = backendResult.getAnswer();
+                    if (ans.equals(Answer.TIMEOUT)) {
+                        sampleRow.append('*');
+                    } else if (ans.equals(Answer.ERROR)) {
+                        sampleRow.append("**");
+                    }
+                    sampleRow.append(backendResult.getTime(TimeUnit.MILLISECONDS));
+                }
+                System.out.println(sampleRow);
             }
 
-        } catch (MachineAccessException e) {
-            e.printStackTrace();
+            // Statistics
+            StringBuilder means = new StringBuilder("mean");
+            StringBuilder stdevs = new StringBuilder("stdev");
+            StringBuilder stderrs = new StringBuilder("stderr");
+            StringBuilder samplesNeed = new StringBuilder("samples needed");
+            for (Backend b : backends) {
+                double mean = stats.get(p).get(b)[0];
+                means.append('\t');
+                means.append(mean);
+                double stdev = stats.get(p).get(b)[1];
+                stdevs.append('\t');
+                stdevs.append(stdev);
+                double stderr = stdev / (Math.sqrt(sampSize));
+                stderrs.append('\t');
+                stderrs.append(stderr);
+                double need = predSamplesNeeded.get(b).get(p);
+                samplesNeed.append('\t');
+                samplesNeed.append(need);
+            }
+            System.out.println(means);
+            System.out.println(stdevs);
+            System.out.println(stderrs);
+            System.out.println(samplesNeed);
+            System.out.println();
         }
 
 
@@ -335,6 +375,24 @@ public class SamplingCli implements CliModule {
                     .forEach(backends::add);
         }
         return backends;
+    }
+
+    class MchPredPair {
+        private final Path mch;
+        private final BPredicate pred;
+
+        public MchPredPair(Path mch, BPredicate pred) {
+            this.mch = mch;
+            this.pred = pred;
+        }
+
+        public Path getMch() {
+            return mch;
+        }
+
+        public BPredicate getPred() {
+            return pred;
+        }
     }
 
 }
