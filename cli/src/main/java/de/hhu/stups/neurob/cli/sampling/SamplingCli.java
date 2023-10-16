@@ -355,18 +355,29 @@ public class SamplingCli implements CliModule {
             StringBuilder stderrs = new StringBuilder("stderr");
             StringBuilder samplesNeed = new StringBuilder("samples needed");
             for (Backend b : backends) {
-                double mean = stats.get(p).get(b)[0];
-                means.append('\t');
-                means.append(mean);
-                double stdev = stats.get(p).get(b)[1];
-                stdevs.append('\t');
-                stdevs.append(stdev);
-                double stderr = stdev / (Math.sqrt(sampSize));
-                stderrs.append('\t');
-                stderrs.append(stderr);
-                double need = predSamplesNeeded.get(b).get(p);
-                samplesNeed.append('\t');
-                samplesNeed.append(need);
+                if (stats.get(p).containsKey(b)) {
+                    double mean = stats.get(p).get(b)[0];
+                    means.append('\t');
+                    means.append(mean);
+                    double stdev = stats.get(p).get(b)[1];
+                    stdevs.append('\t');
+                    stdevs.append(stdev);
+                    double stderr = stdev / (Math.sqrt(sampSize));
+                    stderrs.append('\t');
+                    stderrs.append(stderr);
+                    double need = predSamplesNeeded.get(b).get(p);
+                    samplesNeed.append('\t');
+                    samplesNeed.append(need);
+                } else {
+                    means.append('\t');
+                    means.append("err");
+                    stdevs.append('\t');
+                    stdevs.append("err");
+                    stderrs.append('\t');
+                    stderrs.append("err");
+                    samplesNeed.append('\t');
+                    samplesNeed.append("err");
+                }
             }
             System.out.println(means);
             System.out.println(stdevs);
