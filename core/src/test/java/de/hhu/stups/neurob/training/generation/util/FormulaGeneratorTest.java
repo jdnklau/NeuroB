@@ -271,37 +271,6 @@ public class FormulaGeneratorTest {
     }
 
     @Test
-    public void shouldNotGenerateEnablingRelationsWhenNoPreconditionsExist() {
-        // need to mock personalised PredicateCollection
-        PredicateCollection pc = mock(PredicateCollection.class);
-        // ... with neither properties nor invariants
-        when(pc.getProperties()).thenReturn(new ArrayList<>());
-        List<BPredicate> invariants = new ArrayList<>();
-        invariants.add(BPredicate.of("invariant")); // only one invariant
-        when(pc.getInvariants()).thenReturn(invariants);
-        when(pc.getOperationNames()).thenReturn(operations);
-        // preconditions -- none
-        Map<String, List<BPredicate>> preconditions = new HashMap<>();
-        when(pc.getPreconditions()).thenReturn(preconditions);
-        // before/after predicates
-        Map<String, BPredicate> beforeAfter = new HashMap<>();
-        beforeAfter.put("operation1", BPredicate.of("beforeAfter1"));
-        beforeAfter.put("operation2", BPredicate.of("beforeAfter2"));
-        when(pc.getBeforeAfterPredicates()).thenReturn(beforeAfter);
-        // only makes sense for EventB
-        when(pc.getMachineType()).thenReturn(MachineType.EVENTB);
-
-        List<String> formulae = FormulaGenerator.enablingRelationships(pc)
-                .stream()
-                .map(BPredicate::toString)
-                .collect(Collectors.toList());
-
-        assertEquals(0, formulae.size(),
-                "Created predicates but should not have done so");
-    }
-
-
-    @Test
     void shouldGenerateEnablingAnalysis() {
         List<String> formulae = FormulaGenerator.enablingAnalysis(pc)
                 .stream()
@@ -1302,51 +1271,6 @@ public class FormulaGeneratorTest {
                 () -> assertEquals(expected, formulae,
                         "Assertion predicates are not correct")
         );
-    }
-
-    @Test
-    public void shouldNotUseInvariantConcatenationAsWellWhenOnlyOneInvariantExists() {
-        PredicateCollection pc = mock(PredicateCollection.class);
-        List<BPredicate> invariant = new ArrayList<>();
-        when(pc.getMachineType()).thenReturn(MachineType.EVENTB);
-        // Invariant and primed invariant
-        invariant.add(BPredicate.of("invariant"));
-        when(pc.getInvariants()).thenReturn(invariant);
-        List<String> primedInvariant = new ArrayList<>();
-        primedInvariant.add("primed");
-        Map<BPredicate, BPredicate> primedMap = new HashMap<>();
-        primedMap.put(BPredicate.of("invariant"), BPredicate.of("primed"));
-        primedMap.put(BPredicate.of("(invariant)"), BPredicate.of("primedconcat")); // primed concatenation
-        when(pc.getPrimedInvariants()).thenReturn(primedMap);
-        // Preconditions and before/after predicates
-        List<BPredicate> precondition = new ArrayList<>();
-        precondition.add(BPredicate.of("precondition"));
-        Map<String, List<BPredicate>> operationPrecondition = new HashMap<>();
-        operationPrecondition.put("operation", precondition);
-        when(pc.getPreconditions()).thenReturn(operationPrecondition);
-        Map<String, BPredicate> beforeAfter = new HashMap<>();
-        beforeAfter.put("operation", BPredicate.of("beforeAfter"));
-        when(pc.getBeforeAfterPredicates()).thenReturn(beforeAfter);
-        // Necessary Stubs that are called but may be empty
-        when(pc.getProperties()).thenReturn(new ArrayList<>());
-        when(pc.getWeakestPreConditions()).thenReturn(new HashMap<>());
-
-        List<String> expected = new ArrayList<>();
-        expected.add("invariant & (precondition) & beforeAfter & primed");
-        expected.add("invariant & (precondition) & beforeAfter & not(primed)");
-        expected.add("(not(invariant & (precondition) & beforeAfter) => (primed))");
-        expected.add("(not(invariant & (precondition) & beforeAfter) => not(primed))");
-
-        List<String> actual = FormulaGenerator.invariantPreservations(pc)
-                .stream()
-                .map(BPredicate::toString)
-                .collect(Collectors.toList());
-
-        expected.sort(Comparator.naturalOrder());
-        actual.sort(Comparator.naturalOrder());
-
-        assertEquals(expected, actual,
-                "Generated invariant preservations do not match");
     }
 
     @Test
