@@ -97,8 +97,11 @@ public class PredicateTrainingGenerator
 
         generationRules = new ArrayList<>();
         generationRules.add(FormulaGenerator::assertions);
-        generationRules.add(FormulaGenerator::enablingRelationships);
-        generationRules.add(FormulaGenerator::invariantPreservations);
+        generationRules.add(FormulaGenerator::enablingAnalysis);
+        generationRules.add(FormulaGenerator::invariantConstrains);
+        generationRules.add(FormulaGenerator::invariantPreservationFormulae);
+        generationRules.add(FormulaGenerator::preconditionConstraints);
+        generationRules.add(FormulaGenerator::weakestPreconditionFormulae);
         generationRules.add(FormulaGenerator::multiPreconditionFormulae);
         generationRules.add(FormulaGenerator::extendedPreconditionFormulae);
 
