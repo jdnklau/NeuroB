@@ -62,7 +62,6 @@ public class GenericNormalisedPredicate extends PredicateFeatures {
                 } else {
                     BParser parser = new BParser();
                     String input = BParser.PREDICATE_PREFIX + pred;
-                    parser.getOptions().setRestrictPrimedIdentifiers(false);
                     ast = parser.parse(input, false, parser.getContentProvider());
                 }
             } catch (Exception e) {

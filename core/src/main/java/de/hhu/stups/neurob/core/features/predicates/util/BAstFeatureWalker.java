@@ -515,8 +515,7 @@ public class BAstFeatureWalker extends DepthFirstAdapter {
 
     @Override
     public void caseAPrimedIdentifierExpression(APrimedIdentifierExpression node) {
-        String grade = node.getGrade().getText().trim();
-        node.getIdentifier().stream().map(Tid -> Tid.getText() + "$" + grade)
+        node.getIdentifier().stream().map(Tid -> Tid.getText() + "$0")
                 .forEach(data::addIdentifier);
 //        super.caseAPrimedIdentifierExpression(node);
     }
