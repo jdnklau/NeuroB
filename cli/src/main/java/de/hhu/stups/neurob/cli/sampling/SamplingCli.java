@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.cli.sampling;
 
 import de.hhu.stups.neurob.cli.BackendId;
 import de.hhu.stups.neurob.cli.CliModule;
+import de.hhu.stups.neurob.core.api.MachineType;
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
@@ -225,19 +226,18 @@ public class SamplingCli implements CliModule {
         pairs.forEach(line -> {
             try {
                 BPredicate p = line.getPred();
-                MachineAccess mch = new MachineAccess(line.getMch());
+                MachineAccess mch = new MachineAccess(line.getMch(), MachineType.CLASSICALB, false);
 
                 dbEntries.put(p, new ArrayList<>());
-                for (int i = 0; i <= sampSize; i++) {
-
-                    PredDbEntry result = gen.generate(p, mch);
+                for (int i = 0; i < sampSize; i++) {
+                    mch.load(); // Reload statespace for independent measurements.
 
                     // As the first timing is magnitudes off but the remaining ones yield
                     // consistent results (stdev 99 % smaller), we do an initial measurement
                     // we further will discard.
-                    if (i==0) {
-                        continue;
-                    }
+                    gen.generate(p, mch);
+                    PredDbEntry result = gen.generate(p, mch);
+
                     dbEntries.get(p).add(result);
                 }
 
