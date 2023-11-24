@@ -152,7 +152,7 @@ public class SamplingCli implements CliModule {
                 bpreds.addAll(FormulaGenerator.weakestPreconditionFormulae(pc));
 
                 if (bpreds.size() > maxPreds) {
-                    Collections.shuffle(bpreds, new Random(20230821L));
+                    Collections.shuffle(bpreds, new Random(20231124L));
                     System.out.println("Using random selection of " + maxPreds + " predicates.");
                 }
 
