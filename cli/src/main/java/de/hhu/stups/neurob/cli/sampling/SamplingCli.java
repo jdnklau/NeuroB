@@ -12,7 +12,7 @@ import de.hhu.stups.neurob.core.exceptions.LabelCreationException;
 import de.hhu.stups.neurob.core.exceptions.MachineAccessException;
 import de.hhu.stups.neurob.training.data.TrainingSample;
 import de.hhu.stups.neurob.training.db.PredDbEntry;
-import de.hhu.stups.neurob.training.db.PredicateList;
+import de.hhu.stups.neurob.training.db.SimplePredicateList;
 import de.hhu.stups.neurob.training.generation.util.FormulaGenerator;
 import de.hhu.stups.neurob.training.generation.util.PredicateCollection;
 import org.apache.commons.cli.CommandLine;
@@ -164,7 +164,7 @@ public class SamplingCli implements CliModule {
                 Path file = Paths.get(line.getOptionValues('p')[0]);
                 Path dir = Paths.get(line.getOptionValues('p')[1]);
 
-                PredicateList pl = new PredicateList();
+                SimplePredicateList pl = new SimplePredicateList();
                 preds = pl.loadSamples(file)
                         .map(TrainingSample::getLabelling)
                         .map(entry -> new MchPredPair(
