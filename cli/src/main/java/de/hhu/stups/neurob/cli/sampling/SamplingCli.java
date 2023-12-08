@@ -106,6 +106,14 @@ public class SamplingCli implements CliModule {
                 .desc("If set, enumerates any combination of options per backend.")
                 .build();
 
+        Option probHome = Option.builder("h")
+                .longOpt("prob-home")
+                .hasArg()
+                .argName("PATH")
+                .desc("If set, uses the ProB cli located at the given path.")
+                .optionalArg(true)
+                .build();
+
         options.addOption(mchFile);
         options.addOption(lstFile);
         options.addOption(lstFile2);
@@ -114,6 +122,7 @@ public class SamplingCli implements CliModule {
         options.addOption(samplingSize);
         options.addOption(backends);
         options.addOption(cross);
+        options.addOption(probHome);
     }
 
     @Override
@@ -133,6 +142,11 @@ public class SamplingCli implements CliModule {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine line = parser.parse(options, args);
+
+            // Check for ProB home
+            if (line.hasOption("h")) {
+                setProBHomeFromOption(line, "h");
+            }
 
             List<MchPredPair> preds;
             if (line.hasOption('f')) {
@@ -201,6 +215,11 @@ public class SamplingCli implements CliModule {
         } catch (ParseException e) {
             System.out.println("Unable to get command line arguments: " + e);
         }
+    }
+
+    static void setProBHomeFromOption(CommandLine line, String fromOption) {
+        String probHome = line.getOptionValue(fromOption);
+        System.setProperty("prob.home", probHome);
     }
 
     void calculateConfidence(
