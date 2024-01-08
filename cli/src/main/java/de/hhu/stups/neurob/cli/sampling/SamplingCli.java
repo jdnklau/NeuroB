@@ -111,7 +111,6 @@ public class SamplingCli implements CliModule {
                 .hasArg()
                 .argName("PATH")
                 .desc("If set, uses the ProB cli located at the given path.")
-                .optionalArg(true)
                 .build();
 
         options.addOption(mchFile);

@@ -21,7 +21,11 @@ public class NeuroBCli {
 
                 case "sampling":
                     SamplingCli sampling = new SamplingCli();
-                    sampling.eval(args);
+                    try {
+                        sampling.eval(args);
+                    } catch (Exception e) {
+                        System.out.println(sampling.getHelpText());
+                    }
                     break;
 
                 case "help":
