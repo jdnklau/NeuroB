@@ -113,6 +113,13 @@ public class SamplingCli implements CliModule {
                 .desc("If set, uses the ProB cli located at the given path.")
                 .build();
 
+        Option maxPreds = Option.builder("n")
+                .longOpt("max-preds")
+                .hasArg()
+                .argName("NUM")
+                .desc("Sets the maximum number of predicates to process. Defaults to 20.")
+                .build();
+
         options.addOption(mchFile);
         options.addOption(lstFile);
         options.addOption(lstFile2);
@@ -122,6 +129,7 @@ public class SamplingCli implements CliModule {
         options.addOption(backends);
         options.addOption(cross);
         options.addOption(probHome);
+        options.addOption(maxPreds);
     }
 
     @Override
@@ -141,6 +149,10 @@ public class SamplingCli implements CliModule {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine line = parser.parse(options, args);
+
+            if (line.hasOption("n")) {
+                maxPreds = Integer.parseInt(line.getOptionValue("n"));
+            }
 
             // Check for ProB home
             if (line.hasOption("h")) {
