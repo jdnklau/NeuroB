@@ -242,13 +242,6 @@ public class SamplingCli implements CliModule {
         // Generate samples first.
         System.out.println("Gathered " + preds.size() + " predicates.");
 
-        int max = 20;
-        if (preds.size() > max) {
-            Collections.shuffle(preds, new Random(20230821L));
-            preds = preds.subList(0, max);
-            System.out.println("Using random selection of " + preds.size() + " predicates.");
-        }
-
         // Gather runtimes
         Map<BPredicate, List<PredDbEntry>> dbEntries = new HashMap<>();
         PredDbEntry.Generator gen =
