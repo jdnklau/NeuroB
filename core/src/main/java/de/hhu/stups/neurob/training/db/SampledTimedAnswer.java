@@ -2,9 +2,9 @@ package de.hhu.stups.neurob.training.db;
 
 import de.hhu.stups.neurob.core.api.backends.Answer;
 import de.hhu.stups.neurob.core.api.backends.TimedAnswer;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.text.DecimalFormat;
-import java.util.Objects;
 import java.util.Optional;
 
 public class SampledTimedAnswer extends TimedAnswer {
@@ -45,6 +45,8 @@ public class SampledTimedAnswer extends TimedAnswer {
     @Override
     public String toString() {
         DecimalFormat df = new DecimalFormat("0.000");
+
+
         return "["
                + "answer=" + this.answer + ", "
                + "nanoSeconds=" + this.nanoSeconds
@@ -52,7 +54,7 @@ public class SampledTimedAnswer extends TimedAnswer {
 //               + ", mean=" + this.stats.getMean()  // this.nanoSeconds supposed to be mean already.
                + ", stdev=" + df.format(this.stats.getStdev())
                + ", sem=" + df.format(this.stats.getSem())
-               + (this.message != null ? ", message=" + this.message : "")
+               + (this.message != null ? ", message=\"" + StringEscapeUtils.escapeJava(this.message) + "\"" : "\"\"")
                + "]";
     }
 }
