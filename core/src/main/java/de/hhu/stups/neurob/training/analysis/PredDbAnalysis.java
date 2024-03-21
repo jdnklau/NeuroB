@@ -334,7 +334,11 @@ public class PredDbAnalysis
 
         for (Map.Entry<Backend, TimedAnswer> entry : answerMap.entrySet()) {
             Backend backend = entry.getKey();
-            Answer answer = entry.getValue().getAnswer();
+            TimedAnswer tAnswer = entry.getValue();
+            if (tAnswer == null) {
+                continue;
+            }
+            Answer answer = tAnswer.getAnswer();
 
             Set<Backend> cluster = result.getOrDefault(answer, new HashSet<>());
             cluster.add(backend);
@@ -356,6 +360,9 @@ public class PredDbAnalysis
         Collection<TimedAnswer> values = dbEntry.getResults().values();
 
         for (TimedAnswer timedAnswer : values) {
+            if (timedAnswer == null) {
+                continue;
+            }
             Answer answer = timedAnswer.getAnswer();
 
             // Everything is better than an ERROR
@@ -363,19 +370,19 @@ public class PredDbAnalysis
                 best = answer;
             }
             // Everything non-Error is better than TimeOut
-            if (best.equals(Answer.TIMEOUT)
+            else if (best.equals(Answer.TIMEOUT)
                 && !answer.equals(Answer.ERROR)
                 && !answer.equals(Answer.TIMEOUT)) {
                 best = answer;
             }
             // Solvable predicates are better than UNKNOWN
-            if (best.equals(Answer.UNKNOWN) && (answer.equals(Answer.VALID)
+            else if (best.equals(Answer.UNKNOWN) && (answer.equals(Answer.VALID)
                                                 || answer.equals(Answer.INVALID)
                                                 || answer.equals(Answer.SOLVABLE))) {
                 best = answer;
             }
             // VALID/INVALID is better than SOLVABLE
-            if (best.equals(Answer.SOLVABLE) && (answer.equals(Answer.VALID)
+            else if (best.equals(Answer.SOLVABLE) && (answer.equals(Answer.VALID)
                                                  || answer.equals(Answer.INVALID))) {
                 best = answer;
             }
@@ -480,7 +487,9 @@ public class PredDbAnalysis
         for (Map.Entry<Backend, TimedAnswer> entry : results.entrySet()) {
             Backend backend = entry.getKey();
             TimedAnswer answer = entry.getValue();
-
+            if (answer == null) {
+                continue;
+            }
             addRuntime(backend, answer.getAnswer(), answer.getNanoSeconds());
         }
     }
@@ -776,14 +785,18 @@ public class PredDbAnalysis
         Long fastestTime = Long.MAX_VALUE;
 
         for (Map.Entry<Backend, TimedAnswer> entry : timings.entrySet()) {
-            Answer answer = entry.getValue().getAnswer();
+            TimedAnswer tAnswer = entry.getValue();
+            if (tAnswer == null) {
+                continue;
+            }
+            Answer answer = tAnswer.getAnswer();
 
             // Skip errors and timeouts
             if (answer.equals(Answer.TIMEOUT) || answer.equals(Answer.ERROR)) {
                 continue;
             }
 
-            Long time = entry.getValue().getNanoSeconds();
+            Long time = tAnswer.getNanoSeconds();
             if (fastestTime > time) {
                 fastestTime = time;
                 fastestBackends.clear();
