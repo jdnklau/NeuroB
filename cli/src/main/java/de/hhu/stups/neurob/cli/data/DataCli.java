@@ -59,7 +59,8 @@ public class DataCli implements CliModule {
                          + "       data -g SOURCE_DIR -t TARGET_DIR TARGET_FORMAT [OPTIONS] [-s SAMPLING_SIZE] [-[x][z]b BACKENDS | -n]\n"
                          + "       data -a SOURCE_DIR FORMAT [-c THREADS] [-[x]b BACKENDS] [-f FILE_NAME]\n"
                          + "       data -p SOURCE_DIR -o TARGET_PATH [-c THREADS]\n"
-                         + "       data -e PREDICATE_SAMPLE [-f SOURCE_FILE] [-s SAMPLING_SIZE] [-[x]b BACKENDS]\n";
+                         + "       data -e PREDICATE_SAMPLE [-f SOURCE_FILE] [-s SAMPLING_SIZE] [-[x]b BACKENDS]\n"
+                         + "       data -v SOURCE_DIR FORMAT -o TARGET_DIR -b BACKENDS\n";
 
     }
 
@@ -119,6 +120,15 @@ public class DataCli implements CliModule {
                 .required()
                 .build();
 
+        // Filtering
+        Option filter = Option.builder("v")
+                .longOpt("filter")
+                .numberOfArgs(2)
+                .argName("PATH FORMAT")
+                .desc("Path to database to filter with corresponding format")
+                .required()
+                .build();
+
         // Analysis
         Option predsOnly = Option.builder("p")
                 .longOpt("predicates")
@@ -141,6 +151,7 @@ public class DataCli implements CliModule {
         modeGroup.addOption(migrate);
         modeGroup.addOption(generate);
         modeGroup.addOption(analyse);
+        modeGroup.addOption(filter);
         modeGroup.addOption(predsOnly);
 
         // Target
@@ -155,7 +166,7 @@ public class DataCli implements CliModule {
                 .longOpt("output-file")
                 .hasArg()
                 .argName("PATH")
-                .desc("Path to the output file.")
+                .desc("Path to the output file or directory.")
                 .build();
 
         Option examplesDir = Option.builder("e")
@@ -264,6 +275,15 @@ public class DataCli implements CliModule {
                 } else {
                     analyse(sourceDir, dbFormat, backends);
                 }
+            } else if (line.hasOption("v")) {
+                Path sourceDir = parseSourceDirectory(line, "v");
+                PredicateDbFormat dbFormat = (PredicateDbFormat) parseFormat(line, "v");
+
+                List<Backend> backends = parseBackends(line);
+                Path target = parseSourceDirectory(line, "o");
+
+                new PredDbFiltering().filter(sourceDir, dbFormat, target, backends.toArray(new Backend[0]));
+
             } else if (line.hasOption("g")) {
                 generate(line, parseTargetDirectory(line));
 
