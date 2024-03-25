@@ -163,7 +163,7 @@ public class DataCli implements CliModule {
                 .build();
 
         Option output = Option.builder("o")
-                .longOpt("output-file")
+                .longOpt("output-location")
                 .hasArg()
                 .argName("PATH")
                 .desc("Path to the output file or directory.")
