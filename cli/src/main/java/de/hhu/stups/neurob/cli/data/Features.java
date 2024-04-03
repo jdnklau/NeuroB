@@ -2,16 +2,7 @@ package de.hhu.stups.neurob.cli.data;
 
 import de.hhu.stups.neurob.cli.formats.Formats;
 import de.hhu.stups.neurob.core.features.FeatureGenerating;
-import de.hhu.stups.neurob.core.features.predicates.BAst109Reduced;
-import de.hhu.stups.neurob.core.features.predicates.BAst110Features;
-import de.hhu.stups.neurob.core.features.predicates.BAst115Features;
-import de.hhu.stups.neurob.core.features.predicates.BAst124Features;
-import de.hhu.stups.neurob.core.features.predicates.BAst185Features;
-import de.hhu.stups.neurob.core.features.predicates.BAst275Features;
-import de.hhu.stups.neurob.core.features.predicates.GenericNormalisedPredicate;
-import de.hhu.stups.neurob.core.features.predicates.NormalisedPredicate;
-import de.hhu.stups.neurob.core.features.predicates.PredicateFeatureGenerating;
-import de.hhu.stups.neurob.core.features.predicates.RawPredFeature;
+import de.hhu.stups.neurob.core.features.predicates.*;
 import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
 
 import java.util.ArrayList;
@@ -32,6 +23,7 @@ public enum Features {
             () -> new NormalisedPredicate.Generator(), -1),
     GNRM("Generic normalised predicates as features (x+y -> id+id); not usable with CSV format",
             () -> new GenericNormalisedPredicate.Generator(), -1),
+    BAST("Prolog B Ast", PrologBAst.Generator::new, -1),
 
     ;
 

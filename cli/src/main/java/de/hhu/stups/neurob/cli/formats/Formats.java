@@ -4,10 +4,7 @@ import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.labelling.BackendClassification;
 import de.hhu.stups.neurob.training.db.JsonDbFormat;
 import de.hhu.stups.neurob.training.db.PredicateList;
-import de.hhu.stups.neurob.training.formats.CsvFormat;
-import de.hhu.stups.neurob.training.formats.JsonFormat;
-import de.hhu.stups.neurob.training.formats.TfTextDirectory;
-import de.hhu.stups.neurob.training.formats.TrainingDataFormat;
+import de.hhu.stups.neurob.training.formats.*;
 import de.hhu.stups.neurob.training.migration.legacy.PredicateDumpFormat;
 
 import java.text.ParseException;
@@ -23,7 +20,8 @@ public enum Formats {
     CSV("CSV", (f,l,b) -> new CsvFormat(f, l)),
     CSVC("CSV with comment column", (f,l,b) -> new CsvFormat(f, l, true, true)),
     TFTXT("Tensorflow Text Data directory structure", (f,l,b) -> new TfTextDirectory<BackendClassification>()),
-    PLIST("Predicate list data base format", (f,l,b) -> new PredicateList());
+    PLIST("Predicate list data base format", (f,l,b) -> new PredicateList()),
+    BAST("List of BAsts with preceeding labels", (f,l,b) -> new PrologAstListFormat());
 
     public final String description;
     public final FormatParser getter;
