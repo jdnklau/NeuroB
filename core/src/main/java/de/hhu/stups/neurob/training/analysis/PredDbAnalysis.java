@@ -154,7 +154,7 @@ public class PredDbAnalysis
 
         StringBuilder summary = new StringBuilder();
 
-        summary.append("Backend: ").append(b);
+        summary.append("\nBackend: ").append(b);
         summary.append('\n');
 
         // Answers
