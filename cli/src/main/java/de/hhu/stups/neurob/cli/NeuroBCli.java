@@ -2,6 +2,7 @@ package de.hhu.stups.neurob.cli;
 
 import de.hhu.stups.neurob.cli.data.DataCli;
 import de.hhu.stups.neurob.cli.sampling.SamplingCli;
+import de.hhu.stups.neurob.cli.solving.SolvingCli;
 import org.apache.commons.cli.HelpFormatter;
 
 public class NeuroBCli {
@@ -25,6 +26,15 @@ public class NeuroBCli {
                         sampling.eval(args);
                     } catch (Exception e) {
                         System.out.println(sampling.getHelpText());
+                    }
+                    break;
+
+                case "solving":
+                    SolvingCli cli = new SolvingCli();
+                    try {
+                        cli.eval(args);
+                    } catch (Exception e) {
+                        System.out.println(cli.getHelpText());
                     }
                     break;
 
