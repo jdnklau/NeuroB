@@ -14,7 +14,7 @@ public class PredDbFiltering {
 
     void filter(Path from, PredicateDbFormat<PredDbEntry> fmt, Path to, Backend[] backends) throws IOException {
         fmt.loadTrainingData(from)
-                .map(this::strictlyFilterSamples)
+                .map(this::filterSamples)
                 .forEach(samps -> {
                     try {
                         fmt.writeSamples(samps, to);
@@ -25,7 +25,7 @@ public class PredDbFiltering {
 
     }
 
-    TrainingData<BPredicate, PredDbEntry> strictlyFilterSamples(TrainingData<BPredicate, PredDbEntry> data) {
+    TrainingData<BPredicate, PredDbEntry> filterSamples(TrainingData<BPredicate, PredDbEntry> data) {
         TrainingData<BPredicate, PredDbEntry> newData;
 
         var results = data.getSamples()
@@ -37,8 +37,7 @@ public class PredDbFiltering {
     }
 
     /**
-     * Checks whether the given sample has no contradictions stored and all backends have an error-free
-     * result.
+     * Checks whether the given sample has no contradictions stored and not all backends result in an error result.
      *
      * @param sample
      * @return
@@ -46,6 +45,8 @@ public class PredDbFiltering {
     private boolean isCompleteAndSound(TrainingSample<BPredicate, PredDbEntry> sample) {
         boolean hasValidAnswer = false;
         boolean hasInvalidAnswer = false;
+
+        boolean notAllError = false;
 
         for (Backend b : sample.getLabelling().getBackendsUsed()) {
             var answer = sample.getLabelling().getResult(b);
@@ -57,18 +58,22 @@ public class PredDbFiltering {
             switch (answer.getAnswer()) {
                 case VALID:
                     hasValidAnswer = true;
+                    notAllError = true;
                     break;
                 case INVALID:
                     hasInvalidAnswer = true;
+                    notAllError = true;
                     break;
                 case ERROR:
-                    return false;
+                    // Just so we don't switch the notAllError flag
+                    break;
                 default:
+                    notAllError = true;
                     break;
             }
         }
 
-        return !hasInvalidAnswer || !hasValidAnswer;
+        return notAllError & (!hasInvalidAnswer || !hasValidAnswer);
     }
 
 }
