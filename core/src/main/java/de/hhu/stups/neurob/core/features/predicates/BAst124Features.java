@@ -28,7 +28,7 @@ import java.util.Arrays;
  */
 public class BAst124Features extends PredicateFeatures {
 
-    public static final int FEATURE_DIMENSION = 115;
+    public static final int FEATURE_DIMENSION = 124;
 
     public BAst124Features(BPredicate predicate, Double[] features) {
         super(predicate, features);
