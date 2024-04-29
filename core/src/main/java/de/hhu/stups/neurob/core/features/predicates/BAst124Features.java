@@ -26,11 +26,11 @@ import java.util.Arrays;
  *     <li>log2(max integer used)</li>
  * </ul>
  */
-public class BAst125Features extends PredicateFeatures {
+public class BAst124Features extends PredicateFeatures {
 
-    public static final int FEATURE_DIMENSION = 125;
+    public static final int FEATURE_DIMENSION = 124;
 
-    public BAst125Features(BPredicate predicate, Double[] features) {
+    public BAst124Features(BPredicate predicate, Double[] features) {
         super(predicate, features);
 
         if (features.length != FEATURE_DIMENSION) {
@@ -38,14 +38,14 @@ public class BAst125Features extends PredicateFeatures {
         }
     }
 
-    public static class Generator implements PredicateFeatureGenerating<BAst125Features> {
+    public static class Generator implements PredicateFeatureGenerating<BAst124Features> {
 
         @Override
-        public BAst125Features generate(BPredicate predicate, @Nullable MachineAccess machineAccess)
+        public BAst124Features generate(BPredicate predicate, @Nullable MachineAccess machineAccess)
                 throws FeatureCreationException {
 
             BAstFeatureData data = BAstFeatureCollector.collect(predicate, machineAccess);
-            return new BAst125Features(predicate, generateArray(data));
+            return new BAst124Features(predicate, generateArray(data));
 
         }
 
@@ -321,8 +321,6 @@ public class BAst125Features extends PredicateFeatures {
                     data.getNatCount()/ids,
                     data.getNatural1Count()/ids,
                     data.getNat1Count()/ids,
-
-                    log2(data.getMaxIntegerUsed())
             };
 
             // features is a double[] type, so we have to box it to Double[].
