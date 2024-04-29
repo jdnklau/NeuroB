@@ -9,7 +9,7 @@ public enum Features {
     F109("109 features over the B Ast", () -> new BAst109Reduced.Generator(), 109),
     F110("110 features over the B Ast", () -> new BAst110Features.Generator(), 110),
     F115("115 features over the B Ast", () -> new BAst115Features.Generator(), 115),
-    F124("125 features over the B Ast", () -> new BAst124Features.Generator(), 125),
+    F124("124 features over the B Ast", () -> new BAst124Features.Generator(), 124),
     F185("185 features over the B Ast", () -> new BAst185Features.Generator(), 185),
     F275("275 features over the B Ast", () -> new BAst275Features.Generator(), 275),
 
