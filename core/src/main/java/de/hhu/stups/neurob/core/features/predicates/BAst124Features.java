@@ -313,14 +313,14 @@ public class BAst124Features extends PredicateFeatures {
                     // Additional features to F115
                     data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.UNKNOWN) / (ids ),
                     data.getIdentifierSelfRelationsCount()/ ids,
-                    data.getEnumerableSubsetsCount()/ids,
+                    (ids < 1) ? 0 : data.getEnumerableSubsetsCount()/ids,
 
-                    data.getIntegerCount()/ids,
-                    data.getIntCount()/ids,
-                    data.getNaturalCount()/ids,
-                    data.getNatCount()/ids,
-                    data.getNatural1Count()/ids,
-                    data.getNat1Count()/ids,
+                    (ids < 1) ? 0 : data.getIntegerCount()/ids,
+                    (ids < 1) ? 0 : data.getIntCount()/ids,
+                    (ids < 1) ? 0 : data.getNaturalCount()/ids,
+                    (ids < 1) ? 0 : data.getNatCount()/ids,
+                    (ids < 1) ? 0 : data.getNatural1Count()/ids,
+                    (ids < 1) ? 0 : data.getNat1Count()/ids,
             };
 
             // features is a double[] type, so we have to box it to Double[].
