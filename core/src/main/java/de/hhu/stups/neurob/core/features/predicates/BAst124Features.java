@@ -131,7 +131,7 @@ public class BAst124Features extends PredicateFeatures {
                                + data.getImplicationsCount()
                                + data.getEquivalencesCount());
 
-            final double epsilon = Double.MIN_VALUE; // for division if something could be 0
+            final double epsilon = Double.MIN_NORMAL; // for division if something could be 0
             arithmeticOps = (arithmeticOps == 0.0) ? epsilon : arithmeticOps;
             quantifiers = (quantifiers == 0.0) ? epsilon : quantifiers;
             setBelongings = (setBelongings == 0.0) ? epsilon : setBelongings;
