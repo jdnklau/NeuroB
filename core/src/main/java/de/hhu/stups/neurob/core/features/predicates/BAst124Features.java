@@ -54,282 +54,276 @@ public class BAst124Features extends PredicateFeatures {
             double conjuncts = data.getConjunctsCount();
             double arithmeticOps =
                     data.getArithmeticAdditionCount()
-                    + data.getArithmeticDivisionCount()
-                    + data.getArithmeticMultiplicationCount()
-                    + data.getArithmeticModuloCount()
-                    + data.getArithmeticExponentialCount()
-                    + data.getArithmeticGeneralisedProductCount()
-                    + data.getArithmeticGeneralisedSumCount()
-                    + data.getSuccCount()
-                    + data.getPredecCount()
-                    + data.getSizeComparisonCount();
+                            + data.getArithmeticDivisionCount()
+                            + data.getArithmeticMultiplicationCount()
+                            + data.getArithmeticModuloCount()
+                            + data.getArithmeticExponentialCount()
+                            + data.getArithmeticGeneralisedProductCount()
+                            + data.getArithmeticGeneralisedSumCount()
+                            + data.getSuccCount()
+                            + data.getPredecCount()
+                            + data.getSizeComparisonCount();
             double quantifiers =
                     data.getExistentialQuantifiersCount()
-                    + data.getUniversalQuantifiersCount();
+                            + data.getUniversalQuantifiersCount();
             double setBelongings =
                     data.getMemberCount()
-                    + data.getNotMemberCount()
-                    + data.getNotSubsetCount()
-                    + data.getSubsetCount();
+                            + data.getNotMemberCount()
+                            + data.getNotSubsetCount()
+                            + data.getSubsetCount();
             double setOperations =
                     data.getSetUnionCount() + data.getSetIntersectCount()
-                    + data.getSetSubtractionCount()
-                    + data.getSetGeneralIntersectCount()
-                    + data.getSetGeneralUnionCount()
-                    + data.getSetQuantifiedIntersectCount()
-                    + data.getSetQuantifiedUnionCount();
+                            + data.getSetSubtractionCount()
+                            + data.getSetGeneralIntersectCount()
+                            + data.getSetGeneralUnionCount()
+                            + data.getSetQuantifiedIntersectCount()
+                            + data.getSetQuantifiedUnionCount();
             double relations =
                     data.getRelationCount()
-                    + data.getRelationTotalCount()
-                    + data.getRelationSurjCount()
-                    + data.getRelationTotalSurjCount();
+                            + data.getRelationTotalCount()
+                            + data.getRelationSurjCount()
+                            + data.getRelationTotalSurjCount();
             double relationOps =
                     data.getRelationalImageCount()
-                    + data.getRelationInverseCount()
-                    + data.getRelationOverrideCount()
-                    + data.getRelationDirectProductCount()
-                    + data.getRelationParallelProductCount()
-                    + data.getDomainCount()
-                    + data.getRangeCount()
-                    + data.getProjection1Count()
-                    + data.getProjection2Count()
-                    + data.getForwardCompositionCount()
-                    + data.getDomainRestrictionCount()
-                    + data.getDomainSubtractionCount()
-                    + data.getRangeRestrictionCount()
-                    + data.getRangeSubtractionCount();
+                            + data.getRelationInverseCount()
+                            + data.getRelationOverrideCount()
+                            + data.getRelationDirectProductCount()
+                            + data.getRelationParallelProductCount()
+                            + data.getDomainCount()
+                            + data.getRangeCount()
+                            + data.getProjection1Count()
+                            + data.getProjection2Count()
+                            + data.getForwardCompositionCount()
+                            + data.getDomainRestrictionCount()
+                            + data.getDomainSubtractionCount()
+                            + data.getRangeRestrictionCount()
+                            + data.getRangeSubtractionCount();
             double functions =
                     data.getFunPartialCount()
-                    + data.getFunTotalCount()
-                    + data.getFunPartialInjCount()
-                    + data.getFunTotalInjCount()
-                    + data.getFunPartialSurjCount()
-                    + data.getFunTotalSurjCount()
-                    + data.getFunPartialBijCount()
-                    + data.getFunTotalBijCount()
-                    + data.getLambdaCount();
+                            + data.getFunTotalCount()
+                            + data.getFunPartialInjCount()
+                            + data.getFunTotalInjCount()
+                            + data.getFunPartialSurjCount()
+                            + data.getFunTotalSurjCount()
+                            + data.getFunPartialBijCount()
+                            + data.getFunTotalBijCount()
+                            + data.getLambdaCount();
             double sequences =
                     +data.getSeqCount()
-                    + data.getIseqCount();
+                            + data.getIseqCount();
             double sequenceOps =
                     +data.getSizeCount()
-                    + data.getFirstCount()
-                    + data.getTailCount()
-                    + data.getLastCount()
-                    + data.getFrontCount()
-                    + data.getRevCount()
-                    + data.getPermCount()
-                    + data.getConcatCount()
-                    + data.getFrontInsertionCount()
-                    + data.getTailInsertionCount()
-                    + data.getFrontRestrictionCount()
-                    + data.getTailRestrictionCount()
-                    + data.getGeneralConcatCount();
+                            + data.getFirstCount()
+                            + data.getTailCount()
+                            + data.getLastCount()
+                            + data.getFrontCount()
+                            + data.getRevCount()
+                            + data.getPermCount()
+                            + data.getConcatCount()
+                            + data.getFrontInsertionCount()
+                            + data.getTailInsertionCount()
+                            + data.getFrontRestrictionCount()
+                            + data.getTailRestrictionCount()
+                            + data.getGeneralConcatCount();
             double ids = data.getIdentifiersCount();
             double logicOps = ((data.getConjunctionsCount() - conjuncts + 1)
-                               + data.getDisjunctionsCount()
-                               + data.getImplicationsCount()
-                               + data.getEquivalencesCount());
-
-            final double epsilon = Double.MIN_NORMAL; // for division if something could be 0
-            arithmeticOps = (arithmeticOps == 0.0) ? epsilon : arithmeticOps;
-            quantifiers = (quantifiers == 0.0) ? epsilon : quantifiers;
-            setBelongings = (setBelongings == 0.0) ? epsilon : setBelongings;
-            setOperations = (setOperations == 0.0) ? epsilon : setOperations;
-            relations = (relations == 0.0) ? epsilon : relations;
-            relationOps = (relationOps == 0.0) ? epsilon : relationOps;
-            functions = (functions == 0.0) ? epsilon : functions;
-            sequences = (sequences == 0.0) ? epsilon : sequences;
-            sequenceOps = (sequenceOps == 0.0) ? epsilon : sequenceOps;
-            ids = (ids == 0.0) ? epsilon : ids;
-            logicOps = (logicOps == 0.0) ? epsilon : logicOps;
+                    + data.getDisjunctionsCount()
+                    + data.getImplicationsCount()
+                    + data.getEquivalencesCount());
 
             // setting up the data
-            double[] features = {
+            Double[] features = {
                     // conjunct form
                     log2(conjuncts),
-                    data.getMaxDepth() - 1 / conjuncts, // average conjunct depth
-                    data.getNegationCount() / conjuncts, // average negations
-                    data.getNegationMaxDepth() / conjuncts, // average negation depth
+                    saveDiv(data.getMaxDepth() - 1, conjuncts), // average conjunct depth
+                    saveDiv(data.getNegationCount(), conjuncts), // average negations
+                    saveDiv(data.getNegationMaxDepth(), conjuncts), // average negation depth
 
-                    data.getNegationMaxDepth() / (data.getNegationCount() + epsilon), // avg depth/negation
+                    saveDiv(data.getNegationMaxDepth(), (data.getNegationCount())), // avg depth/negation
 
                     // simple logical operators
-                    logicOps / conjuncts, // & per conjunct
-                    (data.getConjunctionsCount() - conjuncts + 1) / (logicOps ),
-                    data.getDisjunctionsCount() / (logicOps ),
-                    data.getImplicationsCount() / (logicOps ),
-                    data.getEquivalencesCount() / (logicOps ),
+                    saveDiv(logicOps , conjuncts), // & per conjunct
+                    saveDiv((data.getConjunctionsCount() - conjuncts + 1), (logicOps)),
+                    saveDiv(data.getDisjunctionsCount(), (logicOps)),
+                    saveDiv(data.getImplicationsCount(), (logicOps)),
+                    saveDiv(data.getEquivalencesCount(), (logicOps)),
 
 
                     // booleans
-                    data.getBooleanLiteralsCount() / conjuncts,
-                    data.getBooleanConversionCount() / conjuncts,
+                    saveDiv(data.getBooleanLiteralsCount(), conjuncts),
+                    saveDiv(data.getBooleanConversionCount(), conjuncts),
 
                     // quantifiers
-                    quantifiers / conjuncts,
+                    saveDiv(quantifiers, conjuncts),
 
-                    data.getExistentialQuantifiersCount() / (quantifiers ),
-                    data.getUniversalQuantifiersCount() / (quantifiers ),
-                    data.getQuantifierMaxDepthCount() / (quantifiers ),
+                    saveDiv(data.getExistentialQuantifiersCount(), (quantifiers)),
+                    saveDiv(data.getUniversalQuantifiersCount(), (quantifiers)),
+                    saveDiv(data.getQuantifierMaxDepthCount(), (quantifiers)),
 
                     // equality and inequality
-                    data.getEqualityCount() / conjuncts,
-                    data.getInequalityCount() / conjuncts,
+                    saveDiv(data.getEqualityCount(), conjuncts),
+                    saveDiv(data.getInequalityCount(), conjuncts),
 
                     // identifiers
-                    data.getIdentifiersCount() / conjuncts,
+                    saveDiv(data.getIdentifiersCount(), conjuncts),
 
                     // identifiers types over id count
-                    data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.INTEGER) / (ids ),
-                    data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.BOOL) / (ids ),
-                    data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.SET) / (ids ),
-                    data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.RELATION) / (ids ),
-                    data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.FUNCTION) / (ids ),
+                    saveDiv(data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.INTEGER), (ids)),
+                    saveDiv(data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.BOOL), (ids)),
+                    saveDiv(data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.SET), (ids)),
+                    saveDiv(data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.RELATION), (ids)),
+                    saveDiv(data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.FUNCTION), (ids)),
 
                     // identifiers normalised over id count
-                    data.getIdentifierRelationsCount() / (ids ),
+                    saveDiv(data.getIdentifierRelationsCount(), (ids)),
 
-                    data.getIdentifierBoundedCount() / (ids ),
-                    data.getIdentifierSemiBoundedCount() / (ids ),
-                    data.getIdentifierUnboundedCount() / (ids ),
-                    data.getIdentifierBoundedDomainCount() / (ids ),
-                    data.getIdentifierSemiBoundedDomainCount() / (ids ),
-                    data.getIdentifierUnboundedDomainCount() / (ids ),
+                    saveDiv(data.getIdentifierBoundedCount(), (ids)),
+                    saveDiv(data.getIdentifierSemiBoundedCount(), (ids)),
+                    saveDiv(data.getIdentifierUnboundedCount(), (ids)),
+                    saveDiv(data.getIdentifierBoundedDomainCount(), (ids)),
+                    saveDiv(data.getIdentifierSemiBoundedDomainCount(), (ids)),
+                    saveDiv(data.getIdentifierUnboundedDomainCount(), (ids)),
 
                     // arithmetic
-                    arithmeticOps / conjuncts,
+                    saveDiv(arithmeticOps, conjuncts),
 
                     // arithmetic normalised over arithmetic
-                    data.getArithmeticAdditionCount() / (arithmeticOps ),
-                    data.getArithmeticMultiplicationCount() / (arithmeticOps ),
-                    data.getArithmeticDivisionCount() / (arithmeticOps ),
-                    data.getArithmeticModuloCount() / (arithmeticOps ),
-                    data.getSizeComparisonCount() / (arithmeticOps ),
-                    data.getArithmeticGeneralisedSumCount() / (arithmeticOps ),
-                    data.getArithmeticGeneralisedProductCount() / (arithmeticOps ),
-                    data.getSuccCount() / (arithmeticOps ),
-                    data.getPredecCount() / (arithmeticOps ),
+                    saveDiv(data.getArithmeticAdditionCount(), (arithmeticOps)),
+                    saveDiv(data.getArithmeticMultiplicationCount(), (arithmeticOps)),
+                    saveDiv(data.getArithmeticDivisionCount(), (arithmeticOps)),
+                    saveDiv(data.getArithmeticModuloCount(), (arithmeticOps)),
+                    saveDiv(data.getSizeComparisonCount(), (arithmeticOps)),
+                    saveDiv(data.getArithmeticGeneralisedSumCount(), (arithmeticOps)),
+                    saveDiv(data.getArithmeticGeneralisedProductCount(), (arithmeticOps)),
+                    saveDiv(data.getSuccCount(), (arithmeticOps)),
+                    saveDiv(data.getPredecCount(), (arithmeticOps)),
 
                     // set theory
-                    setBelongings / conjuncts,
-                    setOperations / conjuncts,
-                    data.getSetComprehensionCount() / conjuncts,
-                    data.getSetCardCount() / conjuncts,
+                    saveDiv(setBelongings, conjuncts),
+                    saveDiv(setOperations, conjuncts),
+                    saveDiv(data.getSetComprehensionCount(), conjuncts),
+                    saveDiv(data.getSetCardCount(), conjuncts),
 
                     // set theory over sets
-                    data.getMemberCount() / (setBelongings ),
-                    data.getNotMemberCount() / (setBelongings ),
-                    data.getSubsetCount() / (setBelongings ),
-                    data.getNotSubsetCount() / (setBelongings ),
+                    saveDiv(data.getMemberCount(), (setBelongings)),
+                    saveDiv(data.getNotMemberCount(), (setBelongings)),
+                    saveDiv(data.getSubsetCount(), (setBelongings)),
+                    saveDiv(data.getNotSubsetCount(), (setBelongings)),
 
-                    data.getSetUnionCount() / (setOperations ),
-                    data.getSetIntersectCount() / (setOperations ),
-                    data.getSetSubtractionCount() / (setOperations ),
-                    data.getSetGeneralUnionCount() / (setOperations ),
-                    data.getSetGeneralIntersectCount() / (setOperations ),
-                    data.getSetQuantifiedUnionCount() / (setOperations ),
-                    data.getSetQuantifiedIntersectCount() / (setOperations ),
+                    saveDiv(data.getSetUnionCount(), (setOperations)),
+                    saveDiv(data.getSetIntersectCount(), (setOperations)),
+                    saveDiv(data.getSetSubtractionCount(), (setOperations)),
+                    saveDiv(data.getSetGeneralUnionCount(), (setOperations)),
+                    saveDiv(data.getSetGeneralIntersectCount(), (setOperations)),
+                    saveDiv(data.getSetQuantifiedUnionCount(), (setOperations)),
+                    saveDiv(data.getSetQuantifiedIntersectCount(), (setOperations)),
 
                     // power sets
-                    data.getPowerSetCount() / conjuncts,
-                    data.getPowerSetHigherOrderCounts() / (data.getPowerSetCount() + epsilon),
-                    data.getPowerSetCount() / (setOperations ),
-                    data.getMaxPowDepth() / (data.getPowerSetCount() + epsilon),
+                    saveDiv(data.getPowerSetCount(), conjuncts),
+                    saveDiv(data.getPowerSetHigherOrderCounts(), (data.getPowerSetCount())),
+                    saveDiv(data.getPowerSetCount(), (setOperations)),
+                    saveDiv(data.getMaxPowDepth(), (data.getPowerSetCount())),
 
                     // relations
-                    relations / conjuncts,
-                    relationOps / conjuncts,
+                    saveDiv(relations, conjuncts),
+                    saveDiv(relationOps, conjuncts),
 
                     // relations over relation theory
-                    data.getRelationCount() / (relations ),
-                    data.getRelationTotalCount() / (relations ),
-                    data.getRelationSurjCount() / (relations ),
-                    data.getRelationTotalSurjCount() / (relations ),
+                    saveDiv(data.getRelationCount(), (relations)),
+                    saveDiv(data.getRelationTotalCount(), (relations)),
+                    saveDiv(data.getRelationSurjCount(), (relations)),
+                    saveDiv(data.getRelationTotalSurjCount(), (relations)),
 
-                    data.getRelationalImageCount() / (relationOps ),
-                    data.getRelationInverseCount() / (relationOps ),
-                    data.getRelationOverrideCount() / (relationOps ),
-                    data.getRelationDirectProductCount() / (relationOps ),
-                    data.getRelationParallelProductCount() / (relationOps ),
-                    data.getDomainCount() / (relationOps ),
-                    data.getRangeCount() / (relationOps ),
-                    data.getProjection1Count() / (relationOps ),
-                    data.getProjection2Count() / (relationOps ),
-                    data.getForwardCompositionCount() / (relationOps ),
-                    data.getDomainRestrictionCount() / (relationOps ),
-                    data.getDomainSubtractionCount() / (relationOps ),
-                    data.getRangeRestrictionCount() / (relationOps ),
-                    data.getRangeSubtractionCount() / (relationOps ),
+                    saveDiv(data.getRelationalImageCount(), (relationOps)),
+                    saveDiv(data.getRelationInverseCount(), (relationOps)),
+                    saveDiv(data.getRelationOverrideCount(), (relationOps)),
+                    saveDiv(data.getRelationDirectProductCount(), (relationOps)),
+                    saveDiv(data.getRelationParallelProductCount(), (relationOps)),
+                    saveDiv(data.getDomainCount(), (relationOps)),
+                    saveDiv(data.getRangeCount(), (relationOps)),
+                    saveDiv(data.getProjection1Count(), (relationOps)),
+                    saveDiv(data.getProjection2Count(), (relationOps)),
+                    saveDiv(data.getForwardCompositionCount(), (relationOps)),
+                    saveDiv(data.getDomainRestrictionCount(), (relationOps)),
+                    saveDiv(data.getDomainSubtractionCount(), (relationOps)),
+                    saveDiv(data.getRangeRestrictionCount(), (relationOps)),
+                    saveDiv(data.getRangeSubtractionCount(), (relationOps)),
 
                     // functions
-                    functions / conjuncts,
-                    data.getFunctionApplicationCount() / conjuncts,
+                    saveDiv(functions, conjuncts),
+                    saveDiv(data.getFunctionApplicationCount(), conjuncts),
 
                     // functions over function theory
-                    data.getFunPartialCount() / (functions ),
-                    data.getFunTotalCount() / (functions ),
-                    data.getFunPartialInjCount() / (functions ),
-                    data.getFunTotalInjCount() / (functions ),
-                    data.getFunPartialSurjCount() / (functions ),
-                    data.getFunTotalSurjCount() / (functions ),
-                    data.getFunPartialBijCount() / (functions ),
-                    data.getFunTotalBijCount() / (functions ),
-                    data.getLambdaCount() / (functions ),
+                    saveDiv(data.getFunPartialCount(), (functions)),
+                    saveDiv(data.getFunTotalCount(), (functions)),
+                    saveDiv(data.getFunPartialInjCount(), (functions)),
+                    saveDiv(data.getFunTotalInjCount(), (functions)),
+                    saveDiv(data.getFunPartialSurjCount(), (functions)),
+                    saveDiv(data.getFunTotalSurjCount(), (functions)),
+                    saveDiv(data.getFunPartialBijCount(), (functions)),
+                    saveDiv(data.getFunTotalBijCount(), (functions)),
+                    saveDiv(data.getLambdaCount(), (functions)),
 
                     // sequences
-                    sequences / conjuncts,
-                    sequenceOps / conjuncts,
+                    saveDiv(sequences, conjuncts),
+                    saveDiv(sequenceOps, conjuncts),
 
                     // sequences over sequence theory
-                    data.getSeqCount() / (sequences ),
-                    data.getIseqCount() / (sequences ),
+                    saveDiv(data.getSeqCount(), (sequences)),
+                    saveDiv(data.getIseqCount(), (sequences)),
 
-                    data.getSizeCount() / (sequenceOps ),
-                    data.getFirstCount() / (sequenceOps ),
-                    data.getTailCount() / (sequenceOps ),
-                    data.getLastCount() / (sequenceOps ),
-                    data.getFrontCount() / (sequenceOps ),
-                    data.getRevCount() / (sequenceOps ),
-                    data.getPermCount() / (sequenceOps ),
-                    data.getConcatCount() / (sequenceOps ),
-                    data.getFrontInsertionCount() / (sequenceOps ),
-                    data.getTailInsertionCount() / (sequenceOps ),
-                    data.getFrontRestrictionCount() / (sequenceOps ),
-                    data.getTailRestrictionCount() / (sequenceOps ),
-                    data.getGeneralConcatCount() / (sequenceOps ),
+                    saveDiv(data.getSizeCount(), (sequenceOps)),
+                    saveDiv(data.getFirstCount(), (sequenceOps)),
+                    saveDiv(data.getTailCount(), (sequenceOps)),
+                    saveDiv(data.getLastCount(), (sequenceOps)),
+                    saveDiv(data.getFrontCount(), (sequenceOps)),
+                    saveDiv(data.getRevCount(), (sequenceOps)),
+                    saveDiv(data.getPermCount(), (sequenceOps)),
+                    saveDiv(data.getConcatCount(), (sequenceOps)),
+                    saveDiv(data.getFrontInsertionCount(), (sequenceOps)),
+                    saveDiv(data.getTailInsertionCount(), (sequenceOps)),
+                    saveDiv(data.getFrontRestrictionCount(), (sequenceOps)),
+                    saveDiv(data.getTailRestrictionCount(), (sequenceOps)),
+                    saveDiv(data.getGeneralConcatCount(), (sequenceOps)),
 
                     // closure and iterations
-                    data.getClosureCount() / conjuncts,
-                    data.getIterateCount() / conjuncts,
+                    saveDiv(data.getClosureCount(), conjuncts),
+                    saveDiv(data.getIterateCount(), conjuncts),
 
                     // Additional features to F110
-                    data.getIdUses() / conjuncts,
-                    data.getConjunctBasedDistinctIdUses() / conjuncts,
-                    data.getIdUses() / (ids ),
-                    data.getConjunctBasedDistinctIdUses() / (ids ),
-                    data.getConjunctsWithoutIdUseCount() / conjuncts,
+                    saveDiv(data.getIdUses(), conjuncts),
+                    saveDiv(data.getConjunctBasedDistinctIdUses(), conjuncts),
+                    saveDiv(data.getIdUses(), (ids)),
+                    saveDiv(data.getConjunctBasedDistinctIdUses(), (ids)),
+                    saveDiv(data.getConjunctsWithoutIdUseCount(), conjuncts),
 
                     // Additional features to F115
-                    data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.UNKNOWN) / (ids ),
-                    data.getIdentifierSelfRelationsCount()/ ids,
-                    (ids < 1) ? 0 : data.getEnumerableSubsetsCount()/ids,
+                    saveDiv(data.identifierOfTypeCount(AdjacencyList.AdjacencyNodeTypes.UNKNOWN), (ids)),
+                    saveDiv(data.getIdentifierSelfRelationsCount(), ids),
+                    saveDiv((ids < 1) ? 0 : data.getEnumerableSubsetsCount(), ids),
 
-                    (ids < 1) ? 0 : data.getIntegerCount()/ids,
-                    (ids < 1) ? 0 : data.getIntCount()/ids,
-                    (ids < 1) ? 0 : data.getNaturalCount()/ids,
-                    (ids < 1) ? 0 : data.getNatCount()/ids,
-                    (ids < 1) ? 0 : data.getNatural1Count()/ids,
-                    (ids < 1) ? 0 : data.getNat1Count()/ids,
+                    saveDiv(data.getIntegerCount(), ids),
+                    saveDiv(data.getIntCount(), ids),
+                    saveDiv(data.getNaturalCount(), ids),
+                    saveDiv(data.getNatCount(), ids),
+                    saveDiv(data.getNatural1Count(), ids),
+                    saveDiv(data.getNat1Count(), ids),
             };
 
-            // features is a double[] type, so we have to box it to Double[].
-            return Arrays.stream(features).boxed().toArray(Double[]::new);
+            return features;
         }
     }
 
-    private static double log2(double num) {
+    private static Double log2(double num) {
         return Math.log(num) / Math.log(2);
+    }
+
+    private static Double saveDiv(double dividend, double divisor) {
+        double epsilon = 1;  // All denominators we use should be integers.
+        if (divisor < epsilon) {
+            return 0.0;
+        }
+        return dividend / divisor;
     }
 
 }
