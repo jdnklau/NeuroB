@@ -142,6 +142,7 @@ public class PredDbAnalysis
         // Backend-specific data
         for (Backend b : backendsSeen) {
             summary.append(getBackendSummary(b, answerOrder));
+            summary.append('\n');
         }
 
         return summary.toString();
@@ -210,8 +211,37 @@ public class PredDbAnalysis
         }
         summary.append('\n');
 
+        // Runtime stats
+        summary.append("  Runtime metrics for all answered (VALID, INVALID, UNKNOWN) predicates:\n");
+        RegressionAnalysis<Long> regAna = answeredRegressions.getOrDefault(b, new RegressionAnalysis<>());
+        addRegressionAnalysisSummary(regAna, summary);
+        summary.append('\n');
+
+        summary.append("  Runtime metrics for all timed (VALID, INVALID, UNKNOWN, ERROR) predicates:\n");
+        regAna = timedRegressions.getOrDefault(b, new RegressionAnalysis<>());
+        addRegressionAnalysisSummary(regAna, summary);
+        summary.append('\n');
+
+        summary.append("  Runtime metrics for all answers (includes TIMEOUT as well):\n");
+        regAna.mergeWith(backendRegressions.get(Answer.TIMEOUT).get(b));
+        addRegressionAnalysisSummary(regAna, summary);
+
 
         return summary.toString();
+    }
+
+    private void addRegressionAnalysisSummary(RegressionAnalysis regAna, StringBuilder summary) {
+        // We divide by 1 000 000 to convert from nanoseconds to milliseconds.
+        summary.append("  - Minimum: ");
+        summary.append(regAna.getMinimum().doubleValue()/1_000_000).append(" ms");
+        summary.append("\n  - 1. Quartile: ");
+        summary.append(regAna.getFirstQuartile()/1_000_000).append(" ms");
+        summary.append("\n  - Median: ");
+        summary.append(regAna.getMedian()/1_000_000).append(" ms");
+        summary.append("\n  - 3. Quartile: ");
+        summary.append(regAna.getThirdQuartile()/1_000_000).append(" ms");
+        summary.append("\n  - Maximum: ");
+        summary.append(regAna.getMaximum().doubleValue()/1_000_000).append(" ms");
     }
 
     public String getContradictionSummary(PredDbEntry dbEntry) {
