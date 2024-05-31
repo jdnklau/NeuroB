@@ -822,7 +822,7 @@ public class PredDbAnalysis
             Answer answer = tAnswer.getAnswer();
 
             // Skip errors and timeouts
-            if (answer.equals(Answer.TIMEOUT) || answer.equals(Answer.ERROR)) {
+            if (Answer.TIMEOUT.equals(answer) || Answer.ERROR.equals(answer)) {
                 continue;
             }
 

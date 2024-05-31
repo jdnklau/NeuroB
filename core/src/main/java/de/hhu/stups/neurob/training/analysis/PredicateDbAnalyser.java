@@ -9,6 +9,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 public class PredicateDbAnalyser {
 
@@ -24,18 +32,43 @@ public class PredicateDbAnalyser {
     public PredDbAnalysis analyse(Path db) throws IOException {
         log.info("Analysing Database located at {}", db);
 
-        PredDbAnalysis analysis = new PredDbAnalysis();
-        format.loadTrainingData(db)
+        return format.loadTrainingData(db)
                 .parallel()
                 .map(this::analyse)
-                .forEach(analysis::mergeWith); // TODO: Check whether close is called correctly.
-
-        return analysis;
+                .collect(new AnalysisCollector());
     }
 
     public PredDbAnalysis analyse(TrainingData<BPredicate, PredDbEntry> data) {
         PredDbAnalysis analysis = new PredDbAnalysis();
         data.getSamples().forEach(analysis::add);
         return analysis;
+    }
+
+    public static class AnalysisCollector implements Collector<PredDbAnalysis,PredDbAnalysis,PredDbAnalysis> {
+
+        @Override
+        public Supplier<PredDbAnalysis> supplier() {
+            return PredDbAnalysis::new;
+        }
+
+        @Override
+        public BiConsumer<PredDbAnalysis, PredDbAnalysis> accumulator() {
+            return PredDbAnalysis::mergeWith;
+        }
+
+        @Override
+        public BinaryOperator<PredDbAnalysis> combiner() {
+            return PredDbAnalysis::mergeWith;
+        }
+
+        @Override
+        public Function<PredDbAnalysis, PredDbAnalysis> finisher() {
+            return a->a;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return Set.of(Characteristics.CONCURRENT, Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH);
+        }
     }
 }
