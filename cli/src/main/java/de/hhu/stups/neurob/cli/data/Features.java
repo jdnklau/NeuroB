@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 
 public enum Features {
 
+    F17("17 features over the B Ast", () -> new TheoryFeatures.Generator(), 109),
     F109("109 features over the B Ast", () -> new BAst109Reduced.Generator(), 109),
     F110("110 features over the B Ast", () -> new BAst110Features.Generator(), 110),
     F115("115 features over the B Ast", () -> new BAst115Features.Generator(), 115),
