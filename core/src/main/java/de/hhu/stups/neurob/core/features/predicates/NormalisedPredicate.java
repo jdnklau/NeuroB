@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
 
 /**
  * Generically normalised form of predicates.
- *
+ * <p>
  * Normalisation routine:
  * <ul>
  *     <li>Each identifier is mapped to an enumerated "idX" with X being a natural
@@ -22,15 +22,13 @@ import javax.annotation.Nullable;
  * </ul>
  */
 public class NormalisedPredicate extends PredicateFeatures {
-    private final BPredicate pred;
 
     public NormalisedPredicate(String pred) {
         this(BPredicate.of(pred));
     }
 
     public NormalisedPredicate(BPredicate pred) {
-        super(vectorizePred(pred));
-        this.pred = pred;
+        super(pred, vectorizePred(pred));
     }
 
     private static Double[] vectorizePred(BPredicate pred) {
@@ -42,10 +40,6 @@ public class NormalisedPredicate extends PredicateFeatures {
         }
 
         return vec;
-    }
-
-    public BPredicate getPred() {
-        return pred;
     }
 
     public static class Generator implements PredicateFeatureGenerating<NormalisedPredicate> {

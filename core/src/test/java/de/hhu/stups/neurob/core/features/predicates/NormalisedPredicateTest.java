@@ -13,7 +13,7 @@ class NormalisedPredicateTest {
         BPredicate pred = BPredicate.of("x>y & y>x & z=5");
 
         String expected = "id0>id1 & id1>id0 & id2=5";
-        String actual = new NormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
+        String actual = new NormalisedPredicate.Generator().generate(pred).getPredicate().toString();
 
         assertEquals(expected,actual);
     }
@@ -23,7 +23,7 @@ class NormalisedPredicateTest {
         BPredicate pred = BPredicate.of("# /* LET */ (x).(x=y) & y>2");
 
         String expected = "#(id0).(id0=id1) & id1>2";
-        String actual = new NormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
+        String actual = new NormalisedPredicate.Generator().generate(pred).getPredicate().toString();
 
         assertEquals(expected,actual);
     }

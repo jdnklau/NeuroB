@@ -13,7 +13,7 @@ class GenericNormalisedPredicateTest {
         BPredicate pred = BPredicate.of("x>y & y>x");
 
         String expected = "idn>idn & idn>idn";
-        String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
+        String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPredicate().toString();
 
         assertEquals(expected,actual);
     }
@@ -25,7 +25,7 @@ class GenericNormalisedPredicateTest {
         BPredicate pred = BPredicate.of("x:NAT & x$0=x+1 => x$0 : NAT");
 
         String expected = "idn:NAT & idn=idn+1 => idn:NAT";
-        String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
+        String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPredicate().toString();
 
         assertEquals(expected,actual);
     }
@@ -35,7 +35,7 @@ class GenericNormalisedPredicateTest {
         BPredicate pred = BPredicate.of("level : NAT & level′ = level+1 => level′:NAT");
 
         String expected = "idn:NAT & idn=idn+1 => idn:NAT";
-        String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPred().getPredicate();
+        String actual = new GenericNormalisedPredicate.Generator().generate(pred).getPredicate().toString();
 
         assertEquals(expected,actual);
     }

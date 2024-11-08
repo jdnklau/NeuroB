@@ -16,22 +16,19 @@ import javax.annotation.Nullable;
 
 /**
  * Generically normalised form of predicates.
- *
+ * <p>
  * Normalisation routine:
  * <ul>
  *     <li>Each identifier is mapped to "idn"</li>
  * </ul>
  */
 public class GenericNormalisedPredicate extends PredicateFeatures {
-    private final BPredicate pred;
-
     public GenericNormalisedPredicate(String pred) {
         this(BPredicate.of(pred));
     }
 
     public GenericNormalisedPredicate(BPredicate pred) {
-        super(vectorizePred(pred));
-        this.pred = pred;
+        super(pred, vectorizePred(pred));
     }
 
     private static Double[] vectorizePred(BPredicate pred) {
@@ -43,10 +40,6 @@ public class GenericNormalisedPredicate extends PredicateFeatures {
         }
 
         return vec;
-    }
-
-    public BPredicate getPred() {
-        return pred;
     }
 
     public static class Generator implements PredicateFeatureGenerating<GenericNormalisedPredicate> {
