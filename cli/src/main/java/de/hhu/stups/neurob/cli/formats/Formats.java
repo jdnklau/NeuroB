@@ -21,6 +21,7 @@ public enum Formats {
     CSVC("CSV with comment column", (f,l,b) -> new CsvFormat(f, l, true, true)),
     TFTXT("Tensorflow Text Data directory structure", (f,l,b) -> new TfTextDirectory<BackendClassification>()),
     PLIST("Predicate list data base format", (f,l,b) -> new PredicateList()),
+    RAWPRED("List of labelled, raw predicates for training", (f,l,b) -> new LabelledPredicateListFormat()),
     BAST("List of BAsts with preceeding labels", (f,l,b) -> new PrologAstListFormat());
 
     public final String description;
