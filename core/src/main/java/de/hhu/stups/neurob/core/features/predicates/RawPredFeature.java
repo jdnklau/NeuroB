@@ -11,15 +11,13 @@ import javax.annotation.Nullable;
  * Features of raw predicates.
  */
 public class RawPredFeature extends PredicateFeatures {
-    private final BPredicate pred;
 
     public RawPredFeature(String pred) {
         this(BPredicate.of(pred));
     }
 
     public RawPredFeature(BPredicate pred) {
-        super(vectorizePred(pred));
-        this.pred = pred;
+        super(pred, vectorizePred(pred));
     }
 
     private static Double[] vectorizePred(BPredicate pred) {
@@ -31,10 +29,6 @@ public class RawPredFeature extends PredicateFeatures {
         }
 
         return vec;
-    }
-
-    public BPredicate getPred() {
-        return pred;
     }
 
     public static class Generator implements PredicateFeatureGenerating<RawPredFeature> {

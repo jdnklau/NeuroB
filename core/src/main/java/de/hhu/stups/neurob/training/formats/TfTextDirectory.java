@@ -62,7 +62,7 @@ public class TfTextDirectory<L extends PredicateLabelling>
         Path file = labelDir.resolve("pred_" + nextId.getAndIncrement() + "." + EXT);
         try {
             BufferedWriter writer = Files.newBufferedWriter(file);
-            writer.write(pred.getPred().getPredicate());
+            writer.write(pred.getPredicate().getPredicate());
             writer.close();
             ds.increaseSamplesWritten();
             ds.increaseFilesCreated();

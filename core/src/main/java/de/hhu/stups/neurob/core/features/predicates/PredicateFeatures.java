@@ -3,12 +3,14 @@ package de.hhu.stups.neurob.core.features.predicates;
 import de.hhu.stups.neurob.core.api.bmethod.BPredicate;
 import de.hhu.stups.neurob.core.features.Features;
 
+import java.util.Objects;
+
 /**
  * Features over B-predicates.
  */
 public class PredicateFeatures extends Features {
 
-    private final BPredicate predicate;
+    final BPredicate predicate;
 
     public PredicateFeatures(String predicate, Double... features) {
         this(new BPredicate(predicate), features);
@@ -32,9 +34,7 @@ public class PredicateFeatures extends Features {
         if (o instanceof PredicateFeatures) {
             PredicateFeatures other = (PredicateFeatures) o;
 
-            boolean arePredicatesEqual = (this.predicate == null)
-                    ? other.predicate == null
-                    : this.predicate.equals(other.predicate);
+            boolean arePredicatesEqual = Objects.equals(this.predicate, other.predicate);
 
             return arePredicatesEqual && super.equals(other);
         }
