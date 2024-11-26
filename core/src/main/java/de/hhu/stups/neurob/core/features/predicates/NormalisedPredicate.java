@@ -8,6 +8,7 @@ import de.hhu.stups.neurob.core.api.bmethod.MachineAccess;
 import de.hhu.stups.neurob.core.exceptions.FeatureCreationException;
 import de.hhu.stups.neurob.core.features.predicates.util.GenericNormaliser;
 import de.hhu.stups.neurob.core.features.predicates.util.IdNormaliser;
+import de.hhu.stups.neurob.core.features.predicates.util.NeuroBPrettyPrinter;
 import de.prob.animator.domainobjects.IBEvalElement;
 
 import javax.annotation.Nullable;
@@ -64,7 +65,7 @@ public class NormalisedPredicate extends PredicateFeatures {
 
             // Walk AST, return data
             ast.apply(new IdNormaliser());
-            PrettyPrinter prettyPrinter = new PrettyPrinter();
+            NeuroBPrettyPrinter prettyPrinter = new NeuroBPrettyPrinter();
             ast.apply(prettyPrinter);
 
             return new NormalisedPredicate(prettyPrinter.getPrettyPrint());
