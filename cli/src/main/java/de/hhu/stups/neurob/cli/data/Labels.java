@@ -2,10 +2,7 @@ package de.hhu.stups.neurob.cli.data;
 
 import de.hhu.stups.neurob.core.api.backends.Backend;
 import de.hhu.stups.neurob.core.api.backends.preferences.BPreference;
-import de.hhu.stups.neurob.core.labelling.BackendClassification;
-import de.hhu.stups.neurob.core.labelling.BaldusTimings;
-import de.hhu.stups.neurob.core.labelling.HealyTimings;
-import de.hhu.stups.neurob.core.labelling.SettingsMultiLabel;
+import de.hhu.stups.neurob.core.labelling.*;
 import de.hhu.stups.neurob.training.migration.labelling.LabelTranslation;
 
 import java.util.HashSet;
@@ -16,7 +13,8 @@ public enum Labels {
     BC("Classification over the given Backends", b -> new BackendClassification.Translator(b), b->1),
     SMULT("Multi-Labelling of Settings", b -> new SettingsMultiLabel.Translator(b), Labels::countPreferences),
     BALDUS("Baldus' Runtime Regression", b -> new BaldusTimings.Translator(b), b->b.length),
-    HEALY("Healy's Runtime Regression", b -> new HealyTimings.Translator(b), b->b.length)
+    HEALY("Healy's Runtime Regression", b -> new HealyTimings.Translator(b), b->b.length),
+    RANK("Ranking info", b -> new RankingBasedata.Translator(b), b->b.length * 2),
     ;
 
     public final String info;
